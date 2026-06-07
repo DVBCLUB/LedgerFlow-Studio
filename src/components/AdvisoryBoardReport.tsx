@@ -146,9 +146,9 @@ export default function AdvisoryBoardReport() {
   // Experts database definitions
   const experts: Record<'khoa' | 'ha' | 'viet' | 'dan', ExpertOpinion> = {
     khoa: {
-      name: 'Dr. Minh Khoa',
+      name: 'Dr. Alistair K. Vance',
       avatar: '💻',
-      role: 'Tech Lead / AI Engineer (Cựu Đại Học Bách Khoa, Hệ Thống Lớn & DevOps)',
+      role: 'Tech Lead / AI Architect (Lead of AI Systems & DevOps, ex-Google)',
       verdict: '⚙️ Stack tốt, nhưng đang build một "bảo tàng" thay vì một "vũ khí" tác chiến thực sự.',
       themeColor: 'border-purple-500/35 bg-purple-500/5 text-purple-400',
       avatarColor: 'bg-purple-500/15 border-purple-500/30 text-purple-400',
@@ -176,9 +176,9 @@ export default function AdvisoryBoardReport() {
       ]
     },
     ha: {
-      name: 'Bà Thu Hà',
+      name: 'Madame Helena Sterling, CFA',
       avatar: '📊',
-      role: 'CFO / Chuyên gia Tài chính Kế toán doanh nghiệp Việt Nam',
+      role: 'CFO / Global Finance Strategist (Ex-Goldman Sachs, Corporate Finance Veteran)',
       verdict: '💰 Mô hình tài chính tốt về lý thuyết - nhưng thiếu "người trả tiền thật" để chứng thực sản phẩm.',
       themeColor: 'border-emerald-500/35 bg-emerald-500/5 text-emerald-400',
       avatarColor: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
@@ -203,9 +203,9 @@ export default function AdvisoryBoardReport() {
       ]
     },
     viet: {
-      name: 'Anh Tuấn Việt',
+      name: 'Julian Mercer',
       avatar: '🧩',
-      role: 'Product Manager (Chuyên gia UX/UI & Luồng nghiệp vụ SME)',
+      role: 'Product Director / UX Lead (Former Apple & Airbnb UX Strategist)',
       verdict: '🧩 UX/UI rất chuyên nghiệp - nhưng đang cố giải quyết 13 vấn đề cùng lúc, dễ làm người dùng xao nhãng.',
       themeColor: 'border-sky-500/35 bg-sky-500/5 text-sky-400',
       avatarColor: 'bg-sky-505 bg-sky-500/15 border-sky-500/30 text-sky-400',
@@ -230,9 +230,9 @@ export default function AdvisoryBoardReport() {
       ]
     },
     dan: {
-      name: 'Chị Linh Đan',
+      name: 'Seraphina Kross',
       avatar: '🚀',
-      role: 'Growth Hacker (Kiến trúc sư Tiếp thị Tăng trưởng Du Kích 0đ VN)',
+      role: 'Growth Hacker & Viral Architect (Go-To-Market Specialist, ex-Stripe)',
       verdict: '🚀 Tư duy phát tán du kích rất sắc bám sát môi trường Việt Nam - nhưng cần thu gom tệp khách hàng hẹp.',
       themeColor: 'border-amber-500/35 bg-amber-500/5 text-amber-400',
       avatarColor: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
@@ -371,10 +371,10 @@ export default function AdvisoryBoardReport() {
             
             <div className="space-y-1.5 font-sans">
               {[
-                { id: 'khoa', name: 'Dr. Minh Khoa', role: 'Tech Lead / AI Engineer', emoji: '💻', activeColor: 'bg-purple-950/50 border-purple-500/30 text-purple-300' },
-                { id: 'ha', name: 'Bà Thu Hà', role: 'CFO / Tài chính Kế toán', emoji: '📊', activeColor: 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300' },
-                { id: 'viet', name: 'Anh Tuấn Việt', role: 'Product Manager (BA/DA)', emoji: '🧩', activeColor: 'bg-sky-950/50 border-sky-500/30 text-sky-400' },
-                { id: 'dan', name: 'Chị Linh Đan', role: 'Growth Hacker (Go-To-Market)', emoji: '🚀', activeColor: 'bg-amber-950/50 border-amber-500/30 text-amber-300' }
+                { id: 'khoa', name: 'Dr. Alistair K. Vance', role: 'Tech Lead / AI Architect', emoji: '💻', activeColor: 'bg-purple-950/50 border-purple-500/30 text-purple-300' },
+                { id: 'ha', name: 'Madame Helena Sterling, CFA', role: 'CFO / Global Finance', emoji: '📊', activeColor: 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300' },
+                { id: 'viet', name: 'Julian Mercer', role: 'Product Director / UX Lead', emoji: '🧩', activeColor: 'bg-sky-950/50 border-sky-500/30 text-sky-400' },
+                { id: 'dan', name: 'Seraphina Kross', role: 'Growth Lead / Viral Architect', emoji: '🚀', activeColor: 'bg-amber-950/50 border-amber-500/30 text-amber-300' }
               ].map(exp => (
                 <button
                   key={exp.id}
@@ -410,7 +410,7 @@ export default function AdvisoryBoardReport() {
             </div>
             <div className="space-y-1">
               <h3 className="text-sm font-black text-white">{experts[activeExpert].name}</h3>
-              <p className="text-xs text-slate-405 text-slate-400 font-bold leading-tight">{experts[activeExpert].role}</p>
+              <p className="text-xs text-slate-400 font-bold leading-tight">{experts[activeExpert].role}</p>
               <div className={`text-[11px] font-black py-1 px-3 rounded-lg border inline-block select-text mt-1.5 ${experts[activeExpert].themeColor}`}>
                 {experts[activeExpert].verdict}
               </div>
@@ -505,7 +505,7 @@ export default function AdvisoryBoardReport() {
                     step="5000000"
                     value={marginSimulatorRevenue}
                     onChange={(e) => setMarginSimulatorRevenue(parseInt(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 bg-slate-955 rounded-lg"
+                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg"
                   />
                   <span className="text-[10px] font-mono text-emerald-400 font-black">{marginSimulatorRevenue.toLocaleString('vi-VN')} đ/tháng</span>
                 </div>
@@ -520,7 +520,7 @@ export default function AdvisoryBoardReport() {
                     step="10"
                     value={marginSimulatorHours}
                     onChange={(e) => setMarginSimulatorHours(parseInt(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-955 rounded-lg"
+                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg"
                   />
                   <span className="text-[10px] font-mono text-purple-400 font-black">{marginSimulatorHours} giờ/tháng</span>
                 </div>
@@ -535,7 +535,7 @@ export default function AdvisoryBoardReport() {
                     step="50000"
                     value={marginRatePerHour}
                     onChange={(e) => setMarginRatePerHour(parseInt(e.target.value))}
-                    className="w-full accent-sky-500 h-1 bg-slate-955 rounded-lg"
+                    className="w-full accent-sky-500 h-1 bg-slate-800 rounded-lg"
                   />
                   <span className="text-[10px] font-mono text-sky-400 font-black">{marginRatePerHour.toLocaleString('vi-VN')}đ/giờ</span>
                 </div>

@@ -1676,7 +1676,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                             element.click();
                             document.body.removeChild(element);
                           }}
-                          className="flex items-center gap-1.5 px-2 py-1 bg-slate-900 border border-slate-805 text-slate-400 hover:text-white rounded-lg text-[9.5px] font-bold transition-all"
+                          className="flex items-center gap-1.5 px-2 py-1 bg-slate-900 border border-slate-800 text-slate-400 hover:text-white rounded-lg text-[9.5px] font-bold transition-all"
                           title="Tải tài liệu dạng Markdown về máy"
                         >
                           <Download className="w-3 h-3 text-emerald-400" />
@@ -1974,7 +1974,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                       className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden select-none ${
                         isSelected
                           ? 'bg-emerald-500/10 border-emerald-500 ring-1 ring-emerald-500/20 shadow-md shadow-emerald-500/5'
-                          : 'bg-slate-900/40 border-slate-850 hover:bg-slate-905 text-slate-300'
+                          : 'bg-slate-900/40 border-slate-800 hover:bg-slate-800 text-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between">
@@ -2066,7 +2066,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                     AI-AGENTS-SANDBOX.sh
                   </span>
                 </div>
-                <div className="text-[10px] font-mono text-slate-505 font-bold">
+                <div className="text-[10px] font-mono text-slate-500 font-bold">
                   {loadingAgent ? (
                     <span className="text-emerald-400 animate-pulse">⚙️ COMPILING PROMPT RECIPES...</span>
                   ) : (
@@ -2207,11 +2207,11 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                     className={`px-4 py-2.5 rounded-xl transition-all border text-left flex-1 min-w-[160px] ${
                       isSelected
                         ? 'bg-gradient-to-r from-emerald-950/30 to-slate-950 text-emerald-400 border-emerald-500/30 shadow-md shadow-emerald-500/5'
-                        : 'bg-slate-950/40 border-slate-900 text-slate-400 hover:text-slate-205 hover:bg-slate-900/30'
+                        : 'bg-slate-950/40 border-slate-900 text-slate-400 hover:text-slate-200 hover:bg-slate-900/30'
                     }`}
                   >
                     <div className="text-xs font-black">{sub.label}</div>
-                    <div className="text-[9px] font-semibold text-slate-505 mt-0.5">{sub.desc}</div>
+                    <div className="text-[9px] font-semibold text-slate-500 mt-0.5">{sub.desc}</div>
                   </button>
                 );
               })}
@@ -2240,11 +2240,11 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                     <p className="text-[10.5px]">Phí thuê VPS khủng, mua licence database, cấu hình máy chủ SaaS rườm rà. Hệ thống âm tiền ngay khi chưa có người dùng đầu tiên.</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="font-bold text-[10.5px] text-slate-305 block text-orange-300">🛑 Đưa Sản Phẩm Ra Chợ Quá Chậm:</span>
+                    <span className="font-bold text-[10.5px] text-slate-300 block text-orange-300">🛑 Đưa Sản Phẩm Ra Chợ Quá Chậm:</span>
                     <p className="text-[10.5px]">Mất 3-6 tháng thiết kế đồ sộ để hoàn chỉnh dự án rườm rà. Đến khi triển khai thực tế thị trường đã đổi chiều, người dùng chối từ.</p>
                   </div>
                   <div className="space-y-1">
-                    <span className="font-bold text-[10.5px] text-slate-305 block text-orange-300">📉 Bẫy Tiếp Thị Trả Phí (Paid Ads):</span>
+                    <span className="font-bold text-[10.5px] text-slate-300 block text-orange-300">📉 Bẫy Tiếp Thị Trả Phí (Paid Ads):</span>
                     <p className="text-[10.5px]">Bơm tiền vào Google Ads / Facebook Ads đẩy lượt cài, nhưng doanh thu từ giá bán rẻ không gánh nổi phễu quảng cáo khốc liệt.</p>
                   </div>
                   <div className="space-y-1">
@@ -2806,7 +2806,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                 ].map((col, cidx) => (
                   <div key={cidx} className={`bg-slate-950 p-4 rounded-2xl border ${col.borderColor} flex flex-col justify-between space-y-4`}>
                     <div className="space-y-3.5">
-                      <span className="text-[10px] font-black text-white uppercase block pb-1 border-b border-slate-905 tracking-tight">
+                      <span className="text-[10px] font-black text-white uppercase block pb-1 border-b border-slate-900 tracking-tight">
                         {col.category}
                       </span>
                       <div className="space-y-3 select-text font-sans">
@@ -3041,7 +3041,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                         }`}
                       >
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center text-xs font-bold gap-1 mb-1.5">
-                          <span className={`${isActive ? 'text-emerald-400' : 'text-slate-205'} flex items-center gap-1.5`}>
+                          <span className={`${isActive ? 'text-emerald-400' : 'text-slate-200'} flex items-center gap-1.5`}>
                             <span>{phaseItem.icon}</span>
                             <span>{phaseItem.label}</span>
                           </span>
@@ -3243,7 +3243,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                         {/* Target Meter dial indicator */}
                         <div className="bg-[#03060c] p-5 rounded-2xl border border-slate-900/70 flex flex-col sm:flex-row items-center gap-6 justify-between">
                           <div className="space-y-1.5 text-center sm:text-left">
-                            <span className="text-[9px] font-mono font-black text-slate-505 uppercase tracking-widest block">DỰ BÁO XÁC SUẤT CẬP BỜ THÀNH CÔNG</span>
+                            <span className="text-[9px] font-mono font-black text-slate-500 uppercase tracking-widest block">DỰ BÁO XÁC SUẤT CẬP BỜ THÀNH CÔNG</span>
                             <div className="text-xl font-black text-white flex items-center justify-center sm:justify-start gap-2.5 font-sans">
                               <span>Factor Score:</span>
                               <span className={`font-mono text-2xl ${ratingColor}`}>{successFactorScore}%</span>
@@ -3286,7 +3286,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                           
                           {/* Indicator 1: Scope & Velocity */}
                           <div className="bg-slate-900/30 p-3.5 rounded-xl border border-slate-900/80 space-y-2">
-                            <div className="flex justify-between items-center text-[10px] font-mono font-black text-slate-505">
+                            <div className="flex justify-between items-center text-[10px] font-mono font-black text-slate-500">
                               <span>TIẾN ĐỘ SPRINT</span>
                               <span className="text-blue-400 font-mono font-bold">{simulatedScopeVelocity}%</span>
                             </div>
@@ -3666,7 +3666,7 @@ Yêu cầu nhận được: **"${agentUserInput}"**
                 <span className="text-white font-bold block text-sm">2. Đè Bẹp Chi Phí VPS</span>
                 <p className="text-[10.5px]">Máy chủ, VPS đắt đỏ là kẻ thù số một của Indie. Khi chưa có tiền mặt ròng, hãy ưu tiên lưu SQLite, LocalStorage cục bộ trên thiết bị của khách hàng (Edge Computing). Serverless chỉ dùng làm cầu nối Webhook nạp tiền.</p>
               </div>
-              <div className="space-y-1.5 bg-slate-955/40 p-4 rounded-xl border border-slate-900">
+              <div className="space-y-1.5 bg-slate-950/40 p-4 rounded-xl border border-slate-900">
                 <span className="text-white font-bold block text-sm">3. Lắng Nghe Khách Sát Sao</span>
                 <p className="text-[10.5px]">Một người dùng mua phần mềm của bạn trả 15.000đ hay 35.000đ đều mang lại mỏ vàng bài học phản hồi. Trả lời mail/tin nhắn hỗ trợ của khách trong 5 phút để tạo tệp fan trung thành đầu tiên lan toả giới thiệu truyền miệng.</p>
               </div>

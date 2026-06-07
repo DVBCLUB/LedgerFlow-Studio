@@ -177,7 +177,7 @@ export function getFirebaseAdmin() {
               Hãy dán các quy tắc an toàn bảo mật dưới đây để ngăn cản việc rò rỉ dữ liệu, đảm bảo rằng người dùng chỉ có quyền sửa xóa đúng các bản ghi ghi công danh tính và dữ liệu bí mật tài chính của riêng họ.
             </p>
 
-            <div className="p-4 bg-slate-950 border border-slate-855 rounded-xl space-y-2.5">
+            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2.5">
               <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono block">firestore.rules template</span>
               <pre className="text-[10px] font-mono text-slate-350 select-text overflow-x-auto max-h-[220px] leading-relaxed">
 {`rules_version = '2';
@@ -328,15 +328,15 @@ jobs:
 
             {/* PH & Reddit launch tips list */}
             <div className="grid sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2.5">
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2.5">
                 <span className="text-xs font-bold text-slate-200">Mẹo viết bài lan tỏa trên Reddit</span>
                 <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
                   Đăng video chơi thử không che giấu (No hype, just real gameplay / features) vào sub-reddit <code>r/indiegames</code>, <code>r/Unity3D</code>. Thừa nhận những điểm chưa mượt để xin đóng góp ý kiến xây dựng.
                 </p>
               </div>
 
-              <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2.5">
-                <span className="text-xs font-bold text-slate-205">Sắp đặt giờ vàng Product Hunt</span>
+              <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2.5">
+                <span className="text-xs font-bold text-slate-200">Sắp đặt giờ vàng Product Hunt</span>
                 <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
                   Lên lịch ra mắt lúc 00:01 giờ Thái Bình Dương (tức khoảng 14:00 giờ chiều Việt Nam) để tận dụng trọn vẹn 24 giờ bầu chọn tìm vị trí Top Product of the day.
                 </p>
@@ -390,6 +390,14 @@ jobs:
       {activeTab === 'legal_payment' && (() => {
         // Advanced calculations based on PDF pages 7 & 8
         const [intlPercent, setIntlPercent] = useState<number>(50); // percentage of sales that are international
+        
+        // Interactive VietQR State variables (Vietnam 0đ Payment Framework)
+        const [bankId, setBankId] = useState<string>("vcb");
+        const [accountNo, setAccountNo] = useState<string>("1026072026");
+        const [accountName, setAccountName] = useState<string>("NGUYEN VAN A");
+        const [qrAmount, setQrAmount] = useState<number>(125000);
+        const [qrMemo, setQrMemo] = useState<string>("DONHANGYDS9201");
+
         const internationalSales = (monthlySales * intlPercent) / 100;
         const domesticSales = monthlySales - internationalSales;
 
@@ -431,7 +439,7 @@ jobs:
                   Trang 7-8: Pháp lý Kế toán &amp; Cổng dòng tiền quốc tế
                 </span>
                 <h3 className="text-base font-black text-white">Lựa Chọn Kiến Trúc Thanh Toán Để Ngăn Ngừa Thảm Họa Kế Toán</h3>
-                <p className="text-xs text-slate-405 leading-relaxed font-semibold">
+                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
                   Sản phẩm giá cực thấp (<strong className="text-emerald-400">giá ví dụ $5 / 125.000đ</strong>) bán với số lượng lớn sinh ra hàng vạn giao dịch nhỏ (microtransactions). Nếu chọn sai cổng thanh toán, solo founder sẽ ngay lập tức đối mặt với cơn ác mộng khớp sao kê kế toán và rủi ro phạt thuế VAT toàn cầu!
                 </p>
               </div>
@@ -533,7 +541,7 @@ jobs:
               <div className="space-y-4 bg-slate-950 p-4 border border-slate-900 rounded-xl">
                 {/* Monthly sales total */}
                 <div className="space-y-1">
-                  <label className="text-[11px] text-slate-405 font-bold block">Tổng Doanh Số Tháng Mong Muốn:</label>
+                  <label className="text-[11px] text-slate-400 font-bold block">Tổng Doanh Số Tháng Mong Muốn:</label>
                   <div className="relative">
                     <span className="absolute left-3 top-1.5 text-xs text-slate-500 font-bold font-mono">đ</span>
                     <input
@@ -551,7 +559,7 @@ jobs:
                 {/* International split slider */}
                 <div className="space-y-1 pt-1">
                   <div className="flex justify-between text-[11px] font-bold">
-                    <span className="text-slate-405">Tỉ lệ đơn quốc tế xuất khẩu:</span>
+                    <span className="text-slate-400">Tỉ lệ đơn quốc tế xuất khẩu:</span>
                     <span className="text-purple-400 font-mono font-extrabold">{intlPercent}%</span>
                   </div>
                   <input
@@ -626,6 +634,160 @@ jobs:
               </div>
 
             </div>
+
+            {/* INTERACTIVE VIETQR CODE GENERATOR - INTEGRATED PAYMENTS */}
+            <div className="col-span-12 bg-slate-950/40 border border-slate-850 rounded-2xl p-6 space-y-6">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-850 pb-4">
+                <div className="space-y-1 border-0">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <h3 className="text-xs font-black text-emerald-450 tracking-widest uppercase font-mono">
+                      VietQR Instant Generator (0đ Transaction Fee Method)
+                    </h3>
+                  </div>
+                  <h4 className="text-sm font-black text-white">
+                    Tích Hợp Cổng Thanh Toán VietQR Tự Động Chỉ Trong 1 Phút
+                  </h4>
+                  <p className="text-xs text-slate-400 font-semibold">
+                    Thay vì trả 2%-3.5% cho bên thứ ba, Solo Founder có thể nhúng trực tiếp API VietQR (Hoàn toàn miễn phí, 0đ chiết khấu) phục vụ bán sỉ/lẻ.
+                  </p>
+                </div>
+                
+                <div className="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-400 flex items-center gap-2">
+                  <span className="text-emerald-400 font-bold">Standard format:</span>
+                  <span>NAPAS-247 QR Code API v2</span>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-12 gap-8">
+                {/* Form fields */}
+                <div className="md:col-span-7 space-y-4">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-400 font-mono font-bold block">1. NGÂN HÀNG THỤ HƯỞNG</label>
+                      <select
+                        value={bankId}
+                        onChange={e => setBankId(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-bold rounded-xl p-2.5 focus:outline-none focus:border-emerald-500 cursor-pointer"
+                      >
+                        <option value="vcb">Vietcombank (VCB)</option>
+                        <option value="tcb">Techcombank (TCB)</option>
+                        <option value="acb">Á Châu Bank (ACB)</option>
+                        <option value="mb">MB Bank (MB)</option>
+                        <option value="bidv">BIDV Bank</option>
+                        <option value="icb">VietinBank (CTG)</option>
+                        <option value="tpb">TPBank (TPB)</option>
+                        <option value="vpb">VPBank</option>
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-400 font-mono font-bold block">2. SỐ TÀI KHOẢN (STK)</label>
+                      <input
+                        type="text"
+                        value={accountNo}
+                        onChange={e => setAccountNo(e.target.value.replace(/[^0-9]/g, ""))}
+                        placeholder="Ví dụ: 1026072026"
+                        className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-mono font-bold rounded-xl p-2.5 outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-400 font-mono font-bold block">3. TÊN CHỦ TÀI KHOẢN (HOA KHÔNG DẤU)</label>
+                      <input
+                        type="text"
+                        value={accountName}
+                        onChange={e => setAccountName(e.target.value.toUpperCase())}
+                        placeholder="NANG LUONG VANG"
+                        className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-bold rounded-xl p-2.5 outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-slate-400 font-mono font-bold block">4. SỐ TIỀN THANH TOÁN (VND)</label>
+                      <input
+                        type="number"
+                        step="1000"
+                        value={qrAmount}
+                        onChange={e => setQrAmount(Math.max(0, parseInt(e.target.value) || 0))}
+                        placeholder="125000"
+                        className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-mono font-bold rounded-xl p-2.5 outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] text-slate-400 font-mono font-bold block">5. NỘI DUNG CHUYỂN KHOẢN (MEMO - KHÔNG DẤU)</label>
+                    <input
+                      type="text"
+                      value={qrMemo}
+                      onChange={e => setQrMemo(e.target.value.replace(/[^a-zA-Z0-9_\s]/g, ""))}
+                      placeholder="DONHANG9203"
+                      className="w-full bg-slate-900 border border-slate-850 text-slate-200 text-xs font-bold rounded-xl p-2.5 outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  {/* Code embed snippet generator */}
+                  <div className="space-y-2 bg-[#040711] border border-slate-900 rounded-xl p-4 mt-3">
+                    <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest font-mono">Dòng code nhúng API tự sinh cho App/Website của bạn:</span>
+                      <button
+                        onClick={() => triggerCopy(`https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${qrAmount}&addInfo=${encodeURIComponent(qrMemo)}&accountName=${encodeURIComponent(accountName)}`, 'vietqr_api')}
+                        className="text-[9.5px] uppercase font-mono font-black text-emerald-450 hover:text-emerald-350 bg-emerald-500/10 px-2 py-1 rounded border border-emerald-500/20 cursor-pointer self-start"
+                      >
+                        {copiedCodeFlag === 'vietqr_api' ? "Đã chép!" : "Copy URL"}
+                      </button>
+                    </div>
+                    <pre className="text-[9.5px] text-slate-400 font-mono overflow-x-auto whitespace-pre-wrap leading-relaxed select-text mt-1.5 bg-slate-950/70 p-2.5 rounded border border-slate-900">
+                      {`<img src="https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${qrAmount}&addInfo=${encodeURIComponent(qrMemo)}&accountName=${encodeURIComponent(accountName)}" alt="VietQR Code" />`}
+                    </pre>
+                  </div>
+                </div>
+
+                {/* Display card visual rendering */}
+                <div className="md:col-span-5 flex justify-center items-center border-0 border-transparent">
+                  <div className="w-full max-w-[270px] bg-slate-900 border border-slate-850 rounded-2xl p-5 shadow-2xl relative overflow-hidden flex flex-col justify-between space-y-4">
+                    {/* Visual Card elements */}
+                    <div className="flex justify-between items-center border-b border-slate-850 pb-2.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-emerald-450 animate-pulse"></span>
+                        <span className="text-[10px] font-black text-slate-400 font-mono">NAPAS 24/7 QR</span>
+                      </div>
+                      <span className="text-[11px] font-black italic text-purple-400">{bankId.toUpperCase()}</span>
+                    </div>
+
+                    <div className="flex justify-center py-2 bg-white rounded-xl p-2 border border-slate-200 shadow-inner">
+                      <img
+                        src={`https://img.vietqr.io/image/${bankId}-${accountNo}-compact.png?amount=${qrAmount}&addInfo=${encodeURIComponent(qrMemo)}&accountName=${encodeURIComponent(accountName)}`}
+                        alt="Scannable VietQR Code"
+                        className="w-44 h-44 block bg-white shrink-0 object-contain"
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+
+                    <div className="space-y-2 text-center text-xs">
+                      <div>
+                        <span className="text-[9px] text-slate-500 font-black tracking-widest uppercase block">Chủ Tài Khoản</span>
+                        <span className="font-extrabold text-slate-200 uppercase tracking-wide block truncate">{accountName || 'CHƯA NHẬP TÊN'}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 border-t border-slate-850 pt-2 text-[10.5px] font-mono leading-tight">
+                        <div className="text-left">
+                          <span className="text-[8.5px] text-slate-500 block uppercase font-bold">Số tiền:</span>
+                          <span className="font-black text-emerald-400 font-sans">{(qrAmount).toLocaleString()}đ</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-[8.5px] text-slate-500 block uppercase font-bold">Nội dung (Memo):</span>
+                          <span className="font-extrabold text-slate-350 truncate block max-w-[90px]">{qrMemo || 'Không có'}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         );
       })()}

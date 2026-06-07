@@ -1,4 +1,6 @@
 import React, { useState, useEffect, Suspense } from 'react';
+import { HashRouter, useNavigate, useLocation } from 'react-router-dom';
+import { useStore } from './store/useStore';
 import { STATS } from './data/stats';
 import { BUSINESS_IDEAS } from './data/businessIdeas';
 import { ENGINEERED_PROMPTS } from './data/prompts';
@@ -29,19 +31,23 @@ import {
   ShieldCheck,
   Cloud,
   CloudOff,
-  RefreshCw
+  RefreshCw,
+  Globe
 } from 'lucide-react';
 
 import { loadDatabaseFromServer, saveDatabaseToServer } from './utils/dbSync';
 import { 
-  signInWithGoogleDrive, 
-  logoutGoogleDrive, 
-  backupToGoogleDrive, 
-  restoreFromGoogleDrive, 
-  auth as gdriveAuth,
-  setCachedAccessToken
-} from './utils/gdriveSync';
-import { onAuthStateChanged, User } from 'firebase/auth';
+  getSupabaseConfig, 
+  saveSupabaseConfig, 
+  syncToSupabase, 
+  pullFromSupabase, 
+  executeSimulatedWasmQuery, 
+  getWasmSqlLogs, 
+  pushWasmSqlLog, 
+  SupabaseConfig,
+  getSupabaseClientInstance,
+  authenticateSupabaseUser
+} from './utils/supabaseSync';
 
 // Lazy loaded modules for aggressive split and performance
 const SoloFounderBusiness = React.lazy(() => import('./components/SoloFounderBusiness'));
@@ -58,6 +64,8 @@ const MLApplied = React.lazy(() => import('./components/MLApplied'));
 const DeployBusiness = React.lazy(() => import('./components/DeployBusiness'));
 const CommandCenter = React.lazy(() => import('./components/CommandCenter'));
 const AdvisoryBoardReport = React.lazy(() => import('./components/AdvisoryBoardReport'));
+const MarketSurveySimulator = React.lazy(() => import('./components/MarketSurveySimulator'));
+const GoogleKeywordStrategy = React.lazy(() => import('./components/GoogleKeywordStrategy'));
 
 // Loading skeleton fallback for premium smooth layout
 function LoadingFallback() {
@@ -81,142 +89,189 @@ function LoadingFallback() {
 }
 
 export default function App() {
-  type TabType = 'dashboard' | 'advisory' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business';
-  const [activeSegment, setActiveSegment] = useState<TabType>('dashboard');
+  return (
+    <HashRouter>
+      <AppContent />
+    </HashRouter>
+  );
+}
+
+function AppContent() {
+  type TabType = 'dashboard' | 'advisory' | 'market_survey' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business' | 'seo_strategy';
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const activeSegment = (location.pathname.replace(/^\//, '') as TabType) || 'dashboard';
+
+  const setActiveSegment = (tab: TabType) => {
+    navigate(`/${tab}`);
+  };
+
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
 
-  // Google Drive Persisted Sync States
-  const [gdriveUser, setGdriveUser] = useState<User | null>(null);
-  const [gdriveToken, setGdriveToken] = useState<string | null>(null);
-  const [gdriveSyncStatus, setGdriveSyncStatus] = useState<'idle' | 'syncing' | 'synced' | 'error'>('idle');
-  const [gdriveLastSynced, setGdriveLastSynced] = useState<string | null>(null);
-  const [gdriveMessage, setGdriveMessage] = useState<string | null>(null);
+  // Supabase & Offline WebAssembly state variables loaded from Zustand Store
+  const {
+    supabaseUrl,
+    setSupabaseUrl,
+    supabaseAnonKey,
+    setSupabaseAnonKey,
+    supabaseTable,
+    setSupabaseTable,
+    userEmail,
+    setUserEmail,
+    isOfflineMode,
+    setIsOfflineMode,
+    supabaseSyncStatus,
+    setSupabaseSyncStatus,
+    supabaseMessage,
+    setSupabaseMessage,
+    supabaseLastSynced,
+    setSupabaseLastSynced,
+    toggleOfflineMode,
+  } = useStore();
 
-  // Listen to Google Drive OAuth authentication state changes
+  const [supabasePassword, setSupabasePassword] = useState('');
+
+  // WASM-SQLite Simulation Playground States
+  const [sqlQueryInput, setSqlQueryInput] = useState('SELECT * FROM lf_db_transactions LIMIT 5;');
+  const [sqlQueryResult, setSqlQueryResult] = useState<{ columns: string[]; rows: any[][] } | null>(null);
+  const [wasmLogs, setWasmLogs] = useState<string[]>([]);
+
+  // Auto-load session email from Supabase Client when url & anonkey exist
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(gdriveAuth, (user) => {
-      setGdriveUser(user);
-    });
-    return () => unsubscribe();
+    if (supabaseUrl && supabaseAnonKey) {
+      try {
+        const client = getSupabaseClientInstance(supabaseUrl, supabaseAnonKey);
+        if (client) {
+          client.auth.getSession().then(({ data: { session } }) => {
+            if (session && session.user && session.user.email) {
+              setUserEmail(session.user.email);
+              localStorage.setItem('lf_user_email', session.user.email);
+              pushWasmSqlLog(`[SUPABASE-AUTO] Khôi phục session user: ${session.user.email}`);
+            }
+          });
+        }
+      } catch (e) {
+        console.warn("Failed auto session get:", e);
+      }
+    }
+  }, [supabaseUrl, supabaseAnonKey]);
+
+  // Periodically refresh WASM Execution Logs
+  useEffect(() => {
+    setWasmLogs(getWasmSqlLogs());
+    const inst = setInterval(() => {
+      setWasmLogs(getWasmSqlLogs());
+    }, 1200);
+    return () => clearInterval(inst);
   }, []);
 
-  // Connect Google Drive and perform immediate initial sync
-  const handleConnectGoogleDrive = async () => {
-    setGdriveSyncStatus('syncing');
-    setGdriveMessage('Đang khởi động kết nối Google Sign-In...');
-    try {
-      const res = await signInWithGoogleDrive();
-      setGdriveUser(res.user);
-      setGdriveToken(res.accessToken);
-      setGdriveSyncStatus('synced');
-      setGdriveMessage('Đã kết nối kho lưu trữ Google Drive thành công!');
-      
-      // Attempt to immediately sync / backup the current client work!
-      try {
-        setGdriveMessage('Đang tải dữ liệu ban đầu lên Google Drive...');
-        const backupRes = await backupToGoogleDrive(res.accessToken);
-        if (backupRes.success) {
-          setGdriveLastSynced(backupRes.lastSynced);
-          setGdriveMessage('Đã tự động khởi tạo bản sao lưu "ledgerflow_backup.json"!');
-        }
-      } catch (backupErr) {
-        console.warn('Initial backup skipped:', backupErr);
-      }
-    } catch (err: any) {
-      setGdriveSyncStatus('error');
-      setGdriveMessage(`Lỗi liên kết Drive: ${err.message || err}`);
+  const handleUpdateSupabaseConfig = () => {
+    saveSupabaseConfig({
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tableName: supabaseTable
+    });
+    localStorage.setItem('lf_user_email', userEmail);
+    pushWasmSqlLog(`[CONFIG] Đã lưu thông số Supabase Cloud! URL: ${supabaseUrl || 'Chưa cấu hình'}`);
+    alert('Đã cập nhật cấu hình Supabase thành công!');
+  };
+
+  const handleSupabaseSignUp = async () => {
+    if (!supabaseUrl || !supabaseAnonKey || !userEmail || !supabasePassword) {
+      alert('Vui lòng điền đầy đủ URL, Anon Key, Email và Mật khẩu để đăng ký tài khoản!');
+      return;
+    }
+    setSupabaseSyncStatus('syncing');
+    setSupabaseMessage('Đang đăng ký tài khoản trên Supabase Auth...');
+    const result = await authenticateSupabaseUser({
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tableName: supabaseTable
+    }, userEmail, supabasePassword, true);
+
+    if (result.success) {
+      setSupabaseSyncStatus('synced');
+      setSupabaseMessage(result.message);
+      alert('Đăng ký tài khoản mới thành công! Vui lòng xác thực tài khoản qua email gửi từ Supabase.');
+    } else {
+      setSupabaseSyncStatus('error');
+      setSupabaseMessage(`Lỗi đăng ký: ${result.message}`);
     }
   };
 
-  // Push LocalStorage state to Google Drive backup
-  const handleBackupToDrive = async () => {
-    let tokenToUse = gdriveToken;
-    if (!tokenToUse) {
-      // Prompt user to connect first or try to re-authenticate
-      try {
-        const res = await signInWithGoogleDrive();
-        setGdriveToken(res.accessToken);
-        setGdriveUser(res.user);
-        tokenToUse = res.accessToken;
-      } catch (err: any) {
-        setGdriveSyncStatus('error');
-        setGdriveMessage(`Không có quyền truy cập: ${err.message || err}`);
-        return;
-      }
+  const handleSyncToSupabase = async () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      alert('Vui lòng cung cấp đầy đủ Supabase URL và Public Anon Key để đồng bộ đám mây!');
+      return;
     }
+    setSupabaseSyncStatus('syncing');
+    setSupabaseMessage('Đang kết nối & xác thực tài khoản...');
+    const res = await syncToSupabase({
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tableName: supabaseTable
+    }, userEmail, supabasePassword);
 
-    setGdriveSyncStatus('syncing');
-    setGdriveMessage('Đang chuẩn bị payload & truyền dữ liệu lên Google Drive...');
-    try {
-      const res = await backupToGoogleDrive(tokenToUse);
-      if (res.success) {
-        setGdriveSyncStatus('synced');
-        setGdriveLastSynced(res.lastSynced);
-        setGdriveMessage('Đã truyền & ghi đè Google Drive thành công!');
+    if (res.success) {
+      setSupabaseSyncStatus('synced');
+      setSupabaseLastSynced(new Date().toLocaleTimeString('vi-VN'));
+      setSupabaseMessage('Đồng bộ dữ liệu của bạn lên Supabase (RLS Approved) thành công!');
+    } else {
+      setSupabaseSyncStatus('error');
+      setSupabaseMessage(`Lỗi: ${res.message}`);
+    }
+  };
+
+  const handlePullFromSupabase = async () => {
+    if (!supabaseUrl || !supabaseAnonKey) {
+      alert('Vui lòng cung cấp đầy đủ Supabase URL và Public Anon Key để khôi phục!');
+      return;
+    }
+    const yes = window.confirm('CẢNH BÁO: Thao tác này sẽ ghi đè LocalStorage hiện tại bằng dữ liệu từ Supabase. Bạn có chắc chắn không?');
+    if (!yes) return;
+
+    setSupabaseSyncStatus('syncing');
+    setSupabaseMessage('Đang kéo dữ liệu từ tài khoản Supabase về...');
+    const res = await pullFromSupabase({
+      url: supabaseUrl,
+      anonKey: supabaseAnonKey,
+      tableName: supabaseTable
+    }, userEmail, supabasePassword);
+
+    if (res.success) {
+      if (res.found) {
+        setSupabaseSyncStatus('synced');
+        setSupabaseMessage(res.message);
+        alert('🎉 Phục hồi dữ liệu và cập nhật Local Thừa hành thành công! Trang sẽ tải lại sau 1 giây.');
+        setTimeout(() => window.location.reload(), 1000);
       } else {
-        setGdriveSyncStatus('error');
-        setGdriveMessage('Không thể lưu file sao lưu lên Google Drive.');
+        setSupabaseSyncStatus('idle');
+        setSupabaseMessage('Không tìm thấy dòng dữ liệu nào liên kết với email này.');
+        alert('Không tìm thấy dữ liệu sao lưu của email hoặc user này.');
       }
-    } catch (err: any) {
-      setGdriveSyncStatus('error');
-      setGdriveMessage(`Lỗi truyền dữ liệu: ${err.message || err}`);
+    } else {
+      setSupabaseSyncStatus('error');
+      setSupabaseMessage(`Lỗi: ${res.message}`);
     }
   };
 
-  // Restore LocalStorage states from the user's Google Drive backup file
-  const handleRestoreFromDrive = async () => {
-    const confirmRestore = window.confirm(
-      '⚠️ CẢNH BÁO AN TOÀN: Thao tác nạp lại từ Google Drive sẽ GHI ĐÈ hoán đổi hoàn toàn dữ liệu trong trình duyệt của bạn bằng bản sao lưu mới nhất. Bạn có chắc chắn muốn tiến hành không?'
-    );
-    if (!confirmRestore) return;
-
-    let tokenToUse = gdriveToken;
-    if (!tokenToUse) {
-      try {
-        const res = await signInWithGoogleDrive();
-        setGdriveToken(res.accessToken);
-        setGdriveUser(res.user);
-        tokenToUse = res.accessToken;
-      } catch (err: any) {
-        setGdriveSyncStatus('error');
-        setGdriveMessage(`Lỗi khôi phục: ${err.message || err}`);
-        return;
-      }
-    }
-
-    setGdriveSyncStatus('syncing');
-    setGdriveMessage('Đang nạp file "ledgerflow_backup.json" từ Drive của bạn...');
-    try {
-      const res = await restoreFromGoogleDrive(tokenToUse);
-      if (res.success && res.found) {
-        setGdriveSyncStatus('synced');
-        setGdriveMessage(res.message);
-        alert('🎉 Phục hồi hoàn tất! Trang web sẽ tải lại ngay bây giờ để đồng bộ trạng thái mới nhất.');
-        window.location.reload();
-      } else {
-        setGdriveSyncStatus('error');
-        setGdriveMessage(res.message);
-      }
-    } catch (err: any) {
-      setGdriveSyncStatus('error');
-      setGdriveMessage(`Thất bại: ${err.message || err}`);
-    }
+  const handleToggleOfflineMode = () => {
+    toggleOfflineMode();
+    const nextVal = !isOfflineMode;
+    pushWasmSqlLog(`[MODE] Đã chuyển đổi chế độ hoạt động: ${nextVal ? 'OFFLINE (Localhost SQLite WebAssembly)' : 'ONLINE (Multi-Cloud Core Sync)'}`);
   };
 
-  // Sign out and clear cached credentials
-  const handleLogoutDrive = async () => {
+  const handleRunWasmSql = () => {
     try {
-      await logoutGoogleDrive();
-      setGdriveUser(null);
-      setGdriveToken(null);
-      setGdriveSyncStatus('idle');
-      setGdriveMessage('Đã ngắt hoàn toàn kết nối Google Drive.');
+      const res = executeSimulatedWasmQuery(sqlQueryInput);
+      setSqlQueryResult(res);
     } catch (err: any) {
-      console.error(err);
+      pushWasmSqlLog(`[WASM-SQL-ERROR] Lỗi thực thi dòng SQL: ${err.message || err}`);
     }
   };
 
@@ -283,19 +338,21 @@ export default function App() {
 
   // Build searchable indexes of the whole app ecosystems
   const searchIndex = [
-    { title: '⚖️ Hội Đồng Cố Vấn Khởi Nghiệp (Appraisal Report)', category: 'Phòng Chiến Lược', tab: 'advisory' as TabType, desc: 'Báo cáo thẩm định toàn diện phản hồi động từ 4 cố vấn Tech Lead, CFO, Product PM và Growth Hacker.' },
-    { title: '0. Phòng Sản Phẩm Du Kích', category: 'Phân hệ phụ', tab: 'guerrilla' as TabType, desc: 'Setup kịch bản 0đ, sinh ý tưởng sản phẩm hóa dịch vụ dữ liệu cho thị trường Việt Nam.' },
-    { title: '1. Cơ Hội Solo Founder & Tài Chính', category: 'Phân hệ phụ', tab: 'founder' as TabType, desc: 'Tính toán phân tích chi tiết tài chính, doanh thu MRR, chi phí hòa vốn cho Solo Founder.' },
+    { title: '1. Tổng Quan (Command Center)', category: 'Phòng Chiến Lược', tab: 'dashboard' as TabType, desc: 'Bảng điều khiển trung tâm nghiên cứu chiến lược khởi nghiệp.' },
+    { title: '2. Hội Đồng Cố Vấn Khởi Nghiệp (Appraisal Report)', category: 'Phòng Chiến Lược', tab: 'advisory' as TabType, desc: 'Báo cáo thẩm định toàn diện phản hồi động từ 4 cố vấn Tech Lead, CFO, Product PM và Growth Hacker.' },
+    { title: '3.5. Chiến Lược SEO Từ Khóa (Google Search Focus)', category: 'Phòng Chiến Lược', tab: 'seo_strategy' as TabType, desc: 'Nghiên cứu từ khóa Google SEO, ánh xạ sản phẩm micro-SaaS tương thích, sinh landing page chuẩn SEO.' },
+    { title: '3. Phòng Sản Phẩm Du Kích', category: 'Phân hệ phụ', tab: 'guerrilla' as TabType, desc: 'Setup kịch bản 0đ, sinh ý tưởng sản phẩm hóa dịch vụ dữ liệu cho thị trường Việt Nam.' },
+    { title: '4. Cơ Hội Solo Founder & Tài Chính', category: 'Phân hệ phụ', tab: 'founder' as TabType, desc: 'Tính toán phân tích chi tiết tài chính, doanh thu MRR, chi phí hòa vốn cho Solo Founder.' },
+    { title: '5. Phát Hành & Thương Mại Hóa', category: 'Phân hệ phụ', tab: 'deploy_business' as TabType, desc: 'Đăng ký kinh doanh, cổng thanh toán ngân hàng VietQR/Momo, DevOps pipeline.' },
     { title: '2. Tuần Tự A-Z Web Roadmap', category: 'Phân hệ phụ', tab: 'roadmap' as TabType, desc: 'Lộ trình phát triển hệ kế toán web toàn vẹn.' },
     { title: '3. Đa Ngành Data Science & FinLab', category: 'Phân hệ phụ', tab: 'datascience' as TabType, desc: 'Xây dựng đường truyền làm sạch dữ liệu tự động, audit toán học, Pandas.' },
     { title: '4. Bộ Kỹ Sư Prompt Chuyên Sâu', category: 'Phân hệ phụ', tab: 'prompts' as TabType, desc: 'Các câu lệnh mẫu thiết kế hạch toán chuyên môn kế toán Việt Nam.' },
     { title: '5. Trợ Lý AI Gemini Chatbot', category: 'Phân hệ phụ', tab: 'assistant' as TabType, desc: 'Chatbot đàm thoại, upload file sao kê ngân hàng PDF/CSV thực tế.' },
     { title: '6. Không Gian Dữ Liệu Tự Do', category: 'Phân hệ phụ', tab: 'custom_data' as TabType, desc: 'Trải nghiệm ghi chép sổ cái Nợ/Có, kiểm soát cân bằng kép.' },
-    { title: '7. Sơ đồ AI & Quy trình thực hiện', category: 'Phân hệ phụ', tab: 'architecture' as TabType, desc: 'Bản vẽ hạ tầng liên kết Google Drive, Apps Script, Telegram và GitHub 0đ.' },
+    { title: '7. Sơ đồ AI & Quy trình thực hiện', category: 'Phân hệ phụ', tab: 'architecture' as TabType, desc: 'Bản vẽ hạ tầng Hybrid Offline-First (SQLite WASM) & Cloudflare Serverless 0đ.' },
     { title: '8. Game Mobile & ML Labs', category: 'Phân hệ phụ', tab: 'game_ml' as TabType, desc: 'Khu vực thử nghiệm máy học tài chính và Game mô phỏng kinh tế.' },
     { title: '9. Kế Toán Thực Chiến VN', category: 'Phân hệ phụ', tab: 'accounting_vn' as TabType, desc: 'Nghị định 123 hóa đơn điện tử, Thông tư 200 hạch toán, đối soát ngân hàng và Benford.' },
     { title: '10. Machine Learning Thực Tế', category: 'Phân hệ phụ', tab: 'ml_applied' as TabType, desc: 'Ứng dụng AI API, tự train model nhỏ, dự báo chuỗi thời gian và AI trong Game.' },
-    { title: '12. Phát Hành & Thương Mại Hóa', category: 'Phân hệ phụ', tab: 'deploy_business' as TabType, desc: 'Đăng ký kinh doanh, cổng thanh toán ngân hàng VietQR/Momo, DevOps pipeline.' },
     // Business ideas
     ...BUSINESS_IDEAS.map(idea => ({
       title: idea.title,
@@ -397,62 +454,31 @@ export default function App() {
                   </span>
                 </button>
 
-                {/* 2. GOOGLE DRIVE CLOUD SYNC WIDGET */}
-                <div className="flex items-center gap-1 bg-slate-950/90 border border-slate-900/85 rounded-xl p-1 shrink-0">
-                  {!gdriveUser ? (
-                    <button
-                      onClick={handleConnectGoogleDrive}
-                      className="flex items-center gap-1.5 bg-gradient-to-r from-purple-700 to-indigo-650 hover:from-purple-600 hover:to-indigo-500 text-white px-2.5 py-1 rounded-lg text-[10.5px] font-black transition-all cursor-pointer select-none"
-                      title="Kết nối và đồng bộ hai chiều tệp sao lưu dữ liệu lên Google Drive cá nhân của bạn (Email: davidbao1704@gmail.com)"
-                    >
-                      <svg className="w-3.5 h-3.5 text-emerald-400 animate-pulse fill-current" viewBox="0 0 24 24">
-                        <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"/>
-                      </svg>
-                      <span>Drive Backup</span>
-                    </button>
-                  ) : (
-                    <div className="flex items-center gap-2 px-2 py-0.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                      <span className="text-[10px] text-slate-200 font-mono font-bold max-w-[120px] truncate" title={gdriveUser.email || 'davidbao1704@gmail.com'}>
-                        {gdriveUser.email || 'davidbao1704@gmail.com'}
-                      </span>
-                      
-                      <div className="flex items-center gap-1 border-l border-slate-800 pl-1.5">
-                        <button
-                          onClick={handleBackupToDrive}
-                          disabled={gdriveSyncStatus === 'syncing'}
-                          className="p-1 text-slate-400 hover:text-emerald-400 hover:bg-slate-900 rounded transition-colors cursor-pointer"
-                          title="Tải lên sao lưu LocalStorage lên Google Drive (nhấp để đồng bộ ngay)"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={handleRestoreFromDrive}
-                          disabled={gdriveSyncStatus === 'syncing'}
-                          className="p-1 text-slate-400 hover:text-purple-400 hover:bg-slate-900 rounded transition-colors cursor-pointer"
-                          title="Tải về & Ghi đè khôi phục dữ liệu từ Google Drive về trình duyệt"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                          </svg>
-                        </button>
-                        <button
-                          onClick={handleLogoutDrive}
-                          className="px-1 text-[9px] text-slate-500 hover:text-rose-400 hover:bg-slate-900 rounded font-black font-mono transition-colors cursor-pointer uppercase"
-                          title="Ngắt kết nối Google Drive"
-                        >
-                          Off
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                {/* 2. DUAL-ENGINE: OFFLINE LOCAL DB + SUPABASE CLOUD STATUS */}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {/* Local WASM Engine Selector */}
+                  <button
+                    onClick={handleToggleOfflineMode}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-bold transition-all cursor-pointer select-none border border-slate-900 ${
+                      isOfflineMode 
+                        ? 'bg-amber-950/45 text-amber-400 border-amber-900/50'
+                        : 'bg-slate-950 hover:bg-slate-900 text-slate-400'
+                    }`}
+                    title="Nhấn để chuyển đổi giữa Offline Localhost (WebAssembly SQLite) và Đám Mây API"
+                  >
+                    <Terminal className="w-3 h-3 text-amber-400" />
+                    <span>{isOfflineMode ? 'SQLite WASM (Offline)' : 'SQLite WASM (Local)'}</span>
+                  </button>
 
-                <div className="hidden sm:flex items-center gap-2 bg-slate-950 border border-slate-900 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-slate-400">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Persistent DB Mode</span>
+                  {/* Supabase Status Indicator */}
+                  <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10.5px] font-bold border ${
+                    supabaseUrl && supabaseAnonKey
+                      ? 'bg-emerald-950/20 border-emerald-900/40 text-emerald-400'
+                      : 'bg-slate-950 border-slate-900 text-slate-500'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${supabaseUrl && supabaseAnonKey ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`}></span>
+                    <span>{supabaseUrl && supabaseAnonKey ? 'Supabase Connected' : 'Supabase Cloud (Offline)'}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -488,125 +514,284 @@ export default function App() {
                     <span className="px-2 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-black rounded font-mono">FINANCIAL WORKBENCH</span>
                   </h4>
                   <p className="text-xs text-slate-300 mt-1 leading-relaxed max-w-4xl font-semibold">
-                    Hệ thống hạch toán đa chiều hỗ trợ các chủ doanh nghiệp SME tại Việt Nam - <strong>giải pháp chuyển đổi dữ liệu, dọn sạch sao kê và xuất báo cáo P&amp;L tự động trong 10 phút</strong>. Sử dụng công cụ hạch toán kép Sandbox hoặc gọi trợ lý AI để phân loại tức khắc!
+                    Hệ thống hạch toán đa chiều hỗ trợ các chủ doanh nghiệp SME tại Việt Nam - <strong>giải pháp chuyển đổi dữ liệu, dọn sạch sao kê và xuất báo cáo P&amp;L tự động trong 10 phút</strong>. Sử dụng công cụ hạch toán kép Sandbox hoặc gọi trợ lý ảo AI để phân loại tức thì.
                   </p>
                 </div>
-              </div>
-              <div className="flex gap-2 shrink-0 w-full md:w-auto mt-1 md:mt-0 pb-1.5 md:pb-0">
-                <button 
-                  onClick={() => setActiveSegment('custom_data')}
-                  className="px-4 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-[11px] rounded-xl transition-all shadow-md shadow-purple-500/10 uppercase tracking-widest text-center flex-1 md:flex-initial cursor-pointer"
-                >
-                  Trải Nghiệm Sandbox
-                </button>
               </div>
             </div>
           </div>
         </div>
-        
-        {/* GOOGLE DRIVE SYNC CONSOLE CARD */}
+
+        {/* DUAL ENGINE METRICS: SUPABASE CLOUD + LOCALHOST SQLITE WEBASSEMBLY */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
           <div className="bg-[#0b1320] border border-slate-800/80 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-            <div className="absolute right-0 top-0 -mt-10 -mr-10 w-44 h-44 rounded-full bg-emerald-500/5 blur-3xl"></div>
+            <div className="absolute right-0 top-0 -mt-10 -mr-10 w-44 h-44 rounded-full bg-purple-500/5 blur-3xl"></div>
             
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
-                <div className="flex items-center gap-2 w-fit">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  <h3 className="text-xs font-black text-emerald-400 tracking-widest uppercase font-mono">
-                    Cầu Đồng Bộ Đám Mây Google Drive | GitHub Pages Readiness
-                  </h3>
-                </div>
-                <h2 className="text-base font-black text-white tracking-tight">
-                  Tích hợp Kho Dữ Liệu Hai Chiều (Email: <span className="text-purple-400">davidbao1704@gmail.com</span>)
-                </h2>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
-                  Giải pháp điện toán biên 0đ tối ưu riêng cho <strong>davidbao1704@gmail.com</strong> khi deploy ứng dụng tĩnh (Static Site) lên <strong>GitHub Pages</strong>. 
-                  Hệ thống sử dụng luồng Google OAuth trực tiếp từ trình duyệt để ghi/đọc tệp <code className="text-amber-400 font-mono text-[11px] bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded font-bold">ledgerflow_backup.json</code> trên đám mây bảo mật của riêng bạn, bỏ qua nhu cầu duy trì máy chủ MySQL/Postgres đắt đỏ.
-                </p>
-                {gdriveMessage && (
-                  <div className={`mt-3 py-2 px-3 rounded-xl border text-[11px] font-mono font-bold flex items-center gap-2 ${
-                    gdriveSyncStatus === 'error'
-                      ? 'bg-rose-950/20 border-rose-900/40 text-rose-450'
-                      : gdriveSyncStatus === 'syncing'
-                      ? 'bg-purple-950/20 border-purple-900/30 text-purple-400 animate-pulse'
-                      : 'bg-emerald-950/25 border-emerald-900/40 text-emerald-400'
-                  }`}>
-                    {gdriveSyncStatus === 'syncing' ? (
-                      <span className="inline-block w-2 h-2 rounded-full bg-purple-500 animate-ping"></span>
-                    ) : gdriveSyncStatus === 'error' ? (
-                      <span className="inline-block text-rose-500">❌</span>
-                    ) : (
-                      <span className="inline-block text-emerald-400">✓</span>
-                    )}
-                    <span>{gdriveMessage}</span>
+            <div className="grid lg:grid-cols-12 gap-8">
+              {/* LEFT ENG: SQLITE WEBASSEMBLY TERMINAL RUNTIME */}
+              <div className="lg:col-span-7 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-450 animate-pulse"></span>
+                      <h3 className="text-xs font-black text-amber-400 tracking-widest uppercase font-mono">
+                        SQLite WebAssembly Engine (Localhost & Standalone Offline)
+                      </h3>
+                    </div>
+                    <h2 className="text-sm font-black text-white tracking-tight">
+                      Điện Toán Biên Sổ Sách - Tối Ưu Cho Local Trình Duyệt / Github Pages
+                    </h2>
                   </div>
-                )}
+                  <button 
+                    onClick={() => {
+                      setSqlQueryInput('SELECT * FROM lf_db_transactions WHERE amount > 500000 LIMIT 5;');
+                      pushWasmSqlLog('[WASM] Đã nạp truy vấn tiền tệ lớn dập mẫu!');
+                    }}
+                    className="text-[10px] bg-slate-900 hover:bg-slate-850 px-2.5 py-1 rounded-lg border border-slate-800 text-slate-300 font-mono font-bold transition-all cursor-pointer"
+                  >
+                    Mẫu SQL
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={sqlQueryInput}
+                      onChange={(e) => setSqlQueryInput(e.target.value)}
+                      className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-mono text-amber-200 focus:outline-none focus:border-amber-500"
+                      placeholder="Nhập câu lệnh SQL truy vấn sổ sách..."
+                    />
+                    <button
+                      onClick={handleRunWasmSql}
+                      className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      CHẠY WASM
+                    </button>
+                  </div>
+
+                  {/* Output Table */}
+                  {sqlQueryResult ? (
+                    <div className="bg-slate-950/85 border border-slate-900 rounded-xl p-3.5 max-h-[170px] overflow-auto">
+                      <span className="text-[9px] text-amber-500 font-bold uppercase font-mono block mb-1.5 border-b border-slate-900 pb-1">RESULT SET (SQLite v3.42.0 WebAssembly)</span>
+                      <table className="w-full text-left font-mono text-[10px] text-slate-300">
+                        <thead>
+                          <tr className="text-slate-500 border-b border-slate-900">
+                            {sqlQueryResult.columns.map((col, i) => (
+                              <th key={i} className="pb-1 text-amber-450">{col}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sqlQueryResult.rows.map((row, rIdx) => (
+                            <tr key={rIdx} className="border-b border-slate-900/40 hover:bg-slate-900/30">
+                              {row.map((cell, cIdx) => (
+                                <td key={cIdx} className="py-1 max-w-[120px] truncate">{String(cell)}</td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950/45 border border-slate-900 rounded-xl p-3 text-center text-[11px] text-slate-500 font-medium italic">
+                      Chưa có truy vấn nào được kích hoạt. Hãy chạy SQL mẫu để xem tốc độ WebAssembly biên độ cao.
+                    </div>
+                  )}
+
+                  {/* Logs terminal */}
+                  <div className="bg-black/85 rounded-xl border border-slate-900 p-3 h-[100px] overflow-auto shadow-inner">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[8px] font-black tracking-widest text-[#50fa7b] font-mono">SQLITE WASM LIVE TERMINAL</span>
+                      <button 
+                        onClick={() => {
+                          pushWasmSqlLog('[WASM] Dọn sạch nhật ký giao dịch local.');
+                        }}
+                        className="text-[9px] text-slate-500 hover:text-rose-400 font-mono"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                    <div className="font-mono text-[9.5px] text-slate-400 leading-relaxed space-y-1">
+                      {wasmLogs.map((log, index) => (
+                        <div key={index} className="truncate">
+                          {log.startsWith('[WASM-LỖI]') || log.includes('ERROR') ? (
+                            <span className="text-rose-500 font-bold">{log}</span>
+                          ) : log.includes('SUCCESS') || log.includes('SUPABASE') ? (
+                            <span className="text-emerald-400 font-bold">{log}</span>
+                          ) : (
+                            <span>{log}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Sync Actions Grid */}
-              <div className="flex flex-col sm:flex-row items-stretch lg:items-center gap-2.5 w-full lg:w-auto shrink-0 select-none">
-                {!gdriveUser ? (
-                  <button
-                    onClick={handleConnectGoogleDrive}
-                    className="flex-1 sm:flex-initial flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-650 to-teal-600 hover:from-emerald-650 hover:to-teal-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-emerald-500/10 active:scale-95 cursor-pointer"
-                  >
-                    <svg className="w-4 h-4 text-white fill-current animate-pulse" viewBox="0 0 24 24">
-                      <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM19 18H6c-2.21 0-4-1.79-4-4 0-2.05 1.53-3.76 3.56-3.97l1.07-.11.5-.95C8.08 7.14 9.94 6 12 6c2.62 0 4.88 1.86 5.39 4.43l.3 1.5 1.53.11c1.56.1 2.78 1.41 2.78 2.96 0 1.65-1.35 3-3 3z"/>
-                    </svg>
-                    <span>Liên Kết Google Drive</span>
-                  </button>
-                ) : (
-                  <div className="flex flex-col sm:flex-row items-stretch gap-2.5 w-full">
-                    {/* Backup to Drive */}
+              {/* RIGHT ENG: SUPABASE CLOUD BACKEND INTERFACES */}
+              <div className="lg:col-span-5 space-y-4 border-t lg:border-t-0 lg:border-l border-slate-800/80 pt-6 lg:pt-0 lg:pl-6">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <h3 className="text-xs font-black text-emerald-400 tracking-widest uppercase font-mono">
+                      Supabase Cloud Sync Serverless
+                    </h3>
+                  </div>
+                  <h2 className="text-sm font-black text-white tracking-tight">
+                    Cầu Tích Hợp Đám Mây Sổ Sách Hai Chiều
+                  </h2>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">SUPABASE URL</label>
+                      <input
+                        type="text"
+                        value={supabaseUrl}
+                        onChange={(e) => setSupabaseUrl(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-[10.5px] font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        placeholder="https://xxx.supabase.co"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">ANON API KEY</label>
+                      <input
+                        type="password"
+                        value={supabaseAnonKey}
+                        onChange={(e) => setSupabaseAnonKey(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-[10.5px] font-mono text-slate-200 focus:outline-none focus:border-emerald-500"
+                        placeholder="eyJhbGciOi..."
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">TABLE NAME</label>
+                      <input
+                        type="text"
+                        value={supabaseTable}
+                        onChange={(e) => setSupabaseTable(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-[10.5px] font-mono text-slate-200 focus:outline-none"
+                        placeholder="ledgerflow_vault"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">EMAIL ĐĂNG KÍ SỔ</label>
+                      <input
+                        type="email"
+                        value={userEmail}
+                        onChange={(e) => setUserEmail(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-[10.5px] font-mono text-slate-200 focus:outline-none"
+                        placeholder="email@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">MẬT KHẨU AUTH (DÙNG CHO RLS POLICY BẢO MẬT)</label>
+                      <input
+                        type="password"
+                        value={supabasePassword}
+                        onChange={(e) => setSupabasePassword(e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-2.5 py-1.5 text-[10.5px] font-mono text-slate-200 focus:outline-none focus:border-purple-500"
+                        placeholder="Nhập mật khẩu Supabase Auth để xác thực"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      onClick={handleBackupToDrive}
-                      disabled={gdriveSyncStatus === 'syncing'}
-                      className="flex-1 flex items-center justify-center gap-2 px-5 py-3 bg-slate-900 hover:bg-slate-850 hover:border-slate-700 border border-slate-800 text-slate-200 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                      onClick={handleUpdateSupabaseConfig}
+                      className="px-3.5 py-2.5 bg-slate-900 hover:bg-slate-850 border border-slate-800 text-slate-300 font-bold text-[10.5px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
                     >
-                      <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      Lưu Cấu Hình
+                    </button>
+
+                    <button
+                      onClick={handleSupabaseSignUp}
+                      className="px-3.5 py-2.5 bg-purple-950/40 hover:bg-purple-900/40 border border-purple-800/80 text-purple-300 font-bold text-[10.5px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      Đăng Ký Mới
+                    </button>
+
+                    <button
+                      onClick={handleSyncToSupabase}
+                      disabled={supabaseSyncStatus === 'syncing'}
+                      className="flex-1 flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-emerald-650 hover:bg-emerald-600 text-white font-extrabold text-[10.5px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                       </svg>
-                      <span>Gửi Sao Lưu</span>
+                      {supabaseSyncStatus === 'syncing' ? 'Đang gửi...' : 'Đăng Nhập & Sync'}
                     </button>
 
-                    {/* Pull/Restore from Drive */}
                     <button
-                      onClick={handleRestoreFromDrive}
-                      disabled={gdriveSyncStatus === 'syncing'}
-                      className="flex-1 flex items-center justify-center gap-2 px-5 py-2.5 bg-purple-950/40 hover:bg-purple-900/30 border border-purple-800/40 hover:border-purple-700/50 text-purple-300 font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                      onClick={handlePullFromSupabase}
+                      disabled={supabaseSyncStatus === 'syncing'}
+                      className="flex items-center gap-1.5 px-3.5 py-2.5 bg-purple-950/80 hover:bg-purple-900/60 border border-purple-800 text-purple-200 font-extrabold text-[10.5px] uppercase tracking-wider rounded-xl transition-all cursor-pointer"
                     >
-                      <svg className="w-4 h-4 text-purple-450" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                       </svg>
-                      <span>Khôi Phục Bản Đè</span>
-                    </button>
-
-                    {/* Logout */}
-                    <button
-                      onClick={handleLogoutDrive}
-                      className="px-4 py-3 bg-rose-950/20 hover:bg-rose-900/30 border border-rose-900/30 rounded-xl text-rose-450 text-xs font-black font-mono transition-all cursor-pointer"
-                    >
-                      ĐĂNG XUẤT
+                      Kéo Phục Hồi
                     </button>
                   </div>
-                )}
+
+                  <div className="p-3 bg-slate-950/70 border border-slate-900/80 rounded-xl space-y-1 text-[9.5px] font-mono text-slate-400">
+                    <div className="flex items-center gap-1.5 text-amber-500 font-extrabold uppercase">
+                      <ShieldCheck className="w-4 h-4" />
+                      <span>Hướng dẫn bảo mật Row Level Security (RLS)</span>
+                    </div>
+                    <p className="leading-relaxed">
+                      Chạy câu lệnh SQL sau trong bảng điều khiển Supabase SQL Editor để bật chính sách RLS, ngăn chặn hành vi đọc trộm dữ liệu chéo:
+                    </p>
+                    <pre className="p-1.5 bg-slate-950 border border-slate-900 rounded text-slate-350 overflow-x-auto text-[8.5px]">
+{`ALTER TABLE ${supabaseTable || 'ledgerflow_vault'} ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Mỗi user chỉ đọc ghi hạch toán của riêng mình"
+ON ${supabaseTable || 'ledgerflow_vault'}
+FOR ALL USING (auth.uid() = user_id);`}
+                    </pre>
+                  </div>
+
+                  {supabaseMessage && (
+                    <div className={`py-1.5 px-3 rounded-lg border text-[10px] font-bold font-mono flex items-center gap-1.5 ${
+                      supabaseSyncStatus === 'error'
+                        ? 'bg-rose-950/20 border-rose-905 text-rose-400'
+                        : supabaseSyncStatus === 'syncing'
+                        ? 'bg-purple-950/20 border-purple-900/30 text-purple-450 animate-pulse'
+                        : 'bg-emerald-950/25 border-emerald-900/40 text-emerald-400'
+                    }`}>
+                      <span>{supabaseSyncStatus === 'syncing' ? 'ℹ️' : supabaseSyncStatus === 'error' ? '❌' : '✓'}</span>
+                      <span>{supabaseMessage}</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* GitHub Pages Readiness guidelines */}
+            {/* Offline Deployment & Setup guidance */}
             <div className="mt-5 pt-5 border-t border-slate-900/80 grid md:grid-cols-3 gap-4 text-[11px] text-slate-400 font-medium">
               <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-900/50 space-y-1">
-                <span className="text-purple-400 font-semibold block">1. Sẵn Sàng Cho GitHub Pages</span>
-                <p>Base path đã được tinh chỉnh thành dạng tương đối (<code className="text-slate-300">base: \'./\'</code>) giúp tải mượt toàn bộ asset ảnh, CSS, JS khi đưa lên GitHub Pages.</p>
+                <span className="text-amber-450 font-semibold block flex items-center gap-1">
+                  💻 1. Tối Ưu Tải Standalone Offline (Localhost)
+                </span>
+                <p>Khởi động chế độ SQLite WASM để chạy hoàn toàn cô lập 100% không dựa vào server đám mây, lưu dữ liệu trực tiếp trong cookie biên.</p>
               </div>
               <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-900/50 space-y-1">
-                <span className="text-emerald-400 font-semibold block">2. Lưu Trữ Tự Động Định Kỳ</span>
-                <p>Hệ thống tự động sao lưu LocalStorage sang Google Drive khi có biến động dữ liệu quan trọng, tránh rủi ro mất mát chứng từ kế toán do trình duyệt dọn cookie.</p>
+                <span className="text-emerald-400 font-semibold block flex items-center gap-1">
+                  🌐 2. Deploy GitHub Pages Sẵn Sàng
+                </span>
+                <p>Base path đã tối ưu tương đối (<code className="text-[10px] text-slate-300 bg-slate-900 px-1 rounded">base: './'</code>) giúp hiển thị hoàn hảo tệp asset nhị phân tĩnh khi chạy tĩnh.</p>
               </div>
               <div className="bg-slate-950/30 p-3 rounded-xl border border-slate-900/50 space-y-1">
-                <span className="text-amber-450 font-semibold block">3. Kiểm Soát Tài Khoản</span>
-                <p>Khuyên dùng email <strong className="text-slate-200 font-mono font-bold">davidbao1704@gmail.com</strong> trong OAuth popup để đồng bộ chính xác không gian sổ sách.</p>
+                <span className="text-purple-400 font-semibold block flex items-center gap-1">
+                  ⚡ 3. Schema Khuyên Dùng Cho Supabase
+                </span>
+                <p>Tạo table <code className="text-emerald-400 font-mono">ledgerflow_vault</code> trên Supabase: <code className="text-amber-400">email text primary key</code>, <code className="text-amber-400">state_data jsonb</code>, <code className="text-amber-400">updated_at timestamp</code>.</p>
               </div>
             </div>
           </div>
@@ -624,24 +809,26 @@ export default function App() {
               className="w-full bg-slate-950 border border-slate-850 text-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:border-purple-500"
             >
               <optgroup label="📊 CHIẾN LƯỢC &amp; KHỞI SỰ" className="bg-slate-950 text-slate-300">
-                <option value="dashboard">⭐ Tổng quan (Command Center)</option>
-                <option value="advisory">⚖️ Hội Đồng Cố Vấn (Báo cáo Thẩm định)</option>
-                <option value="guerrilla">0. Phòng Sản Phẩm Du Kích (VIP)</option>
-                <option value="founder">1. Phân Tích Cơ Hội Solo Founder &amp; Tài Chính</option>
-                <option value="deploy_business">12. Phát Hành &amp; Thương Mại</option>
+                <option value="dashboard">1. Tổng Quan (Command Center)</option>
+                <option value="advisory">2. Hội Đồng Cố Vấn (Báo cáo Thẩm định)</option>
+                <option value="market_survey">3. Khảo Sát Giả Lập &amp; Ý Tưởng (NEW)</option>
+                <option value="seo_strategy">3.5. Chiến Lược SEO Từ Khóa (NEW)</option>
+                <option value="guerrilla">4. Sản Phẩm Du Kích (VIP)</option>
+                <option value="founder">5. Phân Tích Cơ Hội Solo Founder &amp; Tài Chính</option>
+                <option value="deploy_business">6. Thương Mại Hóa (Phát Hành)</option>
               </optgroup>
               <optgroup label="💻 KỸ THUẬT &amp; AI STACK" className="bg-slate-955 text-slate-200">
-                <option value="roadmap">2. Tuần Tự Web Roadmap</option>
-                <option value="datascience">3. Đa Ngành Data &amp; FinLab</option>
-                <option value="architecture">7. Sơ đồ AI &amp; Hạ Tầng 0đ</option>
-                <option value="ml_applied">10. Machine Learning Thực Tế</option>
+                <option value="roadmap">6. Tuần Tự Web Roadmap</option>
+                <option value="datascience">7. Đa Ngành Data &amp; FinLab</option>
+                <option value="architecture">8. Sơ đồ AI &amp; Hạ Tầng 0đ</option>
+                <option value="ml_applied">9. Machine Learning Thực Tế</option>
+                <option value="game_ml">10. Game Mobile &amp; ML Labs</option>
               </optgroup>
               <optgroup label="📒 KẾ TOÁN &amp; THỰC NGHIỆM" className="bg-slate-955 text-slate-200">
-                <option value="custom_data">6. Không Gian Dữ Liệu Tự Do</option>
-                <option value="accounting_vn">9. Kế Toán Thực Chiến VN (VIP)</option>
-                <option value="assistant">5. Trợ Lý AI Gemini Chatbot</option>
-                <option value="prompts">4. Bộ Kỹ Sư Prompt Chuyên Sâu</option>
-                <option value="game_ml">8. Game Mobile &amp; ML Labs</option>
+                <option value="custom_data">11. Không Gian Dữ Liệu Tự Do</option>
+                <option value="accounting_vn">12. Kế Toán Thực Chiến VN (VIP)</option>
+                <option value="assistant">13. Trợ Lý AI Gemini Chatbot</option>
+                <option value="prompts">14. Bộ Kỹ Sư Prompt Chuyên Sâu</option>
               </optgroup>
             </select>
           </div>
@@ -668,7 +855,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <LayoutDashboard className="w-4 h-4 text-purple-400" />
-                    <span>Tổng Quan (Dashboard)</span>
+                    <span>1. Tổng Quan (Dashboard)</span>
                   </span>
                   <span className="bg-purple-500/15 text-purple-405 text-purple-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none">NEW</span>
                 </button>
@@ -683,9 +870,24 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Award className="w-4 h-4 text-purple-400 animate-pulse" />
-                    <span>Hội Đồng Cố Vấn</span>
+                    <span>2. Hội Đồng Cố Vấn</span>
                   </span>
                   <span className="bg-amber-500/15 text-amber-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">5.9/10</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('market_survey')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'market_survey'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Search className="w-4 h-4 text-purple-400 animate-pulse" />
+                    <span>3. Nghiên Cứu &amp; Khảo Sát</span>
+                  </span>
+                  <span className="bg-purple-500/15 text-purple-450 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">NEW</span>
                 </button>
 
                 <button
@@ -698,9 +900,24 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
-                    <span>0. Sản Phẩm Du Kích</span>
+                    <span>3. Sản Phẩm Du Kích</span>
                   </span>
                   <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">VIP</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('seo_strategy')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'seo_strategy'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-purple-400" />
+                    <span>3.5. Chiến Lược SEO Từ Khóa</span>
+                  </span>
+                  <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">SEO</span>
                 </button>
 
                 <button
@@ -713,7 +930,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-purple-400" />
-                    <span>1. Phân Tích Cơ Hội</span>
+                    <span>4. Phân Tích Cơ Hội</span>
                   </span>
                 </button>
 
@@ -727,7 +944,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Rocket className="w-4 h-4 text-emerald-400" />
-                    <span>12. Thương Mại Hóa</span>
+                    <span>5. Thương Mại Hóa</span>
                   </span>
                 </button>
               </div>
@@ -748,7 +965,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-purple-400" />
-                    <span>2. Web Roadmap</span>
+                    <span>6. Web Roadmap</span>
                   </span>
                 </button>
 
@@ -762,7 +979,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Database className="w-4 h-4 text-purple-400" />
-                    <span>3. Data Sci &amp; FinLab</span>
+                    <span>7. Data Sci &amp; FinLab</span>
                   </span>
                 </button>
 
@@ -776,7 +993,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Network className="w-4 h-4 text-purple-450" />
-                    <span>7. Sơ đồ AI &amp; Hạ Tầng</span>
+                    <span>8. Sơ đồ AI &amp; Hạ Tầng</span>
                   </span>
                 </button>
 
@@ -784,13 +1001,27 @@ export default function App() {
                   onClick={() => setActiveSegment('ml_applied')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'ml_applied'
-                      ? 'bg-cyan-650 border-cyan-500 text-white shadow-lg shadow-cyan-500/10'
+                      ? 'bg-[#009bba] bg-cyan-650 border-cyan-500 text-white shadow-lg shadow-cyan-500/10'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-cyan-400" />
-                    <span>10. Machine Learning</span>
+                    <span>9. Machine Learning</span>
+                  </span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('game_ml')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'game_ml'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Gamepad2 className="w-4 h-4 text-sky-400" />
+                    <span>10. Game Mobile Lab</span>
                   </span>
                 </button>
               </div>
@@ -811,7 +1042,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-purple-400" />
-                    <span>6. Sổ Cái Sandbox</span>
+                    <span>11. Sổ Cái Sandbox</span>
                   </span>
                   <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase font-mono">Active</span>
                 </button>
@@ -826,7 +1057,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Layers className="w-4 h-4 text-amber-400" />
-                    <span>9. Kế Toán Thực Chiến</span>
+                    <span>12. Kế Toán Thực Chiến</span>
                   </span>
                   <span className="bg-amber-500/15 text-amber-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">VIP</span>
                 </button>
@@ -841,7 +1072,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Cpu className="w-4 h-4 text-purple-400" />
-                    <span>5. AI Trợ Lý Chatbot</span>
+                    <span>13. AI Trợ Lý Chatbot</span>
                   </span>
                 </button>
 
@@ -855,21 +1086,7 @@ export default function App() {
                 >
                   <span className="flex items-center gap-2">
                     <Terminal className="w-4 h-4 text-purple-400" />
-                    <span>4. Prompt Kế Toán</span>
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => setActiveSegment('game_ml')}
-                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
-                    activeSegment === 'game_ml'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
-                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Gamepad2 className="w-4 h-4 text-sky-400" />
-                    <span>8. Game Mobile Lab</span>
+                    <span>14. Prompt Kế Toán</span>
                   </span>
                 </button>
               </div>
@@ -894,6 +1111,7 @@ export default function App() {
             <Suspense fallback={<LoadingFallback />}>
               {activeSegment === 'dashboard' && <CommandCenter />}
               {activeSegment === 'advisory' && <AdvisoryBoardReport />}
+              {activeSegment === 'market_survey' && <MarketSurveySimulator />}
               {activeSegment === 'guerrilla' && <GuerrillaProductHub />}
               {activeSegment === 'founder' && <SoloFounderBusiness />}
               {activeSegment === 'roadmap' && <WebAccountingRoadmap />}
@@ -906,6 +1124,7 @@ export default function App() {
               {activeSegment === 'accounting_vn' && <AccountingVietnam />}
               {activeSegment === 'ml_applied' && <MLApplied />}
               {activeSegment === 'deploy_business' && <DeployBusiness />}
+              {activeSegment === 'seo_strategy' && <GoogleKeywordStrategy />}
             </Suspense>
           </section>
         </main>

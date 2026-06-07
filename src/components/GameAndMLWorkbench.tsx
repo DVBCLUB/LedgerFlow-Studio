@@ -1486,10 +1486,10 @@ export default function GameAndMLWorkbench() {
                   </p>
 
                   <div className="p-3.5 bg-purple-950/20 border border-purple-900/30 rounded-xl space-y-1.5 text-center">
-                    <span className="text-[9.5px] uppercase font-mono text-purple-305 font-black block">
+                    <span className="text-[9.5px] uppercase font-mono text-purple-400 font-bold block">
                       Công thức toán toán học thu nhỏ (Formula):
                     </span>
-                    <div className="bg-slate-950 p-2 rounded border border-slate-900 font-mono text-xs text-slate-205 font-black">
+                    <div className="bg-slate-950 p-2 rounded border border-slate-900 font-mono text-xs text-slate-200 font-black">
                       {activeMLModel.mathFormula}
                     </div>
                   </div>
@@ -1937,7 +1937,7 @@ export default function GameAndMLWorkbench() {
                                     <div className="p-2.5 bg-emerald-950/20 border border-emerald-900/20 rounded-lg flex justify-between items-center">
                                       <div>
                                         <span className="text-[8px] uppercase font-bold text-emerald-400 block leading-none text-left">On-device local Edge (ONNX)</span>
-                                        <span className="text-[8px] text-slate-505 font-semibold block mt-1 text-left">Hệ tính trực tiếp trên cục bộ Web/Mobile GPU</span>
+                                        <span className="text-[8px] text-slate-500 font-semibold block mt-1 text-left">Hệ tính trực tiếp trên cục bộ Web/Mobile GPU</span>
                                       </div>
                                       <div className="text-right shrink-0">
                                         <p className="font-mono text-emerald-400 font-black">0đ Vĩnh Viễn!</p>
@@ -2070,7 +2070,7 @@ export default function GameAndMLWorkbench() {
                     <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-white">
                       🎯 Lab 1: Interactive Confusion Matrix (Ma Trận Nhầm Lẫn)
                     </h3>
-                    <p className="text-xs text-slate-405 text-slate-450 text-slate-400 font-semibold leading-relaxed mt-0.5">
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed mt-0.5">
                       Một lỗi phổ biến của người mới bắt đầu (Beginner) là dựa dẫm hoàn toàn vào <strong>Accuracy (Độ chính xác)</strong> khi tập dữ liệu bị lệch (imbalanced). Hãy đóng vai một kỹ sư chống hack trong game để ngộ ra sự đánh đổi đau đớn giữa <strong>Precision (Độ chuẩn xác)</strong> và <strong>Recall (Độ phủ)</strong>!
                     </p>
                   </div>
@@ -3037,7 +3037,7 @@ public class BannerAdHandler : MonoBehaviour
                       <td className="py-3 px-3">Khó biên dịch ra file gốc di động (phải dùng Capacitor).</td>
                     </tr>
                     <tr className="hover:bg-slate-900/40 transition-all text-slate-400">
-                      <td className="py-3 px-3 font-bold text-slate-305">Unity 2D/3D</td>
+                      <td className="py-3 px-3 font-bold text-slate-300">Unity 2D/3D</td>
                       <td className="py-3 px-3 font-mono">C#</td>
                       <td className="py-3 px-3">Free nếu doanh thu &lt;$100K</td>
                       <td className="py-3 px-3">Ecosystem dồi dào, ngập tràn tài liệu học tập, tối ưu hóa về Ads.</td>
@@ -3367,7 +3367,7 @@ func _physics_process(delta):
                     <span>level_start &amp; level_complete</span>
                     <span className="font-mono text-purple-400 text-[10.5px]">Độ khó màn</span>
                   </div>
-                  <p className="text-[11px] text-slate-405 font-semibold mt-1">
+                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
                     Đặt mốc ghi lại số lần người chơi chịu thua quá nhiều để giảm bớt độ nhảy hoặc bớt chướng ngại vật ngay tức thời.
                   </p>
                 </div>
@@ -3377,7 +3377,7 @@ func _physics_process(delta):
                     <span>ad_impression_reward</span>
                     <span className="font-mono text-emerald-400 text-[10.5px]">Doanh thu</span>
                   </div>
-                  <p className="text-[11px] text-slate-405 font-semibold mt-1">
+                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
                     Ghi lại số lượt người chơi sẵn lòng click vào tab xem Ads để nhận quà. Đây là cơ sở để liên thông định hình chỉ số LTV (Life Time Value).
                   </p>
                 </div>
@@ -3387,7 +3387,7 @@ func _physics_process(delta):
                     <span>tutorial_step_complete</span>
                     <span className="font-mono text-sky-400 text-[10.5px]">UX Core Feel</span>
                   </div>
-                  <p className="text-[11px] text-slate-405 font-semibold mt-1">
+                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
                     Theo dõi người chơi bỏ cuộc ở bước nào trong bài hướng dẫn đầu tiên để cắt giảm sự rườm rà không đáng có.
                   </p>
                 </div>

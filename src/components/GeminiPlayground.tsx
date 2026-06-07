@@ -878,7 +878,7 @@ def tinh_thue_tncn_bac_thang(thu_nhap_tinh_thue):
               <select
                 value={selectedModel}
                 onChange={(e) => setSelectedModel(e.target.value)}
-                className="bg-slate-950 border border-slate-805 rounded-xl px-2.5 py-1 text-xs text-slate-300 font-bold outline-none cursor-pointer focus:border-purple-500"
+                className="bg-slate-950 border border-slate-800 rounded-xl px-2.5 py-1 text-xs text-slate-300 font-bold outline-none cursor-pointer focus:border-purple-500"
               >
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu tốc & thông minh)</option>
                 <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro Experimental (Thông thái)</option>

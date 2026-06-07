@@ -582,7 +582,7 @@ export default function CommandCenter() {
 
       {/* METRICS ROW */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-905 flex items-center gap-3.5 relative overflow-hidden">
+        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-900 flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 shrink-0">
             <Zap className="w-5 h-5" />
           </div>
@@ -595,7 +595,7 @@ export default function CommandCenter() {
           </div>
         </div>
 
-        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-905 flex items-center gap-3.5 relative overflow-hidden">
+        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-900 flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
             <Database className="w-5 h-5" />
           </div>
@@ -608,7 +608,7 @@ export default function CommandCenter() {
           </div>
         </div>
 
-        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-905 flex items-center gap-3.5 relative overflow-hidden">
+        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-900 flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
             <Coins className="w-5 h-5" />
           </div>
@@ -621,7 +621,7 @@ export default function CommandCenter() {
           </div>
         </div>
 
-        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-905 flex items-center gap-3.5 relative overflow-hidden">
+        <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-900 flex items-center gap-3.5 relative overflow-hidden">
           <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
             <Clock className="w-5 h-5" />
           </div>
@@ -672,7 +672,7 @@ export default function CommandCenter() {
               </div>
               <p className="text-2xl font-black text-emerald-400 mt-2 mb-0.5">35,400,000 đ</p>
             </div>
-            <p className="text-[10px] text-slate-455 mt-1.5">Dòng tiền dịch vụ chuyển khoản chạy qua hệ thống hạch toán VietQR.</p>
+            <p className="text-[10px] text-slate-400 mt-1.5">Dòng tiền dịch vụ chuyển khoản chạy qua hệ thống hạch toán VietQR.</p>
           </div>
 
           <div className="bg-slate-950/40 p-4 rounded-2xl border border-slate-900 flex flex-col justify-between">
@@ -868,7 +868,7 @@ export default function CommandCenter() {
                     className={`p-3 rounded-xl border text-left transition-all cursor-pointer flex items-start gap-3 select-none ${
                       isCompleted 
                         ? 'bg-purple-950/15 border-purple-900/50 hover:bg-purple-950/20' 
-                        : 'bg-slate-900/30 border-slate-900 hover:bg-slate-905 hover:border-slate-800'
+                        : 'bg-slate-900/30 border-slate-900 hover:bg-slate-800 hover:border-slate-850'
                     }`}
                   >
                     <div className="mt-0.5 shrink-0">
@@ -929,7 +929,7 @@ export default function CommandCenter() {
             </div>
 
             {/* CONSOLE DISPLAY */}
-            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-905 flex-1 overflow-y-auto max-h-[300px] font-mono text-[10px] text-emerald-400 space-y-2 select-text text-left scrollbar-thin">
+            <div className="bg-slate-950 p-3 rounded-2xl border border-slate-900 flex-1 overflow-y-auto max-h-[300px] font-mono text-[10px] text-emerald-400 space-y-2 select-text text-left scrollbar-thin">
               {systemLogs.length === 0 ? (
                 <span className="text-slate-600">[Hệ thống] Đang lắng nghe tín hiệu từ các phân hệ...</span>
               ) : (
@@ -985,7 +985,7 @@ export default function CommandCenter() {
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer space-y-1 select-none ${
                     isActive 
                       ? 'bg-purple-950/20 border-purple-800 text-white' 
-                      : 'bg-slate-900/30 border-slate-900 text-slate-400 hover:bg-slate-905'
+                      : 'bg-slate-900/30 border-slate-900 text-slate-400 hover:bg-slate-800'
                   }`}
                 >
                   <p className="text-xs font-black flex items-center gap-1.5">
@@ -1025,7 +1025,7 @@ export default function CommandCenter() {
               <textarea
                 value={customPostContent}
                 onChange={(e) => setCustomPostContent(e.target.value)}
-                className="w-full bg-slate-950/60 border border-slate-905 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-800/80 resize-none h-[180px] leading-relaxed scrollbar-thin text-left"
+                className="w-full bg-slate-950/60 border border-slate-900 rounded-xl p-3 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-800/80 resize-none h-[180px] leading-relaxed scrollbar-thin text-left"
                 placeholder="Nhấp vào mẫu bài bên trái hoặc tự khởi tạo ý tưởng du kích của riêng bạn..."
               />
             </div>

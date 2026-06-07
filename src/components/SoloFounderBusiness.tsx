@@ -674,7 +674,7 @@ export default function SoloFounderBusiness() {
                   </div>
                 ) : (
                   <div className="p-3 bg-slate-950 border border-slate-850 rounded-xl">
-                    <p className="text-[11px] text-slate-405 leading-relaxed font-semibold">
+                    <p className="text-[11px] text-slate-400 leading-relaxed font-semibold">
                       Bạn đang sử dụng một vài tùy chọn trả phí để có cấu hình chịu tải cấp cao cho đại doanh nghiệp. Bạn hoàn toàn có thể chọn các mác 0đ bên trái để ép chi phí vận hành về không!
                     </p>
                   </div>

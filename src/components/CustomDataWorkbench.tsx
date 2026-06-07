@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
 import { 
   Database, 
   Terminal, 
@@ -259,6 +261,135 @@ HD-2026-005,2026-05-25,Thuê nhân công dọn dẹp vệ sinh,11000000,KK`);
   useEffect(() => {
     localStorage.setItem('lf_db_assets', JSON.stringify(dbAssets));
   }, [dbAssets]);
+
+  const handleExportExcel = () => {
+    try {
+      const workbook = XLSX.utils.book_new();
+
+      // Convert projects to worksheet
+      const projectsWS = XLSX.utils.json_to_sheet(dbProjects.map(p => ({
+        "ID": p.id,
+        "Ten Du An": p.name,
+        "Nen Tang": p.platform,
+        "Trang Thai": p.status,
+        "Ngan Sach (VND)": p.budget,
+        "Ma Truong Du An": p.ownerId
+      })));
+      XLSX.utils.book_append_sheet(workbook, projectsWS, "Du An");
+
+      // Convert users to worksheet
+      const usersWS = XLSX.utils.json_to_sheet(dbUsers.map(u => ({
+        "ID": u.id,
+        "Ho Ten": u.fullName,
+        "Vai Tro": u.role,
+        "Email": u.email,
+        "Trang Thai": u.status
+      })));
+      XLSX.utils.book_append_sheet(workbook, usersWS, "Nhan Su");
+
+      // Convert transactions to worksheet
+      const txWS = XLSX.utils.json_to_sheet(dbTransactions.map(t => ({
+        "ID": t.id,
+        "Ma Du An": t.projectId,
+        "So Tiền (VND)": t.amount,
+        "Phan Loai": t.type,
+        "Cong Thanh Toan": t.gateway,
+        "Ngay Giao Dich": t.date
+      })));
+      XLSX.utils.book_append_sheet(workbook, txWS, "Giao Dich So Cai");
+
+      // Convert assets to worksheet
+      const assetsWS = XLSX.utils.json_to_sheet(dbAssets.map(a => ({
+        "ID": a.id,
+        "Ten File": a.filename,
+        "Dinh Dang": a.type,
+        "Kich Thuoc (KB)": a.size,
+        "Ma Du An": a.projectId
+      })));
+      XLSX.utils.book_append_sheet(workbook, assetsWS, "Tai Nguyen File");
+
+      XLSX.writeFile(workbook, "LedgerFlow_Database_Full_Export.xlsx");
+    } catch (e: any) {
+      alert("Lỗi xuất Excel: " + (e.message || e));
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text("LEDGERFLOW STUDIO - BAO CAO CO SO DU LIEU", 14, 20);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.text(`Ngay xuat: ${new Date().toLocaleString('vi-VN')}`, 14, 28);
+      
+      let y = 38;
+      
+      if (activeDbTab === 'transactions') {
+        doc.setFont("helvetica", "bold");
+        doc.text("DANH SACH GIAO DICH SO CAI", 14, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        
+        dbTransactions.forEach((t, i) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`${i + 1}. [TX] ID: ${t.id} | Loai: ${t.type} | Cong: ${t.gateway} | Tien: ${t.amount.toLocaleString()} VND | Ngay: ${t.date}`, 14, y);
+          y += 7;
+        });
+      } else if (activeDbTab === 'projects') {
+        doc.setFont("helvetica", "bold");
+        doc.text("DANH SACH DU AN KHOI NGHIEP", 14, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        
+        dbProjects.forEach((p, i) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`${i + 1}. [PJ] ID: ${p.id} | Ten: ${p.name} | Nen tang: ${p.platform} | Ngan sach: ${p.budget.toLocaleString()} VND | Trang thai: ${p.status}`, 14, y);
+          y += 7;
+        });
+      } else if (activeDbTab === 'users') {
+        doc.setFont("helvetica", "bold");
+        doc.text("DANH SACH NHAN SU", 14, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        
+        dbUsers.forEach((u, i) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`${i + 1}. [US] ID: ${u.id} | Ho ten: ${u.fullName} | Role: ${u.role} | Email: ${u.email}`, 14, y);
+          y += 7;
+        });
+      } else {
+        doc.setFont("helvetica", "bold");
+        doc.text("DANH SACH TAI NGUYEN FILE", 14, y);
+        y += 8;
+        doc.setFont("helvetica", "normal");
+        
+        dbAssets.forEach((a, i) => {
+          if (y > 270) {
+            doc.addPage();
+            y = 20;
+          }
+          doc.text(`${i + 1}. [AS] ID: ${a.id} | Ten: ${a.filename} | Format: ${a.type} | Size: ${a.size} KB`, 14, y);
+          y += 7;
+        });
+      }
+
+      doc.save(`LedgerFlow_${activeDbTab}_Report.pdf`);
+    } catch (e: any) {
+      alert("Lỗi xuất PDF: " + (e.message || e));
+    }
+  };
 
   // Form states for adding entries
   const [newUserName, setNewUserName] = useState('');
@@ -1175,13 +1306,33 @@ Hãy ưu tiên viết:
               </button>
             </div>
 
-            <button
-              onClick={handleResetDb}
-              className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-450 border border-rose-500/20 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 cursor-pointer shrink-0"
-            >
-              <RefreshCw className="w-3 h-3 animate-spin-slow" />
-              Reset DB
-            </button>
+            <div className="flex gap-1.5 flex-wrap">
+              <button
+                onClick={handleExportExcel}
+                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                title="Tải tệp Excel full 4 bảng liên kết"
+              >
+                <FileDown className="w-3 h-3" />
+                Xuất Excel
+              </button>
+
+              <button
+                onClick={handleExportPDF}
+                className="px-2.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 cursor-pointer shrink-0"
+                title="In báo cáo PDF cho phân hệ hiện tại"
+              >
+                <FileText className="w-3 h-3" />
+                Xuất PDF
+              </button>
+
+              <button
+                onClick={handleResetDb}
+                className="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-450 border border-rose-500/20 text-[10px] font-black uppercase rounded-lg transition-all flex items-center gap-1 cursor-pointer shrink-0"
+              >
+                <RefreshCw className="w-3 h-3 animate-spin-slow" />
+                Reset DB
+              </button>
+            </div>
           </div>
 
           {/* TABLE COMPONENT */}
@@ -1382,7 +1533,7 @@ Hãy ưu tiên viết:
                 <select
                   value={newUserRole}
                   onChange={e => setNewUserRole(e.target.value as any)}
-                  className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-3 py-2 text-xs font-bold text-slate-205 focus:outline-none focus:border-purple-500"
+                  className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:border-purple-500"
                 >
                   <option value="Solo Founder">Solo Founder (Người Sáng Lập)</option>
                   <option value="Kế toán trưởng">Kế toán trưởng (Audit/Tax)</option>
@@ -1427,7 +1578,7 @@ Hãy ưu tiên viết:
                   <select
                     value={newProjPlatform}
                     onChange={e => setNewProjPlatform(e.target.value as any)}
-                    className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                    className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                   >
                     <option value="Web App">Web App</option>
                     <option value="WebGL Game">WebGL Game</option>
@@ -1440,7 +1591,7 @@ Hãy ưu tiên viết:
                   <select
                     value={newProjStatus}
                     onChange={e => setNewProjStatus(e.target.value as any)}
-                    className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                    className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                   >
                     <option value="GDD">GDD (Bản nháp)</option>
                     <option value="Prototype">Prototype</option>
@@ -1465,7 +1616,7 @@ Hãy ưu tiên viết:
                 <select
                   value={newProjOwnerId}
                   onChange={e => setNewProjOwnerId(e.target.value)}
-                  className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-3 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                  className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                 >
                   {dbUsers.map(u => (
                     <option key={u.id} value={u.id}>{u.fullName}</option>
@@ -1488,7 +1639,7 @@ Hãy ưu tiên viết:
                 <select
                   value={newTxProjId}
                   onChange={e => setNewTxProjId(e.target.value)}
-                  className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-3 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                  className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                 >
                   {dbProjects.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
@@ -1510,7 +1661,7 @@ Hãy ưu tiên viết:
                   <select
                     value={newTxType}
                     onChange={e => setNewTxType(e.target.value as any)}
-                    className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                    className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                   >
                     <option value="Thu">Thu (Dòng tiền vào)</option>
                     <option value="Chi">Chi (Dòng phí ra)</option>
@@ -1523,7 +1674,7 @@ Hãy ưu tiên viết:
                   <select
                     value={newTxGateway}
                     onChange={e => setNewTxGateway(e.target.value as any)}
-                    className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-2 py-2 text-xs font-bold text-slate-205 focus:outline-none font-sans"
+                    className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-2 py-2 text-xs font-bold text-slate-200 focus:outline-none font-sans"
                   >
                     <option value="VietQR">VietQR (Napas)</option>
                     <option value="MoMo">Ví MoMo</option>
@@ -1568,7 +1719,7 @@ Hãy ưu tiên viết:
                   <select
                     value={newAssetType}
                     onChange={e => setNewAssetType(e.target.value as any)}
-                    className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                    className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-2.5 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                   >
                     <option value="PNG Image">PNG Image</option>
                     <option value="Binary Model">Binary Model</option>
@@ -1592,7 +1743,7 @@ Hãy ưu tiên viết:
                 <select
                   value={newAssetProjectId}
                   onChange={e => setNewAssetProjectId(e.target.value)}
-                  className="w-full bg-[#02050b] border border-slate-855 rounded-lg px-3 py-2 text-xs font-bold text-slate-205 focus:outline-none"
+                  className="w-full bg-[#02050b] border border-slate-800 rounded-lg px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none"
                 >
                   {dbProjects.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>

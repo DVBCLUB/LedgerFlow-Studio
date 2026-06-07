@@ -344,7 +344,7 @@ with open('transaction_model.pkl', 'wb') as f:
 
               {/* Churn Prediction block */}
               <div className="p-4.5 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
-                <span className="text-xs font-bold text-slate-205 block border-b border-slate-900 pb-1.5">Dự báo rủi ro người dùng bỏ đi (Churn Prediction)</span>
+                <span className="text-xs font-bold text-slate-200 block border-b border-slate-900 pb-1.5">Dự báo rủi ro người dùng bỏ đi (Churn Prediction)</span>
                 <p className="text-[11px] text-slate-400 font-semibold leading-normal">
                   Theo dõi hoạt động: số ngày chưa đăng nhập lại, số lỗi giao dịch. Kích hoạt logistic regression cho xác suất churn từ 0-100%, trigger email báo động tự động nếu kết quả nhảy lên mốc trên 60%.
                 </p>
@@ -487,7 +487,7 @@ class EnemyAI extends StateMachine {
                   {fsmState}
                 </span>
               </div>
-              <p className="text-[10.5px] text-slate-405 leading-normal italic font-semibold">{fsmTriggers[fsmState].desc}</p>
+              <p className="text-[10.5px] text-slate-400 leading-normal italic font-semibold">{fsmTriggers[fsmState].desc}</p>
 
               {/* Grid drawing visual */}
               <div className="grid grid-cols-8 gap-1.5 bg-slate-900 p-2 border border-slate-800 rounded-xl text-center">
@@ -562,14 +562,14 @@ class EnemyAI extends StateMachine {
               </div>
 
               <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
-                <span className="text-xs font-bold text-slate-205">Tesseract.js Offline OCR</span>
+                <span className="text-xs font-bold text-slate-200">Tesseract.js Offline OCR</span>
                 <p className="text-[11px] text-slate-400 font-medium">
                   Trình OCR tự lập chạy offline thẳng thừng trên trình duyệt qua JavaScript. Thích hợp cho tác vụ scan số hóa đơn cơ bản, dung lượng nặng tầm 2MB.
                 </p>
               </div>
 
               <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
-                <span className="text-xs font-bold text-slate-210">TF.js Object Detect</span>
+                <span className="text-xs font-bold text-slate-200">TF.js Object Detect</span>
                 <p className="text-[11px] text-slate-400 font-medium">
                   Nhận diện và dán nhãn các hộp vật thể (bounding box) đi qua ống kính camera điện thoại, kích hoạt các sự kiện đặc thù trong game di động.
                 </p>

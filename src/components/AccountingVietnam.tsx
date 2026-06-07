@@ -12,7 +12,6 @@ import {
   TrendingUp, 
   FileCode,
   DollarSign, 
-  BarChart, 
   Calculator,
   Compass,
   Copy,
@@ -20,7 +19,7 @@ import {
   Folder,
   FileText
 } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, Line, Legend } from 'recharts';
 
 export default function AccountingVietnam() {
   const [activeTab, setActiveTab] = useState<'invoice' | 'chart_accounts' | 'bank_reconcile' | 'statements'>('invoice');
@@ -252,13 +251,13 @@ export default function AccountingVietnam() {
               <div className="grid sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg space-y-2">
                   <span className="font-bold text-orange-400">Ngành được giảm thuế còn 8%</span>
-                  <p className="text-[11px] text-slate-405 font-semibold">
+                  <p className="text-[11px] text-slate-400 font-semibold">
                     Đa số ngành sản xuất công nghiệp, tiêu dùng thương mại, du lịch, ăn uống, gia công phần cứng cơ bản.
                   </p>
                 </div>
                 <div className="p-3 bg-slate-900 border border-slate-800 rounded-lg space-y-2">
                   <span className="font-bold text-slate-300">Ngành ngoại lệ (Giữ nguyên 10%)</span>
-                  <p className="text-[11px] text-slate-405 font-semibold">
+                  <p className="text-[11px] text-slate-400 font-semibold">
                     Viễn thông, Công nghệ thông tin (phần mềm), Hoạt động tài chính, Ngân hàng, Chứng khoán, Bảo hiểm, Bất động sản và kim loại quý.
                   </p>
                 </div>
@@ -640,9 +639,24 @@ df_bank['cleaned_amount'] = df_bank['So_Tien'].apply(clean_amount)`}
 
             {/* Displaying actual vs expected representation */}
             {benfordFlags.length > 0 && (
-              <div className="space-y-2 pt-2 border-t border-slate-900">
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Tần suất xuất hiện chữ số đầu (%)</span>
-                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850">
+              <div className="space-y-4 pt-4 border-t border-slate-900">
+                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono block">📊 Phân phối Chữ số Đầu (Thực tế vs Kỳ vọng)</span>
+                
+                <div className="h-[185px] w-full pt-1">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={benfordFlags} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                      <XAxis dataKey="digit" stroke="#64748b" fontSize={10} name="Chữ số đầu" />
+                      <YAxis stroke="#64748b" fontSize={10} />
+                      <Tooltip contentStyle={{ backgroundColor: '#03060c', borderColor: '#1e293b', fontSize: '11px', fontFamily: 'monospace' }} />
+                      <Bar dataKey="actual" fill="#ea580c" name="Thực tế %" radius={[3, 3, 0, 0]} />
+                      <Bar dataKey="expected" fill="#475569" name="Kỳ vọng %" radius={[3, 3, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono block pt-1">Chi tiết tỷ lệ kiểm soát (%)</span>
+                <div className="space-y-2 max-h-[160px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850">
                   {benfordFlags.map((val) => (
                     <div key={val.digit} className="space-y-1.5 text-xs font-semibold font-mono">
                       <div className="flex justify-between items-center text-[11px]">
@@ -792,7 +806,7 @@ df_bank['cleaned_amount'] = df_bank['So_Tien'].apply(clean_amount)`}
             </div>
 
             {/* Calculations Output panel */}
-            <div className="p-4 bg-slate-950 border border-slate-855 rounded-xl space-y-3 font-mono">
+            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-3 font-mono">
               <div className="flex justify-between items-center text-xs text-slate-300 font-bold">
                 <span>Tỷ số thanh toán hiện thời (Current):</span>
                 <span className="text-orange-400 font-extrabold">{currentRatio}</span>
