@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 import { 
   Search, 
   Sparkles, 
@@ -123,12 +124,32 @@ interface LandingPageDesign {
 }
 
 export default function GoogleKeywordStrategy() {
+  const { activeIdea } = useStore();
   const [activeTab, setActiveTab] = useState<'discovery' | 'mapper' | 'landing' | 'calculator'>('discovery');
   
   // Tab 1 States (Discovery)
   const [nicheInput, setNicheInput] = useState<string>('kế toán hộ kinh doanh');
   const [targetAudience, setTargetAudience] = useState<string>('Hộ kinh doanh');
   const [budgetTarget, setBudgetTarget] = useState<number>(99000); // VNĐ/tháng
+
+  // Sync state when activeIdea changes dynamically
+  useEffect(() => {
+    if (activeIdea) {
+      setNicheInput(activeIdea.nicheAudience);
+      setTargetAudience(activeIdea.type === 'game' ? 'Game thủ / Học sinh sinh viên' : 'Chủ shop bán hàng / Hộ kinh doanh');
+      setBudgetTarget(activeIdea.pricePoint);
+      setProductNameInput(activeIdea.title.split(' - ')[0]);
+      setCalcPrice(activeIdea.pricePoint);
+      
+      if (activeIdea.type === 'game') {
+        setPrimaryKeywordInput('game di động sài gòn vui nhộn');
+      } else if (activeIdea.id === 'idea_saas_vietqr' || activeIdea.title.toLowerCase().includes('vietqr')) {
+        setPrimaryKeywordInput('phần mềm đối soát vietqr tự động');
+      } else {
+        setPrimaryKeywordInput('công cụ tự động hóa ' + activeIdea.type);
+      }
+    }
+  }, [activeIdea]);
   const [loadingDiscovery, setLoadingDiscovery] = useState<boolean>(false);
   const [discoveredKeywords, setDiscoveredKeywords] = useState<SuggestKeyword[]>([]);
   const [selectedKeywords, setSelectedKeywords] = useState<string[]>([]);

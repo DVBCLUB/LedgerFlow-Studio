@@ -298,14 +298,14 @@ async function startServer() {
                        err.message.toLowerCase().includes("too many requests")
                      ));
       if (isQuota) {
-        console.warn("Gemini Generate API call rate limited (handled gracefully):", err.message || err);
+        console.log("[Gemini API] Generate rate limit or quota exceeded (handled gracefully).");
         return res.status(400).json({ 
           success: false,
           isMissingKey: true,
           error: "Yêu cầu API vượt quá hạn mức Quota của phiên bản Free Tier. Hệ thống đã kích hoạt chế độ mô phỏng chuyên gia để phục vụ bạn tiếp tục phân tích dòng tiền tác chiến."
         });
       }
-      console.warn("Gemini Generate API call warning (handled gracefully):", err.message || err);
+      console.log("[Gemini API] Generate call completed with error:", err.message || err);
       res.status(500).json({ error: err.message || "An error occurred during generation." });
     }
   });
@@ -460,7 +460,19 @@ Hãy cá nhân hóa, làm giàu và điều chỉnh tinh xảo các từ ngữ, 
 
       res.json({ success: true, data: parsedData });
     } catch (err: any) {
-      console.warn("Grounded Market Survey API fallback activated (handled gracefully):", err.message || err);
+      const isQuota = err.status === 429 || 
+                     (err.message && (
+                       err.message.includes("429") || 
+                       err.message.toLowerCase().includes("quota") || 
+                       err.message.includes("RESOURCE_EXHAUSTED") ||
+                       err.message.toLowerCase().includes("rate limit") ||
+                       err.message.toLowerCase().includes("too many requests")
+                     ));
+      if (isQuota) {
+        console.log("[Market Survey API] Grounded Market Survey rate limited or quota exceeded. Activating high-fidelity simulation fallback gracefully.");
+      } else {
+        console.log("[Market Survey API] Grounded Market Survey fallback activated:", err.message || err);
+      }
       const { niche, selectedDirection } = req.body;
       res.json({
         success: true,
@@ -555,16 +567,16 @@ Hãy cá nhân hóa, làm giàu và điều chỉnh tinh xảo các từ ngữ, 
                      
       if (!res.headersSent) {
         if (isQuota) {
-          console.warn("Gemini Stream API call rate limited (handled gracefully):", err.message || err);
+          console.log("[Gemini Stream API] Stream rate limited or quota exceeded (handled gracefully).");
           return res.status(400).json({
             isMissingKey: true,
             error: "Yêu cầu API vượt quá hạn mức Quota của phiên bản Free Tier. Hệ thống đã kích hoạt chế độ mô phỏng chuyên gia để phục vụ bạn tiếp tục phân tích dòng tiền tác chiến."
           });
         }
-        console.warn("Gemini Stream API warning (handled gracefully):", err.message || err);
+        console.log("[Gemini Stream API] Stream completed with error:", err.message || err);
         return res.status(400).json({ error: err.message || "An error occurred during streaming." });
       } else {
-        console.warn("Gemini Stream API warning after headers sent (handled gracefully):", err.message || err);
+        console.log("[Gemini Stream API] Stream completed with error after headers sent:", err.message || err);
         // Fallback response inside SSE structure if possible
         res.write(`data: ${JSON.stringify({ error: err.message || "An error occurred during streaming." })}\n\n`);
         res.end();

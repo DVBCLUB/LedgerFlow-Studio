@@ -64,3 +64,20 @@ export interface FinancialForecastInput {
   miscCost: number;
   expansionRate: number;
 }
+
+export interface UnexpectedIdea {
+  id: string;
+  title: string;
+  type: 'saas' | 'game' | 'utility';
+  nicheAudience: string;
+  pricePoint: number; // in VND
+  speedRating: number; // 1-10
+  costRating: number; // 1-10 (10 means very low cost)
+  marketPain: number; // 1-10
+  viralPotential: number; // 1-10
+  description: string;
+  guerrillaScore: number;
+  aiBlueprint?: string;
+  createdAt: string;
+}
+

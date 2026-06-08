@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 import { BUSINESS_IDEAS } from '../data/businessIdeas';
 import { BusinessIdea, FinancialForecastInput } from '../types';
 import { 
@@ -47,6 +48,10 @@ export default function SoloFounderBusiness() {
     ];
   };
 
+  const { activeIdea } = useStore();
+
+  // Python Sandbox State (to track completed Python tutorials)
+  
   // Free Tier Optimizer state
   const [selectedDb, setSelectedDb] = useState<'sqlite' | 'supabase' | 'neon' | 'rds'>('supabase');
   const [selectedHost, setSelectedHost] = useState<'vercel' | 'render' | 'huggingface' | 'vps'>('vercel');
@@ -56,14 +61,29 @@ export default function SoloFounderBusiness() {
 
   // Calculator State
   const [forecast, setForecast] = useState<FinancialForecastInput>({
-    setupFee: 15000000, // setup fee VND
-    monthlyRevenue: 3500000, // retainer monthly VND
-    targetClients: 15,
-    cac: 3000000, // Customer Acquisition Cost VND
-    itCost: 1200000, // host/API
-    miscCost: 800000, // other
-    expansionRate: 10 // yearly growth %
+    setupFee: 5000000, // setup fee VND
+    monthlyRevenue: activeIdea?.pricePoint || 35000, // retrieve from activeIdea
+    targetClients: 200,
+    cac: 15000, // CAC in VND
+    itCost: 0, // setup 0đ
+    miscCost: 150000, // other
+    expansionRate: 15 // yearly growth %
   });
+
+  // Sync with activeIdea of useStore
+  useEffect(() => {
+    if (activeIdea) {
+      setForecast(prev => ({
+        ...prev,
+        monthlyRevenue: activeIdea.pricePoint,
+        // Make the targets and costs look highly relevant to the product model:
+        setupFee: activeIdea.type === 'saas' ? 0 : 2000000,
+        targetClients: activeIdea.type === 'game' ? 1000 : 250,
+        cac: activeIdea.type === 'game' ? 5000 : 25000,
+        itCost: 0, // emphasize our 0đ server stack!
+      }));
+    }
+  }, [activeIdea]);
 
   const categories = ['Tất cả', ...Array.from(new Set(BUSINESS_IDEAS.map(idea => idea.category)))];
 

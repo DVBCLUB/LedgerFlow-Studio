@@ -49,6 +49,14 @@ export default function DeployBusiness() {
   const stripeFee = monthlySales * 0.034 + (100 * 7500); // Stripe 3.4% + 0.3USD (Giả định 100 giao dịch)
   const vietQrFee = 0; // Hoàn toàn 0đ
 
+  // Interactive Tab 4 State variables (lifted to prevent hook violation)
+  const [intlPercent, setIntlPercent] = useState<number>(50); // percentage of sales that are international
+  const [bankId, setBankId] = useState<string>("vcb");
+  const [accountNo, setAccountNo] = useState<string>("1026072026");
+  const [accountName, setAccountName] = useState<string>("NGUYEN VAN A");
+  const [qrAmount, setQrAmount] = useState<number>(125000);
+  const [qrMemo, setQrMemo] = useState<string>("DONHANGYDS9201");
+
   return (
     <div className="space-y-6">
       
@@ -389,15 +397,6 @@ jobs:
       {/* =================================== TAB 4: LEGAL, STRIPE VS PADDLE MoR COMPARISON & HYBRID ROUTING =================================== */}
       {activeTab === 'legal_payment' && (() => {
         // Advanced calculations based on PDF pages 7 & 8
-        const [intlPercent, setIntlPercent] = useState<number>(50); // percentage of sales that are international
-        
-        // Interactive VietQR State variables (Vietnam 0đ Payment Framework)
-        const [bankId, setBankId] = useState<string>("vcb");
-        const [accountNo, setAccountNo] = useState<string>("1026072026");
-        const [accountName, setAccountName] = useState<string>("NGUYEN VAN A");
-        const [qrAmount, setQrAmount] = useState<number>(125000);
-        const [qrMemo, setQrMemo] = useState<string>("DONHANGYDS9201");
-
         const internationalSales = (monthlySales * intlPercent) / 100;
         const domesticSales = monthlySales - internationalSales;
 

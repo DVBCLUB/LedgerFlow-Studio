@@ -31,6 +31,7 @@ import {
   Printer
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import { useStore } from '../store/useStore';
 
 interface UnexpectedIdea {
   id: string;
@@ -282,11 +283,23 @@ export const STREMY_NODES = [
 ];
 
 export default function GuerrillaProductHub() {
+  const { activeIdea, setActiveIdea } = useStore();
   const [ideas, setIdeas] = useState<UnexpectedIdea[]>([]);
-  const [selectedIdeaId, setSelectedIdeaId] = useState<string>('');
+  const [selectedIdeaId, setSelectedIdeaId] = useState<string>(activeIdea?.id || '');
   const [loadingAI, setLoadingAI] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [viewMode, setViewMode] = useState<'markdown' | 'canvas'>('markdown');
+
+  // Keep global Zustand store in sync with local selectedIdeaId selection
+  useEffect(() => {
+    if (selectedIdeaId && ideas.length > 0) {
+      const found = ideas.find(i => i.id === selectedIdeaId);
+      if (found && found.id !== activeIdea?.id) {
+        setActiveIdea(found as any);
+      }
+    }
+  }, [selectedIdeaId, ideas, activeIdea, setActiveIdea]);
+
   
   // Custom interactive weights for weighted dynamic Scoring formula (Page 4 of Appraisal Report)
   const [weightAlpha, setWeightAlpha] = useState<number>(0.4);

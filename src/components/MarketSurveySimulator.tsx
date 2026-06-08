@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 import { 
   BarChart, 
   Bar, 
@@ -118,13 +119,23 @@ export default function MarketSurveySimulator() {
   const [activePersonaTab, setActivePersonaTab] = useState<number>(0);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const { activeIdea } = useStore();
+
   // Initialize with preset background logic or run automated survey
   const currentPreset = PRESETS.find(p => p.id === selectedPresetId);
+
+  // Sync state when activeIdea changes dynamically
+  useEffect(() => {
+    if (activeIdea) {
+      setIsCustomMode(true);
+      setCustomNiche(activeIdea.nicheAudience);
+    }
+  }, [activeIdea]);
 
   useEffect(() => {
     // Generate initial default survey data matching preset on mount
     triggerMockOrLiveSurvey(true);
-  }, [selectedPresetId, isCustomMode]);
+  }, [selectedPresetId, isCustomMode, customNiche]);
 
   const addLog = (msg: string) => {
     setLogMessages(prev => [...prev, `[${new Date().toLocaleTimeString('vi-VN')}] ${msg}`]);

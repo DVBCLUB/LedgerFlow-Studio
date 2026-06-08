@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useStore } from '../store/useStore';
 import { 
   Compass, 
   CheckCircle2, 
@@ -132,6 +133,7 @@ Bài học rút ra: Phải tinh giản dòng hạch toán, lưu trữ persistent
 ];
 
 export default function CommandCenter() {
+  const { activeIdea } = useStore();
   // Metrics loaded from localStorage
   const [metrics, setMetrics] = useState({
     ideasCount: 0,
@@ -579,6 +581,28 @@ export default function CommandCenter() {
           </div>
         </div>
       </div>
+
+      {/* ACTIVE PROJECT SYNC BANNER */}
+      {activeIdea && (
+        <div className="bg-slate-950/45 p-4.5 rounded-2xl border border-purple-900/30 bg-gradient-to-r from-purple-950/10 via-slate-950/90 to-purple-950/15 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="space-y-1.5 text-left">
+            <span className="px-2.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-black rounded-md uppercase tracking-wider font-mono inline-block">
+              🚀 Dự án Đang thực hành (Active Project)
+            </span>
+            <h3 className="text-sm font-black text-white flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-purple-400" />
+              {activeIdea.title}
+            </h3>
+            <p className="text-slate-400 text-xs">
+              <span className="text-purple-300 font-bold font-mono">Khách hàng mục tiêu (ICP):</span> {activeIdea.nicheAudience} | <span className="text-emerald-400 font-bold font-mono">Định giá mục tiêu:</span> {activeIdea.pricePoint.toLocaleString('vi-VN')} VNĐ / {activeIdea.type === 'game' ? 'một lần' : 'tháng'}.
+            </p>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 bg-purple-950/20 border border-purple-500/10 p-2 rounded-xl">
+            <span className="text-[10px] text-slate-400 font-bold font-mono">Guerrilla Score:</span>
+            <span className="text-xs font-black text-purple-400 font-mono">{activeIdea.guerrillaScore}/10</span>
+          </div>
+        </div>
+      )}
 
       {/* METRICS ROW */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

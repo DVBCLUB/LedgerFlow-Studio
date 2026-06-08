@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useStore } from '../store/useStore';
 import { 
   Award, 
   Users, 
@@ -143,119 +144,139 @@ export default function AdvisoryBoardReport() {
     ? Math.round((netProfit / marginSimulatorRevenue) * 100) 
     : 0;
 
+  const { activeIdea } = useStore();
+
   // Experts database definitions
-  const experts: Record<'khoa' | 'ha' | 'viet' | 'dan', ExpertOpinion> = {
-    khoa: {
-      name: 'Dr. Alistair K. Vance',
-      avatar: '💻',
-      role: 'Tech Lead / AI Architect (Lead of AI Systems & DevOps, ex-Google)',
-      verdict: '⚙️ Stack tốt, nhưng đang build một "bảo tàng" thay vì một "vũ khí" tác chiến thực sự.',
-      themeColor: 'border-purple-500/35 bg-purple-500/5 text-purple-400',
-      avatarColor: 'bg-purple-500/15 border-purple-500/30 text-purple-400',
-      strengths: [
-        'React.lazy() + Suspense triển khai đúng quy chuẩn - split bundle tốt, UX chuyển nhạy.',
-        'Sử dụng Vite 6 + ESBuild cho pipeline build cực tốc độ, tối ưu hóa thời gian solo dev.',
-        'Hệ thống TypeScript strict giảm thiểu tối đa rủi ro phát sinh bug ngớ ngẩn ở runtime.',
-        'Sử dụng proxy server trung gian ngăn chặn thất thoát API Key ngầm ra bên ngoài client.'
-      ],
-      debts: [
-        'Dữ liệu hiện hoàn toàn phụ thuộc LocalStorage, rủi ro biến mất vĩnh viễn khi xóa bộ nhớ đệm trình duyệt.',
-        'Không có lớp phân quyền (Authentication Layer), bất kỳ ai có URL đều tiếp cận toàn quyền hệ thống.',
-        'Chưa có kịch bản kiểm thử tự động (Vitest / Playwright) để bảo toàn sự ổn định của hạch toán.',
-        'File component Guerrilla và Game quá to (&gt;200KB), tạo áp lực tải ban đầu đáng kể.'
-      ],
-      risks: [
-        'Lộ quota API Gemini do thiếu throttle giới hạn truy vấn theo từng định lượng thiết bị người dùng.',
-        'Hội chứng prop-drilling hoành hành khi scale rộng, cần bổ sung state-manager gọn nhẹ như Zustand.',
-        'Concepts SQLite được quảng bá nhưng chưa hề được cài cắm ở backend thực.'
-      ],
-      opportunities: [
-        'Xây dựng webhook xử lý biến động số dư ngân hàng VietQR/PayOS mộc mạc chỉ cần 150 dòng Python FastAPI.',
-        'Gemini 2.0 Flash cực kì rẻ ($0.001/hóa đơn) có thể gánh vác trọn vẹn OCR phân tích hóa đơn VN ròng rã.',
-        'Tích hợp luồng Google Sheets API làm database lưu giữ thông tin nhanh gọn, chi phí vận hành tuyệt đối 0đ.'
-      ]
-    },
-    ha: {
-      name: 'Madame Helena Sterling, CFA',
-      avatar: '📊',
-      role: 'CFO / Global Finance Strategist (Ex-Goldman Sachs, Corporate Finance Veteran)',
-      verdict: '💰 Mô hình tài chính tốt về lý thuyết - nhưng thiếu "người trả tiền thật" để chứng thực sản phẩm.',
-      themeColor: 'border-emerald-500/35 bg-emerald-500/5 text-emerald-400',
-      avatarColor: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
-      strengths: [
-        'Sử dụng VietQR làm bệ phóng thanh toán 0% chi phí trung gian (MoMo 2%, Stripe 3.4%) cực kì nhạy bén.',
-        'Bố trí kiến trúc chi phí sản phẩm (Pricing) phân cấp đa dạng từ 35K VND/tháng đến 45M VND white-label.',
-        'Chi phí vận hành tiệm cận 0đ tận dụng dải free-tier của các ông lớn hạ tầng đám mây.',
-        'Bộ công cụ tính LTV/CAC trong phân hệ Founder mang tư duy kinh tế sắc sảo chuẩn B2B.'
-      ],
-      debts: [
-        'Mốc LTV giả định 18 tháng là quá lạc quan cho tệp SME Việt Nam - tỷ lệ Churn thực tế dao động 12 tháng.',
-        'Bản thân LedgerFlow chưa hiển thị báo cáo P&L nội bộ thực tế để chứng minh tính thực tiễn của phần mềm.',
-        'Mức giá 35K/tháng yêu cầu tới hơn 2,000 người trả tiền để chạm mốc doanh thu mơ ước - phễu quá rộng.'
-      ],
-      risks: [
-        'Khủng hoảng sinh kế Solo Founder nếu không rạch ròi chi phí sinh hoạt cá nhân vs. thời gian sinh lợi.',
-        'Dòng tiền bị thắt nút cổ chai nếu quá 30% doanh số dựa vào duy nhất một khách hàng gia công lớn.'
-      ],
-      opportunities: [
-        'Mở gói tư vấn Controller-on-Demand (8-20M/tháng retainer) để kiếm dòng tiền mặt tức thì nuôi sản phẩm SaaS.',
-        'Xây dựng công vụ Micro-SaaS gửi SMS lịch báo cáo thuế định kì thu phí 299K/tháng cực dễ trúng mục tiêu.'
-      ]
-    },
-    viet: {
-      name: 'Julian Mercer',
-      avatar: '🧩',
-      role: 'Product Director / UX Lead (Former Apple & Airbnb UX Strategist)',
-      verdict: '🧩 UX/UI rất chuyên nghiệp - nhưng đang cố giải quyết 13 vấn đề cùng lúc, dễ làm người dùng xao nhãng.',
-      themeColor: 'border-sky-500/35 bg-sky-500/5 text-sky-400',
-      avatarColor: 'bg-sky-505 bg-sky-500/15 border-sky-500/30 text-sky-400',
-      strengths: [
-        'Tính năng thanh tìm kiếm nhanh Ctrl+K mang đến trải nghiệm cao cấp khó tin cho một bộ công cụ nội địa.',
-        'Giao diện Dark theme sâu đồng dạng, độ tương phản sắc nét, phông Inter mềm mại hiện đại.',
-        'Xử lý cấu trúc thanh chọn lọc cực tốt trên khung hình di động (adaptive mobile navigation).',
-        'Cài cắm cơ chế Gamified nhiệm vụ hằng ngày tăng mức hoạt động tương tác đáng khen ngợi.'
-      ],
-      debts: [
-        'Người dùng rơi vào bẫy quá tải thông tin (60+ màn hình, 13 danh mục) không biết bắt đầu từ đâu.',
-        'Hệ thống đang định vị bất nhất: Vừa bảo là bộ "Sandbox Simulator" học tập vừa bán gói thương mại thật.',
-        'Các luồng tác vụ bị ngắt quãng, từ tab thiết kế ý tưởng không nhảy được sang sổ cái hạch toán tương quan.'
-      ],
-      risks: [
-        'Khách hàng out ngay phút đầu do thời gian cảm nhận giá trị cốt lõi (Aha Moment) quá dài.',
-        'Gắn nhãn đặc quyền VIP nhưng không bố trí rào cản nạp tiền thật làm giảm giá trị thương phẩm cao cấp.'
-      ],
-      opportunities: [
-        'Thiết kế lại luồng Onboarding đơn giản hóa dưới dạng hướng dẫn 3 bước trực quan thay vì bày 13 phân hệ.',
-        'Tập trung toàn lực cho luồng nghiệp vụ "Upload sao kê -> Phân loại AI -> Xuất báo cáo đẹp" làm trụ cột.'
-      ]
-    },
-    dan: {
-      name: 'Seraphina Kross',
-      avatar: '🚀',
-      role: 'Growth Hacker & Viral Architect (Go-To-Market Specialist, ex-Stripe)',
-      verdict: '🚀 Tư duy phát tán du kích rất sắc bám sát môi trường Việt Nam - nhưng cần thu gom tệp khách hàng hẹp.',
-      themeColor: 'border-amber-500/35 bg-amber-500/5 text-amber-400',
-      avatarColor: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
-      strengths: [
-        'Am hiểu thói quen của SME Việt: nhắm trực diện vào tệp người dùng xài Zalo OA làm đầu vào nhận hóa đơn.',
-        'Sử dụng triệt để định giá "bằng một cốc cà phê" là rào cản tâm lý cực thấp để chuyển đổi người dùng.',
-        'Phát triển trò chơi mini mô phỏng kinh tế (Sài Gòn Rush) kích thích viral tự nhiên rất tốt.'
-      ],
-      debts: [
-        'Tệp SME Việt Nam quá rộng (800K doanh nghiệp), chưa xác định ICP cụ thể đầu tiên để khoan thủng.',
-        'App chưa có trang chủ giới thiệu tính năng độc lập (Landing Page) cùng cơ chế thu gom email khách hàng tiềm năng.',
-        'Đốt thời gian tiếp thị sai kênh: Đăng bài giới thiệu kế toán lên các diễn đàn cộng đồng thuần lập trình viên máy tính.'
-      ],
-      risks: [
-        'Tỷ lệ rời bỏ cực cao do dữ liệu lưu cục bộ localStorage, khách đổi điện thoại mất sạch dữ liệu quay lại chửi app.'
-      ],
-      opportunities: [
-        'Áp dụng kịch bản "Build in Public" (Xây dựng công khai) trên mạng xã hội hàng tuần để hút tệp fan nòng cốt.',
-        'Tận dụng các hội nhóm Group Kế toán / Hộ kinh doanh online Facebook lớn để giải đáp nghiệp vụ rồi phân phát tool.',
-        'Tạo video ngắn TikTok/Shorts thể hiện đúng 45 giây luồng đối soát tự động bằng AI, cam đoan hút nghìn view organic.'
-      ]
-    }
-  };
+  const experts = useMemo<Record<'khoa' | 'ha' | 'viet' | 'dan', ExpertOpinion>>(() => {
+    const defaultTitle = activeIdea ? activeIdea.title.split(' - ')[0] : 'LedgerFlow Smart Hub';
+    const isGame = activeIdea?.type === 'game';
+    const activePricing = activeIdea ? `${activeIdea.pricePoint.toLocaleString('vi-VN')} VNĐ` : '35.000 VNĐ';
+
+    return {
+      khoa: {
+        name: 'Dr. Alistair K. Vance',
+        avatar: '💻',
+        role: 'Tech Lead / AI Architect (Lead of AI Systems & DevOps, ex-Google)',
+        verdict: activeIdea 
+          ? `⚙️ Đối với "${defaultTitle}", chúng ta có thể dựng hạ tầng hoàn chỉnh 0đ tận dụng SQLite WASM offline và Cloudflare Pages!`
+          : '⚙️ Stack tốt, nhưng đang build một "bảo tàng" thay vì một "vũ khí" tác chiến thực sự.',
+        themeColor: 'border-purple-500/35 bg-purple-500/5 text-purple-400',
+        avatarColor: 'bg-purple-500/15 border-purple-500/30 text-purple-400',
+        strengths: [
+          `Thiết kế sản phẩm "${defaultTitle}" tương thích hoàn hảo cho định dạng gọn nhẹ (micro-architecture).`,
+          'React.lazy() + Suspense triển khai đúng quy chuẩn - split bundle tốt, UX chuyển nhạy.',
+          'Hệ thống TypeScript strict giảm thiểu tối đa rủi ro phát sinh bug ngớ ngẩn ở kinh nghiệm thực chiến.',
+          'Sử dụng proxy server trung gian bảo đảm an toàn API Key Gemini không bị phơi lộ ra bên ngoài.'
+        ],
+        debts: [
+          'Dữ liệu hiện hoàn toàn phụ thuộc LocalStorage, rủi ro biến mất vĩnh viễn khi xóa bộ nhớ đệm trình duyệt.',
+          'Chưa có kịch bản kiểm thử tự động (Vitest / Playwright) để bảo toàn đầu ra dữ liệu của thuật toán.',
+          isGame 
+            ? 'Cơ chế render canvas Game di động cần tối ưu hóa bằng RequestAnimationFrame để trắc địa FPS tốt hơn.' 
+            : 'Các webhook ngân hàng chưa cấu hình luồng dự phòng (failover) phòng khi API nhà đài gián đoạn.'
+        ],
+        risks: [
+          'Lộ quota API Gemini do thiếu throttle giới hạn truy vấn theo từng định lượng thiết bị người dùng.',
+          'Thiếu cơ chế đồng bộ nền (background sync) khi kết nối mạng chập chờn.'
+        ],
+        opportunities: [
+          isGame
+            ? 'Sử dụng SQLite WASM để lưu lịch sử chơi offline của gamer, chỉ đồng bộ điểm cao (High Score) lên cơ sở dữ liệu.'
+            : 'Xây dựng webhook xử lý biến động số dư ngân hàng VietQR/PayOS mộc mạc chỉ cần 150 dòng Javascript.',
+          'Gemini 2.0 Flash cực kì rẻ có thể gánh vác trọn vẹn OCR phân tích sao kê Việt Nam ròng rã.'
+        ]
+      },
+      ha: {
+        name: 'Madame Helena Sterling, CFA',
+        avatar: '📊',
+        role: 'CFO / Global Finance Strategist (Ex-Goldman Sachs, Corporate Finance Veteran)',
+        verdict: activeIdea
+          ? `💰 Mức giá ${activePricing} nhắm tới tệp "${activeIdea.nicheAudience}" có biên lợi nhuận ròng lý tưởng!`
+          : '💰 Mô hình tài chính tốt về lý thuyết - nhưng thiếu "người trả tiền thật" để chứng thực sản phẩm.',
+        themeColor: 'border-emerald-500/35 bg-emerald-500/5 text-emerald-400',
+        avatarColor: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
+        strengths: [
+          isGame
+            ? `Cách tiếp cận kinh doanh một lần/IAP với giá ${activePricing} tạo lực đẩy mua sắm bốc đồng (impulse buy) rất hiệu quả.`
+            : 'Sử dụng VietQR làm bệ phóng thanh toán 0% chi phí trung gian (giúp nhà bán lẻ tiết kiệm 2~3%).',
+          'Chi phí vận hành ban đầu tiệm cận 0đ nhờ tối ưu tài nguyên dải miễn phí của đám mây.',
+          `Khả năng scale doanh thu phi tuyến tính do sản phẩm "${defaultTitle}" không đi kèm chi phí bản quyền nặng nề.`
+        ],
+        debts: [
+          isGame
+            ? `Doanh thu một lần từ "${defaultTitle}" chịu rủi ro bão hòa nhanh, cần thiết kế thêm vật phẩm ảo/subscription hằng tháng.`
+            : `Định giá ${activePricing} yêu cầu quy mô khách hàng lớn (>500 shop) để đạt điểm hòa vốn CFO khuyến nghị.`,
+          'Chưa tính toán khấu hao trang thiết bị và chi phí cơ hội của Solo Founder trong bảng cân đối.'
+        ],
+        risks: [
+          'Khủng hoảng dòng tiền nếu dòng tiền gia công chiếm tỷ trọng lớn áp chế thời gian đầu tư cho sản phẩm chính.'
+        ],
+        opportunities: [
+          'Mở gói dịch vụ đi kèm "Onboarding chất lượng cao" thu phí setup ban đầu để tăng giá trị trung bình trên mỗi đơn hàng (AOV).',
+          isGame
+            ? 'Bán gói quảng cáo tùy chọn hoặc tích hợp giải thưởng có thương hiệu tài trợ (Sponsored Game).'
+            : 'Cung cấp hóa đơn điện tử tự động ghim trực tiếp với báo cáo thuế thu phí trọn gói 299K/tháng.'
+        ]
+      },
+      viet: {
+        name: 'Julian Mercer',
+        avatar: '🧩',
+        role: 'Product Director / UX Lead (Former Apple & Airbnb UX Strategist)',
+        verdict: activeIdea
+          ? `🧩 UX sản phẩm "${defaultTitle}" phải tối giản nhất hướng tới nhóm khách hàng "${activeIdea.nicheAudience}"!`
+          : '🧩 UX/UI rất chuyên nghiệp - nhưng đang cố giải quyết 13 vấn đề cùng lúc, dễ làm người dùng xao nhãng.',
+        themeColor: 'border-sky-500/35 bg-sky-500/5 text-sky-400',
+        avatarColor: 'bg-sky-500/15 border-sky-500/30 text-sky-400',
+        strengths: [
+          'Giao diện Dark theme sâu đồng dạng, độ tương phản sắc nét, phông Inter mềm mại hiện đại.',
+          'Tính năng thanh tìm kiếm nhanh Ctrl+K mang đến trải nghiệm cao cấp khó tin cho một bộ công cụ nội địa.',
+          'Kiến trúc bento-box hiện đại, thu gom dữ liệu trực quan rất dễ hấp thụ thị giác.'
+        ],
+        debts: [
+          'Người dùng dễ rơi vào trạng thái bối rối trước quá nhiều thông số kỹ thuật (tech-larping) không cần thiết.',
+          'Sự bất đồng bộ trong các luồng nghiệp vụ khi người dùng nhảy từ công cụ này sang công cụ khác trên web.'
+        ],
+        risks: [
+          `Tệp khách hàng mục tiêu "${activeIdea?.nicheAudience || 'phổ thông'}" rất thiếu kiên nhẫn, họ sẽ rời đi nếu không thấy nút "Bắt đầu ngay" trong 5 giây đầu tiên.`
+        ],
+        opportunities: [
+          'Cài đặt nút "One-Click Quick Start" để kích hoạt ngay một bộ dữ liệu demo sinh động.',
+          isGame
+            ? 'Đơn giản hóa cơ chế điều khiển tối đa trên cảm ứng di động, tăng kích cỡ nút bấm lên ít nhất 44px.'
+            : 'Thiết kế mẫu VietQR động nổi bật ngay góc màn hình chính để chứng minh tính năng nạp tự động.'
+        ]
+      },
+      dan: {
+        name: 'Seraphina Kross',
+        avatar: '🚀',
+        role: 'Growth Hacker & Viral Architect (Go-To-Market Specialist, ex-Stripe)',
+        verdict: activeIdea
+          ? `🚀 Công thức thành công cho "${defaultTitle}" nằm ở việc chiếm lĩnh tệp ngách khách hàng "${activeIdea.nicheAudience}"!`
+          : '🚀 Tư duy phát tán du kích rất sắc bám sát môi trường Việt Nam - nhưng cần thu gom tệp khách hàng hẹp.',
+        themeColor: 'border-amber-500/35 bg-amber-500/5 text-amber-400',
+        avatarColor: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
+        strengths: [
+          isGame
+            ? 'Game di động có khả năng lây lan lan truyền (viral potential) cao thông qua bảng xếp hạng xã hội.'
+            : 'Nhắm mục tiêu vào Zalo OA giúp kết nối tức thì, tỷ lệ mở tin nhắn đạt 85% vượt xa Email truyền thống.',
+          'Ý tưởng giải quyết nỗi đau trực diện của thị trường giúp gia tăng sự chuyển đổi tự nhiên qua giới thiệu truyền miệng.'
+        ],
+        debts: [
+          'Quá tập trung xây dựng sản phẩm mà chưa có trang đích (Landing Page) bắt mắt để thu thập thông tin đăng ký sớm.',
+          'Chưa khai thác sức mạnh của mạng lưới người có sức ảnh hưởng siêu nhỏ (KOC/Micro-influencer) có sẵn trong ngách này.'
+        ],
+        risks: [
+          'Hiệu ứng rò rỉ dữ liệu hoặc chia sẻ lậu làm xói mòn tài nguyên máy chủ.'
+        ],
+        opportunities: [
+          'Sử dụng chiến lược "Build in Public" trên Facebook Group và Threads để thu gom 100 khách hàng đầu tiên trong tuần đầu ra mắt.',
+          isGame
+            ? 'Cho phép thi đấu solo thách đấu bạn bè qua liên kết Zalo/Messenger để tạo làn sóng chơi tiếp sức.'
+            : 'Cung cấp Widget check sao kê VietQR miễn phí nhúng vào các trang web bất kỳ để thu hút traffic ngược về trang chủ.'
+        ]
+      }
+    };
+  }, [activeIdea]);
 
   return (
     <div className="space-y-6">

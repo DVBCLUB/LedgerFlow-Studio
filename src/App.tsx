@@ -32,7 +32,13 @@ import {
   Cloud,
   CloudOff,
   RefreshCw,
-  Globe
+  Globe,
+  Workflow,
+  Target,
+  MessageCircle,
+  Smile,
+  Users,
+  Send
 } from 'lucide-react';
 
 import { loadDatabaseFromServer, saveDatabaseToServer } from './utils/dbSync';
@@ -66,6 +72,17 @@ const CommandCenter = React.lazy(() => import('./components/CommandCenter'));
 const AdvisoryBoardReport = React.lazy(() => import('./components/AdvisoryBoardReport'));
 const MarketSurveySimulator = React.lazy(() => import('./components/MarketSurveySimulator'));
 const GoogleKeywordStrategy = React.lazy(() => import('./components/GoogleKeywordStrategy'));
+const InternalAuditWorkspace = React.lazy(() => import('./components/InternalAuditWorkspace'));
+const PythonSandbox = React.lazy(() => import('./components/PythonSandbox'));
+const MarketingSuite = React.lazy(() => import('./components/MarketingSuite'));
+const MarketingFunnelLab = React.lazy(() => import('./components/MarketingFunnelLab'));
+const LeadScoringEngine = React.lazy(() => import('./components/LeadScoringEngine'));
+const ZaloMarketingHub = React.lazy(() => import('./components/ZaloMarketingHub'));
+const CustomerLTVDashboard = React.lazy(() => import('./components/CustomerLTVDashboard'));
+const PricingStrategyLab = React.lazy(() => import('./components/PricingStrategyLab'));
+const NPSReviewManager = React.lazy(() => import('./components/NPSReviewManager'));
+const AffiliateReferralHub = React.lazy(() => import('./components/AffiliateReferralHub'));
+const OutboundSalesHub = React.lazy(() => import('./components/OutboundSalesHub'));
 
 // Loading skeleton fallback for premium smooth layout
 function LoadingFallback() {
@@ -81,7 +98,7 @@ function LoadingFallback() {
       <div className="space-y-3 pt-4 border-t border-slate-900">
         <div className="h-3 bg-slate-900 rounded w-full"></div>
         <div className="h-3 bg-slate-900 rounded w-5/6"></div>
-        <div className="h-3 bg-slate-900 rounded w-4/5"></div>
+        <div className="h-3 bg-slate-950 rounded w-4/5"></div>
       </div>
       <div className="h-40 bg-slate-900/50 rounded-xl"></div>
     </div>
@@ -97,7 +114,7 @@ export default function App() {
 }
 
 function AppContent() {
-  type TabType = 'dashboard' | 'advisory' | 'market_survey' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business' | 'seo_strategy';
+  type TabType = 'dashboard' | 'advisory' | 'market_survey' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business' | 'seo_strategy' | 'audit_workspace' | 'python_sandbox' | 'marketing_suite' | 'funnel_lab' | 'lead_scoring' | 'zalo_hub' | 'ltv_dashboard' | 'pricing_lab' | 'nps_manager' | 'affiliate_hub' | 'outbound_hub';
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -338,21 +355,37 @@ function AppContent() {
 
   // Build searchable indexes of the whole app ecosystems
   const searchIndex = [
-    { title: '1. Tổng Quan (Command Center)', category: 'Phòng Chiến Lược', tab: 'dashboard' as TabType, desc: 'Bảng điều khiển trung tâm nghiên cứu chiến lược khởi nghiệp.' },
-    { title: '2. Hội Đồng Cố Vấn Khởi Nghiệp (Appraisal Report)', category: 'Phòng Chiến Lược', tab: 'advisory' as TabType, desc: 'Báo cáo thẩm định toàn diện phản hồi động từ 4 cố vấn Tech Lead, CFO, Product PM và Growth Hacker.' },
-    { title: '3.5. Chiến Lược SEO Từ Khóa (Google Search Focus)', category: 'Phòng Chiến Lược', tab: 'seo_strategy' as TabType, desc: 'Nghiên cứu từ khóa Google SEO, ánh xạ sản phẩm micro-SaaS tương thích, sinh landing page chuẩn SEO.' },
-    { title: '3. Phòng Sản Phẩm Du Kích', category: 'Phân hệ phụ', tab: 'guerrilla' as TabType, desc: 'Setup kịch bản 0đ, sinh ý tưởng sản phẩm hóa dịch vụ dữ liệu cho thị trường Việt Nam.' },
-    { title: '4. Cơ Hội Solo Founder & Tài Chính', category: 'Phân hệ phụ', tab: 'founder' as TabType, desc: 'Tính toán phân tích chi tiết tài chính, doanh thu MRR, chi phí hòa vốn cho Solo Founder.' },
-    { title: '5. Phát Hành & Thương Mại Hóa', category: 'Phân hệ phụ', tab: 'deploy_business' as TabType, desc: 'Đăng ký kinh doanh, cổng thanh toán ngân hàng VietQR/Momo, DevOps pipeline.' },
-    { title: '2. Tuần Tự A-Z Web Roadmap', category: 'Phân hệ phụ', tab: 'roadmap' as TabType, desc: 'Lộ trình phát triển hệ kế toán web toàn vẹn.' },
-    { title: '3. Đa Ngành Data Science & FinLab', category: 'Phân hệ phụ', tab: 'datascience' as TabType, desc: 'Xây dựng đường truyền làm sạch dữ liệu tự động, audit toán học, Pandas.' },
-    { title: '4. Bộ Kỹ Sư Prompt Chuyên Sâu', category: 'Phân hệ phụ', tab: 'prompts' as TabType, desc: 'Các câu lệnh mẫu thiết kế hạch toán chuyên môn kế toán Việt Nam.' },
-    { title: '5. Trợ Lý AI Gemini Chatbot', category: 'Phân hệ phụ', tab: 'assistant' as TabType, desc: 'Chatbot đàm thoại, upload file sao kê ngân hàng PDF/CSV thực tế.' },
-    { title: '6. Không Gian Dữ Liệu Tự Do', category: 'Phân hệ phụ', tab: 'custom_data' as TabType, desc: 'Trải nghiệm ghi chép sổ cái Nợ/Có, kiểm soát cân bằng kép.' },
-    { title: '7. Sơ đồ AI & Quy trình thực hiện', category: 'Phân hệ phụ', tab: 'architecture' as TabType, desc: 'Bản vẽ hạ tầng Hybrid Offline-First (SQLite WASM) & Cloudflare Serverless 0đ.' },
-    { title: '8. Game Mobile & ML Labs', category: 'Phân hệ phụ', tab: 'game_ml' as TabType, desc: 'Khu vực thử nghiệm máy học tài chính và Game mô phỏng kinh tế.' },
-    { title: '9. Kế Toán Thực Chiến VN', category: 'Phân hệ phụ', tab: 'accounting_vn' as TabType, desc: 'Nghị định 123 hóa đơn điện tử, Thông tư 200 hạch toán, đối soát ngân hàng và Benford.' },
-    { title: '10. Machine Learning Thực Tế', category: 'Phân hệ phụ', tab: 'ml_applied' as TabType, desc: 'Ứng dụng AI API, tự train model nhỏ, dự báo chuỗi thời gian và AI trong Game.' },
+    { title: 'Bước 1.1: Bảng Chiến Lược (Command Center)', category: 'Giai Đoạn 1: Khảo Sát & Chiến Lược', tab: 'dashboard' as TabType, desc: 'Bảng điều khiển trung tâm nghiên cứu chiến lược khởi nghiệp.' },
+    { title: 'Bước 1.2: Hội Đồng Cố Vấn (Báo cáo Thẩm định)', category: 'Giai Đoạn 1: Khảo Sát & Chiến Lược', tab: 'advisory' as TabType, desc: 'Báo cáo thẩm định toàn diện phản hồi động từ 4 cố vấn Tech Lead, CFO, Product PM và Growth Hacker.' },
+    { title: 'Bước 1.3: Khảo Sát Giả Lập & Ý Tưởng', category: 'Giai Đoạn 1: Khảo Sát & Chiến Lược', tab: 'market_survey' as TabType, desc: 'Trình tạo nghiên cứu & phản hồi mục tiêu của khách hàng để chứng minh nhu cầu thực tế.' },
+    { title: 'Bước 1.4: Sản Phẩm Du Kích (VIP Idea)', category: 'Giai Đoạn 1: Khảo Sát & Chiến Lược', tab: 'guerrilla' as TabType, desc: 'Setup kịch bản 0đ, sinh ý tưởng sản phẩm hóa dịch vụ dữ liệu cho thị trường Việt Nam.' },
+    { title: 'Bước 1.5: Tài Chính Solo Founder', category: 'Giai Đoạn 1: Khảo Sát & Chiến Lược', tab: 'founder' as TabType, desc: 'Tính toán phân tích chi tiết tài chính, doanh thu MRR, chi phí hòa vốn cho Solo Founder.' },
+    
+    { title: 'Bước 2.1: Lập Trình Web Roadmap', category: 'Giai Đoạn 2: Thiết Kế Kỹ Thuật & AI Stack', tab: 'roadmap' as TabType, desc: 'Lộ trình phát triển hệ tuần tự Web full-stack từ A-Z.' },
+    { title: 'Bước 2.2: Sơ đồ AI & Hạ Tầng Cloud 0đ', category: 'Giai Đoạn 2: Thiết Kế Kỹ Thuật & AI Stack', tab: 'architecture' as TabType, desc: 'Bản vẽ hạ tầng Hybrid Offline-First (SQLite WASM) & Cloudflare Serverless 0đ.' },
+    { title: 'Bước 2.3: Data Sci & FinLab', category: 'Giai Đoạn 2: Thiết Kế Kỹ Thuật & AI Stack', tab: 'datascience' as TabType, desc: 'Xây dựng đường truyền làm sạch dữ liệu tự động, audit toán học, Pandas.' },
+    { title: 'Bước 2.4: Machine Learning Thực Tế', category: 'Giai Đoạn 2: Thiết Kế Kỹ Thuật & AI Stack', tab: 'ml_applied' as TabType, desc: 'Ứng dụng AI API, tự train model nhỏ, dự báo chuỗi thời gian.' },
+    { title: 'Bước 2.5: Game Mobile Lab', category: 'Giai Đoạn 2: Thiết Kế Kỹ Thuật & AI Stack', tab: 'game_ml' as TabType, desc: 'Khu vực thử nghiệm máy học tài chính và Game mô phỏng kinh tế.' },
+    
+    { title: 'Bước 3.1: Đăng ký & Cổng Thanh Toán', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'deploy_business' as TabType, desc: 'Đăng ký kinh doanh, cổng thanh toán ngân hàng VietQR/Momo, DevOps pipeline.' },
+    { title: 'Bước 3.2: Chiến Lược SEO Từ Khóa', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'seo_strategy' as TabType, desc: 'Nghiên cứu từ khóa Google SEO, ánh xạ sản phẩm micro-SaaS tương thích, sinh landing page chuẩn SEO.' },
+    { title: 'Bước 3.3: Outbound AI Outreach', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'outbound_hub' as TabType, desc: 'Tối ưu hóa các chiến dịch tiếp cận trực tiếp khách hàng (Cold Pitch) qua Email B2B và kênh LinkedIn.' },
+    { title: 'Bước 3.4: Tự Động Hóa Marketing', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'marketing_suite' as TabType, desc: 'Xây dựng phễu chăm sóc khách hàng, kịch bản hành trình tự động, A/B test.' },
+    { title: 'Bước 3.5: Zalo Marketing Hub 🇻🇳', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'zalo_hub' as TabType, desc: 'ZNS Template Builder, OA Campaign Manager, ROI Calculator cho người dùng VN.' },
+    { title: 'Bước 3.6: Mạng Lưới Partner Affiliate', category: 'Giai Đoạn 3: Triển Khai & Marketing Chạy Thử', tab: 'affiliate_hub' as TabType, desc: 'Tự động hóa kênh tiếp thị liên kết (Partnership) thúc đẩy lượng truy cập tự nhiên.' },
+    
+    { title: 'Bước 4.1: Lead Scoring Engine', category: 'Giai Đoạn 4: Tối Ưu Chuyển Đổi & Giữ Chân', tab: 'lead_scoring' as TabType, desc: 'Chấm điểm lead tự động theo hành vi và độ phù hợp ICP.' },
+    { title: 'Bước 4.2: Funnel & CRO Lab', category: 'Giai Đoạn 4: Tối Ưu Chuyển Đổi & Giữ Chân', tab: 'funnel_lab' as TabType, desc: 'Phân tích phễu chuyển đổi, tối ưu CAC/LTV, thử nghiệm CTA và theo dõi micro-events.' },
+    { title: 'Bước 4.3: Pricing Strategy Lab 🇻🇳', category: 'Giai Đoạn 4: Tối Ưu Chuyển Đổi & Giữ Chân', tab: 'pricing_lab' as TabType, desc: 'Mô hình nhạy cảm giá Van Westendorp, cấu trúc tính năng gói dịch vụ, hệ số co giãn.' },
+    { title: 'Bước 4.4: Customer LTV & Churn', category: 'Giai Đoạn 4: Tối Ưu Chuyển Đổi & Giữ Chân', tab: 'ltv_dashboard' as TabType, desc: 'Phân tích phễu giữ chân khách hàng nâng cao, cohort, cảnh báo rủi ro Churn.' },
+    { title: 'Bước 4.5: NPS & Review Intel', category: 'Giai Đoạn 4: Tối Ưu Chuyển Đổi & Giữ Chân', tab: 'nps_manager' as TabType, desc: 'Thu thập đánh giá NPS, phân tích Sentiment, xây dựng kho Testimonial.' },
+    
+    { title: 'Bước 5.1: Sổ Cái Sandbox Quản Trị', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'custom_data' as TabType, desc: 'Trải nghiệm ghi chép sổ cái Nợ/Có, kiểm soát cân bằng kép.' },
+    { title: 'Bước 5.2: Kế Toán Thực Chiến VN', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'accounting_vn' as TabType, desc: 'Nghị định 123 hóa đơn điện tử, Thông tư 200 hạch toán, đối soát ngân hàng.' },
+    { title: 'Bước 5.3: Kiểm Toán Nội Bộ COSO', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'audit_workspace' as TabType, desc: 'Thẩm định rủi ro doanh nghiệp theo khung kiểm soát COSO, kế hoạch chọn mẫu.' },
+    { title: 'Bước 5.4: Python Data Sandbox', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'python_sandbox' as TabType, desc: 'Chạy phân tích dữ liệu dọn dẹp sao kê thô hoặc tính hệ số phá sản Altman ngay trên web.' },
+    { title: 'Bước 5.5: AI Trợ Lý Chatbot (Gemini)', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'assistant' as TabType, desc: 'Chatbot đàm thoại, upload file sao kê ngân hàng PDF/CSV thực tế.' },
+    { title: 'Bước 5.6: Bộ Kỹ Sư Prompt Chuyên Sâu', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'prompts' as TabType, desc: 'Các câu lệnh mẫu thiết kế hạch toán chuyên môn kế toán Việt Nam.' },
     // Business ideas
     ...BUSINESS_IDEAS.map(idea => ({
       title: idea.title,
@@ -808,27 +841,42 @@ FOR ALL USING (auth.uid() = user_id);`}
               onChange={(e) => setActiveSegment(e.target.value as TabType)}
               className="w-full bg-slate-950 border border-slate-850 text-slate-200 rounded-xl p-2.5 text-xs font-bold focus:outline-none focus:border-purple-500"
             >
-              <optgroup label="📊 CHIẾN LƯỢC &amp; KHỞI SỰ" className="bg-slate-950 text-slate-300">
-                <option value="dashboard">1. Tổng Quan (Command Center)</option>
-                <option value="advisory">2. Hội Đồng Cố Vấn (Báo cáo Thẩm định)</option>
-                <option value="market_survey">3. Khảo Sát Giả Lập &amp; Ý Tưởng (NEW)</option>
-                <option value="seo_strategy">3.5. Chiến Lược SEO Từ Khóa (NEW)</option>
-                <option value="guerrilla">4. Sản Phẩm Du Kích (VIP)</option>
-                <option value="founder">5. Phân Tích Cơ Hội Solo Founder &amp; Tài Chính</option>
-                <option value="deploy_business">6. Thương Mại Hóa (Phát Hành)</option>
+              <optgroup label="GIAI ĐOẠN 1: KHỞI SỰ KHẢO SÁT &amp; CHIẾN LƯỢC" className="bg-slate-950 text-purple-400 font-bold">
+                <option value="dashboard">Bước 1.1: Bảng Chiến Lược (Command Center)</option>
+                <option value="advisory">Bước 1.2: Hội Đồng Cố Vấn (Báo cáo Thẩm định)</option>
+                <option value="market_survey">Bước 1.3: Khảo Sát Giả Lập &amp; Ý Tưởng</option>
+                <option value="guerrilla">Bước 1.4: Sản Phẩm Du Kích (VIP)</option>
+                <option value="founder">Bước 1.5: Tài Chính Solo Founder &amp; Doanh Thu</option>
               </optgroup>
-              <optgroup label="💻 KỸ THUẬT &amp; AI STACK" className="bg-slate-955 text-slate-200">
-                <option value="roadmap">6. Tuần Tự Web Roadmap</option>
-                <option value="datascience">7. Đa Ngành Data &amp; FinLab</option>
-                <option value="architecture">8. Sơ đồ AI &amp; Hạ Tầng 0đ</option>
-                <option value="ml_applied">9. Machine Learning Thực Tế</option>
-                <option value="game_ml">10. Game Mobile &amp; ML Labs</option>
+              <optgroup label="GIAI ĐOẠN 2: THIẾT KẾ KỸ THUẬT &amp; AI STACK" className="bg-slate-950 text-indigo-400 font-bold">
+                <option value="roadmap">Bước 2.1: Lộ Trình Web Roadmap</option>
+                <option value="architecture">Bước 2.2: Sơ đồ AI &amp; Hạ Tầng 0đ</option>
+                <option value="datascience">Bước 2.3: Đa Ngành Data &amp; FinLab</option>
+                <option value="ml_applied">Bước 2.4: Machine Learning Thực Tế</option>
+                <option value="game_ml">Bước 2.5: Game Mobile Simulator &amp; ML</option>
               </optgroup>
-              <optgroup label="📒 KẾ TOÁN &amp; THỰC NGHIỆM" className="bg-slate-955 text-slate-200">
-                <option value="custom_data">11. Không Gian Dữ Liệu Tự Do</option>
-                <option value="accounting_vn">12. Kế Toán Thực Chiến VN (VIP)</option>
-                <option value="assistant">13. Trợ Lý AI Gemini Chatbot</option>
-                <option value="prompts">14. Bộ Kỹ Sư Prompt Chuyên Sâu</option>
+              <optgroup label="GIAI ĐOẠN 3: TRIỂN KHAI &amp; MARKETING CHẠY THỬ" className="bg-slate-950 text-blue-400 font-bold">
+                <option value="deploy_business">Bước 3.1: Đăng ký &amp; Cổng Thanh Toán (Momo/VietQR)</option>
+                <option value="seo_strategy">Bước 3.2: Tối Ưu SEO &amp; Từ Khóa Google</option>
+                <option value="outbound_hub">Bước 3.3: Outbound AI Sales &amp; Outreach</option>
+                <option value="marketing_suite">Bước 3.4: Tự Động Hóa Tiếp Thị &amp; Hành Trình</option>
+                <option value="zalo_hub">Bước 3.5: Zalo Marketing Hub (ZNS/OA)</option>
+                <option value="affiliate_hub">Bước 3.6: Mạng Lưới Hoa Hồng Affiliate</option>
+              </optgroup>
+              <optgroup label="GIAI ĐOẠN 4: TỐI ƯU CHUYỂN ĐỔI &amp; GIỮ CHÂN" className="bg-slate-950 text-emerald-400 font-bold">
+                <option value="lead_scoring">Bước 4.1: Chấm Điểm Tiềm Năng (Lead Scoring)</option>
+                <option value="funnel_lab">Bước 4.2: Tối Ưu Tỷ Lệ Đăng Ký (Funnel CRO)</option>
+                <option value="pricing_lab">Bước 4.3: Định Giá Tối Ưu (Pricing Strategy Lab)</option>
+                <option value="ltv_dashboard">Bước 4.4: Sức Sống Khách Hàng (LTV &amp; Churn)</option>
+                <option value="nps_manager">Bước 4.5: Khảo Sát Ý Kiến &amp; NPS Review</option>
+              </optgroup>
+              <optgroup label="GIAI ĐOẠN 5: VẬN HÀNH TÀI CHÍNH &amp; KIỂM TOÁN" className="bg-slate-950 text-amber-400 font-bold">
+                <option value="custom_data">Bước 5.1: Sổ Cái Sandbox Quản Trị</option>
+                <option value="accounting_vn">Bước 5.2: Kế Toán Thực Chiến VN (VIP)</option>
+                <option value="audit_workspace">Bước 5.3: Bản Đồ Rủi Ro Kiểm Toán COSO</option>
+                <option value="python_sandbox">Bước 5.4: Python Data Sandbox (WASM)</option>
+                <option value="assistant">Bước 5.5: Trợ Lý AI Gemini Chatbot</option>
+                <option value="prompts">Bước 5.6: Bộ Kỹ Sư Prompt Chuyên Sâu</option>
               </optgroup>
             </select>
           </div>
@@ -839,197 +887,358 @@ FOR ALL USING (auth.uid() = user_id);`}
           {/* NAVIGATION SIDEBAR */}
           <section className="hidden lg:block lg:col-span-1 space-y-4 select-text">
             <div className="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-905 space-y-4">
-              {/* CATEGORY 1: QUẢN TRỊ & CHIẾN LƯỢC */}
-              <div className="space-y-1">
-                <span className="text-[9.5px] text-slate-500 font-black uppercase tracking-wider block px-2 mb-1.5 font-mono">
-                  📊 Chiến Lược &amp; Khởi Sự
+              {/* --- GIAI ĐOẠN 1: KHỞI SỰ KHẢO SÁT & CHIẾN LƯỢC --- */}
+              <div className="space-y-1 pb-3 border-b border-slate-900/60">
+                <span className="text-[9.5px] text-purple-400 font-extrabold uppercase tracking-wider block px-2 mb-1.5 font-mono flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse"></span>
+                  Giai đoạn 1: Khảo Sát &amp; Chiến Lược
                 </span>
                 
                 <button
                   onClick={() => setActiveSegment('dashboard')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'dashboard'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20'
                       : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <LayoutDashboard className="w-4 h-4 text-purple-400" />
-                    <span>1. Tổng Quan (Dashboard)</span>
+                    <LayoutDashboard className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 1.1: Bảng Chiến Lược</span>
                   </span>
-                  <span className="bg-purple-500/15 text-purple-405 text-purple-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none">NEW</span>
+                  <span className="bg-purple-500/15 text-purple-300 text-[8px] font-bold px-1 py-0.5 rounded leading-none">ROOT</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('advisory')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'advisory'
-                      ? 'bg-purple-650 border-purple-500 text-white shadow-lg'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20'
                       : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Award className="w-4 h-4 text-purple-400 animate-pulse" />
-                    <span>2. Hội Đồng Cố Vấn</span>
+                    <Award className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 1.2: Hội Đồng Cố Vấn</span>
                   </span>
-                  <span className="bg-amber-500/15 text-amber-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">5.9/10</span>
+                  <span className="bg-amber-500/15 text-amber-400 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">5.9/10</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('market_survey')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'market_survey'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/20'
                       : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Search className="w-4 h-4 text-purple-400 animate-pulse" />
-                    <span>3. Nghiên Cứu &amp; Khảo Sát</span>
+                    <Search className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 1.3: Khảo Sát Giả Lập</span>
                   </span>
-                  <span className="bg-purple-500/15 text-purple-450 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">NEW</span>
+                  <span className="bg-purple-500/15 text-purple-350 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">ICP</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('guerrilla')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'guerrilla'
-                      ? 'bg-emerald-650 border-emerald-500 text-white shadow-lg'
+                      ? 'bg-emerald-650 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
                       : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-emerald-400 animate-pulse" />
-                    <span>3. Sản Phẩm Du Kích</span>
+                    <Zap className="w-4 h-4 text-emerald-400 shrink-0 animate-pulse" />
+                    <span>Bước 1.4: Ý Tưởng Du Kích</span>
                   </span>
-                  <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">VIP</span>
-                </button>
-
-                <button
-                  onClick={() => setActiveSegment('seo_strategy')}
-                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
-                    activeSegment === 'seo_strategy'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
-                      : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-purple-400" />
-                    <span>3.5. Chiến Lược SEO Từ Khóa</span>
-                  </span>
-                  <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">SEO</span>
+                  <span className="bg-emerald-500/15 text-emerald-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">VIP</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('founder')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'founder'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Briefcase className="w-4 h-4 text-purple-400" />
-                    <span>4. Phân Tích Cơ Hội</span>
+                    <Briefcase className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 1.5: Tài Chính Sống Còn</span>
                   </span>
-                </button>
-
-                <button
-                  onClick={() => setActiveSegment('deploy_business')}
-                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
-                    activeSegment === 'deploy_business'
-                      ? 'bg-emerald-650 border-emerald-500 text-white shadow-lg shadow-emerald-500/10'
-                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Rocket className="w-4 h-4 text-emerald-400" />
-                    <span>5. Thương Mại Hóa</span>
-                  </span>
+                  <span className="text-[9px] text-slate-500 font-mono">MRR</span>
                 </button>
               </div>
 
-              {/* CATEGORY 2: KỸ THUẬT & TRÍ TUỆ NHÂN TẠO */}
-              <div className="space-y-1">
-                <span className="text-[9.5px] text-slate-500 font-black uppercase tracking-wider block px-2 mb-1.5 font-mono">
-                  💻 Kỹ Thuật &amp; AI Stack
+              {/* --- GIAI ĐOẠN 2: THIẾT KẾ KỸ THUẬT & AI STACK --- */}
+              <div className="space-y-1 pb-3 border-b border-slate-900/60">
+                <span className="text-[9.5px] text-indigo-400 font-extrabold uppercase tracking-wider block px-2 mb-1.5 font-mono flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                  Giai đoạn 2: Thiết Kế &amp; AI Stack
                 </span>
 
                 <button
                   onClick={() => setActiveSegment('roadmap')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'roadmap'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      ? 'bg-[#1e1b4b] border-indigo-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-400" />
-                    <span>6. Web Roadmap</span>
+                    <Calendar className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <span>Bước 2.1: Lộ Trình Web Roadmap</span>
                   </span>
-                </button>
-
-                <button
-                  onClick={() => setActiveSegment('datascience')}
-                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
-                    activeSegment === 'datascience'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
-                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
-                  }`}
-                >
-                  <span className="flex items-center gap-2">
-                    <Database className="w-4 h-4 text-purple-400" />
-                    <span>7. Data Sci &amp; FinLab</span>
-                  </span>
+                  <span className="text-[9px] text-slate-500 font-mono">A-Z</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('architecture')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'architecture'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      ? 'bg-[#1e1b4b] border-indigo-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Network className="w-4 h-4 text-purple-450" />
-                    <span>8. Sơ đồ AI &amp; Hạ Tầng</span>
+                    <Network className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <span>Bước 2.2: Sơ đồ AI &amp; Hạ Tầng</span>
                   </span>
+                  <span className="bg-indigo-500/15 text-indigo-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">0đ</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('datascience')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'datascience'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 2.3: Đa Ngành Data Sci</span>
+                  </span>
+                  <span className="text-[9px] text-slate-500 font-mono">WASM</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('ml_applied')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'ml_applied'
-                      ? 'bg-[#009bba] bg-cyan-650 border-cyan-500 text-white shadow-lg shadow-cyan-500/10'
+                      ? 'bg-cyan-650 border-cyan-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-cyan-400" />
-                    <span>9. Machine Learning</span>
+                    <Cpu className="w-4 h-4 text-cyan-400 shrink-0" />
+                    <span>Bước 2.4: Machine Learning</span>
                   </span>
+                  <span className="bg-cyan-500/15 text-cyan-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">AI</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('game_ml')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'game_ml'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Gamepad2 className="w-4 h-4 text-sky-400" />
-                    <span>10. Game Mobile Lab</span>
+                    <Gamepad2 className="w-4 h-4 text-pink-400 shrink-0" />
+                    <span>Bước 2.5: Game Mobile Lab</span>
                   </span>
+                  <span className="text-[9px] text-slate-550 font-mono">SIM</span>
                 </button>
               </div>
 
-              {/* CATEGORY 3: KẾ TOÁN & THỰC NGHIỆM CHUYÊN SÂU */}
+              {/* --- GIAI ĐOẠN 3: TRIỂN KHAI & TIẾP THỊ CHẠY THỬ --- */}
+              <div className="space-y-1 pb-3 border-b border-slate-900/60">
+                <span className="text-[9.5px] text-blue-400 font-extrabold uppercase tracking-wider block px-2 mb-1.5 font-mono flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                  Giai đoạn 3: Triển Khai &amp; Launch
+                </span>
+
+                <button
+                  onClick={() => setActiveSegment('deploy_business')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'deploy_business'
+                      ? 'bg-emerald-650 border-emerald-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Rocket className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Bước 3.1: Đăng Ký &amp; Cổng QR</span>
+                  </span>
+                  <span className="bg-emerald-500/10 text-emerald-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">0đ</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('seo_strategy')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'seo_strategy'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-205 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Globe className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 3.2: Tối Ưu SEO Từ Khóa</span>
+                  </span>
+                  <span className="bg-purple-500/15 text-purple-400 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">SERP</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('outbound_hub')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'outbound_hub'
+                      ? 'bg-indigo-650 border-indigo-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Send className="w-4 h-4 text-indigo-400 shrink-0" />
+                    <span>Bước 3.3: Outbound AI Sales</span>
+                  </span>
+                  <span className="bg-indigo-500/15 text-indigo-400 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">EMAIL</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('marketing_suite')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'marketing_suite'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Workflow className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 3.4: Automation Phễu</span>
+                  </span>
+                  <span className="text-[9px] text-slate-550 font-mono">FLOW</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('zalo_hub')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'zalo_hub'
+                      ? 'bg-blue-600 border-blue-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4 text-blue-450 shrink-0" />
+                    <span>Bước 3.5: Zalo Marketing Hub</span>
+                  </span>
+                  <span className="bg-red-500/15 text-red-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase font-mono">🇻🇳 OA</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('affiliate_hub')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'affiliate_hub'
+                      ? 'bg-emerald-650 border-emerald-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <span>Bước 3.6: Mạng Lưới Referral</span>
+                  </span>
+                  <span className="text-[9px] text-emerald-500">15%</span>
+                </button>
+              </div>
+
+              {/* --- GIAI ĐOẠN 4: TỐI ƯU CHUYỂN ĐỔI & GIỮ CHÂN --- */}
+              <div className="space-y-1 pb-3 border-b border-slate-900/60">
+                <span className="text-[9.5px] text-emerald-400 font-extrabold uppercase tracking-wider block px-2 mb-1.5 font-mono flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Giai đoạn 4: Tối Ưu &amp; Giữ Chân
+                </span>
+
+                <button
+                  onClick={() => setActiveSegment('lead_scoring')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'lead_scoring'
+                      ? 'bg-amber-600 border-amber-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Target className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Bước 4.1: Chấm Điểm Leads</span>
+                  </span>
+                  <span className="text-[9px] text-amber-500 font-mono">ICP</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('funnel_lab')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'funnel_lab'
+                      ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-450 shrink-0" />
+                    <span>Bước 4.2: Funnel &amp; CRO Lab</span>
+                  </span>
+                  <span className="bg-emerald-500/15 text-emerald-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">CONV</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('pricing_lab')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'pricing_lab'
+                      ? 'bg-blue-650 border-blue-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Award className="w-4 h-4 text-blue-450 shrink-0" />
+                    <span>Bước 4.3: Định Giá Tối Ưu</span>
+                  </span>
+                  <span className="bg-blue-500/15 text-blue-405 text-[8px] font-bold px-1 py-0.5 rounded leading-none">PRICING</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('ltv_dashboard')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'ltv_dashboard'
+                      ? 'bg-emerald-600 border-emerald-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-450 shrink-0" />
+                    <span>Bước 4.4: LTV &amp; Churn Shield</span>
+                  </span>
+                  <span className="text-[9px] text-slate-500 font-mono">LTV</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('nps_manager')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'nps_manager'
+                      ? 'bg-purple-600 border-purple-550 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Smile className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 4.5: NPS &amp; Review Intel</span>
+                  </span>
+                  <span className="bg-purple-500/15 text-purple-400 text-[8px] font-bold px-1.5 py-0.5 rounded leading-none uppercase">NPS</span>
+                </button>
+              </div>
+
+              {/* --- GIAI ĐOẠN 5: VẬN HÀNH TÀI CHÍNH & KIỂM TOÁN --- */}
               <div className="space-y-1">
-                <span className="text-[9.5px] text-slate-500 font-black uppercase tracking-wider block px-2 mb-1.5 font-mono">
-                  📒 Kế Toán &amp; Thực Nghiệm
+                <span className="text-[9.5px] text-amber-500 font-extrabold uppercase tracking-wider block px-2 mb-1.5 font-mono flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                  Giai đoạn 5: Vận Hành &amp; Kiểm Toán
                 </span>
 
                 <button
@@ -1041,39 +1250,70 @@ FOR ALL USING (auth.uid() = user_id);`}
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-purple-400" />
-                    <span>11. Sổ Cái Sandbox</span>
+                    <Layers className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 5.1: Sổ Cái Sandbox</span>
                   </span>
-                  <span className="bg-emerald-500/15 text-emerald-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase font-mono">Active</span>
+                  <span className="bg-emerald-500/15 text-emerald-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">ACTIVE</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('accounting_vn')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'accounting_vn'
-                      ? 'bg-amber-650 border-amber-500 text-white shadow-lg shadow-amber-500/10'
+                      ? 'bg-amber-650 border-amber-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-amber-400" />
-                    <span>12. Kế Toán Thực Chiến</span>
+                    <Layers className="w-4 h-4 text-amber-400 shrink-0" />
+                    <span>Bước 5.2: Kế Toán Thực Chiến</span>
                   </span>
-                  <span className="bg-amber-500/15 text-amber-400 text-[8.5px] font-black px-1.5 py-0.5 rounded leading-none uppercase">VIP</span>
+                  <span className="bg-amber-500/15 text-amber-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none uppercase">VIP</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('audit_workspace')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'audit_workspace'
+                      ? 'bg-amber-600 border-amber-505 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-amber-450 shrink-0" />
+                    <span>Bước 5.3: Thẩm Định COSO</span>
+                  </span>
+                  <span className="bg-red-500/15 text-red-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none">RISK</span>
+                </button>
+
+                <button
+                  onClick={() => setActiveSegment('python_sandbox')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'python_sandbox'
+                      ? 'bg-orange-600 border-orange-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Terminal className="w-4 h-4 text-orange-400 shrink-0" />
+                    <span>Bước 5.4: Python Data Sandbox</span>
+                  </span>
+                  <span className="bg-orange-500/15 text-orange-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none">WASM</span>
                 </button>
 
                 <button
                   onClick={() => setActiveSegment('assistant')}
                   className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
                     activeSegment === 'assistant'
-                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-500/10'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
                       : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Cpu className="w-4 h-4 text-purple-400" />
-                    <span>13. AI Trợ Lý Chatbot</span>
+                    <Cpu className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 5.5: AI Trợ Lý Chatbot</span>
                   </span>
+                  <span className="text-[9px] text-slate-500">GEMINI</span>
                 </button>
 
                 <button
@@ -1085,9 +1325,10 @@ FOR ALL USING (auth.uid() = user_id);`}
                   }`}
                 >
                   <span className="flex items-center gap-2">
-                    <Terminal className="w-4 h-4 text-purple-400" />
-                    <span>14. Prompt Kế Toán</span>
+                    <Terminal className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 5.6: Prompt Kế Toán</span>
                   </span>
+                  <span className="text-[9px] text-slate-500 font-mono">v4</span>
                 </button>
               </div>
             </div>
@@ -1122,9 +1363,20 @@ FOR ALL USING (auth.uid() = user_id);`}
               {activeSegment === 'architecture' && <AIEcosystemArchitecture />}
               {activeSegment === 'game_ml' && <GameAndMLWorkbench />}
               {activeSegment === 'accounting_vn' && <AccountingVietnam />}
+              {activeSegment === 'audit_workspace' && <InternalAuditWorkspace />}
+              {activeSegment === 'python_sandbox' && <PythonSandbox />}
               {activeSegment === 'ml_applied' && <MLApplied />}
               {activeSegment === 'deploy_business' && <DeployBusiness />}
               {activeSegment === 'seo_strategy' && <GoogleKeywordStrategy />}
+              {activeSegment === 'marketing_suite' && <MarketingSuite />}
+              {activeSegment === 'funnel_lab' && <MarketingFunnelLab />}
+              {activeSegment === 'lead_scoring' && <LeadScoringEngine />}
+              {activeSegment === 'zalo_hub' && <ZaloMarketingHub />}
+              {activeSegment === 'ltv_dashboard' && <CustomerLTVDashboard />}
+              {activeSegment === 'pricing_lab' && <PricingStrategyLab />}
+              {activeSegment === 'nps_manager' && <NPSReviewManager />}
+              {activeSegment === 'affiliate_hub' && <AffiliateReferralHub />}
+              {activeSegment === 'outbound_hub' && <OutboundSalesHub />}
             </Suspense>
           </section>
         </main>
