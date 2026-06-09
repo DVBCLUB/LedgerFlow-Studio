@@ -35,9 +35,195 @@ interface VNJournalEntry {
   amount: number;
 }
 
+const XML_INVOICE_TEMPLATES = {
+  valid_8pct: `<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+  <DLHDon Id="INV-2026-F99">
+    <TTChung>
+      <KHMSHDon>1</KHMSHDon>
+      <KHHDon>C26TAA</KHHDon>
+      <SHDon>0002840</SHDon>
+      <NLap>2026-06-08</NLap>
+      <DVTTe>VND</DVTTe>
+    </TTChung>
+    <NBan>
+      <Ten>CÔNG TY TNHH PHẦN MỀM LEDGERFLOW VIỆT NAM</Ten>
+      <MST>0110345678</MST>
+      <DChi>72 Lê Thánh Tôn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</DChi>
+    </NBan>
+    <NMua>
+      <Ten>HỘ KINH DOANH CỬA HÀNG MINH PHÁT</Ten>
+      <MST>8123456789</MST>
+      <DChi>145 Nguyễn Thị Minh Khai, Quận 3, TP. Hồ Chí Minh</DChi>
+    </NMua>
+    <DSHDBH>
+      <HDonChiTiet>
+        <STT>1</STT>
+        <TenHVDV>Gói Micro-SaaS dọn dẹp đối soát sao kê ngân hàng tự động</TenHVDV>
+        <DVT>Gói</DVT>
+        <SLuong>1</SLuong>
+        <DGia>3500000</DGia>
+        <ThTien>3500000</ThTien>
+        <TSuat>8%</TSuat>
+      </HDonChiTiet>
+    </DSHDBH>
+    <TToan>
+      <TgTCThue>3500000</TgTCThue>
+      <TgTThue>280000</TgTThue>
+      <TgTTTBSo>3780000</TgTTTBSo>
+      <TgTTTBChu>Ba triệu bảy trăm tám mươi nghìn đồng chẵn</TgTTTBChu>
+    </TToan>
+  </DLHDon>
+  <DSCKS>
+    <Signature>
+      <SigningTime>2026-06-08T12:30:15Z</SigningTime>
+      <CertificateSerial>CA-9937402847-SHA256-VIETTEL</CertificateSerial>
+      <Subject>MST: 0110345678 - CONG TY TNHH PHAN MEM LEDGERFLOW VIET NAM</Subject>
+    </Signature>
+  </DSCKS>
+</HDon>`,
+
+  invalid_mst: `<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+  <DLHDon Id="INV-2026-D32">
+    <TTChung>
+      <KHMSHDon>1</KHMSHDon>
+      <KHHDon>C26TBB</KHHDon>
+      <SHDon>0008510</SHDon>
+      <NLap>2026-06-05</NLap>
+      <DVTTe>VND</DVTTe>
+    </TTChung>
+    <NBan>
+      <Ten>HỢP TÁC XÃ DỊCH VỤ CÔNG NGHỆ CHƯA ĐĂNG KÝ THUẾ</Ten>
+      <MST>011-INVALID-MST-999</MST>
+      <DChi>Toà nhà Central, Phường Thảo Điền, Thành phố Thủ Đức</DChi>
+    </NBan>
+    <NMua>
+      <Ten>CÔNG TY TNHH PHẦN MỀM LEDGERFLOW VIỆT NAM</Ten>
+      <MST>0110345678</MST>
+      <DChi>72 Lê Thánh Tôn, Quận 1, TP. Hồ Chí Minh</DChi>
+    </NMua>
+    <DSHDBH>
+      <HDonChiTiet>
+        <STT>1</STT>
+        <TenHVDV>Dịch vụ tư vấn giải pháp White-Label Ledger Hub</TenHVDV>
+        <DVT>Tháng</DVT>
+        <SLuong>1</SLuong>
+        <DGia>45000000</DGia>
+        <ThTien>45000000</ThTien>
+        <TSuat>10%</TSuat>
+      </HDonChiTiet>
+    </DSHDBH>
+    <TToan>
+      <TgTCThue>45000000</TgTCThue>
+      <TgTThue>4500000</TgTThue>
+      <TgTTTBSo>49500000</TgTTTBSo>
+      <TgTTTBChu>Bốn mươi chín triệu năm trăm nghìn đồng chẵn</TgTTTBChu>
+    </TToan>
+  </DLHDon>
+  <DSCKS>
+    <Signature>
+      <SigningTime>2026-06-05T09:15:00Z</SigningTime>
+      <CertificateSerial>CA-831034-BKAV-CA</CertificateSerial>
+      <Subject>MST: 011-INVALID-MST-999 - HTX DICH VU CONG NGHE CHUE</Subject>
+    </Signature>
+  </DSCKS>
+</HDon>`,
+
+  math_error: `<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+  <DLHDon Id="INV-2026-X11">
+    <TTChung>
+      <KHMSHDon>1</KHMSHDon>
+      <KHHDon>C26TCC</KHHDon>
+      <SHDon>0000912</SHDon>
+      <NLap>2026-06-07</NLap>
+      <DVTTe>VND</DVTTe>
+    </TTChung>
+    <NBan>
+      <Ten>CƠ MINH ĐIỆN VŨ HÙNG (CỦA HÀNG LẺ)</Ten>
+      <MST>0110452331</MST>
+      <DChi>12 Kim Mã, Kim Mã, Quận Ba Đình, Hà Nội</DChi>
+    </NBan>
+    <NMua>
+      <Ten>CÔNG TY TNHH PHẦN MỀM LEDGERFLOW VIỆT NAM</Ten>
+      <MST>0110345678</MST>
+      <DChi>72 Lê Thánh Tôn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</DChi>
+    </NMua>
+    <DSHDBH>
+      <HDonChiTiet>
+        <STT>1</STT>
+        <TenHVDV>Cáp mạng CAT6 và thiết bị Switch 24-Port D-Link</TenHVDV>
+        <DVT>Cái</DVT>
+        <SLuong>2</SLuong>
+        <DGia>1850000</DGia>
+        <ThTien>3700000</ThTien>
+        <TSuat>10%</TSuat>
+      </HDonChiTiet>
+    </DSHDBH>
+    <TToan>
+      <TgTCThue>3700000</TgTCThue>
+      <TgTThue>370000</TgTThue>
+      <TgTTTBSo>4500000</TgTTTBSo>
+      <TgTTTBChu>Bốn triệu năm trăm nghìn đồng chẵn</TgTTTBChu>
+    </TToan>
+  </DLHDon>
+  <DSCKS>
+    <Signature>
+      <SigningTime>2026-06-07T11:45:00Z</SigningTime>
+      <CertificateSerial>CA-11234-FPT-CA</CertificateSerial>
+      <Subject>MST: 0110452331 - CO MINH DIEN VU HUNG</Subject>
+    </Signature>
+  </DSCKS>
+</HDon>`,
+
+  missing_sig: `<?xml version="1.0" encoding="UTF-8"?>
+<HDon>
+  <DLHDon Id="INV-2026-S13">
+    <TTChung>
+      <KHMSHDon>1</KHMSHDon>
+      <KHHDon>C26TDD</KHHDon>
+      <SHDon>0002120</SHDon>
+      <NLap>2026-06-06</NLap>
+      <DVTTe>VND</DVTTe>
+    </TTChung>
+    <NBan>
+      <Ten>CÔNG TY GIẢI PHÁP THANH TOÁN QR VIỆT NAM</Ten>
+      <MST>0314455888</MST>
+      <DChi>Lầu 12 Landmark 81, Phường 22, Quận Bình Thạnh, TP. Hồ Chí Minh</DChi>
+    </NBan>
+    <NMua>
+      <Ten>CÔNG TY TNHH PHẦN MỀM LEDGERFLOW VIỆT NAM</Ten>
+      <MST>0110345678</MST>
+      <DChi>72 Lê Thánh Tôn, Bến Nghé, Quận 1, TP. Hồ Chí Minh</DChi>
+    </NMua>
+    <DSHDBH>
+      <HDonChiTiet>
+        <STT>1</STT>
+        <TenHVDV>Phí dịch vụ đối soát tự động tích hợp API VietQR Q2</TenHVDV>
+        <DVT>Giao_dịch</DVT>
+        <SLuong>1</SLuong>
+        <DGia>1200000</DGia>
+        <ThTien>1200000</ThTien>
+        <TSuat>10%</TSuat>
+      </HDonChiTiet>
+    </DSHDBH>
+    <TToan>
+      <TgTCThue>1200000</TgTCThue>
+      <TgTThue>120000</TgTThue>
+      <TgTTTBSo>1320000</TgTTTBSo>
+      <TgTTTBChu>Một triệu ba trăm hai mươi nghìn đồng chẵn</TgTTTBChu>
+    </TToan>
+  </DLHDon>
+  <DSCKS>
+    <!-- THIẾU CHỮ KÝ SỐ HOÀN TOÀN -->
+  </DSCKS>
+</HDon>`
+};
+
 export default function AccountingVietnam() {
   const { activeIdea } = useStore();
-  const [activeTab, setActiveTab] = useState<'invoice' | 'chart_accounts' | 'bank_reconcile' | 'double_entry' | 'statements' | 'tt99_transition'>('invoice');
+  const [activeTab, setActiveTab] = useState<'invoice' | 'chart_accounts' | 'bank_reconcile' | 'double_entry' | 'statements' | 'tt99_transition' | 'e_invoice_t78'>('invoice');
   const [copiedCodeFlag, setCopiedCodeFlag] = useState<string | null>(null);
 
   // --- DOUBLE ENTRY STATE ENGINE & LOCAL STORAGE SYNC ---
@@ -131,6 +317,10 @@ export default function AccountingVietnam() {
   const [gmtProfit, setGmtProfit] = useState<number>(50000000000);
   const [gmtCoveredTax, setGmtCoveredTax] = useState<number>(4000000000);
   const [gmtStatusMsg, setGmtStatusMsg] = useState<string>('');
+
+  // --- COMPLIANCE INVOICE VALIDATOR STATES ---
+  const [xmlText, setXmlText] = useState<string>(XML_INVOICE_TEMPLATES.valid_8pct);
+  const [xmlValidatorStatusMsg, setXmlValidatorStatusMsg] = useState<string>('');
 
   useEffect(() => {
     localStorage.setItem('lf_vn_journal_entries', JSON.stringify(journalEntries));
@@ -754,6 +944,14 @@ Tuyệt đối không chèn lý thuyết trước hoặc sau!`
             }`}
           >
             🚀 Chuyển Đổi TT99 (Mới)
+          </button>
+          <button
+            onClick={() => setActiveTab('e_invoice_t78')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'e_invoice_t78' ? 'bg-orange-655 bg-orange-600 text-white shadow' : 'text-orange-400/90 hover:text-white bg-orange-500/5'
+            }`}
+          >
+            🔍 Thẩm Định HĐĐT (TT78)
           </button>
         </div>
       </section>
@@ -2952,6 +3150,494 @@ df_bank['cleaned_amount'] = df_bank['So_Tien'].apply(clean_amount)`}
           </div>
         </div>
       )}
+
+      {/* =================================== TAB 7: E-INVOICE VALIDATOR (CIRCULAR 78 / DECREE 123) =================================== */}
+      {activeTab === 'e_invoice_t78' && (() => {
+        // Safe parsing with built-in DOMParser inside an IIFE to restrict scope safely
+        let doc: Document | null = null;
+        let parseError = '';
+        try {
+          const parser = new window.DOMParser();
+          doc = parser.parseFromString(xmlText, 'text/xml');
+          if (doc.getElementsByTagName('parsererror').length > 0) {
+            parseError = 'Lỗi cú pháp XML. Vui lòng kiểm tra lại cấu trúc đóng mở các thẻ XML.';
+          }
+        } catch (e) {
+          parseError = 'Trình duyệt không hỗ trợ phân tích XML thô.';
+        }
+
+        const getTagVal = (parent: Element | Document | null, name: string): string => {
+          if (!parent) return '';
+          const el = parent.getElementsByTagName(name)[0];
+          return el ? (el.textContent || '').trim() : '';
+        };
+
+        const nbanNode = doc ? doc.getElementsByTagName('NBan')[0] : null;
+        const nmuaNode = doc ? doc.getElementsByTagName('NMua')[0] : null;
+        const ttoanNode = doc ? doc.getElementsByTagName('TToan')[0] : null;
+        const ttchungNode = doc ? doc.getElementsByTagName('TTChung')[0] : null;
+        const sigNode = doc ? doc.getElementsByTagName('Signature')[0] : null;
+
+        // Header
+        const shDon = getTagVal(ttchungNode, 'SHDon');
+        const khmshDon = getTagVal(ttchungNode, 'KHMSHDon');
+        const khhDon = getTagVal(ttchungNode, 'KHHDon');
+        const nLap = getTagVal(ttchungNode, 'NLap');
+        const dvtTe = getTagVal(ttchungNode, 'DVTTe') || 'VND';
+
+        // Entities
+        const sellerName = getTagVal(nbanNode, 'Ten');
+        const sellerMst = getTagVal(nbanNode, 'MST');
+        const sellerAddr = getTagVal(nbanNode, 'DChi');
+
+        const buyerName = getTagVal(nmuaNode, 'Ten');
+        const buyerMst = getTagVal(nmuaNode, 'MST');
+        const buyerAddr = getTagVal(nmuaNode, 'DChi');
+
+        // Items Extraction
+        const items: any[] = [];
+        if (doc) {
+          const itemElements = doc.getElementsByTagName('HDonChiTiet');
+          for (let i = 0; i < itemElements.length; i++) {
+            const el = itemElements[i];
+            items.push({
+              stt: getTagVal(el, 'STT'),
+              name: getTagVal(el, 'TenHVDV'),
+              dvt: getTagVal(el, 'DVT'),
+              sLuong: parseFloat(getTagVal(el, 'SLuong')) || 0,
+              dGia: parseFloat(getTagVal(el, 'DGia')) || 0,
+              thTien: parseFloat(getTagVal(el, 'ThTien')) || 0,
+              tSuat: getTagVal(el, 'TSuat')
+            });
+          }
+        }
+
+        // Financial summary
+        const totalBeforeTax = parseFloat(getTagVal(ttoanNode, 'TgTCThue')) || 0;
+        const totalTax = parseFloat(getTagVal(ttoanNode, 'TgTThue')) || 0;
+        const totalPayable = parseFloat(getTagVal(ttoanNode, 'TgTTTBSo')) || 0;
+        const totalPayableWords = getTagVal(ttoanNode, 'TgTTTBChu');
+
+        // Compliance Auditing calculations
+        const signatureExists = !!sigNode && getTagVal(sigNode, 'CertificateSerial').length > 0;
+        const signingTime = sigNode ? getTagVal(sigNode, 'SigningTime') : '';
+        const certSerial = sigNode ? getTagVal(sigNode, 'CertificateSerial') : '';
+        const certSubject = sigNode ? getTagVal(sigNode, 'Subject') : '';
+
+        // MST checkers
+        const cleanMst = (mst: string) => mst.replace(/[^\d-]/g, '');
+        const isMstValid = (mst: string) => {
+          const c = cleanMst(mst);
+          return /^\d{10}$/.test(c) || /^\d{10}-\d{3}$/.test(c);
+        };
+
+        const isSellerMstOk = isMstValid(sellerMst);
+        const isBuyerMstOk = buyerMst ? isMstValid(buyerMst) : true; // Buyer can be individual with no MST
+
+        // Math test
+        const computedBeforeTaxSum = items.reduce((acc, it) => acc + it.thTien, 0);
+        const hasMathBeforeTaxDiscrepancy = Math.abs(computedBeforeTaxSum - totalBeforeTax) > 10;
+        const expectedPayable = totalBeforeTax + totalTax;
+        const hasMathPayableDiscrepancy = Math.abs(expectedPayable - totalPayable) > 10;
+
+        const passesAudit = !parseError && signatureExists && isSellerMstOk && isBuyerMstOk && !hasMathBeforeTaxDiscrepancy && !hasMathPayableDiscrepancy;
+
+        return (
+          <div className="space-y-6 mt-6 animate-fade-in text-left">
+            <div className="bg-slate-950/40 border border-slate-850 rounded-2xl p-6 shadow-xl">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
+                <div className="space-y-1">
+                  <span className="text-[10px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider block w-max font-mono">
+                    THÔNG TƯ 78/2021/TT-BTC &amp; NGHỊ ĐỊNH 123/2020/NĐ-CP
+                  </span>
+                  <h3 className="text-base font-black text-white flex items-center gap-2">
+                    🛡️ Hệ Thống Thẩm Định Hóa Đơn Điện Tử Quốc Gia (XML Sandbox)
+                  </h3>
+                  <p className="text-xs text-slate-400 font-semibold leading-relaxed max-w-4xl">
+                    Hệ thống trích xuất dữ liệu, định cấu trúc thẻ XML hóa đơn điện tử theo đặc tả kỹ thuật của Tổng Cục Thuế Việt Nam, tự động hóa hạch toán đối chiếu với sổ sách kế toán kép chỉ trong tích tắc.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 self-start lg:self-center">
+                  <span className={`px-3 py-1.5 rounded-full text-xs font-black flex items-center gap-1.5 border ${
+                    passesAudit 
+                      ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' 
+                      : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                  }`}>
+                    {passesAudit ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        ĐẠT CHUẨN KÊ KHAI (HỢP LỆ)
+                      </>
+                    ) : (
+                      <>
+                        <AlertTriangle className="w-4 h-4 text-rose-450 shrink-0" />
+                        CẢNH BÁO RỦI RO THUẾ
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Grid 2 Columns */}
+              <div className="grid lg:grid-cols-12 gap-6 pt-2">
+                
+                {/* Column 1: XML Input & Presets */}
+                <div className="lg:col-span-4 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10.5px] text-slate-400 font-bold block uppercase font-mono tracking-wider">
+                      Chọn kịch bản hóa đơn mô phỏng:
+                    </label>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          setXmlText(XML_INVOICE_TEMPLATES.valid_8pct);
+                          setXmlValidatorStatusMsg('Đã nạp Hóa đơn Dịch vụ số hợp lệ (VAT 8% giảm giá theo Nghị định 72)');
+                        }}
+                        className={`px-2 py-2 rounded-xl border text-[10.5px] font-black leading-tight text-left transition-all cursor-pointer ${
+                          xmlText === XML_INVOICE_TEMPLATES.valid_8pct
+                            ? 'bg-sky-500/15 border-sky-550 text-sky-400'
+                            : 'bg-slate-900 border-slate-850 text-slate-400 hover:text-white hover:border-slate-800'
+                        }`}
+                      >
+                        ✅ Mẫu 01: Chuẩn 8% VAT
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setXmlText(XML_INVOICE_TEMPLATES.invalid_mst);
+                          setXmlValidatorStatusMsg('Đã nạp kịch bản Hóa đơn lỗi định dạng Mã Số Thuế (MST) người bán.');
+                        }}
+                        className={`px-2 py-2 rounded-xl border text-[10.5px] font-black leading-tight text-left transition-all cursor-pointer ${
+                          xmlText === XML_INVOICE_TEMPLATES.invalid_mst
+                            ? 'bg-rose-500/15 border-rose-550 text-rose-400'
+                            : 'bg-slate-900 border-slate-850 text-slate-400 hover:text-white hover:border-slate-800'
+                        }`}
+                      >
+                        ⚠️ Mẫu 02: Lỗi Sai MST
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setXmlText(XML_INVOICE_TEMPLATES.math_error);
+                          setXmlValidatorStatusMsg('Đã nạp kịch bản lỗi sai lệch số liệu toán học giữa tổng tiền gốc và thuế VAT.');
+                        }}
+                        className={`px-2 py-2 rounded-xl border text-[10.5px] font-black leading-tight text-left transition-all cursor-pointer ${
+                          xmlText === XML_INVOICE_TEMPLATES.math_error
+                            ? 'bg-amber-500/15 border-amber-550 text-amber-400'
+                            : 'bg-slate-900 border-slate-850 text-slate-400 hover:text-white hover:border-slate-800'
+                        }`}
+                      >
+                        🧮 Mẫu 03: Sai lệch Số Liệu
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setXmlText(XML_INVOICE_TEMPLATES.missing_sig);
+                          setXmlValidatorStatusMsg('Đã nạp kịch bản Hóa đơn thiếu Chữ ký số (Signature) pháp lý.');
+                        }}
+                        className={`px-2 py-2 rounded-xl border text-[10.5px] font-black leading-tight text-left transition-all cursor-pointer ${
+                          xmlText === XML_INVOICE_TEMPLATES.missing_sig
+                            ? 'bg-purple-500/15 border-purple-550 text-purple-400'
+                            : 'bg-slate-900 border-slate-850 text-slate-400 hover:text-white hover:border-slate-800'
+                        }`}
+                      >
+                        🔏 Mẫu 04: Chưa Ký Số
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[10.5px] text-slate-450 font-bold uppercase font-mono tracking-wider">
+                        Mã Nguồn XML Hóa Đơn Thô:
+                      </label>
+                      <span className="text-[9px] text-slate-500 font-mono">Dựa trên TT78 XML Schema</span>
+                    </div>
+                    <textarea
+                      value={xmlText}
+                      onChange={(e) => {
+                        setXmlText(e.target.value);
+                        setXmlValidatorStatusMsg('Đã cập nhật thay đổi XML thủ công. Hệ thống tự động re-parse...');
+                      }}
+                      className="w-full h-[320px] bg-slate-950 border border-slate-900 rounded-xl p-3 text-[10px] font-mono text-cyan-400/90 leading-relaxed focus:border-slate-800 focus:outline-none selection:bg-cyan-950"
+                      spellCheck={false}
+                      placeholder="Nhập mã nguồn XML hóa đơn cần thẩm định..."
+                    />
+                  </div>
+
+                  {xmlValidatorStatusMsg && (
+                    <div className="p-2.5 bg-sky-500/5 border border-sky-500/10 rounded-xl text-[10px] text-sky-400 font-semibold leading-relaxed">
+                      💡 {xmlValidatorStatusMsg}
+                    </div>
+                  )}
+                </div>
+
+                {/* Column 2: Extracted Data & Compliance Reports */}
+                <div className="lg:col-span-8 flex flex-col space-y-4">
+                  {parseError ? (
+                    <div className="p-10 bg-rose-500/5 border border-rose-500/10 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
+                      <AlertTriangle className="w-10 h-10 text-rose-500 animate-bounce" />
+                      <h4 className="text-sm font-black text-white uppercase tracking-wider">Mã Lỗi Phân Tích Cú Pháp XML</h4>
+                      <p className="text-xs text-slate-400 leading-normal max-w-sm font-semibold">
+                        {parseError}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="bg-slate-950 border border-slate-900 rounded-2xl overflow-hidden flex-1 min-h-[480px] grid grid-rows-12">
+                      
+                      {/* Sub-Header Tabs inside Column 2 */}
+                      <div className="row-span-1 border-b border-slate-900 px-5 flex items-center justify-between text-xs font-bold my-auto py-3 bg-slate-950">
+                        <span className="text-white">BẢN THẨM ĐỊNH CHI TIẾT TỔNG CỤC THUẾ</span>
+                        <div className="text-[9px] font-mono text-slate-500 flex items-center gap-1.5">
+                          <span>MÃ TRA CỨU HĐĐT:</span>
+                          <strong className="text-white font-black">LF-F9937402847</strong>
+                        </div>
+                      </div>
+
+                      {/* Content Area */}
+                      <div className="row-span-11 p-5 overflow-y-auto space-y-5 text-xs">
+                        
+                        {/* Audit checklists */}
+                        <div className="space-y-2.5">
+                          <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-wider block font-mono">Bảng Kiểm Định Tuân Thủ Pháp Lý:</h4>
+                          <div className="grid sm:grid-cols-2 gap-2">
+                            
+                            {/* Check item 1 */}
+                            <div className={`p-3 border rounded-xl flex items-start gap-2.5 ${
+                              signatureExists 
+                                ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                : 'bg-rose-500/5 border-rose-550'
+                            }`}>
+                              <span className={`p-1.5 rounded-lg text-xs leading-none shrink-0 ${
+                                signatureExists ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-450'
+                              }`}>
+                                {signatureExists ? '🟢' : '🔴'}
+                              </span>
+                              <div className="space-y-0.5 text-left">
+                                <span className="font-extrabold text-white block">Xác thực Chữ ký số (Digital Stamp)</span>
+                                <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                                  {signatureExists 
+                                    ? `Chứng thư PKI hợp lệ. Serial: ${certSerial.substring(0, 16)}...` 
+                                    : 'Thiếu hoặc lỗi chữ ký số của người bán. Hóa đơn không có giá trị khai thuế.'}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Check item 2 */}
+                            <div className={`p-3 border rounded-xl flex items-start gap-2.5 ${
+                              isSellerMstOk 
+                                ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                : 'bg-rose-500/5 border-rose-550'
+                            }`}>
+                              <span className={`p-1.5 rounded-lg text-xs leading-none shrink-0 ${
+                                isSellerMstOk ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-450'
+                              }`}>
+                                {isSellerMstOk ? '🟢' : '🔴'}
+                              </span>
+                              <div className="space-y-0.5 text-left">
+                                <span className="font-extrabold text-white block">Mã số thuế Người bán (MST)</span>
+                                <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                                  {isSellerMstOk 
+                                    ? `MST: ${sellerMst} hợp chuẩn cấu trúc General Department of Taxation.` 
+                                    : `Sai định dạng MST người bán (${sellerMst}). Yêu cầu cấu trúc 10 hoặc 13 chữ số.`}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Check item 3 */}
+                            <div className={`p-3 border rounded-xl flex items-start gap-2.5 ${
+                              !hasMathBeforeTaxDiscrepancy 
+                                ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                : 'bg-rose-500/5 border-rose-550'
+                            }`}>
+                              <span className={`p-1.5 rounded-lg text-xs leading-none shrink-0 ${
+                                !hasMathBeforeTaxDiscrepancy ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-455'
+                              }`}>
+                                {!hasMathBeforeTaxDiscrepancy ? '🟢' : '🔴'}
+                              </span>
+                              <div className="space-y-0.5 text-left">
+                                <span className="font-extrabold text-white block">Đối chiếu số tiền trước thuế</span>
+                                <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                                  {!hasMathBeforeTaxDiscrepancy 
+                                    ? `Trùng khớp 100% giữa tổng chi tiết hàng hoá và thẻ tổng toán (${totalBeforeTax.toLocaleString()}đ)`
+                                    : `Lệch số liệu! Tổng hàng hoá là ${computedBeforeTaxSum.toLocaleString()}đ nhưng thẻ reported là ${totalBeforeTax.toLocaleString()}đ.`}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Check item 4 */}
+                            <div className={`p-3 border rounded-xl flex items-start gap-2.5 ${
+                              !hasMathPayableDiscrepancy 
+                                ? 'bg-emerald-500/5 border-emerald-500/20' 
+                                : 'bg-rose-500/5 border-rose-550'
+                            }`}>
+                              <span className={`p-1.5 rounded-lg text-xs leading-none shrink-0 ${
+                                !hasMathPayableDiscrepancy ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-455'
+                              }`}>
+                                {!hasMathPayableDiscrepancy ? '🟢' : '🔴'}
+                              </span>
+                              <div className="space-y-0.5 text-left">
+                                <span className="font-extrabold text-white block">Hạch toán số tiền phải thanh toán</span>
+                                <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                                  {!hasMathPayableDiscrepancy 
+                                    ? `Tổng cộng thanh toán khớp hoàn toàn gốc + VAT tax (${totalPayable.toLocaleString()}đ).`
+                                    : `Thất thoát hoặc thừa thãi! Gốc + VAT là ${expectedPayable.toLocaleString()}đ nhưng thẻ đòi tiền là ${totalPayable.toLocaleString()}đ.`}
+                                </p>
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                        {/* Invoice Visualization Layout (Vietnamese Style PDF print simulation) */}
+                        <div className="space-y-2 text-left">
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider block font-mono">Bản Thể Hiện Hóa Đơn Trực Quan (Invoice PDF Preview):</span>
+                          
+                          <div className="bg-[#fcfbf9] border border-stone-200 text-stone-900 rounded-2xl p-5 shadow-inner space-y-4 font-sans max-w-full">
+                            <div className="grid grid-cols-12 gap-2 border-b border-stone-300 pb-4">
+                              <div className="col-span-8 flex items-start gap-2 text-left">
+                                <div className="w-10 h-10 bg-amber-600/10 border border-amber-600/30 rounded-xl flex items-center justify-center text-lg shrink-0 font-bold text-amber-700">
+                                  HĐ
+                                </div>
+                                <div className="space-y-0.5">
+                                  <h4 className="font-black text-[12px] text-[indigo-950] tracking-tight text-stone-950">HÓA ĐƠN GIÁ TRỊ GIA TĂNG</h4>
+                                  <p className="text-[10px] font-bold text-stone-500 uppercase tracking-wider">MẪU CỦA TỔNG CỤC THUẾ VIỆT NAM</p>
+                                </div>
+                              </div>
+                              <div className="col-span-4 text-right space-y-0.5 text-[10px] font-semibold text-stone-700">
+                                <div className="flex justify-between">
+                                  <span>Mẫu số:</span>
+                                  <strong className="font-bold text-stone-950">{khmshDon || '1'}</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Ký hiệu:</span>
+                                  <strong className="font-bold text-stone-950">{khhDon || 'C26TAA'}</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Số hđ:</span>
+                                  <strong className="font-black text-rose-650 text-[11px]">{shDon || '0000000'}</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Ngày lập:</span>
+                                  <strong className="font-bold text-stone-950">{nLap || '---'}</strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Seller vs Buyer details */}
+                            <div className="grid sm:grid-cols-2 gap-4 text-[10.5px] border-b border-stone-300 pb-4">
+                              <div className="space-y-1 text-left">
+                                <span className="text-[9px] font-black text-amber-800 tracking-wider uppercase block font-sans">ĐƠN VỊ CUNG CẤP TRỰC TIẾP (SELLER)</span>
+                                <strong className="font-bold text-stone-950 block leading-tight">{sellerName || '---'}</strong>
+                                <p className="text-stone-600"><span className="text-stone-450 font-bold">Mã Số Thuế:</span> <strong className="text-stone-900 font-extrabold">{sellerMst || '---'}</strong></p>
+                                <p className="text-stone-500 leading-normal">{sellerAddr || '---'}</p>
+                              </div>
+
+                              <div className="space-y-1 text-left border-t sm:border-t-0 sm:border-l border-stone-200 pt-3 sm:pt-0 sm:pl-4">
+                                <span className="text-[9px] font-black text-blue-800 tracking-wider uppercase block font-sans">ĐƠN VỊ MUA HÀNG HẠCH TOÁN (BUYER)</span>
+                                <strong className="font-bold text-stone-950 block leading-tight">{buyerName || '---'}</strong>
+                                <p className="text-stone-600"><span className="text-stone-450 font-bold">Mã Số Thuế:</span> <strong className="text-stone-900 font-extrabold">{buyerMst || 'Không bắt buộc'}</strong></p>
+                                <p className="text-stone-500 leading-normal">{buyerAddr || '---'}</p>
+                              </div>
+                            </div>
+
+                            {/* Itemized Table */}
+                            <div className="overflow-x-auto">
+                              <table className="w-full text-left text-[10px] text-stone-700 leading-relaxed border-collapse">
+                                <thead>
+                                  <tr className="border-b border-stone-300 text-stone-900 uppercase font-black text-[9px] tracking-wider">
+                                    <th className="py-2.5 w-10">STT</th>
+                                    <th className="py-2.5">Tên Sản Phẩm / Dịch Vụ</th>
+                                    <th className="py-2.5 w-12 text-center">ĐVT</th>
+                                    <th className="py-2.5 w-12 text-center">SL</th>
+                                    <th className="py-2.5 text-right w-24">Đơn Giá</th>
+                                    <th className="py-2.5 text-right w-24">Thành Tiền</th>
+                                    <th className="py-2.5 text-right w-12">Tax</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-stone-200">
+                                  {items.length === 0 ? (
+                                    <tr>
+                                      <td colSpan={7} className="py-4 text-center text-stone-400 font-semibold italic">Không phát hiện chi tiết dòng sản phẩm</td>
+                                    </tr>
+                                  ) : (
+                                    items.map((it, idx) => (
+                                      <tr key={idx} className="hover:bg-stone-50 text-stone-900 font-medium">
+                                        <td className="py-2.5 text-stone-400 font-mono font-bold">{it.stt || (idx + 1)}</td>
+                                        <td className="py-2.5 font-bold text-stone-950 text-left leading-normal">{it.name}</td>
+                                        <td className="py-2.5 text-center text-stone-600 font-bold">{it.dvt}</td>
+                                        <td className="py-2.5 text-center text-stone-900 font-mono font-bold">{it.sLuong}</td>
+                                        <td className="py-2.5 text-right text-stone-900 font-mono">{it.dGia.toLocaleString()}</td>
+                                        <td className="py-2.5 text-right text-stone-950 font-mono font-bold">{it.thTien.toLocaleString()}</td>
+                                        <td className="py-2.5 text-right text-emerald-700 font-mono font-extrabold">{it.tSuat}</td>
+                                      </tr>
+                                    ))
+                                  )}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Aggregates block */}
+                            <div className="grid grid-cols-12 gap-3 pt-3 border-t border-stone-300 text-[10.5px]">
+                              <div className="col-span-7 text-left space-y-1">
+                                <span className="text-[8.5px] font-black text-stone-400 block tracking-wider uppercase font-sans">Lời văn thanh toán (Amount in words):</span>
+                                <p className="text-stone-700 font-black italic first-letter:uppercase">"{totalPayableWords || '---'}"</p>
+                              </div>
+                              <div className="col-span-5 text-right space-y-1 text-stone-700 font-semibold">
+                                <div className="flex justify-between">
+                                  <span>Cộng tiền hàng:</span>
+                                  <strong className="text-stone-950 font-mono">{totalBeforeTax.toLocaleString()}đ</strong>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Tiền thuế GTGT:</span>
+                                  <strong className="text-stone-950 font-mono">{totalTax.toLocaleString()}đ</strong>
+                                </div>
+                                <div className="flex justify-between border-t border-stone-200 pt-1 text-stone-950 text-[11.5px] font-extrabold">
+                                  <span className="text-stone-900 font-bold">Tổng thanh toán:</span>
+                                  <strong className="text-rose-700 font-mono">{totalPayable.toLocaleString()}đ</strong>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Signature Stamp box simulation */}
+                            <div className="flex justify-between pt-4 gap-2 text-[10px]">
+                              <div className="text-center w-max">
+                                <span className="text-stone-400 block font-bold">Người mua hàng</span>
+                                <span className="text-stone-450 italic mt-2.5 block text-[9px]">(Ký, ghi rõ họ tên)</span>
+                              </div>
+                              <div className="text-center w-max pr-3">
+                                <span className="text-stone-400 block font-bold">Người bán hàng</span>
+                                <span className="text-stone-450 italic block text-[9px] mb-1.5">(Ký điện tử bởi phát hành)</span>
+                                
+                                {signatureExists ? (
+                                  <div className="p-2 border-2 border-red-550 bg-red-50 text-red-700 rounded-lg text-center leading-normal max-w-[210px] space-y-0.5 animate-pulse shrink-0">
+                                    <strong className="font-black text-[9.5px] block uppercase text-red-800 tracking-wider">KÝ ĐIỆN TỬ HỢP LỆ</strong>
+                                    <p className="text-[8px] font-mono text-left block leading-normal truncate">CN: {certSubject || '---'}</p>
+                                    <p className="text-[8px] font-mono text-left block leading-none">Serial: {certSerial.substring(0, 16)}...</p>
+                                    <p className="text-[8px] font-mono text-left block leading-none">Time: {signingTime}</p>
+                                  </div>
+                                ) : (
+                                  <div className="p-2.5 border border-dashed border-stone-350 text-stone-450 rounded-lg text-center leading-normal italic text-[9px]">
+                                    Chưa được ký số phát hành
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                          </div>
+                        </div>
+
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

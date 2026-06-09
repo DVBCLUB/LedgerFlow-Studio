@@ -146,6 +146,76 @@ def clean_and_normalize(logs):
         print(f"#{c['dong']:<4} | {c['ngay']:<12} | {c['mieu_ta_sach']:<30} | {c['so_tien']:,.0f} đ")
 
 clean_and_normalize(raw_bank_logs)
+`,
+  payos: `import hmac
+import hashlib
+import json
+
+# Khởi tạo dữ liệu mô phỏng nhận được từ cổng PayOS / Casso / SePay Webhook
+payload = {
+    "code": "00",
+    "desc": "Thành công",
+    "data": {
+        "orderCode": 104820,
+        "amount": 299000,
+        "description": "LEDGERFLOW PRO BINH AN KHOE",
+        "reference": "FT26372849120",
+        "paymentLinkId": "pay_993a4bc82"
+    }
+}
+
+# Key bí mật ký nhận webhook (Secret Key được cấp riêng trong dashboard cổng)
+secret_key = "ledgerflow_vietnam_secret_key_123"
+
+def build_sorted_string(data):
+    # Quy tắc PayOS: Sắp xếp các khoá theo bảng chữ cái alphabet và nối chuỗi bằng toán tử &
+    sorted_keys = sorted(data.keys())
+    parts = []
+    for k in sorted_keys:
+        val = data[k]
+        if isinstance(val, dict):
+            val_str = json.dumps(val, separators=(',', ':'))
+        else:
+            val_str = str(val)
+        parts.append(f"{k}={val_str}")
+    return "&".join(parts)
+
+def verify_webhook_signature(payload_data, received_sig, key):
+    print("🛡️ BẮT ĐẦU KIỂM TRA CHỮ KÝ SỐ WEBHOOK PAYOS (HMAC-SHA256)...")
+    print("-" * 65)
+    
+    target_data = payload_data.get("data", {})
+    sign_raw_string = build_sorted_string(target_data)
+    print(f"Chuỗi ký gốc (Sorted Signature String):\\n=> {sign_raw_string}")
+    
+    computed_signature = hmac.new(
+        key.encode('utf-8'),
+        sign_raw_string.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    
+    print("-" * 65)
+    print(f"Chữ ký số nhận được từ Header  : {received_sig}")
+    print(f"Chữ ký số tính toán tại Server : {computed_signature}")
+    
+    is_valid = hmac.compare_digest(computed_signature, received_sig)
+    if is_valid:
+        print("\\n✅ THẨM ĐỊNH THÀNH CÔNG: Chữ ký hoàn toàn hợp lệ! Tiến hành tự động cộng số dư hạch toán.")
+    else:
+        print("\\n🚨 BÁO ĐỘNG ĐỎ: Chữ ký không trùng khớp! Có nguy cơ dữ liệu webhook giả mạo (Fake Webhook Injection Attack)!")
+
+# Chữ ký hợp lệ mô phỏng được sinh trước với key bí mật tương ứng
+valid_signature = "ec861df4001cf8d1d0c410ca31b239aeef4870bfbda8e2eafec30ee77b4759de"
+
+print(">>> THỬ NGHIỆM KỊCH BẢN 1: Webhook thật từ cổng PayOS:")
+verify_webhook_signature(payload, valid_signature, secret_key)
+
+print("\\n" + "="*65 + "\\n")
+
+print(">>> THỬ NGHIỆM KỊCH BẢN 2: Hacker cố tình giả mạo số tiền lên 2.990.000.000 đ để bypass paywall:")
+fake_payload = json.loads(json.dumps(payload))
+fake_payload["data"]["amount"] = 2990000000
+verify_webhook_signature(fake_payload, valid_signature, secret_key)
 `
 };
 
@@ -323,6 +393,12 @@ export default function PythonSandbox() {
                   className="px-2.5 py-1 text-[10px] font-bold uppercase rounded hover:text-white transition-all text-slate-400 cursor-pointer"
                 >
                   Dọn sao kê
+                </button>
+                <button
+                  onClick={() => selectTemplate('payos')}
+                  className="px-2.5 py-1 text-[10px] font-bold uppercase rounded hover:text-white transition-all text-slate-400 cursor-pointer"
+                >
+                  Ký Webhook (PayOS)
                 </button>
               </div>
             </div>

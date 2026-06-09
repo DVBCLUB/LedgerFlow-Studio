@@ -83,6 +83,7 @@ const PricingStrategyLab = React.lazy(() => import('./components/PricingStrategy
 const NPSReviewManager = React.lazy(() => import('./components/NPSReviewManager'));
 const AffiliateReferralHub = React.lazy(() => import('./components/AffiliateReferralHub'));
 const OutboundSalesHub = React.lazy(() => import('./components/OutboundSalesHub'));
+const AdvancedAIEngine = React.lazy(() => import('./components/AdvancedAIEngine'));
 
 // Loading skeleton fallback for premium smooth layout
 function LoadingFallback() {
@@ -114,7 +115,7 @@ export default function App() {
 }
 
 function AppContent() {
-  type TabType = 'dashboard' | 'advisory' | 'market_survey' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business' | 'seo_strategy' | 'audit_workspace' | 'python_sandbox' | 'marketing_suite' | 'funnel_lab' | 'lead_scoring' | 'zalo_hub' | 'ltv_dashboard' | 'pricing_lab' | 'nps_manager' | 'affiliate_hub' | 'outbound_hub';
+  type TabType = 'dashboard' | 'advisory' | 'market_survey' | 'founder' | 'roadmap' | 'datascience' | 'prompts' | 'assistant' | 'custom_data' | 'architecture' | 'game_ml' | 'guerrilla' | 'accounting_vn' | 'ml_applied' | 'deploy_business' | 'seo_strategy' | 'audit_workspace' | 'python_sandbox' | 'marketing_suite' | 'funnel_lab' | 'lead_scoring' | 'zalo_hub' | 'ltv_dashboard' | 'pricing_lab' | 'nps_manager' | 'affiliate_hub' | 'outbound_hub' | 'advanced_ai';
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -386,6 +387,7 @@ function AppContent() {
     { title: 'Bước 5.4: Python Data Sandbox', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'python_sandbox' as TabType, desc: 'Chạy phân tích dữ liệu dọn dẹp sao kê thô hoặc tính hệ số phá sản Altman ngay trên web.' },
     { title: 'Bước 5.5: AI Trợ Lý Chatbot (Gemini)', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'assistant' as TabType, desc: 'Chatbot đàm thoại, upload file sao kê ngân hàng PDF/CSV thực tế.' },
     { title: 'Bước 5.6: Bộ Kỹ Sư Prompt Chuyên Sâu', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'prompts' as TabType, desc: 'Các câu lệnh mẫu thiết kế hạch toán chuyên môn kế toán Việt Nam.' },
+    { title: 'Bước 5.7: AI Advanced Labs', category: 'Giai Đoạn 5: Vận Hành Tài Chính & Kiểm Toán', tab: 'advanced_ai' as TabType, desc: 'Tích hợp chạy mô hình AI cục bộ WebLLM, Sơ đồ tri thức GraphRAG, AI proxy Gateway bảo vệ dữ liệu PII và Đặc vụ tự chữa lành Agentic UI.' },
     // Business ideas
     ...BUSINESS_IDEAS.map(idea => ({
       title: idea.title,
@@ -1330,6 +1332,21 @@ FOR ALL USING (auth.uid() = user_id);`}
                   </span>
                   <span className="text-[9px] text-slate-500 font-mono">v4</span>
                 </button>
+
+                <button
+                  onClick={() => setActiveSegment('advanced_ai')}
+                  className={`w-full text-left p-2 rounded-lg text-xs font-bold transition-all flex items-center justify-between border cursor-pointer ${
+                    activeSegment === 'advanced_ai'
+                      ? 'bg-purple-600 border-purple-500 text-white shadow-lg'
+                      : 'text-slate-400 hover:text-slate-202 bg-slate-900/10 border-transparent hover:bg-slate-900/60'
+                  }`}
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+                    <span>Bước 5.7: AI Advanced Labs</span>
+                  </span>
+                  <span className="bg-purple-500/15 text-purple-400 text-[8px] font-bold px-1 py-0.5 rounded leading-none">VIP</span>
+                </button>
               </div>
             </div>
 
@@ -1359,6 +1376,7 @@ FOR ALL USING (auth.uid() = user_id);`}
               {activeSegment === 'datascience' && <DataScienceEngineering />}
               {activeSegment === 'prompts' && <PromptPlayground />}
               {activeSegment === 'assistant' && <GeminiPlayground />}
+              {activeSegment === 'advanced_ai' && <AdvancedAIEngine />}
               {activeSegment === 'custom_data' && <CustomDataWorkbench />}
               {activeSegment === 'architecture' && <AIEcosystemArchitecture />}
               {activeSegment === 'game_ml' && <GameAndMLWorkbench />}

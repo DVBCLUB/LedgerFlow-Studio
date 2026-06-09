@@ -1013,6 +1013,14 @@ export default function ZaloMarketingHub() {
 
                 <div className="p-3 bg-slate-950 border border-slate-900 rounded-xl space-y-1 text-left">
                   <strong className="text-white font-extrabold flex items-center gap-1.5">
+                    <span className="w-4 h-4 bg-blue-500 text-slate-950 rounded-full flex items-center justify-center text-[9px] font-black">3</span>
+                    Cấu hình Token Access & Zalo OA API
+                  </strong>
+                  <p className="text-slate-400 pl-5">Tích hợp Access_Token có chu kỳ ngắn (25 tháng), cấu hình hệ thống tự động sinh dọn Refresh_Token tuần hoàn qua API bảo mật tránh mất kết nối đến khách hàng.</p>
+                </div>
+
+                <div className="p-3 bg-slate-950 border border-slate-900 rounded-xl space-y-1 text-left">
+                  <strong className="text-white font-extrabold flex items-center gap-1.5">
                     <span className="w-4 h-4 bg-blue-500 text-slate-950 rounded-full flex items-center justify-center text-[9px] font-black">4</span>
                     Cấu hình Webhook & Bảo mật
                   </strong>
