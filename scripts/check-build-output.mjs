@@ -23,7 +23,8 @@ function listFiles(dir) {
 const requiredFiles = [
   'dist/index.html',
   'dist/server.cjs',
-  'dist/manifest.webmanifest'
+  'dist/manifest.webmanifest',
+  'dist/ledgerflow-build-manifest.json'
 ];
 
 for (const file of requiredFiles) {
@@ -39,6 +40,26 @@ if (exists('dist/index.html')) {
   }
   if (!html.includes('./') && !html.includes('/assets/')) {
     warnings.push('dist/index.html may not reference built assets as expected.');
+  }
+}
+
+if (exists('dist/ledgerflow-build-manifest.json')) {
+  try {
+    const manifest = JSON.parse(fs.readFileSync(path.join(root, 'dist', 'ledgerflow-build-manifest.json'), 'utf8'));
+    if (manifest.app?.productName !== 'LedgerFlow Hub') {
+      errors.push('Build manifest productName is not LedgerFlow Hub.');
+    }
+    if (!manifest.simulations || manifest.simulations.count < 20) {
+      errors.push('Build manifest has too few simulation modules.');
+    }
+    if (!Array.isArray(manifest.simulations?.modules)) {
+      errors.push('Build manifest simulations.modules is missing.');
+    }
+    if (manifest.hybrid?.desktopEntry !== 'desktop/main.cjs') {
+      errors.push('Build manifest desktopEntry is not desktop/main.cjs.');
+    }
+  } catch (error) {
+    errors.push(`Build manifest is not valid JSON: ${error.message}`);
   }
 }
 
