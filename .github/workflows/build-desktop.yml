@@ -63,6 +63,9 @@ jobs:
       - name: Desktop package configuration check
         run: npm run check:desktop
 
+      - name: Offline readiness check
+        run: npm run check:offline
+
       - name: TypeScript check
         run: npm run lint
 
