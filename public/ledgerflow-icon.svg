@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LedgerFlow Hub icon">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+      <stop offset="0%" stop-color="#1b2440"/>
+      <stop offset="58%" stop-color="#090d18"/>
+      <stop offset="100%" stop-color="#03060c"/>
+    </radialGradient>
+    <linearGradient id="neon" x1="96" y1="390" x2="420" y2="90" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#d946ef"/>
+      <stop offset="46%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#67e8f9"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="240" y1="70" x2="300" y2="220" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffe7a3"/>
+      <stop offset="100%" stop-color="#f59e0b"/>
+    </linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="108" fill="url(#bg)"/>
+  <circle cx="256" cy="258" r="150" fill="none" stroke="#1e293b" stroke-width="18"/>
+  <circle cx="256" cy="258" r="114" fill="none" stroke="url(#neon)" stroke-width="10" stroke-dasharray="34 18" filter="url(#glow)"/>
+  <circle cx="256" cy="258" r="74" fill="#0f172a" stroke="#67e8f9" stroke-width="6" opacity=".95"/>
+  <path d="M256 88v88" stroke="url(#gold)" stroke-width="12" stroke-linecap="round" filter="url(#glow)"/>
+  <path d="M218 186l38-72 38 72" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M126 310l184-92 76-92-42 112-176 112z" fill="url(#neon)" opacity=".95" stroke="#e9d5ff" stroke-width="6" stroke-linejoin="round" filter="url(#glow)"/>
+  <path d="M194 266l62-32 62 32-62 33z" fill="#111827" stroke="#a78bfa" stroke-width="5"/>
+  <path d="M206 275v42c34 28 67 28 101 0v-42" fill="none" stroke="#67e8f9" stroke-width="7" stroke-linecap="round"/>
+  <path d="M148 178h-32m0 0l-28-28m28 28l-28 28M364 178h32m0 0l28-28m-28 28l28 28M148 338h-32m0 0l-28 28m28-28l-28-28M364 338h32m0 0l28 28m-28-28l28-28" stroke="url(#neon)" stroke-width="8" stroke-linecap="round" opacity=".85"/>
+  <circle cx="92" cy="150" r="13" fill="#0f172a" stroke="#d946ef" stroke-width="7"/>
+  <circle cx="420" cy="150" r="13" fill="#0f172a" stroke="#67e8f9" stroke-width="7"/>
+  <circle cx="92" cy="366" r="13" fill="#0f172a" stroke="#a78bfa" stroke-width="7"/>
+  <circle cx="420" cy="366" r="13" fill="#0f172a" stroke="#67e8f9" stroke-width="7"/>
+  <circle cx="402" cy="112" r="9" fill="#fff7cc" filter="url(#glow)"/>
+</svg>
