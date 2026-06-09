@@ -51,7 +51,7 @@ for (const file of files) {
 }
 
 const requiredOfflineFiles = [
-  'public/manifest.webmanifest',
+  'vite.config.ts',
   'public/pwa-192x192.svg',
   'public/pwa-512x512.svg',
   'public/favicon.svg',
@@ -61,6 +61,17 @@ const requiredOfflineFiles = [
 for (const file of requiredOfflineFiles) {
   if (!fs.existsSync(path.join(root, file))) {
     errors.push(`Missing offline/PWA support file: ${file}`);
+  }
+}
+
+const viteConfigPath = path.join(root, 'vite.config.ts');
+if (fs.existsSync(viteConfigPath)) {
+  const viteConfig = fs.readFileSync(viteConfigPath, 'utf8');
+  if (!viteConfig.includes('VitePWA')) {
+    errors.push('vite.config.ts does not include VitePWA.');
+  }
+  if (!viteConfig.includes('manifest')) {
+    errors.push('vite.config.ts does not define a PWA manifest.');
   }
 }
 
