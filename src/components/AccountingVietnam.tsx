@@ -4,11 +4,9 @@ import {
   BookOpen,
   Calculator,
   CheckCircle2,
-  ClipboardList,
   Copy,
   FileText,
   Receipt,
-  Search,
   ShieldCheck,
   WalletCards
 } from 'lucide-react';
