@@ -16,6 +16,7 @@
     "check:release": "node scripts/check-release-artifacts.mjs",
     "check:env": "node scripts/check-env-config.mjs",
     "check:hybrid": "node scripts/check-hybrid-release.mjs",
+    "check:hybrid:release": "node scripts/check-hybrid-release.mjs --release",
     "doctor": "node scripts/doctor.mjs",
     "doctor:write": "node scripts/doctor.mjs --write",
     "build:manifest": "node scripts/write-build-manifest.mjs",
