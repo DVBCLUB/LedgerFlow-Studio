@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog } = require('electron');
+const { app, BrowserWindow, shell, dialog, Menu } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -6,6 +6,12 @@ const http = require('http');
 const APP_PORT = 3000;
 const APP_URL = `http://127.0.0.1:${APP_PORT}`;
 let mainWindow;
+
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+  app.quit();
+}
 
 function redirectDbStorageToUserData() {
   const userDataDir = app.getPath('userData');
@@ -30,6 +36,35 @@ function redirectDbStorageToUserData() {
   };
 }
 
+function installApplicationMenu() {
+  const template = [
+    {
+      label: 'LedgerFlow Hub',
+      submenu: [
+        { label: 'Reload', accelerator: 'CmdOrCtrl+R', click: () => mainWindow?.reload() },
+        { type: 'separator' },
+        { label: 'Exit', accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4', click: () => app.quit() }
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {
+          label: 'Open local data folder',
+          click: () => shell.openPath(app.getPath('userData'))
+        },
+        {
+          label: 'Open DevTools',
+          accelerator: 'F12',
+          click: () => mainWindow?.webContents.openDevTools({ mode: 'detach' })
+        }
+      ]
+    }
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+}
+
 function startEmbeddedServer() {
   process.env.NODE_ENV = 'production';
   process.env.ELECTRON_DESKTOP = 'true';
@@ -41,8 +76,8 @@ function startEmbeddedServer() {
   const serverEntry = path.join(appRoot, 'dist', 'server.cjs');
   if (!fs.existsSync(serverEntry)) {
     dialog.showErrorBox(
-      'LedgerFlow Hub chưa được build',
-      'Không tìm thấy dist/server.cjs. Hãy chạy: npm run build rồi chạy lại desktop.'
+      'LedgerFlow Hub is not built',
+      'dist/server.cjs was not found. Run npm run build before launching desktop.'
     );
     app.quit();
     return;
@@ -51,7 +86,7 @@ function startEmbeddedServer() {
   try {
     require(serverEntry);
   } catch (error) {
-    dialog.showErrorBox('Không khởi động được server nội bộ', String(error?.stack || error));
+    dialog.showErrorBox('Embedded server failed to start', String(error?.stack || error));
     app.quit();
   }
 }
@@ -79,7 +114,7 @@ function waitForServer(url, timeoutMs = 15000) {
 
     const retry = () => {
       if (Date.now() - startedAt > timeoutMs) {
-        reject(new Error('Server nội bộ khởi động quá lâu.'));
+        reject(new Error('Embedded server startup timed out.'));
         return;
       }
       setTimeout(probe, 300);
@@ -97,11 +132,18 @@ async function createMainWindow() {
     minHeight: 760,
     title: 'LedgerFlow Hub',
     backgroundColor: '#020617',
+    show: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      webSecurity: true
     }
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -109,16 +151,34 @@ async function createMainWindow() {
     return { action: 'deny' };
   });
 
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (!url.startsWith(APP_URL)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
+
   try {
     await waitForServer(APP_URL);
     await mainWindow.loadURL(APP_URL);
   } catch (error) {
-    dialog.showErrorBox('LedgerFlow Hub lỗi khởi động', String(error?.message || error));
+    dialog.showErrorBox('LedgerFlow Hub startup error', String(error?.message || error));
     app.quit();
   }
 }
 
+app.setName('LedgerFlow Hub');
+app.setAppUserModelId('com.ledgerflow.hub');
+
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});
+
 app.whenReady().then(() => {
+  installApplicationMenu();
   startEmbeddedServer();
   createMainWindow();
 
