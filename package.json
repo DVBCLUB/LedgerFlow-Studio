@@ -71,6 +71,7 @@
   "build": {
     "appId": "com.ledgerflow.hub",
     "productName": "LedgerFlow Hub",
+    "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}",
     "directories": {
       "output": "release"
     },
@@ -85,8 +86,7 @@
       "target": [
         "nsis",
         "portable"
-      ],
-      "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}"
+      ]
     },
     "nsis": {
       "oneClick": false,
