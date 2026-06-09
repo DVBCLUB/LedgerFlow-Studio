@@ -1,20 +1,54 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# LedgerFlow Studio
 
-# Run and deploy your AI Studio app
+LedgerFlow Studio là **phần mềm mô phỏng / học / lab** cho kế toán, dữ liệu, AI, kiểm toán nội bộ, growth và triển khai sản phẩm.
 
-This contains everything you need to run your app locally.
+Nó **không phải** phần mềm kế toán vận hành thật để thay MISA/FAST/SmartPro, không dùng để nhập chứng từ thật và không tự quyết định hạch toán/thuế. Các module dùng để học, mô phỏng tình huống, thử calculator, checklist, prompt lab và case study.
 
-View your app in AI Studio: https://ai.studio/apps/bb4d2bcd-6af0-4924-8881-f4a31c6785e9
+## Chạy trên Windows
 
-## Run Locally
+Cách nhanh nhất: bấm đúp file:
 
-**Prerequisites:**  Node.js
+```bat
+RUN_LOCAL.bat
+```
 
+File này sẽ tự cài thư viện nếu chưa có và chạy app local.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Sau đó mở:
+
+```text
+http://localhost:5173
+```
+
+Xem hướng dẫn chi tiết trong:
+
+```text
+README_RUN_WINDOWS.md
+```
+
+## Build desktop Windows
+
+Bấm đúp:
+
+```bat
+BUILD_DESKTOP_WINDOWS.bat
+```
+
+Nếu thành công, file `.exe` sẽ nằm trong thư mục:
+
+```text
+release/
+```
+
+## Chạy thủ công bằng terminal
+
+**Prerequisites:** Node.js LTS
+
+```bash
+npm install
+npm run dev
+```
+
+## Ghi chú AI
+
+Một số module AI/Gemini cần `GEMINI_API_KEY` hoặc `PMSTUDY`, nhưng nhiều module vẫn chạy bằng dữ liệu mô phỏng/offline.
