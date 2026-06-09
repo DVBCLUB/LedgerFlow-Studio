@@ -1,6 +1,6 @@
 import { spawn } from 'child_process';
 
-const PORT = Number(process.env.LEDGERFLOW_TEST_PORT || 3000);
+const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const TIMEOUT_MS = 20000;
 const POLL_MS = 500;
@@ -38,7 +38,7 @@ async function waitForHealth() {
     await wait(POLL_MS);
   }
 
-  throw new Error(`Server did not become healthy within ${TIMEOUT_MS}ms. Last error: ${lastError?.message || 'unknown'}`);
+  throw new Error(`Server did not become healthy on ${BASE_URL} within ${TIMEOUT_MS}ms. Last error: ${lastError?.message || 'unknown'}`);
 }
 
 function stopServer(child) {
@@ -76,6 +76,7 @@ child.on('exit', (code, signal) => {
 });
 
 try {
+  console.log(`Starting LedgerFlow production server smoke test on ${BASE_URL}...`);
   await waitForHealth();
 
   const health = await fetchJson('/api/health');
