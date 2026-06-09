@@ -11,6 +11,7 @@
     "check:simulations": "node scripts/check-simulation-modules.mjs",
     "check:build": "node scripts/check-build-output.mjs",
     "check:desktop": "node scripts/check-desktop-package.mjs",
+    "check:runtime": "node scripts/check-runtime-api.mjs",
     "prebuild": "npm run check:simulations && npm run check:desktop",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "postbuild": "npm run check:build",
