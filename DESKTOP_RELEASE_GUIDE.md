@@ -1,6 +1,6 @@
 # LedgerFlow Hub - Desktop Release Guide
 
-File nay huong dan cach lay ban cai dat Windows tu GitHub Actions.
+File nay huong dan cach lay ban cai dat desktop tu GitHub Actions.
 
 ## Tu dong build tren GitHub
 
@@ -16,17 +16,26 @@ Workflow nay se tu chay khi push len nhanh main hoac khi bam chay thu cong bang 
 2. Vao tab Actions.
 3. Chon workflow Build LedgerFlow Hub Desktop.
 4. Chon run moi nhat da thanh cong.
-5. Tai artifact ten LedgerFlow-Hub-Windows.
+5. Tai artifact phu hop voi he dieu hanh:
+   - LedgerFlow-Hub-Windows
+   - LedgerFlow-Hub-macOS
+   - LedgerFlow-Hub-Linux
 6. Giai nen file artifact.
-7. Chay file LedgerFlow-Hub-...exe de cai dat.
+7. Chay file cai dat ben trong.
 
-## Ket qua sau khi cai
+## Ket qua sau khi cai Windows
 
 - Co shortcut LedgerFlow Hub tren Desktop.
 - Co shortcut LedgerFlow Hub trong Start Menu.
 - Bam shortcut la mo phan mem.
 - App khoi dong server noi bo tren may tinh tai 127.0.0.1:3000.
 - Du lieu local cua desktop luu trong thu muc userData cua Electron.
+
+## Ket qua tren macOS va Linux
+
+- macOS xuat file DMG.
+- Linux xuat file AppImage.
+- Khi mo app, Electron khoi dong server noi bo va load giao dien LedgerFlow Hub.
 
 ## Offline
 
@@ -49,7 +58,7 @@ Cai dependencies:
 
 npm install
 
-Build file cai dat Windows:
+Build file cai dat desktop:
 
 npm run desktop:dist
 
