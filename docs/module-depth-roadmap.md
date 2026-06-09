@@ -1,37 +1,57 @@
 # Module depth roadmap
 
-## Nguyên tắc mới
+## Chỉnh hướng đúng
 
-Từ giai đoạn này, không nâng module kiểu thêm vài card cho đẹp nữa. Mỗi module phải bám sát nghiệp vụ thật của kế toán công trình: chi phí, hồ sơ, tạm ứng, hoàn ứng, kho, dầu, thuế, báo cáo sếp, kiểm soát nội bộ và AI hỗ trợ.
+LedgerFlow Studio là **simulation lab / learning studio**, không phải phần mềm kế toán vận hành thật.
 
-Đã thêm knowledge hub nền tảng:
+Vì vậy, khi làm sâu module phải theo hướng:
+
+- mô phỏng tình huống;
+- dữ liệu mẫu;
+- bài học nghiệp vụ;
+- case study;
+- calculator;
+- quiz/checklist;
+- prompt lab;
+- báo cáo mẫu;
+- giải thích đúng/sai.
+
+Không được biến module thành chức năng vận hành thật như duyệt chi thật, hạch toán thật, lưu chứng từ thật, thay phần mềm kế toán thật.
+
+## Kho kiến thức nền
+
+Đã thêm:
 
 - `src/data/deepConstructionAccountingKnowledge.ts`
 
-File này là kho kiến thức chung để các module khác dùng lại: cost type, checklist chứng từ, KPI kiểm soát, schema prompt AI, template báo cáo sếp và yêu cầu chiều sâu theo từng module.
+File này chỉ là **knowledge hub cho mô phỏng**. Nó cung cấp tình huống, checklist, KPI, rủi ro và prompt schema để module dùng làm bài học/case giả lập.
 
-## Nhóm kiến thức bắt buộc cho mọi module
+## Quy tắc làm sâu module
 
-1. **Nghiệp vụ thật**: module giải quyết việc gì trong công ty xây dựng.
-2. **Dữ liệu cần nhập**: trường nào bắt buộc, trường nào không được để trống.
-3. **Chứng từ kèm theo**: hồ sơ tối thiểu, thiếu gì thì cảnh báo gì.
-4. **Rủi ro**: rủi ro thuế, rủi ro nội bộ, rủi ro thất thoát, rủi ro dữ liệu.
-5. **KPI**: chỉ số đo được, công thức, ngưỡng đỏ/vàng/xanh.
-6. **Workflow**: ai nhập, ai kiểm tra, ai duyệt, ai xem báo cáo.
-7. **AI hỗ trợ**: AI được gợi ý gì, không được quyết định gì.
-8. **Mẫu copy được**: báo cáo sếp, tin nhắn, prompt, checklist, follow-up.
+Mỗi module cần có:
 
-## Ưu tiên làm sâu tiếp theo
+1. **Simulation scenario**: tình huống giả lập rõ ràng.
+2. **Sample data**: dữ liệu mẫu để học và thử.
+3. **Learning objective**: học được gì sau khi dùng module.
+4. **Calculator / score**: tính thử chỉ số hoặc điểm rủi ro.
+5. **Checklist tham khảo**: dùng để học, không thay quy trình pháp lý thật.
+6. **Case đúng/sai**: vì sao đúng, vì sao sai.
+7. **Copy template**: báo cáo mẫu, prompt mẫu, finding mẫu, email/tin nhắn mẫu.
+8. **Disclaimer**: đây là mô phỏng; khi áp dụng thật cần người có chuyên môn kiểm tra.
 
-1. `AccountingVietnam` — thêm bút toán mẫu, tài khoản tham khảo, case chi phí xây dựng, kiểm tra VAT/hóa đơn ở mức khung tham khảo.
-2. `InternalAuditWorkspace` — thêm risk-control matrix, chương trình kiểm toán nội bộ, mẫu phát hiện sai phạm, follow-up tracker.
-3. `CustomDataWorkbench` — thêm mapping Excel cũ, rule làm sạch dữ liệu, import validator, reconciliation sandbox.
-4. `CommandCenter` — nối thêm deep knowledge: cost type, checklist hồ sơ, KPI, báo cáo sếp.
-5. `WebAccountingRoadmap` — thêm database blueprint chi tiết hơn: projects, vendors, expenses, advances, settlements, invoices, inventory, fuel_logs, approvals, audit_logs.
-6. `AdvancedAIEngine` — thêm prompt schema bắt AI trả JSON, redaction, confidence threshold, human approval.
-7. `DataScienceEngineering` — thêm fact/dimension model và feature engineering cho kế toán công trình.
-8. `Marketing/Sales modules` — giữ nhưng không ưu tiên hơn nghiệp vụ kế toán lõi.
+## Ưu tiên chỉnh lại
 
-## Ghi chú pháp lý
+1. `AccountingVietnam` — mô phỏng bút toán/case/chứng từ, không phải module kế toán vận hành.
+2. `InternalAuditWorkspace` — mô phỏng kiểm toán nội bộ, chọn mẫu và finding, không phải hệ thống audit thật.
+3. `CustomDataWorkbench` — mô phỏng dữ liệu Excel bẩn, mapping, clean, validate.
+4. `CommandCenter` — mô phỏng dashboard điều hành và cảnh báo mẫu.
+5. `AdvancedAIEngine` — mô phỏng AI review, redaction, prompt schema.
+6. `DataScienceEngineering` — mô phỏng pipeline dữ liệu kế toán và anomaly detection.
 
-Các nội dung thuế/kế toán trong app chỉ nên là khung kiểm soát và checklist tham khảo. Khi áp dụng thật phải kiểm tra văn bản hiện hành, hợp đồng, hóa đơn, chứng từ gốc và người có chuyên môn duyệt cuối.
+## Chạy trên máy tính
+
+Đã thêm file chạy Windows:
+
+- `RUN_LOCAL.bat` — chạy app local.
+- `BUILD_DESKTOP_WINDOWS.bat` — build bản desktop Windows.
+- `README_RUN_WINDOWS.md` — hướng dẫn chạy.
