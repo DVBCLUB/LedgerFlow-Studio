@@ -75,6 +75,9 @@ jobs:
       - name: Production build smoke check
         run: npm run check:build
 
+      - name: Runtime API smoke check
+        run: npm run check:runtime
+
       - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
