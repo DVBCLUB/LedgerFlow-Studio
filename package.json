@@ -25,8 +25,8 @@
     "start": "node dist/server.cjs",
     "web:start": "node dist/server.cjs",
     "desktop:dev": "npm run build && cross-env NODE_ENV=production ELECTRON_DESKTOP=true electron desktop/main.cjs",
-    "desktop:pack": "npm run build && electron-builder --dir",
-    "desktop:dist": "npm run build && electron-builder",
+    "desktop:pack": "npm run build && electron-builder --dir && npm run release:notes",
+    "desktop:dist": "npm run build && electron-builder && npm run release:notes",
     "preview": "vite preview",
     "clean": "rm -rf dist release build server.js",
     "lint": "tsc --noEmit"
