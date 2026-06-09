@@ -60,6 +60,9 @@ jobs:
       - name: Simulation module integrity check
         run: npm run check:simulations
 
+      - name: Desktop package configuration check
+        run: npm run check:desktop
+
       - name: TypeScript check
         run: npm run lint
 
