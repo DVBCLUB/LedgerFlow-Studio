@@ -14,6 +14,7 @@ on:
       - "desktop/**"
       - "public/**"
       - "scripts/**"
+      - ".env.example"
       - ".github/workflows/build-desktop.yml"
 
 jobs:
@@ -59,6 +60,9 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Environment configuration check
+        run: npm run check:env
 
       - name: Simulation module integrity check
         run: npm run check:simulations
