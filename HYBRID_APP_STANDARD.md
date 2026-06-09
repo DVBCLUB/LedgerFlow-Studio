@@ -51,7 +51,22 @@ Tinh trang hien tai:
 - Local db_storage redirect to Electron userData: done.
 - Gemini/Supabase can internet: documented.
 
-## 4. Data standard
+## 4. Simulation model standard
+
+- Tat ca module mo phong trong src/components phai ton tai khi build.
+- App.tsx phai lazy-load dung cac module mo phong trong danh sach trong yeu.
+- Moi module trong yeu phai co export de React co the import duoc.
+- Build web va desktop phai chay check truoc khi dong goi.
+- Khong duoc xoa, doi ten, di chuyen module mo phong neu chua cap nhat registry check.
+
+Tinh trang hien tai:
+
+- scripts/check-simulation-modules.mjs: done.
+- npm run check:simulations: done.
+- prebuild tu dong chay simulation check: done.
+- 28 module trong yeu dang duoc bao ve: done.
+
+## 5. Data standard
 
 - Du lieu local phai tach khoi source code.
 - Co thu muc du lieu rieng tung user.
@@ -62,7 +77,7 @@ Tinh trang hien tai:
 - Local data folder: done.
 - Backup/export UI: next phase.
 
-## 5. Release standard
+## 6. Release standard
 
 - Build Windows EXE.
 - Build macOS DMG.
@@ -77,7 +92,7 @@ Tinh trang hien tai:
 - Linux AppImage: configured.
 - GitHub Actions matrix build: done.
 
-## 6. Security standard
+## 7. Security standard
 
 - Khong de API key trong source code.
 - Desktop khong bat nodeIntegration trong renderer.
@@ -91,7 +106,7 @@ Tinh trang hien tai:
 - Renderer hardening: done.
 - External link isolation: done.
 
-## 7. Maintenance standard
+## 8. Maintenance standard
 
 - Co workflow CI.
 - Co tai lieu build va release.
@@ -107,12 +122,14 @@ Tinh trang hien tai:
 ## Test truoc khi phat hanh
 
 1. npm install
-2. npm run lint
-3. npm run build
-4. npm run desktop:dev
-5. npm run desktop:dist
-6. Cai file Windows EXE tren may khac.
-7. Tat internet va mo shortcut LedgerFlow Hub.
-8. Kiem tra giao dien, du lieu local, Supabase/Gemini fallback.
-9. Mo lai app lan 2 de kiem tra single instance lock.
-10. Kiem tra thu muc du lieu local tu menu Help.
+2. npm run check:simulations
+3. npm run lint
+4. npm run build
+5. npm run desktop:dev
+6. npm run desktop:dist
+7. Cai file Windows EXE tren may khac.
+8. Tat internet va mo shortcut LedgerFlow Hub.
+9. Kiem tra tung module mo phong trong menu.
+10. Kiem tra giao dien, du lieu local, Supabase/Gemini fallback.
+11. Mo lai app lan 2 de kiem tra single instance lock.
+12. Kiem tra thu muc du lieu local tu menu Help.
