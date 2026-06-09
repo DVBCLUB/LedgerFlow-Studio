@@ -54,8 +54,8 @@
     "vite": "^6.2.3"
   },
   "build": {
-    "appId": "com.ledgerflow.studio",
-    "productName": "LedgerFlow Studio",
+    "appId": "com.ledgerflow.hub",
+    "productName": "LedgerFlow Hub",
     "directories": {
       "output": "release"
     },
@@ -71,7 +71,16 @@
         "nsis",
         "portable"
       ],
-      "artifactName": "LedgerFlow-Studio-${version}-${arch}.${ext}"
+      "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "shortcutName": "LedgerFlow Hub",
+      "uninstallDisplayName": "LedgerFlow Hub"
     },
     "mac": {
       "target": "dmg"
