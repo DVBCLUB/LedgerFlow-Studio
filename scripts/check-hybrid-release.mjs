@@ -1,15 +1,23 @@
 import { spawn } from 'child_process';
 
-const checks = [
+const mode = process.argv.includes('--release') ? 'release' : 'prebuild';
+
+const prebuildChecks = [
   { name: 'Environment configuration', command: 'npm', args: ['run', 'check:env'] },
   { name: 'Simulation registry and module integrity', command: 'npm', args: ['run', 'check:simulations'] },
   { name: 'Desktop packaging configuration', command: 'npm', args: ['run', 'check:desktop'] },
   { name: 'Offline readiness', command: 'npm', args: ['run', 'check:offline'] },
-  { name: 'TypeScript', command: 'npm', args: ['run', 'lint'] },
+  { name: 'TypeScript', command: 'npm', args: ['run', 'lint'] }
+];
+
+const releaseChecks = [
+  ...prebuildChecks,
   { name: 'Production build output', command: 'npm', args: ['run', 'check:build'] },
   { name: 'Runtime API smoke test', command: 'npm', args: ['run', 'check:runtime'] },
   { name: 'Release artifacts', command: 'npm', args: ['run', 'check:release'] }
 ];
+
+const checks = mode === 'release' ? releaseChecks : prebuildChecks;
 
 function runCheck(check) {
   return new Promise((resolve) => {
@@ -43,14 +51,18 @@ for (const check of checks) {
 
 const failed = results.filter((result) => !result.ok);
 
-console.log('\n=== LedgerFlow hybrid release checklist summary ===\n');
+console.log(`\n=== LedgerFlow hybrid ${mode} checklist summary ===\n`);
 for (const result of results) {
   console.log(`${result.ok ? 'PASS' : 'FAIL'} - ${result.name}`);
 }
 
 if (failed.length > 0) {
-  console.error('\nHybrid release checklist failed. Fix the first failed check before shipping.\n');
+  console.error('\nHybrid checklist failed. Fix the first failed check before continuing.\n');
   process.exit(1);
 }
 
-console.log('\nHybrid release checklist passed. Build is ready for manual install testing and artifact upload.\n');
+if (mode === 'release') {
+  console.log('\nHybrid release checklist passed. Build is ready for manual install testing and artifact upload.\n');
+} else {
+  console.log('\nHybrid prebuild checklist passed. You can now run npm run desktop:dist.\n');
+}
