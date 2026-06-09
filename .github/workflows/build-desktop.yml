@@ -13,6 +13,7 @@ on:
       - "src/**"
       - "desktop/**"
       - "public/**"
+      - "scripts/**"
       - ".github/workflows/build-desktop.yml"
 
 jobs:
@@ -56,6 +57,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Simulation module integrity check
+        run: npm run check:simulations
+
       - name: TypeScript check
         run: npm run lint
 
@@ -64,6 +68,9 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Production build smoke check
+        run: npm run check:build
 
       - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
