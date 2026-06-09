@@ -41,7 +41,7 @@ function startEmbeddedServer() {
   const serverEntry = path.join(appRoot, 'dist', 'server.cjs');
   if (!fs.existsSync(serverEntry)) {
     dialog.showErrorBox(
-      'LedgerFlow Studio chưa được build',
+      'LedgerFlow Hub chưa được build',
       'Không tìm thấy dist/server.cjs. Hãy chạy: npm run build rồi chạy lại desktop.'
     );
     app.quit();
@@ -95,7 +95,7 @@ async function createMainWindow() {
     height: 920,
     minWidth: 1180,
     minHeight: 760,
-    title: 'LedgerFlow Studio',
+    title: 'LedgerFlow Hub',
     backgroundColor: '#020617',
     webPreferences: {
       contextIsolation: true,
@@ -113,7 +113,7 @@ async function createMainWindow() {
     await waitForServer(APP_URL);
     await mainWindow.loadURL(APP_URL);
   } catch (error) {
-    dialog.showErrorBox('LedgerFlow Studio lỗi khởi động', String(error?.message || error));
+    dialog.showErrorBox('LedgerFlow Hub lỗi khởi động', String(error?.message || error));
     app.quit();
   }
 }
