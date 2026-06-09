@@ -5,3 +5,22 @@
   --font-sans: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
+
+/* LedgerFlow Hub branding: mô phỏng theo logo người dùng gửi */
+header .w-10.h-10.rounded-xl.bg-gradient-to-tr {
+  background-image: url('/ledgerflow-icon.svg');
+  background-size: 112%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #050814;
+  border: 1px solid rgba(103, 232, 249, 0.34);
+  box-shadow: 0 0 18px rgba(139, 92, 246, 0.45), 0 0 32px rgba(103, 232, 249, 0.16);
+}
+
+header .w-10.h-10.rounded-xl.bg-gradient-to-tr span {
+  opacity: 0;
+}
+
+header h1 {
+  text-shadow: 0 0 14px rgba(217, 70, 239, 0.45), 0 0 22px rgba(103, 232, 249, 0.15);
+}
