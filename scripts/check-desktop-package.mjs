@@ -40,6 +40,10 @@ if (pkg) {
     errors.push('build.productName must be LedgerFlow Hub.');
   }
 
+  if (build.artifactName !== 'LedgerFlow-Hub-${version}-${arch}.${ext}') {
+    errors.push('build.artifactName must be LedgerFlow-Hub-${version}-${arch}.${ext}.');
+  }
+
   const requiredFiles = ['dist/**/*', 'desktop/**/*', 'package.json', 'node_modules/**/*'];
   const configuredFiles = Array.isArray(build.files) ? build.files : [];
   for (const requiredFile of requiredFiles) {
@@ -85,7 +89,7 @@ if (pkg) {
   }
 
   const scripts = pkg.scripts || {};
-  for (const scriptName of ['build', 'desktop:dev', 'desktop:pack', 'desktop:dist', 'check:simulations', 'check:build', 'check:desktop']) {
+  for (const scriptName of ['build', 'desktop:dev', 'desktop:pack', 'desktop:dist', 'check:simulations', 'check:build', 'check:desktop', 'check:hybrid', 'check:hybrid:release']) {
     if (!scripts[scriptName]) {
       errors.push(`package.json scripts is missing ${scriptName}.`);
     }
@@ -134,4 +138,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log('LedgerFlow desktop package check passed: Electron shell, shortcuts and release targets verified.');
+console.log('LedgerFlow desktop package check passed: Electron shell, shortcuts, artifact naming and release targets verified.');
