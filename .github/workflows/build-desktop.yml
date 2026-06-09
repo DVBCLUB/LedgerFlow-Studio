@@ -16,9 +16,32 @@ on:
       - ".github/workflows/build-desktop.yml"
 
 jobs:
-  build-windows:
-    name: Build Windows EXE
-    runs-on: windows-latest
+  build-desktop:
+    name: Build ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows EXE
+            os: windows-latest
+            artifact: LedgerFlow-Hub-Windows
+            files: |
+              release/*.exe
+              release/*.blockmap
+          - name: macOS DMG
+            os: macos-latest
+            artifact: LedgerFlow-Hub-macOS
+            files: |
+              release/*.dmg
+              release/*.blockmap
+          - name: Linux AppImage
+            os: ubuntu-latest
+            artifact: LedgerFlow-Hub-Linux
+            files: |
+              release/*.AppImage
+              release/*.blockmap
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -36,18 +59,16 @@ jobs:
       - name: TypeScript check
         run: npm run lint
 
-      - name: Build Windows installer and portable app
+      - name: Build desktop package
         run: npm run desktop:dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload Windows build artifact
+      - name: Upload desktop artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LedgerFlow-Hub-Windows
-          path: |
-            release/*.exe
-            release/*.blockmap
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.files }}
           if-no-files-found: error
           retention-days: 14
