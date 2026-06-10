@@ -24,6 +24,7 @@ const PMFDecisionGame = React.lazy(() => import('./PMFDecisionGame'));
 const DocumentMatchingGame = React.lazy(() => import('./DocumentMatchingGame'));
 const CostFlowGame = React.lazy(() => import('./CostFlowGame'));
 const GameLibrary = React.lazy(() => import('./GameLibrary'));
+const GameProgressDashboard = React.lazy(() => import('./GameProgressDashboard'));
 const MonthlyFounderReview = React.lazy(() => import('./MonthlyFounderReview'));
 const OnePageFounderReport = React.lazy(() => import('./OnePageFounderReport'));
 const WeeklyActionPlanner = React.lazy(() => import('./WeeklyActionPlanner'));
@@ -33,7 +34,7 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'game_progress' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
@@ -55,6 +56,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'document_matching_game', label: 'Document Matching Game', note: 'Game ghép chứng từ với nghiệp vụ và rủi ro kiểm toán.' },
   { id: 'cost_flow_game', label: 'Cost Flow Game', note: 'Game sắp xếp luồng chi phí theo ngành và chứng từ.' },
   { id: 'game_library', label: 'Game Library', note: 'Thư viện mini-game học kế toán, kiểm toán và founder finance.' },
+  { id: 'game_progress', label: 'Game Progress', note: 'Tổng hợp điểm, attempts và game nên chơi tiếp.' },
   { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.' },
   { id: 'one_page_report', label: 'One-Page Report', note: 'Báo cáo một trang để in hoặc save PDF.' },
   { id: 'weekly_actions', label: 'Weekly Actions', note: 'Kế hoạch tuần: việc, owner, deadline, trạng thái.' },
@@ -89,6 +91,7 @@ function renderLab(active: LabId) {
   if (active === 'document_matching_game') return <DocumentMatchingGame />;
   if (active === 'cost_flow_game') return <CostFlowGame />;
   if (active === 'game_library') return <GameLibrary />;
+  if (active === 'game_progress') return <GameProgressDashboard />;
   if (active === 'monthly_review') return <MonthlyFounderReview />;
   if (active === 'one_page_report') return <OnePageFounderReport />;
   if (active === 'weekly_actions') return <WeeklyActionPlanner />;
