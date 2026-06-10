@@ -12,6 +12,7 @@ const SyntheticSurveyBuilder = React.lazy(() => import('./SyntheticSurveyBuilder
 const ABSimulationLab = React.lazy(() => import('./ABSimulationLab'));
 const MoRReadinessChecklist = React.lazy(() => import('./MoRReadinessChecklist'));
 const MultiIndustryCaseBank = React.lazy(() => import('./MultiIndustryCaseBank'));
+const AuditRedFlagGame = React.lazy(() => import('./AuditRedFlagGame'));
 const MonthlyFounderReview = React.lazy(() => import('./MonthlyFounderReview'));
 const OnePageFounderReport = React.lazy(() => import('./OnePageFounderReport'));
 const WeeklyActionPlanner = React.lazy(() => import('./WeeklyActionPlanner'));
@@ -21,7 +22,7 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'case_bank' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'case_bank' | 'audit_game' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
@@ -31,6 +32,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'ab_simulation', label: 'A/B Simulation', note: 'So sánh pricing, landing, onboarding, demo script.' },
   { id: 'mor_readiness', label: 'MoR Readiness', note: 'Refund, terms, privacy, tax note và payment path.' },
   { id: 'case_bank', label: 'Case Bank', note: 'Case kế toán/kiểm toán đa ngành và red flags.' },
+  { id: 'audit_game', label: 'Audit Game', note: 'Game chọn red flags và chứng từ cần kiểm tra.' },
   { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.' },
   { id: 'one_page_report', label: 'One-Page Report', note: 'Báo cáo một trang để in hoặc save PDF.' },
   { id: 'weekly_actions', label: 'Weekly Actions', note: 'Kế hoạch tuần: việc, owner, deadline, trạng thái.' },
@@ -53,6 +55,7 @@ function renderLab(active: LabId) {
   if (active === 'ab_simulation') return <ABSimulationLab />;
   if (active === 'mor_readiness') return <MoRReadinessChecklist />;
   if (active === 'case_bank') return <MultiIndustryCaseBank />;
+  if (active === 'audit_game') return <AuditRedFlagGame />;
   if (active === 'monthly_review') return <MonthlyFounderReview />;
   if (active === 'one_page_report') return <OnePageFounderReport />;
   if (active === 'weekly_actions') return <WeeklyActionPlanner />;
