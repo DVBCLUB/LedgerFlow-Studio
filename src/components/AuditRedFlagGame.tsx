@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { MULTI_INDUSTRY_CASE_BANK } from '../data/multiIndustryCaseBank';
+import { addGameSession } from '../utils/gameSessionHistory';
 
 type GameResult = {
   score: number;
@@ -9,6 +10,8 @@ type GameResult = {
   documentHits: number;
   verdict: string;
 };
+
+const STORAGE_KEY = 'ledgerflow-audit-red-flag-game-v1';
 
 const distractorFlags = [
   'thiếu chữ ký nội bộ nhưng không ảnh hưởng trọng yếu',
@@ -33,11 +36,22 @@ const makeOptions = (correct: string[], pool: string[], limit = 7) => {
   return merged.sort((a, b) => a.localeCompare(b));
 };
 
+const readSnapshots = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
 export default function AuditRedFlagGame() {
   const [caseIndex, setCaseIndex] = useState(0);
   const [selectedFlags, setSelectedFlags] = useState<string[]>([]);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState('');
 
   const activeCase = MULTI_INDUSTRY_CASE_BANK[caseIndex];
 
@@ -61,17 +75,52 @@ export default function AuditRedFlagGame() {
     setter(list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
   };
 
+  const saveSession = () => {
+    const playedAt = new Date().toISOString();
+    const snapshot = {
+      id: `${activeCase.id}-${playedAt}`,
+      caseId: activeCase.id,
+      caseTitle: activeCase.title,
+      industry: activeCase.industry,
+      riskLevel: activeCase.riskLevel,
+      score: result.score,
+      verdict: result.verdict,
+      correctFlags: result.correctFlags,
+      missedFlags: result.missedFlags.length,
+      extraFlags: result.extraFlags.length,
+      documentHits: result.documentHits,
+      playedAt
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify([snapshot, ...readSnapshots()].slice(0, 50)));
+    addGameSession({
+      gameId: 'audit-red-flag-game',
+      gameLabel: 'Audit Red Flag Game',
+      score: result.score,
+      verdict: result.verdict,
+      note: `${activeCase.industry} • ${activeCase.title} • đúng red flag ${result.correctFlags}/${activeCase.redFlags.length} • đúng chứng từ ${result.documentHits}/${activeCase.documents.length}`,
+      playedAt
+    });
+    setMessage('Đã lưu lượt chơi vào Game History.');
+  };
+
+  const submit = () => {
+    setSubmitted(true);
+    saveSession();
+  };
+
   const nextCase = () => {
     setCaseIndex((value) => (value + 1) % MULTI_INDUSTRY_CASE_BANK.length);
     setSelectedFlags([]);
     setSelectedDocs([]);
     setSubmitted(false);
+    setMessage('');
   };
 
   const resetCase = () => {
     setSelectedFlags([]);
     setSelectedDocs([]);
     setSubmitted(false);
+    setMessage('');
   };
 
   return (
@@ -134,10 +183,12 @@ export default function AuditRedFlagGame() {
       </div>
 
       <div className="flex flex-wrap gap-3 rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
-        <button onClick={() => setSubmitted(true)} className="rounded-2xl bg-emerald-400 px-5 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài</button>
+        <button onClick={submit} className="rounded-2xl bg-emerald-400 px-5 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài & lưu lịch sử</button>
         <button onClick={resetCase} className="rounded-2xl border border-slate-700 px-5 py-3 text-xs font-black text-slate-300 hover:border-cyan-400">Làm lại case</button>
         <button onClick={nextCase} className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-5 py-3 text-xs font-black text-rose-100 hover:bg-rose-500/20">Case tiếp theo</button>
       </div>
+
+      {message && <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-bold text-emerald-100">{message}</div>}
 
       {submitted && (
         <div className="grid gap-4 lg:grid-cols-3">
