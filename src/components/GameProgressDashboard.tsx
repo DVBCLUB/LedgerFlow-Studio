@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
+import { GAME_SESSION_HISTORY_KEY, readGameSessions, type GameSession } from '../utils/gameSessionHistory';
 
 type GameSnapshot = {
-  key: string;
+  gameId: string;
+  legacyKey: string;
   label: string;
   skill: string;
   recommendation: string;
@@ -9,31 +11,36 @@ type GameSnapshot = {
 
 const GAME_KEYS: GameSnapshot[] = [
   {
-    key: 'ledgerflow-cash-runway-game-v1',
+    gameId: 'cash-runway-game',
+    legacyKey: 'ledgerflow-cash-runway-game-v1',
     label: 'Cash Runway Game',
     skill: 'Runway, burn rate, tool cost, paid pilot decision',
     recommendation: 'Chơi lại khi runway < 6 tháng hoặc tool burn vượt 25% burn.'
   },
   {
-    key: 'ledgerflow-pmf-decision-game-v1',
+    gameId: 'pmf-decision-game',
+    legacyKey: 'ledgerflow-pmf-decision-game-v1',
     label: 'PMF Decision Game',
     skill: 'Pain, pay signal, evidence, distribution và BUILD/HOLD/KILL',
     recommendation: 'Chơi lại trước khi quyết định build feature lớn.'
   },
   {
-    key: 'ledgerflow-document-matching-game-v1',
+    gameId: 'document-matching-game',
+    legacyKey: 'ledgerflow-document-matching-game-v1',
     label: 'Document Matching Game',
     skill: 'Ghép chứng từ với nghiệp vụ/rủi ro kiểm toán',
     recommendation: 'Chơi lại khi mở rộng case bank hoặc thêm ngành mới.'
   },
   {
-    key: 'ledgerflow-cost-flow-game-v1',
+    gameId: 'cost-flow-game',
+    legacyKey: 'ledgerflow-cost-flow-game-v1',
     label: 'Cost Flow Game',
     skill: 'Luồng chi phí: mua hàng, nhập kho, xuất dùng, dở dang, giá vốn',
     recommendation: 'Chơi lại khi học sản xuất/xây dựng/thương mại/dịch vụ.'
   },
   {
-    key: 'ledgerflow-audit-red-flag-game-v1',
+    gameId: 'audit-red-flag-game',
+    legacyKey: 'ledgerflow-audit-red-flag-game-v1',
     label: 'Audit Red Flag Game',
     skill: 'Nhận diện red flags và chứng từ cần kiểm tra',
     recommendation: 'Chơi lại khi thêm red flag mới vào case bank.'
@@ -66,6 +73,20 @@ function extractScores(data: unknown): number[] {
   return [];
 }
 
+function sessionsForGame(sessions: GameSession[], game: GameSnapshot) {
+  return sessions.filter((session) => session.gameId === game.gameId || session.gameLabel === game.label);
+}
+
+function extractSessionScores(sessions: GameSession[]) {
+  return sessions
+    .map((session) => Number(session.score || 0))
+    .filter((score) => Number.isFinite(score) && score > 0);
+}
+
+function latestSession(sessions: GameSession[]) {
+  return [...sessions].sort((a, b) => b.playedAt.localeCompare(a.playedAt))[0];
+}
+
 function avg(values: number[]) {
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 }
@@ -76,21 +97,40 @@ function verdict(score: number) {
   return 'START / REPLAY';
 }
 
+function fmtDate(value?: string) {
+  if (!value) return 'Chưa có';
+  try {
+    return new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
 export default function GameProgressDashboard() {
+  const sessions = useMemo(() => readGameSessions(), []);
+  const historyAttempts = sessions.length;
+
   const games = useMemo(() => GAME_KEYS.map((game) => {
-    const data = safeParse(localStorage.getItem(game.key));
-    const scores = extractScores(data);
+    const matchedSessions = sessionsForGame(sessions, game);
+    const sessionScores = extractSessionScores(matchedSessions);
+    const legacyScores = sessionScores.length ? [] : extractScores(safeParse(localStorage.getItem(game.legacyKey)));
+    const scores = sessionScores.length ? sessionScores : legacyScores;
+    const latest = latestSession(matchedSessions);
     const bestScore = scores.length ? Math.max(...scores) : 0;
     const averageScore = Math.round(avg(scores));
+
     return {
       ...game,
       played: scores.length > 0,
       attempts: scores.length,
       bestScore,
       averageScore,
-      verdict: verdict(bestScore)
+      verdict: verdict(bestScore),
+      source: sessionScores.length ? 'Game History' : legacyScores.length ? 'Legacy snapshot' : 'Chưa có dữ liệu',
+      latestPlayedAt: latest?.playedAt,
+      latestVerdict: latest?.verdict
     };
-  }), []);
+  }), [sessions]);
 
   const played = games.filter((game) => game.played).length;
   const bestAverage = Math.round(avg(games.map((game) => game.bestScore).filter((score) => score > 0)));
@@ -104,7 +144,7 @@ export default function GameProgressDashboard() {
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Game Progress</p>
         <h2 className="mt-2 text-xl font-black text-white">Dashboard tiến độ mini-game</h2>
         <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-          Gom tiến độ từ các game playable để biết bạn đã luyện kỹ năng nào, game nào còn yếu và nên học tiếp phần nào.
+          Nguồn chính: <span className="font-black text-emerald-200">{GAME_SESSION_HISTORY_KEY}</span>. Dashboard ưu tiên lịch sử từng lượt chơi, chỉ fallback snapshot cũ khi game chưa có dữ liệu trong Game History.
         </p>
       </div>
 
@@ -118,8 +158,8 @@ export default function GameProgressDashboard() {
           <p className="mt-2 text-3xl font-black text-emerald-300">{played}/{games.length}</p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-[10px] font-black uppercase text-slate-500">Best avg</p>
-          <p className="mt-2 text-3xl font-black text-cyan-300">{bestAverage}</p>
+          <p className="text-[10px] font-black uppercase text-slate-500">History attempts</p>
+          <p className="mt-2 text-3xl font-black text-cyan-300">{historyAttempts}</p>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
           <p className="text-[10px] font-black uppercase text-slate-500">Nên chơi tiếp</p>
@@ -135,10 +175,10 @@ export default function GameProgressDashboard() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         {games.map((game) => (
-          <div key={game.key} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <div key={game.gameId} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-black uppercase text-emerald-300">{game.played ? 'Đã có dữ liệu' : 'Chưa có dữ liệu'}</p>
+                <p className="text-[10px] font-black uppercase text-emerald-300">{game.source}</p>
                 <h3 className="mt-1 text-sm font-black text-white">{game.label}</h3>
               </div>
               <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-300">{game.verdict}</span>
@@ -158,6 +198,9 @@ export default function GameProgressDashboard() {
                 <p className="mt-1 text-xl font-black text-cyan-300">{game.averageScore}</p>
               </div>
             </div>
+            <p className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-400">
+              Lần gần nhất: {fmtDate(game.latestPlayedAt)}{game.latestVerdict ? ` • ${game.latestVerdict}` : ''}
+            </p>
             <p className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-400">{game.recommendation}</p>
           </div>
         ))}
