@@ -7,7 +7,8 @@ const BACKUP_KEYS = [
   'ledgerflow-experiment-decisions-v1',
   'ledgerflow-tool-budget-ledger-v1',
   'ledgerflow-weekly-action-planner-v1',
-  'ledgerflow-daily-founder-standup-v1'
+  'ledgerflow-daily-founder-standup-v1',
+  'ledgerflow-ai-staff-assignment-v1'
 ];
 
 type BackupPayload = {
@@ -80,7 +81,7 @@ export default function LabsBackupRestore() {
   };
 
   const resetLabs = () => {
-    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner và daily standup?');
+    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner, daily standup và AI staff board?');
     if (!yes) return;
     BACKUP_KEYS.forEach((key) => localStorage.removeItem(key));
     setMessage('Đã xóa dữ liệu Founder Labs trên trình duyệt này.');
@@ -92,7 +93,7 @@ export default function LabsBackupRestore() {
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Backup / Restore</p>
         <h2 className="mt-2 text-xl font-black text-white">Sao lưu dữ liệu Founder Labs</h2>
         <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner và daily standup. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
+          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner, daily standup và AI staff board. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
         </p>
       </div>
 
