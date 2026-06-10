@@ -10,6 +10,7 @@ const AIStaffAssignmentBoard = React.lazy(() => import('./AIStaffAssignmentBoard
 const ContentRepurposeBoard = React.lazy(() => import('./ContentRepurposeBoard'));
 const SyntheticSurveyBuilder = React.lazy(() => import('./SyntheticSurveyBuilder'));
 const ABSimulationLab = React.lazy(() => import('./ABSimulationLab'));
+const MoRReadinessChecklist = React.lazy(() => import('./MoRReadinessChecklist'));
 const MonthlyFounderReview = React.lazy(() => import('./MonthlyFounderReview'));
 const OnePageFounderReport = React.lazy(() => import('./OnePageFounderReport'));
 const WeeklyActionPlanner = React.lazy(() => import('./WeeklyActionPlanner'));
@@ -19,7 +20,7 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
@@ -27,6 +28,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'content', label: 'Content Repurpose', note: 'Biến case, lead, interview thành post, demo, email.' },
   { id: 'synthetic_survey', label: 'Synthetic Survey', note: 'Khảo sát giả lập, bias warning và validation plan.' },
   { id: 'ab_simulation', label: 'A/B Simulation', note: 'So sánh pricing, landing, onboarding, demo script.' },
+  { id: 'mor_readiness', label: 'MoR Readiness', note: 'Refund, terms, privacy, tax note và payment path.' },
   { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.' },
   { id: 'one_page_report', label: 'One-Page Report', note: 'Báo cáo một trang để in hoặc save PDF.' },
   { id: 'weekly_actions', label: 'Weekly Actions', note: 'Kế hoạch tuần: việc, owner, deadline, trạng thái.' },
@@ -47,6 +49,7 @@ function renderLab(active: LabId) {
   if (active === 'content') return <ContentRepurposeBoard />;
   if (active === 'synthetic_survey') return <SyntheticSurveyBuilder />;
   if (active === 'ab_simulation') return <ABSimulationLab />;
+  if (active === 'mor_readiness') return <MoRReadinessChecklist />;
   if (active === 'monthly_review') return <MonthlyFounderReview />;
   if (active === 'one_page_report') return <OnePageFounderReport />;
   if (active === 'weekly_actions') return <WeeklyActionPlanner />;
