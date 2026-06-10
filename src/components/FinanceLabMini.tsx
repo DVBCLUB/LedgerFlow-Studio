@@ -41,7 +41,35 @@ const summarizeToolBudget = (items: ToolCost[]) => {
   const marketing = byCategory('Marketing');
   const otherTools = items.filter((item) => !['AI', 'Hosting', 'Marketing'].includes(item.category)).reduce((sum, item) => sum + Number(item.amount || 0), 0);
   const total = ai + hosting + marketing + otherTools;
-  return { ai, hosting, marketing, otherTools, total, count: items.length };
+  const reviewItems = items.filter((item) => item.keepDecision === 'Review');
+  const cancelItems = items.filter((item) => item.keepDecision === 'Cancel');
+  const riskItems = [...reviewItems, ...cancelItems];
+  const reviewCost = reviewItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const cancelCost = cancelItems.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const riskCost = reviewCost + cancelCost;
+  const riskRate = total > 0 ? (riskCost / total) * 100 : 0;
+  const biggestRiskItems = [...riskItems]
+    .sort((a, b) => Number(b.amount || 0) - Number(a.amount || 0))
+    .slice(0, 3);
+  const health = riskCost === 0
+    ? 'OK - tool spend đang sạch'
+    : riskRate >= 35 || cancelCost > 0
+      ? 'CẢNH BÁO - đang đốt tiền ở tool cần hủy/xem lại'
+      : 'REVIEW - có chi phí cần kiểm tra lại';
+  return {
+    ai,
+    hosting,
+    marketing,
+    otherTools,
+    total,
+    count: items.length,
+    reviewCost,
+    cancelCost,
+    riskCost,
+    riskRate,
+    biggestRiskItems,
+    health
+  };
 };
 
 export default function FinanceLabMini() {
@@ -105,6 +133,31 @@ export default function FinanceLabMini() {
             <button onClick={refreshToolBudget} className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300">Refresh</button>
             <button onClick={applyToolBudget} className="rounded-xl bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950">Dùng burn từ Tool Budget</button>
           </div>
+        </div>
+        <div className={`mt-4 rounded-xl border p-4 ${toolBudgetSnapshot.riskCost > 0 ? 'border-amber-500/30 bg-amber-500/10' : 'border-emerald-500/20 bg-emerald-500/10'}`}>
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-amber-200">Tool Budget Health Warning</p>
+              <h4 className="mt-1 text-sm font-black text-white">{toolBudgetSnapshot.health}</h4>
+              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">
+                Chi phí cần review/hủy: {money(toolBudgetSnapshot.riskCost)}đ ({toolBudgetSnapshot.riskRate.toFixed(1)}% tổng burn tool) • Review: {money(toolBudgetSnapshot.reviewCost)}đ • Cancel: {money(toolBudgetSnapshot.cancelCost)}đ
+              </p>
+            </div>
+            {toolBudgetSnapshot.riskRate >= 35 && (
+              <span className="rounded-full bg-rose-500/15 px-3 py-1 text-[10px] font-black uppercase text-rose-200">Burn risk cao</span>
+            )}
+          </div>
+          {toolBudgetSnapshot.biggestRiskItems.length > 0 && (
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              {toolBudgetSnapshot.biggestRiskItems.map((item) => (
+                <div key={item.id} className="rounded-lg border border-slate-800 bg-slate-950/60 p-3">
+                  <p className="text-xs font-black text-white">{item.tool}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-slate-400">{item.category} • {item.keepDecision}</p>
+                  <p className="mt-1 text-sm font-black text-amber-200">{money(item.amount)}đ/tháng</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
