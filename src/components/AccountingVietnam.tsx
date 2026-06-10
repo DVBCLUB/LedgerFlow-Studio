@@ -22,19 +22,30 @@ import {
 } from '../data/deepConstructionAccountingKnowledge';
 import {
   AI_AGENT_TASK_TEMPLATES,
+  AI_AGENT_WORK_ORDER_BOARD,
   DECISION_LOG_STARTER,
+  FOUNDER_DAILY_KPI_DASHBOARD,
+  FOUNDER_RISK_REGISTER,
   FOUNDER_SIMULATOR_SCENARIOS,
+  OPERATING_SOP_LIBRARY,
+  PRODUCT_IDEA_PORTFOLIO,
   PRODUCT_IDEA_SCORE_FACTORS,
+  RELEASE_READINESS_CHECKLIST,
   SURVEY_QUESTION_BANK
 } from '../data/founderCompanyEnhancements';
 
 type AccountingTab =
+  | 'dashboard'
   | 'cases'
   | 'costs'
   | 'docs'
   | 'score'
   | 'simulator'
   | 'decisions'
+  | 'workorders'
+  | 'portfolio'
+  | 'sop'
+  | 'risks'
   | 'promptlab'
   | 'survey'
   | 'coverage'
@@ -67,14 +78,19 @@ const SIM_CASES = [
 ];
 
 const TAB_LABELS: Array<[AccountingTab, string]> = [
+  ['dashboard', 'Founder Dashboard'],
+  ['simulator', 'Simulator'],
+  ['workorders', 'AI Work Orders'],
+  ['portfolio', 'Idea Portfolio'],
+  ['sop', 'SOP Library'],
+  ['risks', 'Risk & Release'],
+  ['decisions', 'Decision Log'],
+  ['promptlab', 'Prompt giao việc'],
+  ['survey', 'Khảo sát'],
   ['cases', 'Case mô phỏng'],
   ['costs', 'Thẻ chi phí'],
   ['docs', 'Quiz chứng từ'],
   ['score', 'Score lab'],
-  ['simulator', 'Simulator'],
-  ['decisions', 'Decision Log'],
-  ['promptlab', 'Prompt giao việc'],
-  ['survey', 'Khảo sát'],
   ['coverage', 'Rà soát module'],
   ['casebank', 'Case nâng cao'],
   ['blueprint', 'Blueprint triển khai'],
@@ -108,8 +124,11 @@ const NumberInput = ({ label, value, setValue }: { label: string; value: number;
   </label>
 );
 
+const ideaScore = (idea: { pain: number; mvpCheapness: number; distribution: number; technicalRisk: number }) =>
+  Math.round(idea.pain * 3 + idea.mvpCheapness * 2 + idea.distribution * 1.5 - idea.technicalRisk * 1.5);
+
 export default function AccountingVietnam() {
-  const [tab, setTab] = useState<AccountingTab>('cases');
+  const [tab, setTab] = useState<AccountingTab>('dashboard');
   const [copied, setCopied] = useState<string | null>(null);
   const [budget, setBudget] = useState(1200000000);
   const [actual, setActual] = useState(735000000);
@@ -188,6 +207,20 @@ export default function AccountingVietnam() {
         </div>
       </section>
 
+      {tab === 'dashboard' && (
+        <section className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card><p className="text-xs text-cyan-200">Budget used</p><p className="mt-2 text-3xl font-black text-white">{result.budgetUsed.toFixed(1)}%</p><p className="mt-2 text-xs text-slate-400">Mức dùng ngân sách mô phỏng</p></Card>
+            <Card><p className="text-xs text-amber-200">Advance open</p><p className="mt-2 text-2xl font-black text-white">{money(result.advanceLeft)}đ</p><p className="mt-2 text-xs text-slate-400">Tạm ứng/công việc còn treo</p></Card>
+            <Card><p className="text-xs text-emerald-200">Idea score</p><p className="mt-2 text-3xl font-black text-white">{simulation.productScore}/100</p><p className="mt-2 text-xs text-slate-400">Điểm ý tưởng đang mô phỏng</p></Card>
+            <Card><p className="text-xs text-rose-200">Founder risk</p><p className="mt-2 text-3xl font-black text-white">{Math.max(result.riskScore, Math.round(simulation.risk))}/100</p><p className="mt-2 text-xs text-slate-400">Rủi ro tổng hợp</p></Card>
+          </div>
+          <div className="grid gap-4 lg:grid-cols-2">
+            {FOUNDER_DAILY_KPI_DASHBOARD.map((item) => <Card key={item.group}><h2 className="text-sm font-black text-white">{item.group}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.purpose}</p><p className="mt-4 text-[10px] font-black uppercase text-cyan-300">KPI nên theo dõi</p><BulletList items={item.kpis} className="text-cyan-100" /><p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs font-bold leading-6 text-amber-100">Cảnh báo: {item.warning}</p></Card>)}
+          </div>
+        </section>
+      )}
+
       {tab === 'cases' && <section className="grid gap-4 lg:grid-cols-4">{SIM_CASES.map((item) => <Card key={item.title}><BookOpen className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.lesson}</p><p className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs font-semibold leading-6 text-purple-100">{item.hint}</p></Card>)}</section>}
 
       {tab === 'costs' && <section className="grid gap-4 lg:grid-cols-2">{COST_TYPE_KNOWLEDGE.map((item) => <Card key={item.type}><WalletCards className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Thẻ học: {item.type}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Ví dụ: {item.examples}</p><p className="mt-3 text-[10px] font-black uppercase text-cyan-300">Hồ sơ nên có</p><BulletList items={item.documents} className="text-cyan-100" /><p className="mt-3 text-[10px] font-black uppercase text-amber-300">Điểm cần quan sát trong mô phỏng</p><BulletList items={item.risks} className="text-amber-100" /></Card>)}</section>}
@@ -199,6 +232,14 @@ export default function AccountingVietnam() {
       {tab === 'simulator' && <section className="grid gap-4 lg:grid-cols-5"><Card className="lg:col-span-2"><h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white"><Calculator className="h-4 w-4 text-cyan-300" />Founder what-if simulator</h2><label className="mb-3 block"><span className="mb-1 block text-xs font-black text-slate-400">Kịch bản mô phỏng</span><select value={scenarioId} onChange={(e) => setScenarioId(e.target.value)} className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400">{FOUNDER_SIMULATOR_SCENARIOS.map((x) => <option key={x.id} value={x.id}>{x.name}</option>)}</select></label><div className="grid gap-3 md:grid-cols-2"><NumberInput label="Doanh thu/giá trị kỳ vọng" value={revenue} setValue={setRevenue} /><NumberInput label="Giá vốn/chi phí trực tiếp" value={cost} setValue={setCost} /><NumberInput label="Chi phí vận hành/MVP" value={opsCost} setValue={setOpsCost} /><NumberInput label="Pain score 1-10" value={pain} setValue={setPain} /><NumberInput label="Buyer clarity 1-10" value={buyer} setValue={setBuyer} /><NumberInput label="MVP rẻ 1-10" value={mvpCheap} setValue={setMvpCheap} /><NumberInput label="Kênh bán 1-10" value={distribution} setValue={setDistribution} /><NumberInput label="Rủi ro kỹ thuật 1-10" value={techRisk} setValue={setTechRisk} /></div></Card><div className="space-y-4 lg:col-span-3"><Card><p className="text-xs font-black uppercase text-cyan-300">{selectedScenario.industry}</p><h2 className="mt-2 text-lg font-black text-white">{selectedScenario.name}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{selectedScenario.description}</p><div className="mt-4 grid gap-3 md:grid-cols-2"><div><p className="text-[10px] font-black uppercase text-cyan-300">Input</p><BulletList items={selectedScenario.inputs} className="text-cyan-100" /></div><div><p className="text-[10px] font-black uppercase text-emerald-300">Output</p><BulletList items={selectedScenario.outputs} className="text-emerald-100" /></div></div></Card><div className="grid gap-4 md:grid-cols-4"><Card><p className="text-xs text-cyan-200">Gross margin</p><p className="mt-2 text-2xl font-black text-white">{simulation.grossMargin.toFixed(1)}%</p></Card><Card><p className="text-xs text-emerald-200">Lãi/lỗ mô phỏng</p><p className="mt-2 text-xl font-black text-white">{money(simulation.netProfit)}đ</p></Card><Card><p className="text-xs text-amber-200">Idea score</p><p className="mt-2 text-2xl font-black text-white">{simulation.productScore}/100</p></Card><Card><p className="text-xs text-rose-200">Risk</p><p className="mt-2 text-2xl font-black text-white">{simulation.risk.toFixed(0)}/100</p></Card></div><Card><p className="text-xs font-black uppercase text-amber-300">Kết luận mô phỏng</p><p className="mt-3 text-base font-black text-white">{simulation.verdict}</p><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Rule: {selectedScenario.goNoGoRule}</p><div className="mt-4 grid gap-2 md:grid-cols-5">{PRODUCT_IDEA_SCORE_FACTORS.map((x) => <div key={x.factor} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3"><p className="text-xs font-black text-white">{x.factor}</p><p className="mt-2 text-[11px] leading-5 text-slate-400">{x.meaning}</p></div>)}</div></Card></div></section>}
 
       {tab === 'decisions' && <section className="space-y-4"><Card><h2 className="text-sm font-black uppercase tracking-wider text-white">Decision Log của founder</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Lưu tạm bằng localStorage trên trình duyệt, chưa cần backend để tiết kiệm chi phí MVP.</p><div className="mt-4 flex gap-2"><input value={newDecision} onChange={(e) => setNewDecision(e.target.value)} placeholder="Nhập quyết định mới..." className="flex-1 rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400" /><button onClick={addDecision} className="rounded-xl bg-cyan-400 px-4 text-xs font-black text-slate-950">Thêm</button></div></Card><div className="grid gap-4 lg:grid-cols-2">{decisions.map((item, index) => <Card key={`${item.decision}-${index}`}><p className="text-[10px] font-black uppercase text-cyan-300">Decision #{decisions.length - index}</p><h2 className="mt-2 text-sm font-black text-white">{item.decision}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Lý do: {item.reason}</p><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Bằng chứng: {item.evidence}</p><p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Bước tiếp: {item.nextAction}</p></Card>)}</div></section>}
+
+      {tab === 'workorders' && <section className="grid gap-4 lg:grid-cols-2">{AI_AGENT_WORK_ORDER_BOARD.map((item) => <Card key={item.id}><div className="flex items-start justify-between gap-3"><div><p className="text-[10px] font-black uppercase text-cyan-300">{item.id} • {item.status}</p><h2 className="mt-2 text-sm font-black text-white">{item.ownerAgent}</h2></div><span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[10px] font-black text-cyan-200">Work Order</span></div><p className="mt-3 text-xs font-bold leading-6 text-slate-200">{item.task}</p><p className="mt-4 text-[10px] font-black uppercase text-cyan-300">Input</p><BulletList items={item.input} className="text-cyan-100" /><p className="mt-4 text-[10px] font-black uppercase text-emerald-300">Expected output</p><BulletList items={item.expectedOutput} className="text-emerald-100" /><p className="mt-4 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs font-bold leading-6 text-amber-100">Founder review: {item.founderReview}</p></Card>)}</section>}
+
+      {tab === 'portfolio' && <section className="grid gap-4 lg:grid-cols-2">{PRODUCT_IDEA_PORTFOLIO.map((item) => <Card key={item.idea}><div className="flex items-start justify-between gap-3"><div><Target className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">{item.idea}</h2></div><div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-center"><p className="text-[10px] font-black uppercase text-emerald-200">Score</p><p className="text-2xl font-black text-white">{ideaScore(item)}</p></div></div><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">User: {item.targetUser}</p><div className="mt-4 grid gap-2 md:grid-cols-4"><div className="rounded-xl bg-slate-950/70 p-3 text-center"><p className="text-[10px] text-slate-400">Pain</p><p className="text-lg font-black">{item.pain}</p></div><div className="rounded-xl bg-slate-950/70 p-3 text-center"><p className="text-[10px] text-slate-400">MVP rẻ</p><p className="text-lg font-black">{item.mvpCheapness}</p></div><div className="rounded-xl bg-slate-950/70 p-3 text-center"><p className="text-[10px] text-slate-400">Kênh bán</p><p className="text-lg font-black">{item.distribution}</p></div><div className="rounded-xl bg-slate-950/70 p-3 text-center"><p className="text-[10px] text-slate-400">Risk tech</p><p className="text-lg font-black">{item.technicalRisk}</p></div></div><p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">MVP đầu tiên: {item.firstMvp}</p><p className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs font-bold leading-6 text-amber-100">Monetization: {item.monetization}</p></Card>)}</section>}
+
+      {tab === 'sop' && <section className="grid gap-4 lg:grid-cols-2">{OPERATING_SOP_LIBRARY.map((item) => <Card key={item.sop}><CheckCircle2 className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">{item.sop}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Trigger: {item.trigger}</p><p className="mt-4 text-[10px] font-black uppercase text-cyan-300">Các bước</p><BulletList items={item.steps} className="text-cyan-100" /><p className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Output: {item.output}</p></Card>)}</section>}
+
+      {tab === 'risks' && <section className="space-y-4"><div className="grid gap-4 lg:grid-cols-2">{FOUNDER_RISK_REGISTER.map((item) => <Card key={item.risk}><ShieldCheck className="mb-3 h-5 w-5 text-rose-300" /><p className="text-[10px] font-black uppercase text-rose-300">Severity: {item.severity}</p><h2 className="mt-2 text-sm font-black text-white">{item.risk}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Tín hiệu: {item.signal}</p><p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Kiểm soát: {item.control}</p></Card>)}</div><Card><h2 className="text-sm font-black text-white">Release readiness checklist</h2><div className="mt-4 grid gap-2 md:grid-cols-2"><BulletList items={RELEASE_READINESS_CHECKLIST} className="text-cyan-100" /></div></Card></section>}
 
       {tab === 'promptlab' && <section className="grid gap-4 lg:grid-cols-2">{AI_AGENT_TASK_TEMPLATES.map((item) => <Card key={item.agent + item.task}><ShieldCheck className="mb-3 h-5 w-5 text-purple-300" /><h2 className="text-sm font-black text-white">{item.agent}: {item.task}</h2><pre className="mt-3 whitespace-pre-wrap rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">{item.prompt}</pre><p className="mt-4 text-[10px] font-black uppercase text-emerald-300">Chuẩn đầu ra</p><BulletList items={item.acceptance} className="text-emerald-100" /><button onClick={() => copyText(item.prompt, item.agent)} className="mt-4 rounded-xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-200">{copied === item.agent ? 'Đã copy' : 'Copy prompt'}</button></Card>)}</section>}
 
