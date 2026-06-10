@@ -77,6 +77,16 @@ for (const duplicateLabel of findDuplicates(requiredLabs.map((lab) => lab.label)
   errors.push(`Duplicate Founder Labs visible label in integrity list: '${duplicateLabel}'.`);
 }
 
+const defaultActiveMatch = dockContent.match(/useState<LabId>\('([^']+)'\)/);
+if (!defaultActiveMatch) {
+  errors.push('FounderLabsDock does not declare an explicit default LabId state.');
+} else {
+  const defaultActive = defaultActiveMatch[1];
+  if (!requiredLabs.some((lab) => lab.tab === defaultActive)) {
+    errors.push(`FounderLabsDock default active lab '${defaultActive}' is not listed in requiredLabs.`);
+  }
+}
+
 for (const lab of requiredLabs) {
   const componentPath = path.join(componentDir, `${lab.component}.tsx`);
   if (!fs.existsSync(componentPath)) {
@@ -93,12 +103,12 @@ for (const lab of requiredLabs) {
     errors.push(`FounderLabsDock does not lazy-load ${lab.component}.`);
   }
 
-  if (!dockContent.includes(`'${lab.tab}'`)) {
-    errors.push(`FounderLabsDock is missing tab id '${lab.tab}' for ${lab.component}.`);
+  if (!dockContent.includes(`{ id: '${lab.tab}', label: '${lab.label}'`)) {
+    errors.push(`FounderLabsDock is missing tab object '${lab.tab}' / '${lab.label}' for ${lab.component}.`);
   }
 
-  if (!dockContent.includes(lab.label)) {
-    errors.push(`FounderLabsDock is missing visible label '${lab.label}'.`);
+  if (!dockContent.includes(`if (active === '${lab.tab}') return <${lab.component} />;`)) {
+    errors.push(`FounderLabsDock renderLab does not explicitly render ${lab.component} for tab '${lab.tab}'.`);
   }
 
   for (const key of lab.storageKeys) {
