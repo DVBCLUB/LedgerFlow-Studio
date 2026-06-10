@@ -69,17 +69,19 @@ if not exist node_modules (
   echo [1/2] Da co node_modules, bo qua npm install.
 )
 
-echo [2/2] Dang mo trinh duyet...
-start "" "http://localhost:5173"
-
+echo [2/2] Dang chay app...
 echo.
-echo Dang chay app. Neu trinh duyet chua hien, mo:
-echo http://localhost:5173
+echo Khi thay dong "Server running", mo trinh duyet tai:
+echo http://localhost:3000
+echo.
+echo Neu khong vao duoc, thu:
+echo http://127.0.0.1:3000
 echo.
 echo Dung dong cua so nay khi dang dung app.
 echo Muon tat app: bam Ctrl + C, roi bam Y.
 echo.
 
+start "" cmd /c "timeout /t 3 /nobreak >nul && start "" "http://localhost:3000""
 call npm run dev
 
 pause
