@@ -5,6 +5,7 @@ const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
 const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
 const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
+const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.md');
 const mainPath = path.join(root, 'src', 'main.tsx');
 
 const requiredLabs = [
@@ -68,6 +69,7 @@ function findDuplicates(values) {
 
 const dockContent = readFile('src/components/FounderLabsDock.tsx');
 const backupContent = readFile('src/components/LabsBackupRestore.tsx');
+const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
 const mainContent = readFile('src/main.tsx');
 
 if (!mainContent.includes('FounderLabsDock')) {
@@ -76,6 +78,14 @@ if (!mainContent.includes('FounderLabsDock')) {
 
 if (!mainContent.includes('SimulationGuard')) {
   warnings.push('src/main.tsx does not mention SimulationGuard. Confirm global simulation access is intentional.');
+}
+
+if (companyOsGuardrailsContent && !companyOsGuardrailsContent.includes('Company OS is a Founder Labs module, not a replacement for the main LedgerFlow app.')) {
+  errors.push('docs/COMPANY_OS_GUARDRAILS.md must state that Company OS is not a replacement for the main app.');
+}
+
+if (!fs.existsSync(companyOsGuardrailsPath)) {
+  errors.push('Missing Company OS guardrails doc: docs/COMPANY_OS_GUARDRAILS.md');
 }
 
 for (const duplicateTab of findDuplicates(requiredLabs.map((lab) => lab.tab))) {
