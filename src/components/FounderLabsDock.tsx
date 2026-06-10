@@ -9,18 +9,20 @@ const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
 const MonthlyFounderReview = React.lazy(() => import('./MonthlyFounderReview'));
 const OnePageFounderReport = React.lazy(() => import('./OnePageFounderReport'));
 const WeeklyActionPlanner = React.lazy(() => import('./WeeklyActionPlanner'));
+const DailyFounderStandup = React.lazy(() => import('./DailyFounderStandup'));
 const StrategicLabsMini = React.lazy(() => import('./StrategicLabsMini'));
 const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
   { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.' },
   { id: 'one_page_report', label: 'One-Page Report', note: 'Báo cáo một trang để in hoặc save PDF.' },
   { id: 'weekly_actions', label: 'Weekly Actions', note: 'Kế hoạch tuần: việc, owner, deadline, trạng thái.' },
+  { id: 'daily_standup', label: 'Daily Standup', note: 'Nhật ký ngày: focus, blocker, AI help, next step.' },
   { id: 'finance', label: 'Finance Lab', note: 'Burn rate, runway, MRR và margin.' },
   { id: 'tool_budget', label: 'Tool Budget', note: 'Theo dõi tiền AI, hosting, marketing và dev tool.' },
   { id: 'tool_cancel', label: 'Tool Cancel Plan', note: 'Lập lịch hủy tool, checklist backup và tiền tiết kiệm.' },
@@ -36,6 +38,7 @@ function renderLab(active: LabId) {
   if (active === 'monthly_review') return <MonthlyFounderReview />;
   if (active === 'one_page_report') return <OnePageFounderReport />;
   if (active === 'weekly_actions') return <WeeklyActionPlanner />;
+  if (active === 'daily_standup') return <DailyFounderStandup />;
   if (active === 'finance') return <FinanceLabMini />;
   if (active === 'tool_budget') return <ToolBudgetLedger />;
   if (active === 'tool_cancel') return <ToolCancelPlan />;
