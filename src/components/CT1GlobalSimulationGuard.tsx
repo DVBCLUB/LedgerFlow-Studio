@@ -6,11 +6,31 @@ import {
   CT1_RELEASE_AUDIT_CHECKLIST
 } from '../data/ct1ProtectionRules';
 
+const tabLabelAliases: Record<string, string[]> = {
+  dashboard: ['Founder Dashboard'],
+  score: ['Score lab'],
+  simulator: ['Simulator', 'What-if Simulator', 'Founder what-if simulator'],
+  portfolio: ['Idea Portfolio'],
+  decisions: ['Decision Log'],
+  workorders: ['AI Work Orders']
+};
+
+const clickAccountingTab = (tab: string) => {
+  const aliases = tabLabelAliases[tab] ?? [];
+  const buttons = Array.from(document.querySelectorAll('button'));
+  const target = buttons.find((button) => aliases.some((label) => button.textContent?.trim().includes(label)));
+  target?.click();
+};
+
 export default function CT1GlobalSimulationGuard() {
   const [open, setOpen] = useState(false);
 
-  const goAccounting = () => {
+  const goAccounting = (tab?: string) => {
     window.location.hash = '/accounting_vn';
+    window.setTimeout(() => {
+      if (tab) clickAccountingTab(tab);
+      document.querySelector('main')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 120);
   };
 
   return (
@@ -33,12 +53,16 @@ export default function CT1GlobalSimulationGuard() {
 
           <div className="mt-3 grid gap-2">
             {CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS.map((item) => (
-              <button key={item.tab} onClick={goAccounting} className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-left hover:border-cyan-500/50">
-                <p className="text-xs font-black text-white">{item.label}</p>
+              <button key={item.tab} onClick={() => goAccounting(item.tab)} className="rounded-xl border border-slate-800 bg-slate-900/80 p-3 text-left hover:border-cyan-500/50">
+                <p className="text-xs font-black text-white">Mở nhanh: {item.label}</p>
                 <p className="mt-1 text-[11px] leading-5 text-slate-400">{item.reason}</p>
               </button>
             ))}
           </div>
+
+          <button onClick={() => goAccounting('simulator')} className="mt-3 w-full rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-500/20">
+            Kiểm tra ngay mô hình Simulator
+          </button>
 
           <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
             <p className="text-[10px] font-black uppercase text-cyan-300">Model health check</p>
@@ -61,6 +85,7 @@ export default function CT1GlobalSimulationGuard() {
           <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
             <p className="text-[10px] font-black uppercase text-amber-300">Release guard</p>
             <p className="mt-2 text-[11px] font-semibold leading-5 text-amber-100">{CT1_RELEASE_AUDIT_CHECKLIST[0]}</p>
+            <p className="mt-1 text-[11px] font-semibold leading-5 text-amber-100">{CT1_RELEASE_AUDIT_CHECKLIST[8]}</p>
             <p className="mt-1 text-[11px] font-semibold leading-5 text-amber-100">{CT1_RELEASE_AUDIT_CHECKLIST[9]}</p>
           </div>
         </div>
