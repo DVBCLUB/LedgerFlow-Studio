@@ -6,6 +6,7 @@ import {
   CT1_RELEASE_AUDIT_CHECKLIST
 } from '../data/ct1ProtectionRules';
 import { DISTRIBUTION_ENGINE, FINANCE_LAB, GAME_EDUCATION_LAB, PAYMENT_DECISION_MATRIX, PERSONA_LAB } from '../data/founderStrategicLabs';
+import { STRATEGIC_LAB_BUILD_SEQUENCE, STRATEGIC_LAB_HEALTH_CHECKS } from '../data/strategicLabOperatingSystem';
 
 const tabAliases: Record<string, string[]> = {
   dashboard: ['Founder Dashboard'],
@@ -75,6 +76,32 @@ export default function SimulationGuard() {
                     <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-black text-emerald-200">{item.count}</span>
                   </div>
                   <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">{item.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <p className="text-[10px] font-black uppercase text-emerald-300">Lab health</p>
+            <div className="mt-3 space-y-2">
+              {STRATEGIC_LAB_HEALTH_CHECKS.map((item) => (
+                <div key={item.lab} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+                  <p className="text-xs font-black text-white">{item.lab}</p>
+                  <p className="mt-2 text-[10px] font-semibold leading-5 text-slate-400">Phải có: {item.mustHave.join(' • ')}</p>
+                  <p className="mt-2 text-[10px] font-bold leading-5 text-amber-200">Dấu hiệu lỗi: {item.failSignal}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3">
+            <p className="text-[10px] font-black uppercase text-purple-300">Build sequence</p>
+            <div className="mt-3 space-y-2">
+              {STRATEGIC_LAB_BUILD_SEQUENCE.map((item) => (
+                <div key={item.step} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+                  <p className="text-xs font-black text-white">{item.step}. {item.title}</p>
+                  <p className="mt-1 text-[10px] font-black uppercase text-purple-200">{item.status}</p>
+                  <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">{item.rule}</p>
                 </div>
               ))}
             </div>
