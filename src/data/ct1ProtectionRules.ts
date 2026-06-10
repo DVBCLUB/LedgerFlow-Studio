@@ -28,6 +28,45 @@ export const CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS = [
   { tab: 'decisions', label: 'Decision Log', reason: 'Nhật ký quyết định và bằng chứng của founder.' }
 ];
 
+export const CT1_MODEL_HEALTH_CHECKS = [
+  {
+    model: 'Founder Dashboard',
+    visibility: 'always-visible',
+    mustWork: ['Budget Used card', 'Advance Open card', 'Idea Score card', 'Founder Risk card'],
+    failSignal: 'Mở app không thấy dashboard hoặc KPI cards bị mất.'
+  },
+  {
+    model: 'Score lab',
+    visibility: 'tab-required',
+    mustWork: ['nhập ngân sách', 'nhập chi phí', 'nhập tạm ứng', 'tính risk score'],
+    failSignal: 'Không nhập được số hoặc risk score không đổi khi thay input.'
+  },
+  {
+    model: 'Founder What-if Simulator',
+    visibility: 'tab-required',
+    mustWork: ['chọn scenario', 'tính gross margin', 'tính net profit', 'tính idea score', 'ra GO/HOLD/NO-GO'],
+    failSignal: 'Không chọn được scenario hoặc kết luận mô phỏng bị trống.'
+  },
+  {
+    model: 'Idea Portfolio',
+    visibility: 'tab-required',
+    mustWork: ['render idea cards', 'giữ score hiện tại', 'giữ first MVP', 'giữ monetization'],
+    failSignal: 'Ý tưởng còn dữ liệu nhưng score/card không hiện.'
+  },
+  {
+    model: 'Decision Log',
+    visibility: 'tab-required',
+    mustWork: ['đọc localStorage', 'thêm decision mới', 'giữ reason/evidence/nextAction'],
+    failSignal: 'Decision mới mất sau khi refresh hoặc schema bị đổi không migration.'
+  },
+  {
+    model: 'AI Work Orders',
+    visibility: 'tab-required',
+    mustWork: ['hiện ownerAgent', 'hiện input', 'hiện expectedOutput', 'hiện founderReview'],
+    failSignal: 'Work order thiếu founder review hoặc biến thành prompt rời rạc.'
+  }
+];
+
 export const CT1_MODEL_VERSION_REGISTRY = [
   {
     model: 'Budget/Risk Score Lab',
@@ -64,5 +103,6 @@ export const CT1_RELEASE_AUDIT_CHECKLIST = [
   'Mô phỏng synthetic users phải có bias warning và cần xác minh thực tế.',
   'Ưu tiên free-first, localStorage và static data trước khi thêm backend/tool trả phí.',
   'UI giữ phong cách dark/cyan/card hiện tại.',
-  'Các mô hình chính phải luôn truy cập được từ tab chính hoặc pinned shortcuts.'
+  'Các mô hình chính phải luôn truy cập được từ tab chính hoặc pinned shortcuts.',
+  'Trước khi merge phải click qua Dashboard, Score lab, Simulator, Portfolio, Decision Log và AI Work Orders.'
 ];
