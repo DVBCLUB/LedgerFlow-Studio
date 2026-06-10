@@ -14,10 +14,16 @@ RUN_LOCAL.bat
 
 File này sẽ tự cài thư viện nếu chưa có và chạy app local.
 
-Sau đó mở:
+Khi terminal hiện `Server running on http://0.0.0.0:3000`, mở:
 
 ```text
-http://localhost:5173
+http://localhost:3000
+```
+
+Nếu không vào được, thử:
+
+```text
+http://127.0.0.1:3000
 ```
 
 Xem hướng dẫn chi tiết trong:
@@ -48,6 +54,8 @@ release/
 npm install
 npm run dev
 ```
+
+Sau đó mở `http://localhost:3000`.
 
 ## Ghi chú AI
 
