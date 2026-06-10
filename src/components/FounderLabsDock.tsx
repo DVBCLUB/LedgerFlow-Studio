@@ -11,6 +11,7 @@ const ContentRepurposeBoard = React.lazy(() => import('./ContentRepurposeBoard')
 const SyntheticSurveyBuilder = React.lazy(() => import('./SyntheticSurveyBuilder'));
 const ABSimulationLab = React.lazy(() => import('./ABSimulationLab'));
 const MoRReadinessChecklist = React.lazy(() => import('./MoRReadinessChecklist'));
+const PricingOfferBuilder = React.lazy(() => import('./PricingOfferBuilder'));
 const N8nAutomationBlueprint = React.lazy(() => import('./N8nAutomationBlueprint'));
 const MoatDefensibilityTracker = React.lazy(() => import('./MoatDefensibilityTracker'));
 const MultiIndustryCaseBank = React.lazy(() => import('./MultiIndustryCaseBank'));
@@ -24,7 +25,7 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
@@ -33,6 +34,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'synthetic_survey', label: 'Synthetic Survey', note: 'Khảo sát giả lập, bias warning và validation plan.' },
   { id: 'ab_simulation', label: 'A/B Simulation', note: 'So sánh pricing, landing, onboarding, demo script.' },
   { id: 'mor_readiness', label: 'MoR Readiness', note: 'Refund, terms, privacy, tax note và payment path.' },
+  { id: 'pricing_offer', label: 'Pricing Offer', note: 'Thiết kế gói bán, giá, promise, refund và pilot.' },
   { id: 'automation', label: 'Automation Blueprint', note: 'n8n workflow, human approval và anti-spam guard.' },
   { id: 'moat', label: 'Moat Tracker', note: 'Theo dõi lợi thế dữ liệu, workflow, phân phối và trust.' },
   { id: 'case_bank', label: 'Case Bank', note: 'Case kế toán/kiểm toán đa ngành và red flags.' },
@@ -58,6 +60,7 @@ function renderLab(active: LabId) {
   if (active === 'synthetic_survey') return <SyntheticSurveyBuilder />;
   if (active === 'ab_simulation') return <ABSimulationLab />;
   if (active === 'mor_readiness') return <MoRReadinessChecklist />;
+  if (active === 'pricing_offer') return <PricingOfferBuilder />;
   if (active === 'automation') return <N8nAutomationBlueprint />;
   if (active === 'moat') return <MoatDefensibilityTracker />;
   if (active === 'case_bank') return <MultiIndustryCaseBank />;
