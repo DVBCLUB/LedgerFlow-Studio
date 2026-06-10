@@ -4,6 +4,8 @@ import path from 'path';
 const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
 const registryPath = path.join(root, 'src', 'data', 'simulationRegistry.ts');
+const appPath = path.join(root, 'src', 'App.tsx');
+const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
 
 function parseRegistryComponents() {
   if (!fs.existsSync(registryPath)) {
@@ -52,6 +54,7 @@ const requiredRuntimeFiles = [
 ];
 
 const errors = [...registry.errors];
+const warnings = [];
 
 for (const relativePath of requiredRuntimeFiles) {
   const fullPath = path.join(root, relativePath);
@@ -79,21 +82,71 @@ for (const moduleName of criticalModules) {
   }
 }
 
-const appContent = fs.existsSync(path.join(root, 'src', 'App.tsx'))
-  ? fs.readFileSync(path.join(root, 'src', 'App.tsx'), 'utf8')
-  : '';
+const appContent = fs.existsSync(appPath) ? fs.readFileSync(appPath, 'utf8') : '';
+const dockContent = fs.existsSync(dockPath) ? fs.readFileSync(dockPath, 'utf8') : '';
+
+const dockHostedRoutes = new Set([
+  '/strategic_labs',
+  '/finance_lab_mini',
+  '/distribution_lead_board',
+  '/persona_interview_lab',
+  '/experiment_decision_log',
+  '/experiment_dashboard'
+]);
+
+const dockHostedComponents = new Set([
+  'StrategicLabsMini',
+  'FinanceLabMini',
+  'DistributionLeadBoard',
+  'PersonaInterviewLab',
+  'ExperimentDecisionLog',
+  'ExperimentDashboard'
+]);
+
+if (dockHostedComponents.size > 0 && !appContent.includes('FounderLabsDock')) {
+  errors.push('App.tsx does not render FounderLabsDock. Dock-hosted simulation modules would be hidden from the app.');
+}
 
 for (const moduleName of criticalModules) {
-  if (!appContent.includes(`./components/${moduleName}`)) {
-    errors.push(`App.tsx does not lazy-load critical module: ${moduleName}`);
+  const appLoadsModule = appContent.includes(`./components/${moduleName}`);
+  const dockLoadsModule = dockContent.includes(`import('./${moduleName}')`);
+
+  if (!appLoadsModule && !dockLoadsModule) {
+    errors.push(`Registry module is not lazy-loaded by App.tsx or FounderLabsDock.tsx: ${moduleName}`);
+  }
+
+  if (dockHostedComponents.has(moduleName) && !dockLoadsModule) {
+    errors.push(`Dock-hosted registry module is missing from FounderLabsDock.tsx: ${moduleName}`);
+  }
+
+  if (!dockHostedComponents.has(moduleName) && !appLoadsModule) {
+    errors.push(`App.tsx does not lazy-load routed registry module: ${moduleName}`);
   }
 }
 
 for (const route of registry.routes) {
   const routeKey = route.replace(/^\//, '');
-  if (!appContent.includes(`'${routeKey}'`) && !appContent.includes(`"${routeKey}"`)) {
+  const appHasRoute = appContent.includes(`'${routeKey}'`) || appContent.includes(`"${routeKey}"`);
+  const isDockHosted = dockHostedRoutes.has(route);
+
+  if (!appHasRoute && !isDockHosted) {
     errors.push(`App.tsx may not include route/tab key for registry route: ${route}`);
   }
+
+  if (isDockHosted && !dockContent) {
+    errors.push(`Registry route is dock-hosted but FounderLabsDock.tsx is missing: ${route}`);
+  }
+}
+
+for (const route of dockHostedRoutes) {
+  if (!registry.routes.includes(route)) {
+    warnings.push(`Dock-hosted route is no longer in simulation registry: ${route}`);
+  }
+}
+
+if (warnings.length > 0) {
+  console.warn('\nLedgerFlow simulation integrity warnings:\n');
+  for (const warning of warnings) console.warn(`- ${warning}`);
 }
 
 if (errors.length > 0) {
