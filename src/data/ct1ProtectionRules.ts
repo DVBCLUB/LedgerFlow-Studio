@@ -25,7 +25,9 @@ export const CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS = [
   { tab: 'score', label: 'Score lab', reason: 'Mô hình ngân sách, tạm ứng và risk score.' },
   { tab: 'simulator', label: 'What-if Simulator', reason: 'Mô hình GO/HOLD/NO-GO cho ý tưởng, app và game.' },
   { tab: 'portfolio', label: 'Idea Portfolio', reason: 'Chấm điểm ý tưởng thương mại hóa.' },
-  { tab: 'decisions', label: 'Decision Log', reason: 'Nhật ký quyết định và bằng chứng của founder.' }
+  { tab: 'decisions', label: 'Decision Log', reason: 'Nhật ký quyết định và bằng chứng của founder.' },
+  { tab: 'workorders', label: 'AI Work Orders', reason: 'Bảng giao việc cho nhân viên AI/AI agent, luôn cần founder review.' },
+  { tab: 'risks', label: 'Risk & Release', reason: 'Kiểm soát rủi ro trước khi release để không phá mô hình cũ.' }
 ];
 
 export const CT1_MODEL_HEALTH_CHECKS = [
@@ -64,6 +66,12 @@ export const CT1_MODEL_HEALTH_CHECKS = [
     visibility: 'tab-required',
     mustWork: ['hiện ownerAgent', 'hiện input', 'hiện expectedOutput', 'hiện founderReview'],
     failSignal: 'Work order thiếu founder review hoặc biến thành prompt rời rạc.'
+  },
+  {
+    model: 'Risk & Release',
+    visibility: 'tab-required',
+    mustWork: ['hiện risk register', 'hiện release checklist', 'giữ cảnh báo không phải ERP'],
+    failSignal: 'Release checklist biến mất hoặc không còn cảnh báo bảo vệ mô hình.'
   }
 ];
 
