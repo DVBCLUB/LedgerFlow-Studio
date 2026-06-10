@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { FlaskConical, X } from 'lucide-react';
 
+const CompanyOS = React.lazy(() => import('./CompanyOS'));
 const FinanceLabMini = React.lazy(() => import('./FinanceLabMini'));
 const DistributionLeadBoard = React.lazy(() => import('./DistributionLeadBoard'));
 const PersonaInterviewLab = React.lazy(() => import('./PersonaInterviewLab'));
@@ -35,9 +36,10 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'game_progress' | 'game_history' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'company_os' | 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'game_progress' | 'game_history' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
+  { id: 'company_os', label: 'Company OS', note: 'Bảng đánh giá Claude: scorecard, AI workforce, roadmap, doanh thu, vận hành và GTM.' },
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
   { id: 'ai_staff', label: 'AI Staff Board', note: 'Giao việc cho ChatGPT, Claude, Gemini, Copilot/Codex.' },
   { id: 'ai_quality', label: 'AI Quality Review', note: 'Kiểm tra output AI trước khi dùng vào code, content, tài liệu.' },
@@ -74,6 +76,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
 ];
 
 function renderLab(active: LabId) {
+  if (active === 'company_os') return <CompanyOS />;
   if (active === 'dashboard') return <ExperimentDashboard />;
   if (active === 'ai_staff') return <AIStaffAssignmentBoard />;
   if (active === 'ai_quality') return <AIOutputQualityReview />;
@@ -111,7 +114,7 @@ function renderLab(active: LabId) {
 
 export default function FounderLabsDock() {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<LabId>('dashboard');
+  const [active, setActive] = useState<LabId>('company_os');
 
   return (
     <div className="fixed bottom-4 left-4 z-50 print:hidden">
