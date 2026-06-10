@@ -13,6 +13,16 @@ if (!gotTheLock) {
   app.quit();
 }
 
+function getDesktopIconPath() {
+  const appRoot = app.getAppPath();
+  const candidates = [
+    path.join(appRoot, 'build', 'icon.ico'),
+    path.join(process.resourcesPath || appRoot, 'build', 'icon.ico')
+  ];
+
+  return candidates.find((candidate) => fs.existsSync(candidate));
+}
+
 function redirectDbStorageToUserData() {
   const userDataDir = app.getPath('userData');
   const dbFile = path.join(userDataDir, 'db_storage.json');
@@ -125,6 +135,8 @@ function waitForServer(url, timeoutMs = 15000) {
 }
 
 async function createMainWindow() {
+  const icon = getDesktopIconPath();
+
   mainWindow = new BrowserWindow({
     width: 1440,
     height: 920,
@@ -133,6 +145,7 @@ async function createMainWindow() {
     title: 'LedgerFlow Hub',
     backgroundColor: '#020617',
     show: false,
+    ...(icon ? { icon } : {}),
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
