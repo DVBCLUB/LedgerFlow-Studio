@@ -19,6 +19,7 @@ export const SIMULATION_REGISTRY: SimulationRegistryItem[] = [
   { id: 'game_ml', title: 'Game And ML Workbench', component: 'GameAndMLWorkbench', category: 'Machine Learning', route: '/game_ml', offlineMode: 'full', notes: 'Game and ML simulation workbench.' },
   { id: 'guerrilla', title: 'Guerrilla Product Hub', component: 'GuerrillaProductHub', category: 'Business Simulation', route: '/guerrilla', offlineMode: 'full', notes: 'Lean product experiment hub.' },
   { id: 'accounting_vn', title: 'Accounting Vietnam', component: 'AccountingVietnam', category: 'Accounting Vietnam', route: '/accounting_vn', offlineMode: 'full', notes: 'Vietnam accounting learning and simulation module.' },
+  { id: 'strategic_labs', title: 'Strategic Labs', component: 'StrategicLabsMini', category: 'Founder Strategy', route: '/strategic_labs', offlineMode: 'full', notes: 'Persona, finance, payment, distribution and game education strategy labs.' },
   { id: 'ml_applied', title: 'ML Applied', component: 'MLApplied', category: 'Machine Learning', route: '/ml_applied', offlineMode: 'partial', notes: 'ML concepts offline; external AI/API features require internet.' },
   { id: 'deploy_business', title: 'Deploy Business', component: 'DeployBusiness', category: 'Go To Market', route: '/deploy_business', offlineMode: 'full', notes: 'Deployment and business launch planning.' },
   { id: 'dashboard', title: 'Command Center', component: 'CommandCenter', category: 'Command Center', route: '/dashboard', offlineMode: 'full', notes: 'Main command dashboard.' },
