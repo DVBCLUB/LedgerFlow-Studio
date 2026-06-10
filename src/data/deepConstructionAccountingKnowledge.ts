@@ -98,3 +98,74 @@ export const SOLO_FOUNDER_OPERATING_SYSTEM = [
   { process: 'Marketing và bán hàng', owner: 'AI Marketer + AI Sales', rhythm: 'hàng tuần', outputs: ['nội dung', 'landing copy', 'kịch bản demo', 'feedback khách hàng'] },
   { process: 'Kiểm toán nội bộ sản phẩm', owner: 'AI Auditor', rhythm: 'trước khi release', outputs: ['rủi ro', 'log thay đổi', 'checklist an toàn', 'đề xuất sửa'] }
 ];
+
+export const SOLO_FOUNDER_COMPANY_MODULES = [
+  { department: 'CEO Office', purpose: 'Giữ tầm nhìn, quyết định ưu tiên, quản trị rủi ro và chuẩn duyệt cuối.', modules: ['North Star', 'Decision Log', 'Weekly Review', 'Risk Register'], dataNeeded: ['mục tiêu', 'lý do quyết định', 'chi phí cơ hội', 'việc dừng làm'] },
+  { department: 'R&D Lab', purpose: 'Biến ý tưởng app/phần mềm/game thành giả thuyết có thể kiểm chứng.', modules: ['Idea Bank', 'Hypothesis Canvas', 'Survey Builder', 'What-if Simulator'], dataNeeded: ['vấn đề khách hàng', 'đối tượng dùng', 'giả định doanh thu', 'giả định chi phí', 'kết quả khảo sát'] },
+  { department: 'Product Studio', purpose: 'Chuyển nghiên cứu thành yêu cầu sản phẩm, luồng màn hình và tiêu chí nghiệm thu.', modules: ['PRD', 'User Story', 'Feature Map', 'Acceptance Criteria'], dataNeeded: ['persona', 'job-to-be-done', 'luồng thao tác', 'edge case', 'tiêu chí đạt'] },
+  { department: 'Engineering', purpose: 'Lập trình chi phí thấp, ưu tiên MVP, kiểm thử và đóng gói release.', modules: ['Tech Stack', 'Backlog', 'QA Checklist', 'Release Notes'], dataNeeded: ['repo', 'issue', 'commit', 'test case', 'bug', 'phiên bản'] },
+  { department: 'Accounting & Audit Academy', purpose: 'Học và mô phỏng kế toán/kiểm toán đa ngành, không làm thay ERP.', modules: ['Industry Map', 'Document Matrix', 'Risk Quiz', 'KPI Lab'], dataNeeded: ['ngành', 'nghiệp vụ', 'chứng từ', 'rủi ro', 'KPI', 'case giả lập'] },
+  { department: 'Growth & Sales', purpose: 'Tìm khách, khảo sát, định vị, demo và thử nghiệm thương mại hóa.', modules: ['ICP', 'Landing Copy', 'Demo Script', 'Pricing Test'], dataNeeded: ['pain point', 'kênh tiếp cận', 'thông điệp', 'giá thử', 'feedback'] },
+  { department: 'Finance & Tool Control', purpose: 'Quản lý chi phí AI/tool, runway, ROI và nguyên tắc free-first.', modules: ['Tool Budget', 'ROI Score', 'Subscription Register', 'Keep/Kill Rule'], dataNeeded: ['tool', 'chi phí tháng', 'giờ tiết kiệm', 'tính năng ship được', 'quyết định giữ/bỏ'] }
+];
+
+export const AI_AGENT_STAFF_MATRIX = [
+  { role: 'AI Chief of Staff', mission: 'Tổng hợp việc tuần, nhắc founder quyết định và chống lan man.', inputs: ['mục tiêu tuần', 'backlog', 'rủi ro'], outputs: ['weekly brief', 'top 3 priorities', 'decision memo'], guardrails: ['không tự đổi chiến lược', 'luôn yêu cầu tiêu chí dừng'] },
+  { role: 'AI Accountant', mission: 'Giải thích kế toán đa ngành bằng case học tập, chứng từ, KPI và ví dụ.', inputs: ['ngành', 'nghiệp vụ', 'case giả lập'], outputs: ['sơ đồ nghiệp vụ', 'checklist chứng từ', 'KPI học tập'], guardrails: ['không tư vấn áp dụng luật như kết luận cuối', 'phải tách học tập và nghiệp vụ thật'] },
+  { role: 'AI Auditor', mission: 'Tìm điểm yếu, ngoại lệ, lỗ hổng dữ liệu và kiểm soát.', inputs: ['module', 'luồng dữ liệu', 'case'], outputs: ['risk list', 'control checklist', 'test plan'], guardrails: ['không chỉ khen', 'phải ghi mức độ rủi ro'] },
+  { role: 'AI Product Manager', mission: 'Chuyển ý tưởng thành PRD, user story, roadmap và tiêu chí nghiệm thu.', inputs: ['ý tưởng', 'khách hàng mục tiêu', 'ràng buộc chi phí'], outputs: ['PRD ngắn', 'feature list', 'acceptance criteria'], guardrails: ['MVP trước', 'không phình scope'] },
+  { role: 'AI Fullstack Dev', mission: 'Đề xuất kiến trúc, code, refactor và hướng dẫn deploy rẻ nhất.', inputs: ['repo', 'issue', 'thiết kế'], outputs: ['code patch', 'test note', 'release note'], guardrails: ['không phá cấu trúc cũ', 'phải có rollback hoặc commit nhỏ'] },
+  { role: 'AI Data Analyst / ML', mission: 'Tạo dữ liệu mô phỏng, phân tích what-if, phát hiện bất thường và scoring.', inputs: ['dataset giả lập', 'giả định', 'KPI'], outputs: ['bảng dữ liệu mẫu', 'risk score', 'insight'], guardrails: ['ghi rõ giả định', 'không lẫn dữ liệu thật'] },
+  { role: 'AI Marketer', mission: 'Biến mô phỏng và kiến thức thành nội dung, landing page, khảo sát, kịch bản demo.', inputs: ['ICP', 'pain point', 'case study'], outputs: ['content plan', 'landing copy', 'demo script'], guardrails: ['không quảng cáo quá khả năng sản phẩm', 'phải có CTA đo được'] },
+  { role: 'AI QA', mission: 'Kiểm thử UI, dữ liệu, copy, logic tính toán và trải nghiệm học.', inputs: ['feature', 'acceptance criteria', 'test case'], outputs: ['bug list', 'regression checklist', 'release confidence'], guardrails: ['test tab cũ trước tab mới', 'ghi rõ chưa test được gì'] }
+];
+
+export const SIMULATION_DATASETS = [
+  { name: 'Bộ dữ liệu thương mại mini', industry: 'Thương mại', rows: ['PO001 mua 100 sp giá 120.000', 'Kho nhận 96 sp', 'Bán 20 sp giá 180.000', 'NCC xuất hóa đơn đủ 100 sp'], whatToLearn: ['đối chiếu hàng về - hóa đơn', 'giá vốn', 'tồn kho', 'công nợ NCC'], metrics: ['gross margin', 'inventory variance', 'AP exception'] },
+  { name: 'Bộ dữ liệu sản xuất mini', industry: 'Sản xuất', rows: ['BOM chuẩn 2kg/sp', 'Xuất kho 240kg', 'Hoàn thành 100 sp', 'Phế phẩm 8 sp'], whatToLearn: ['định mức', 'hao hụt', 'WIP', 'giá thành'], metrics: ['cost variance', 'yield rate', 'scrap rate'] },
+  { name: 'Bộ dữ liệu dịch vụ mini', industry: 'Dịch vụ', rows: ['Hợp đồng 60.000.000/tháng', 'Timesheet đạt 80%', 'Khách chưa ký nghiệm thu', 'Chi phí nhân sự 32.000.000'], whatToLearn: ['điều kiện ghi nhận doanh thu', 'biên lợi nhuận dự án', 'bằng chứng dịch vụ'], metrics: ['project margin', 'utilization', 'AR risk'] },
+  { name: 'Bộ dữ liệu xây dựng mini', industry: 'Xây dựng/dự án', rows: ['Dự toán 1.200.000.000', 'Chi phí thực tế 735.000.000', 'Tạm ứng 180.000.000', 'Hoàn ứng 95.000.000'], whatToLearn: ['ngân sách', 'tạm ứng treo', 'chứng từ dự án', 'risk score'], metrics: ['budget used %', 'advance aging', 'document completeness'] },
+  { name: 'Bộ dữ liệu founder tool cost', industry: 'Solo founder', rows: ['ChatGPT 20$/tháng', 'GitHub 0$/tháng', 'Hosting 0-5$/tháng', 'Domain 12$/năm'], whatToLearn: ['chi phí vận hành', 'ROI tool', 'free-first stack'], metrics: ['tool cost/month', 'hours saved', 'feature shipped/tool'] },
+  { name: 'Bộ dữ liệu khảo sát ý tưởng app/game', industry: 'R&D thương mại hóa', rows: ['10 người phỏng vấn', '6 người gặp pain point', '3 người sẵn sàng trả phí', 'MVP ước tính 14 ngày'], whatToLearn: ['validation', 'willingness to pay', 'MVP scope', 'go/no-go'], metrics: ['pain intensity', 'conversion intent', 'MVP cost'] }
+];
+
+export const LOW_COST_TOOL_STACK_MATRIX = [
+  { job: 'Quản lý code và version', freeFirst: ['GitHub repo public/private', 'VS Code', 'GitHub Desktop'], paidWhen: 'Chỉ trả phí khi cần Copilot/agent nhiều hoặc private team lớn.', keepKillRule: 'Giữ nếu giúp ship code nhanh hơn; bỏ nếu chỉ để thử model.' },
+  { job: 'Ghi chú, tài liệu, quy trình', freeFirst: ['Google Docs', 'Google Sheets', 'Notion free', 'Markdown trong repo'], paidWhen: 'Trả phí khi cần chia sẻ team/automation lớn.', keepKillRule: 'Một nguồn sự thật chính; tránh vừa Notion vừa Sheets vừa Docs trùng nội dung.' },
+  { job: 'Thiết kế UI/UX', freeFirst: ['Figma free', 'Canva free', 'ảnh chụp wireframe'], paidWhen: 'Chỉ nâng cấp khi cần asset thương mại hoặc collaboration mạnh.', keepKillRule: 'Không mua template nếu chưa có MVP.' },
+  { job: 'Hosting MVP', freeFirst: ['Firebase/Supabase/Vercel free tier', 'GitHub Pages'], paidWhen: 'Trả phí khi có người dùng thật hoặc cần domain/DB ổn định.', keepKillRule: 'MVP học tập ưu tiên static hoặc free tier.' },
+  { job: 'AI workforce', freeFirst: ['ChatGPT Plus đã có', 'Gemini free', 'Claude free theo lượt', 'Copilot trial nếu có'], paidWhen: 'Chỉ thêm tool khi có nhiệm vụ rõ: code, research, design, QA.', keepKillRule: 'Mỗi AI phải có vai trò, output và số giờ tiết kiệm.' },
+  { job: 'Khảo sát thị trường', freeFirst: ['Google Forms', 'Sheets', 'Facebook group', 'Zalo/LinkedIn cá nhân'], paidWhen: 'Chỉ chạy ads nhỏ khi landing page đã đo chuyển đổi.', keepKillRule: 'Không đốt tiền ads khi chưa có thông điệp rõ.' }
+];
+
+export const COMMERCIALIZATION_ROADMAP = [
+  { stage: '0. Founder OS rõ ràng', goal: 'Biết công ty mô phỏng này vận hành thế nào.', build: ['dashboard module', 'AI staff matrix', 'weekly rhythm'], evidence: ['copy được báo cáo tuần', 'mỗi agent có nhiệm vụ'], decision: 'Nếu chưa rõ vận hành, không thêm feature lớn.' },
+  { stage: '1. Knowledge MVP', goal: 'Người học hiểu đa ngành qua case và checklist.', build: ['industry map', 'document matrix', 'risk quiz'], evidence: ['10 case đủ 4 ngành', 'có KPI và red flag'], decision: 'Nếu người học nhầm đây là ERP, phải sửa định vị.' },
+  { stage: '2. Simulator MVP', goal: 'Mô phỏng được dữ liệu và kết quả what-if.', build: ['dataset mẫu', 'tham số thay đổi', 'risk score'], evidence: ['ít nhất 5 bộ dữ liệu', 'copy được kết quả mô phỏng'], decision: 'Giữ nếu giúp khảo sát ý tưởng nhanh hơn Excel thường.' },
+  { stage: '3. AI Agent Workspace', goal: 'Founder giao việc cho AI như nhân viên.', build: ['prompt template', 'task brief', 'QA checklist'], evidence: ['AI output có chuẩn nhận bàn giao', 'có log quyết định'], decision: 'Không cho AI tự duyệt release hoặc pháp lý.' },
+  { stage: '4. Market Validation', goal: 'Kiểm chứng có người cần sản phẩm này.', build: ['landing page', 'survey script', 'demo video'], evidence: ['5-10 phỏng vấn/ngành', '3 người muốn dùng thử'], decision: 'Không build backend nặng trước khi có tín hiệu.' },
+  { stage: '5. Paid Experiment', goal: 'Thử thu tiền bằng gói nhỏ.', build: ['template pack', 'case bank paid', 'dịch vụ custom'], evidence: ['đơn hàng đầu tiên', 'feedback trả phí'], decision: 'Có tiền thật mới mở rộng tính năng phức tạp.' }
+];
+
+export const RESEARCH_EXPERIMENT_TEMPLATES = [
+  { experiment: 'Khảo sát pain point kế toán đa ngành', hypothesis: 'Người học kế toán cần hiểu nghiệp vụ đa ngành bằng case mô phỏng hơn là học lý thuyết rời rạc.', sampleData: ['10 người học/kế toán', '4 ngành', 'mức đau 1-5', 'sẵn sàng trả phí'], successSignal: '>= 60% nói case mô phỏng giúp hiểu nhanh hơn tài liệu thường.' },
+  { experiment: 'Test simulator trước khi build app thật', hypothesis: 'Một bảng mô phỏng what-if đơn giản đủ giúp founder quyết định nên build ý tưởng nào.', sampleData: ['5 ý tưởng', 'chi phí MVP', 'thời gian build', 'khách hàng rõ', 'khả năng trả phí'], successSignal: 'Chọn được top 1-2 ý tưởng có căn cứ, loại bỏ ý tưởng yếu.' },
+  { experiment: 'Test AI agent workflow', hypothesis: 'Phân vai AI rõ ràng giúp solo founder giảm lỗi và đỡ rối hơn hỏi AI tự do.', sampleData: ['task brief', 'agent role', 'output', 'QA result', 'decision log'], successSignal: 'Mỗi task có người phụ trách AI, đầu ra, checklist và quyết định cuối.' },
+  { experiment: 'Test định vị thương mại', hypothesis: 'Định vị là learning/R&D company OS dễ bán hơn định vị là phần mềm kế toán thay MISA/Bravo.', sampleData: ['2 landing copy', '20 người xem', 'CTA click', 'feedback'], successSignal: 'Thông điệp company OS + simulation lab có tỷ lệ quan tâm cao hơn.' }
+];
+
+export const OPERATING_RHYTHM_CHECKLIST = [
+  { cadence: 'Hàng ngày', actions: ['ghi 3 việc quan trọng', 'log prompt/AI output đáng giữ', 'chốt việc ship nhỏ nhất trong ngày'], danger: 'Dễ sa vào hỏi AI lan man nhưng không ra sản phẩm.' },
+  { cadence: 'Hàng tuần', actions: ['review backlog', 'chọn 1 feature hoặc 1 bộ dữ liệu để hoàn thiện', 'kiểm tra chi phí tool', 'viết changelog'], danger: 'Dễ thêm module mới khi module cũ chưa đủ dữ liệu.' },
+  { cadence: 'Hàng tháng', actions: ['đánh giá runway', 'chọn tool giữ/bỏ', 'đo số case mô phỏng đã hoàn thành', 'kiểm tra khả năng thương mại hóa'], danger: 'Dễ trả phí nhiều tool nhưng không có người dùng thật.' },
+  { cadence: 'Trước mỗi release', actions: ['AI Auditor rà soát rủi ro', 'AI QA test tab cũ', 'copy báo cáo mô phỏng', 'ghi quyết định release'], danger: 'Dễ sửa dữ liệu làm hỏng UI hoặc làm người dùng hiểu nhầm sản phẩm là ERP.' }
+];
+
+export const IMPROVEMENT_BACKLOG = [
+  { priority: 'P0', item: 'Đổi tên file/constant còn mang chữ construction để tránh hiểu nhầm về định hướng đa ngành.', reason: 'Hiện tên file kỹ thuật vẫn gợi ý xây dựng, dù nội dung đã đa ngành.', suggestedAction: 'Tạo alias hoặc refactor dần sang founderCompanyKnowledge.ts khi có thời gian.' },
+  { priority: 'P0', item: 'Thêm tab dữ liệu mô phỏng có thể copy ra báo cáo khảo sát.', reason: 'Mô phỏng là lõi nghiên cứu và khảo sát.', suggestedAction: 'Render SIMULATION_DATASETS và RESEARCH_EXPERIMENT_TEMPLATES.' },
+  { priority: 'P1', item: 'Thêm workspace giao việc cho AI agent.', reason: 'Sản phẩm là công ty solo founder, AI là nhân viên.', suggestedAction: 'Tạo prompt template, brief mẫu, output checklist và log quyết định.' },
+  { priority: 'P1', item: 'Thêm roadmap thương mại hóa theo từng stage.', reason: 'Không chỉ học, còn phải biến thành sản phẩm/app/game có thể bán.', suggestedAction: 'Render COMMERCIALIZATION_ROADMAP thành checklist go/no-go.' },
+  { priority: 'P2', item: 'Thêm local storage cho decision log và tool budget.', reason: 'Người dùng cần lưu kết quả học/mô phỏng trên máy với chi phí thấp.', suggestedAction: 'Dùng localStorage trước, chưa cần backend.' },
+  { priority: 'P2', item: 'Thêm export markdown/PDF báo cáo mô phỏng.', reason: 'Founder cần gửi cho chính mình/AI khác/khách hàng thử nghiệm.', suggestedAction: 'Trước mắt copy markdown, sau mới tính PDF.' }
+];
