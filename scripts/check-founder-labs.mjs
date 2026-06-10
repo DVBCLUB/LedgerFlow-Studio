@@ -43,6 +43,16 @@ function readFile(relativePath) {
   return fs.readFileSync(fullPath, 'utf8');
 }
 
+function findDuplicates(values) {
+  const seen = new Set();
+  const duplicates = new Set();
+  for (const value of values) {
+    if (seen.has(value)) duplicates.add(value);
+    seen.add(value);
+  }
+  return [...duplicates];
+}
+
 const dockContent = readFile('src/components/FounderLabsDock.tsx');
 const backupContent = readFile('src/components/LabsBackupRestore.tsx');
 const mainContent = readFile('src/main.tsx');
@@ -53,6 +63,18 @@ if (!mainContent.includes('FounderLabsDock')) {
 
 if (!mainContent.includes('SimulationGuard')) {
   warnings.push('src/main.tsx does not mention SimulationGuard. Confirm global simulation access is intentional.');
+}
+
+for (const duplicateTab of findDuplicates(requiredLabs.map((lab) => lab.tab))) {
+  errors.push(`Duplicate Founder Labs tab id in integrity list: '${duplicateTab}'.`);
+}
+
+for (const duplicateComponent of findDuplicates(requiredLabs.map((lab) => lab.component))) {
+  errors.push(`Duplicate Founder Labs component in integrity list: '${duplicateComponent}'.`);
+}
+
+for (const duplicateLabel of findDuplicates(requiredLabs.map((lab) => lab.label))) {
+  errors.push(`Duplicate Founder Labs visible label in integrity list: '${duplicateLabel}'.`);
 }
 
 for (const lab of requiredLabs) {
