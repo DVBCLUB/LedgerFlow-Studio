@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { addGameSession } from '../utils/gameSessionHistory';
 
 type Scenario = {
   id: string;
@@ -137,6 +138,13 @@ export default function CostFlowGame() {
     const nextAttempts = [{ id: `${Date.now()}`, scenarioId: scenario.id, score, verdict, submittedAt: new Date().toISOString() }, ...attempts].slice(0, 20);
     setAttempts(nextAttempts);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(nextAttempts));
+    addGameSession({
+      gameId: 'cost-flow-game',
+      gameLabel: 'Cost Flow Game',
+      score,
+      verdict,
+      note: `${scenario.industry} - ${scenario.title}. Đúng ${correctCount}/${scenario.correctFlow.length}, bỏ sót ${missing.length}, chọn dư ${extra.length}, sai thứ tự: ${wrongOrder ? 'có' : 'không'}.`
+    });
   };
 
   return (
@@ -194,7 +202,7 @@ export default function CostFlowGame() {
               </div>
             ))}
           </div>
-          <button onClick={submit} className="mt-4 w-full rounded-2xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài</button>
+          <button onClick={submit} className="mt-4 w-full rounded-2xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài & lưu lịch sử</button>
         </div>
       </div>
 
