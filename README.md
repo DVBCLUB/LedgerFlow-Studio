@@ -1,62 +1,61 @@
 # LedgerFlow Studio
 
-LedgerFlow Studio là **phần mềm mô phỏng / học / lab** cho kế toán, dữ liệu, AI, kiểm toán nội bộ, growth và triển khai sản phẩm.
+LedgerFlow Studio là phần mềm mô phỏng / học / lab cho kế toán, dữ liệu, AI, kiểm toán nội bộ, growth và triển khai sản phẩm.
 
-Nó **không phải** phần mềm kế toán vận hành thật để thay MISA/FAST/SmartPro, không dùng để nhập chứng từ thật và không tự quyết định hạch toán/thuế. Các module dùng để học, mô phỏng tình huống, thử calculator, checklist, prompt lab và case study.
+## Dùng như phần mềm Windows
 
-## Chạy trên Windows
-
-Cách nhanh nhất: bấm đúp file:
+Bấm file ở thư mục gốc:
 
 ```bat
-RUN_LOCAL.bat
+BUILD_WINDOWS_INSTALLER.bat
 ```
 
-File này sẽ tự cài thư viện nếu chưa có và chạy app local.
-
-Khi terminal hiện `Server running on http://0.0.0.0:3000`, mở:
-
-```text
-http://localhost:3000
-```
-
-Nếu không vào được, thử:
-
-```text
-http://127.0.0.1:3000
-```
-
-Xem hướng dẫn chi tiết trong:
-
-```text
-README_RUN_WINDOWS.md
-```
-
-## Build desktop Windows
-
-Bấm đúp:
-
-```bat
-BUILD_DESKTOP_WINDOWS.bat
-```
-
-Nếu thành công, file `.exe` sẽ nằm trong thư mục:
+Build xong, mở thư mục:
 
 ```text
 release/
 ```
 
-## Chạy thủ công bằng terminal
+Bấm file `.exe` để cài **LedgerFlow Hub**.
 
-**Prerequisites:** Node.js LTS
+## Chạy dev local
+
+Dành cho người sửa code/test:
+
+```text
+tools/windows/RUN_LOCAL_DEV.bat
+```
+
+Hoặc:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Sau đó mở `http://localhost:3000`.
+Rồi mở `http://localhost:3000`.
 
-## Ghi chú AI
+## Tài liệu
 
-Một số module AI/Gemini cần `GEMINI_API_KEY` hoặc `PMSTUDY`, nhưng nhiều module vẫn chạy bằng dữ liệu mô phỏng/offline.
+Tài liệu chi tiết đã gom vào thư mục:
+
+```text
+docs/
+```
+
+Script phụ đã gom vào:
+
+```text
+tools/windows/
+```
+
+## Cấu trúc không nên đổi tùy tiện
+
+- `src/`: giao diện, module, mô phỏng, dashboard
+- `desktop/`: app desktop Electron
+- `build/`: icon/logo và asset đóng gói
+- `scripts/`: kiểm tra build/CI
+- `server.ts`: server local/API
+- `package.json`: cấu hình build và installer
+
+Mục tiêu là giữ nguyên phần mềm hiện tại, chỉ gom tài liệu và script phụ cho thư mục gốc dễ nhìn hơn.
