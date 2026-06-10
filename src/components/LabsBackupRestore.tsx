@@ -11,7 +11,9 @@ const BACKUP_KEYS = [
   'ledgerflow-ai-staff-assignment-v1',
   'ledgerflow-content-repurpose-board-v1',
   'ledgerflow-synthetic-survey-builder-v1',
-  'ledgerflow-ab-simulation-lab-v1'
+  'ledgerflow-ab-simulation-lab-v1',
+  'ledgerflow-mor-readiness-checklist-v1',
+  'ledgerflow-payment-path-v1'
 ];
 
 type BackupPayload = {
@@ -27,7 +29,7 @@ function safeParse(value: string | null) {
   try {
     return JSON.parse(value);
   } catch {
-    return [];
+    return value;
   }
 }
 
@@ -37,7 +39,7 @@ export default function LabsBackupRestore() {
 
   const stats = useMemo(() => BACKUP_KEYS.map((key) => {
     const data = safeParse(localStorage.getItem(key));
-    return { key, count: Array.isArray(data) ? data.length : 1 };
+    return { key, count: Array.isArray(data) ? data.length : data ? 1 : 0 };
   }), [message]);
 
   const exportBackup = () => {
@@ -74,7 +76,8 @@ export default function LabsBackupRestore() {
       }
       BACKUP_KEYS.forEach((key) => {
         if (key in payload.keys) {
-          localStorage.setItem(key, JSON.stringify(payload.keys[key] ?? []));
+          const value = payload.keys[key];
+          localStorage.setItem(key, typeof value === 'string' ? value : JSON.stringify(value ?? []));
         }
       });
       setMessage('Đã nhập backup. Tải lại trang để các lab đọc dữ liệu mới nhất.');
@@ -84,7 +87,7 @@ export default function LabsBackupRestore() {
   };
 
   const resetLabs = () => {
-    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner, daily standup, AI staff board, content board, synthetic survey và A/B simulation?');
+    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner, daily standup, AI staff board, content board, synthetic survey, A/B simulation và MoR readiness?');
     if (!yes) return;
     BACKUP_KEYS.forEach((key) => localStorage.removeItem(key));
     setMessage('Đã xóa dữ liệu Founder Labs trên trình duyệt này.');
@@ -96,7 +99,7 @@ export default function LabsBackupRestore() {
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Backup / Restore</p>
         <h2 className="mt-2 text-xl font-black text-white">Sao lưu dữ liệu Founder Labs</h2>
         <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner, daily standup, AI staff board, content board, synthetic survey và A/B simulation. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
+          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner, daily standup, AI staff board, content board, synthetic survey, A/B simulation và MoR readiness. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
         </p>
       </div>
 
