@@ -9,16 +9,18 @@ import {
   FINANCIAL_ACCOUNTING_BLUEPRINT,
   FULLSTACK_DELIVERY_BLUEPRINT,
   GROWTH_BUSINESS_PLAYBOOK,
-  MODULE_KNOWLEDGE_AUDIT
+  MODULE_KNOWLEDGE_AUDIT,
+  SOLO_FOUNDER_OPERATING_SYSTEM
 } from '../data/deepConstructionAccountingKnowledge';
 
-type AccountingTab = 'cases' | 'costs' | 'docs' | 'score' | 'coverage' | 'casebank' | 'blueprint';
+type AccountingTab = 'cases' | 'costs' | 'docs' | 'score' | 'coverage' | 'casebank' | 'blueprint' | 'companyos';
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 const SIM_CASES = [
-  { title: 'Case mô phỏng 01: Mua vật tư có hóa đơn nhưng thiếu phiếu nhập', lesson: 'Người học phải nhận ra hóa đơn chưa đủ để nối hàng hóa với kho/công trình.', hint: 'Gợi ý định khoản học tập: Nợ 152/154/621, Nợ 1331 nếu đủ điều kiện, Có 111/112/331.' },
-  { title: 'Case mô phỏng 02: Tạm ứng công trường quá hạn', lesson: 'Người học phải xem tuổi tạm ứng, người nhận, mục đích ứng và chứng từ hoàn ứng.', hint: 'Gợi ý học tập: khi ứng Nợ 141/Có tiền; khi hoàn Nợ chi phí hoặc kho/Có 141.' },
-  { title: 'Case mô phỏng 03: Cấp dầu vượt định mức', lesson: 'Người học phải đối chiếu phiếu cấp dầu với xe/máy, nhật trình và định mức.', hint: 'Gợi ý học tập: đây là bài kiểm soát, không phải kết luận sai phạm.' }
+  { title: 'Case mô phỏng 01: Thương mại - hàng về lệch hóa đơn', lesson: 'Người học nhận ra hóa đơn chưa đủ; phải đối chiếu đơn hàng, nhập kho, giao nhận và công nợ.', hint: 'Gợi ý học tập: so sánh số lượng hóa đơn, số lượng kho nhận, giá vốn và công nợ NCC.' },
+  { title: 'Case mô phỏng 02: Sản xuất - định mức lệch thực tế', lesson: 'Người học kiểm tra BOM, lệnh sản xuất, NVL xuất dùng, WIP, phế phẩm và giá thành.', hint: 'Gợi ý học tập: phân biệt lệch do kỹ thuật, hao hụt, định mức cũ hoặc kiểm soát kho yếu.' },
+  { title: 'Case mô phỏng 03: Dịch vụ - nghiệm thu và doanh thu', lesson: 'Người học xem hợp đồng, timesheet, nghiệm thu và thời điểm ghi nhận doanh thu.', hint: 'Gợi ý học tập: dịch vụ cần bằng chứng đã cung cấp và quyền thu tiền, không chỉ nhìn hóa đơn.' },
+  { title: 'Case mô phỏng 04: Xây dựng - tạm ứng quá hạn', lesson: 'Người học xem tuổi tạm ứng, người nhận, mục đích ứng, chứng từ hoàn ứng và mã công trình.', hint: 'Gợi ý học tập: đây là bài kiểm soát dòng tiền và chứng từ, không phải phần mềm hạch toán thay ERP.' }
 ];
 
 const TAB_LABELS: Array<[AccountingTab, string]> = [
@@ -28,7 +30,8 @@ const TAB_LABELS: Array<[AccountingTab, string]> = [
   ['score', 'Score lab'],
   ['coverage', 'Rà soát module'],
   ['casebank', 'Case nâng cao'],
-  ['blueprint', 'Blueprint triển khai']
+  ['blueprint', 'Blueprint triển khai'],
+  ['companyos', 'Company OS']
 ];
 
 export default function AccountingVietnam() {
@@ -47,7 +50,7 @@ export default function AccountingVietnam() {
     return { budgetUsed, advanceLeft, advanceSettled, riskScore };
   }, [budget, actual, advance, settled]);
 
-  const report = `BÁO CÁO MÔ PHỎNG\nNgân sách mẫu: ${money(budget)}đ\nChi phí mẫu: ${money(actual)}đ\nTỷ lệ dùng ngân sách: ${result.budgetUsed.toFixed(1)}%\nTạm ứng còn treo: ${money(result.advanceLeft)}đ\nĐiểm rủi ro mô phỏng: ${result.riskScore}/100\n\nRÀ SOÁT MODULE\n${MODULE_KNOWLEDGE_AUDIT.map((item, index) => `${index + 1}. ${item.module}: ${item.acceptanceCriteria}`).join('\n')}`;
+  const report = `BÁO CÁO MÔ PHỎNG SOLO FOUNDER COMPANY OS\nNgân sách mẫu: ${money(budget)}đ\nChi phí mẫu: ${money(actual)}đ\nTỷ lệ dùng ngân sách: ${result.budgetUsed.toFixed(1)}%\nTạm ứng còn treo: ${money(result.advanceLeft)}đ\nĐiểm rủi ro mô phỏng: ${result.riskScore}/100\n\nRÀ SOÁT MODULE\n${MODULE_KNOWLEDGE_AUDIT.map((item, index) => `${index + 1}. ${item.module}: ${item.acceptanceCriteria}`).join('\n')}\n\nCOMPANY OS\n${SOLO_FOUNDER_OPERATING_SYSTEM.map((item, index) => `${index + 1}. ${item.process} - ${item.owner}`).join('\n')}`;
   const copyText = async () => { await navigator.clipboard.writeText(report); setCopied('report'); setTimeout(() => setCopied(null), 1200); };
 
   return (
@@ -55,9 +58,9 @@ export default function AccountingVietnam() {
       <section className="rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/30 p-6 shadow-2xl">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-4xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-cyan-300"><Receipt className="h-3.5 w-3.5" /> Accounting Vietnam Simulation</div>
-            <h1 className="text-2xl font-black tracking-tight text-white">Mô phỏng kế toán xây dựng để học case, chứng từ, KPI và tư duy kiểm soát</h1>
-            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">Module này là phòng lab học tập. Đã bổ sung lớp kiến thức liên ngành: kế toán, kiểm toán, kinh doanh, marketing, fullstack và machine learning nhưng vẫn giữ nguyên giao diện thẻ/tab hiện tại.</p>
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-cyan-300"><Receipt className="h-3.5 w-3.5" /> Multi-Industry Founder Simulation Lab</div>
+            <h1 className="text-2xl font-black tracking-tight text-white">Lab học tập kế toán - kiểm toán đa ngành, mô phỏng sản phẩm và vận hành công ty solo founder</h1>
+            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">Module này không phải phần mềm nhập liệu kế toán thay MISA AMIS, Bravo hay ERP. Đây là phòng học, R&amp;D, mô phỏng và điều hành: kế toán/kiểm toán đa ngành, lập trình sản phẩm/app/game, AI agent workforce, marketing, tài chính và quy trình vận hành với chi phí thấp nhất.</p>
           </div>
           <button onClick={copyText} className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black text-slate-950"><Copy className="h-4 w-4" />{copied ? 'Đã copy' : 'Copy báo cáo mô phỏng'}</button>
         </div>
@@ -66,7 +69,7 @@ export default function AccountingVietnam() {
         </div>
       </section>
 
-      {tab === 'cases' && <section className="grid gap-4 lg:grid-cols-3">{SIM_CASES.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><BookOpen className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.lesson}</p><p className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs font-semibold leading-6 text-purple-100">{item.hint}</p></div>)}</section>}
+      {tab === 'cases' && <section className="grid gap-4 lg:grid-cols-4">{SIM_CASES.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><BookOpen className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.lesson}</p><p className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs font-semibold leading-6 text-purple-100">{item.hint}</p></div>)}</section>}
 
       {tab === 'costs' && <section className="grid gap-4 lg:grid-cols-2">{COST_TYPE_KNOWLEDGE.map((item) => <div key={item.type} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><WalletCards className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Thẻ học: {item.type}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Ví dụ: {item.examples}</p><p className="mt-3 text-[10px] font-black uppercase text-cyan-300">Hồ sơ nên có</p>{item.documents.map((doc) => <p key={doc} className="text-xs font-semibold leading-6 text-cyan-100">• {doc}</p>)}<p className="mt-3 text-[10px] font-black uppercase text-amber-300">Điểm cần quan sát trong mô phỏng</p>{item.risks.map((risk) => <p key={risk} className="text-xs font-semibold leading-6 text-amber-100">• {risk}</p>)}</div>)}</section>}
 
@@ -80,7 +83,9 @@ export default function AccountingVietnam() {
 
       {tab === 'blueprint' && <section className="space-y-4"><div className="grid gap-4 lg:grid-cols-2">{FINANCIAL_ACCOUNTING_BLUEPRINT.map((item) => <div key={item.area} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Briefcase className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">{item.area}</h2>{item.add.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}{DATA_AI_CONTROL_FRAMEWORK.map((item) => <div key={item.layer} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Database className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.layer}</h2>{item.checks.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}</div><div className="grid gap-4 lg:grid-cols-2">{FULLSTACK_DELIVERY_BLUEPRINT.map((item) => <div key={item.layer} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Layers className="mb-3 h-5 w-5 text-indigo-300" /><h2 className="text-sm font-black text-white">{item.layer}</h2>{item.mustBuild.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}{GROWTH_BUSINESS_PLAYBOOK.map((item) => <div key={item.theme} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Target className="mb-3 h-5 w-5 text-amber-300" /><h2 className="text-sm font-black text-white">{item.theme}</h2>{item.actions.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}</div></section>}
 
-      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab: học bằng case giả lập, không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
+      {tab === 'companyos' && <section className="grid gap-4 lg:grid-cols-2">{SOLO_FOUNDER_OPERATING_SYSTEM.map((item) => <div key={item.process} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Briefcase className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.process}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Phụ trách mô phỏng: {item.owner}</p><p className="mt-1 text-xs font-semibold leading-6 text-slate-400">Nhịp vận hành: {item.rhythm}</p><p className="mt-4 text-[10px] font-black uppercase text-emerald-300">Đầu ra phải có</p>{item.outputs.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-emerald-100">• {x}</p>)}</div>)}</section>}
+
+      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab và company operating system cho solo founder: học bằng case giả lập, mô phỏng khảo sát, lập kế hoạch sản phẩm và quản lý AI agent. Nó không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
     </div>
   );
 }
