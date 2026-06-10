@@ -108,8 +108,9 @@ function renderLab(active: LabId) {
   if (active === 'leads') return <DistributionLeadBoard />;
   if (active === 'persona') return <PersonaInterviewLab />;
   if (active === 'decisions') return <ExperimentDecisionLog />;
+  if (active === 'strategy') return <StrategicLabsMini />;
   if (active === 'backup') return <LabsBackupRestore />;
-  return <StrategicLabsMini />;
+  return <ExperimentDashboard />;
 }
 
 export default function FounderLabsDock() {
