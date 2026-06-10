@@ -20,7 +20,8 @@ const BACKUP_KEYS = [
   'ledgerflow-pricing-offer-builder-v1',
   'ledgerflow-product-launch-checklist-v1',
   'ledgerflow-product-launch-mode-v1',
-  'ledgerflow-learning-path-builder-v1'
+  'ledgerflow-learning-path-builder-v1',
+  'ledgerflow-game-library-v1'
 ];
 
 type BackupPayload = {
@@ -94,7 +95,7 @@ export default function LabsBackupRestore() {
   };
 
   const resetLabs = () => {
-    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner, daily standup, AI staff board, AI quality review, content board, synthetic survey, A/B simulation, MoR readiness, automation blueprint, moat tracker, pricing offer, product launch và learning path?');
+    const yes = window.confirm('Xóa dữ liệu localStorage của Founder Labs gồm interview, lead, decision, tool budget, weekly planner, daily standup, AI staff board, AI quality review, content board, synthetic survey, A/B simulation, MoR readiness, automation blueprint, moat tracker, pricing offer, product launch, learning path và game library?');
     if (!yes) return;
     BACKUP_KEYS.forEach((key) => localStorage.removeItem(key));
     setMessage('Đã xóa dữ liệu Founder Labs trên trình duyệt này.');
@@ -106,7 +107,7 @@ export default function LabsBackupRestore() {
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Backup / Restore</p>
         <h2 className="mt-2 text-xl font-black text-white">Sao lưu dữ liệu Founder Labs</h2>
         <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner, daily standup, AI staff board, AI quality review, content board, synthetic survey, A/B simulation, MoR readiness, automation blueprint, moat tracker, pricing offer, product launch và learning path. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
+          Xuất và nhập dữ liệu phỏng vấn persona, lead board, decision log, tool budget, weekly planner, daily standup, AI staff board, AI quality review, content board, synthetic survey, A/B simulation, MoR readiness, automation blueprint, moat tracker, pricing offer, product launch, learning path và game library. Dữ liệu này nằm trong localStorage của trình duyệt, nên cần backup trước khi đổi máy, clear cache hoặc deploy bản mới.
         </p>
       </div>
 
