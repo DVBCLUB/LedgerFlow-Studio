@@ -7,8 +7,9 @@ const PersonaInterviewLab = React.lazy(() => import('./PersonaInterviewLab'));
 const ExperimentDecisionLog = React.lazy(() => import('./ExperimentDecisionLog'));
 const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
 const StrategicLabsMini = React.lazy(() => import('./StrategicLabsMini'));
+const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 
-type LabId = 'dashboard' | 'finance' | 'leads' | 'persona' | 'decisions' | 'strategy';
+type LabId = 'dashboard' | 'finance' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
@@ -16,7 +17,8 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'leads', label: 'Lead Board', note: 'Nguồn khách, demo, paid signal, next action.' },
   { id: 'persona', label: 'Persona Interview', note: 'Pain, pay signal và evidence score.' },
   { id: 'decisions', label: 'Decision Log', note: 'BUILD / HOLD / KILL có bằng chứng.' },
-  { id: 'strategy', label: 'Strategic Labs', note: 'Persona, payment, distribution và game lab.' }
+  { id: 'strategy', label: 'Strategic Labs', note: 'Persona, payment, distribution và game lab.' },
+  { id: 'backup', label: 'Backup / Restore', note: 'Xuất, nhập và reset dữ liệu Founder Labs.' }
 ];
 
 function renderLab(active: LabId) {
@@ -25,6 +27,7 @@ function renderLab(active: LabId) {
   if (active === 'leads') return <DistributionLeadBoard />;
   if (active === 'persona') return <PersonaInterviewLab />;
   if (active === 'decisions') return <ExperimentDecisionLog />;
+  if (active === 'backup') return <LabsBackupRestore />;
   return <StrategicLabsMini />;
 }
 
