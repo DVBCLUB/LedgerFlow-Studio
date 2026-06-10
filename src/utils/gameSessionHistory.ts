@@ -8,6 +8,10 @@ export type GameSession = {
   note?: string;
 };
 
+export type GameSessionInput = Omit<GameSession, 'id' | 'playedAt'> & {
+  playedAt?: string;
+};
+
 export const GAME_SESSION_HISTORY_KEY = 'ledgerflow-game-session-history-v1';
 
 export const readGameSessions = (): GameSession[] => {
@@ -24,11 +28,16 @@ export const writeGameSessions = (sessions: GameSession[]) => {
   localStorage.setItem(GAME_SESSION_HISTORY_KEY, JSON.stringify(sessions));
 };
 
-export const addGameSession = (session: Omit<GameSession, 'id' | 'playedAt'>) => {
+export const addGameSession = (session: GameSessionInput) => {
+  const playedAt = session.playedAt || new Date().toISOString();
   const next: GameSession = {
-    ...session,
-    id: `${session.gameId}-${Date.now()}`,
-    playedAt: new Date().toISOString()
+    gameId: session.gameId,
+    gameLabel: session.gameLabel,
+    score: session.score,
+    verdict: session.verdict,
+    note: session.note,
+    playedAt,
+    id: `${session.gameId}-${playedAt}`
   };
   const sessions = [next, ...readGameSessions()].slice(0, 300);
   writeGameSessions(sessions);
