@@ -1,14 +1,34 @@
 import React, { useMemo, useState } from 'react';
-import { BookOpen, Calculator, CheckCircle2, Copy, FileText, Receipt, ShieldCheck, WalletCards } from 'lucide-react';
-import { ACCOUNTING_CONTROL_KPIS, COST_TYPE_KNOWLEDGE, DOCUMENT_CHECKLIST_RULES } from '../data/deepConstructionAccountingKnowledge';
+import { BookOpen, Briefcase, Calculator, CheckCircle2, Copy, Database, FileText, Layers, Receipt, ShieldCheck, Target, WalletCards } from 'lucide-react';
+import {
+  ACCOUNTING_CONTROL_KPIS,
+  ADVANCED_CONSTRUCTION_CASES,
+  COST_TYPE_KNOWLEDGE,
+  DATA_AI_CONTROL_FRAMEWORK,
+  DOCUMENT_CHECKLIST_RULES,
+  FINANCIAL_ACCOUNTING_BLUEPRINT,
+  FULLSTACK_DELIVERY_BLUEPRINT,
+  GROWTH_BUSINESS_PLAYBOOK,
+  MODULE_KNOWLEDGE_AUDIT
+} from '../data/deepConstructionAccountingKnowledge';
 
-type AccountingTab = 'cases' | 'costs' | 'docs' | 'score';
+type AccountingTab = 'cases' | 'costs' | 'docs' | 'score' | 'coverage' | 'casebank' | 'blueprint';
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
 const SIM_CASES = [
   { title: 'Case mô phỏng 01: Mua vật tư có hóa đơn nhưng thiếu phiếu nhập', lesson: 'Người học phải nhận ra hóa đơn chưa đủ để nối hàng hóa với kho/công trình.', hint: 'Gợi ý định khoản học tập: Nợ 152/154/621, Nợ 1331 nếu đủ điều kiện, Có 111/112/331.' },
   { title: 'Case mô phỏng 02: Tạm ứng công trường quá hạn', lesson: 'Người học phải xem tuổi tạm ứng, người nhận, mục đích ứng và chứng từ hoàn ứng.', hint: 'Gợi ý học tập: khi ứng Nợ 141/Có tiền; khi hoàn Nợ chi phí hoặc kho/Có 141.' },
   { title: 'Case mô phỏng 03: Cấp dầu vượt định mức', lesson: 'Người học phải đối chiếu phiếu cấp dầu với xe/máy, nhật trình và định mức.', hint: 'Gợi ý học tập: đây là bài kiểm soát, không phải kết luận sai phạm.' }
+];
+
+const TAB_LABELS: Array<[AccountingTab, string]> = [
+  ['cases', 'Case mô phỏng'],
+  ['costs', 'Thẻ chi phí'],
+  ['docs', 'Quiz chứng từ'],
+  ['score', 'Score lab'],
+  ['coverage', 'Rà soát module'],
+  ['casebank', 'Case nâng cao'],
+  ['blueprint', 'Blueprint triển khai']
 ];
 
 export default function AccountingVietnam() {
@@ -27,7 +47,7 @@ export default function AccountingVietnam() {
     return { budgetUsed, advanceLeft, advanceSettled, riskScore };
   }, [budget, actual, advance, settled]);
 
-  const report = `BÁO CÁO MÔ PHỎNG\nNgân sách mẫu: ${money(budget)}đ\nChi phí mẫu: ${money(actual)}đ\nTỷ lệ dùng ngân sách: ${result.budgetUsed.toFixed(1)}%\nTạm ứng còn treo: ${money(result.advanceLeft)}đ\nĐiểm rủi ro mô phỏng: ${result.riskScore}/100`;
+  const report = `BÁO CÁO MÔ PHỎNG\nNgân sách mẫu: ${money(budget)}đ\nChi phí mẫu: ${money(actual)}đ\nTỷ lệ dùng ngân sách: ${result.budgetUsed.toFixed(1)}%\nTạm ứng còn treo: ${money(result.advanceLeft)}đ\nĐiểm rủi ro mô phỏng: ${result.riskScore}/100\n\nRÀ SOÁT MODULE\n${MODULE_KNOWLEDGE_AUDIT.map((item, index) => `${index + 1}. ${item.module}: ${item.acceptanceCriteria}`).join('\n')}`;
   const copyText = async () => { await navigator.clipboard.writeText(report); setCopied('report'); setTimeout(() => setCopied(null), 1200); };
 
   return (
@@ -37,24 +57,30 @@ export default function AccountingVietnam() {
           <div className="max-w-4xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-cyan-300"><Receipt className="h-3.5 w-3.5" /> Accounting Vietnam Simulation</div>
             <h1 className="text-2xl font-black tracking-tight text-white">Mô phỏng kế toán xây dựng để học case, chứng từ, KPI và tư duy kiểm soát</h1>
-            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">Module này là phòng lab học tập. Dữ liệu, bút toán và checklist đều là mô phỏng để luyện tư duy; không phải màn hình vận hành kế toán thực tế.</p>
+            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">Module này là phòng lab học tập. Đã bổ sung lớp kiến thức liên ngành: kế toán, kiểm toán, kinh doanh, marketing, fullstack và machine learning nhưng vẫn giữ nguyên giao diện thẻ/tab hiện tại.</p>
           </div>
           <button onClick={copyText} className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-xs font-black text-slate-950"><Copy className="h-4 w-4" />{copied ? 'Đã copy' : 'Copy báo cáo mô phỏng'}</button>
         </div>
         <div className="mt-6 flex flex-wrap gap-2">
-          {[['cases','Case mô phỏng'],['costs','Thẻ chi phí'],['docs','Quiz chứng từ'],['score','Score lab']].map(([id,label]) => <button key={id} onClick={() => setTab(id as AccountingTab)} className={`rounded-xl px-4 py-2 text-xs font-black ${tab === id ? 'bg-cyan-400 text-slate-950' : 'border border-slate-800 bg-slate-900 text-slate-400'}`}>{label}</button>)}
+          {TAB_LABELS.map(([id, label]) => <button key={id} onClick={() => setTab(id)} className={`rounded-xl px-4 py-2 text-xs font-black ${tab === id ? 'bg-cyan-400 text-slate-950' : 'border border-slate-800 bg-slate-900 text-slate-400'}`}>{label}</button>)}
         </div>
       </section>
 
       {tab === 'cases' && <section className="grid gap-4 lg:grid-cols-3">{SIM_CASES.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><BookOpen className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.lesson}</p><p className="mt-3 rounded-xl border border-purple-500/20 bg-purple-500/5 p-3 text-xs font-semibold leading-6 text-purple-100">{item.hint}</p></div>)}</section>}
 
-      {tab === 'costs' && <section className="grid gap-4 lg:grid-cols-2">{COST_TYPE_KNOWLEDGE.map((item) => <div key={item.type} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><WalletCards className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Thẻ học: {item.type}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Ví dụ: {item.examples}</p><p className="mt-3 text-[10px] font-black uppercase text-amber-300">Điểm cần quan sát trong mô phỏng</p>{item.risks.map((risk) => <p key={risk} className="text-xs font-semibold leading-6 text-amber-100">• {risk}</p>)}</div>)}</section>}
+      {tab === 'costs' && <section className="grid gap-4 lg:grid-cols-2">{COST_TYPE_KNOWLEDGE.map((item) => <div key={item.type} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><WalletCards className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Thẻ học: {item.type}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Ví dụ: {item.examples}</p><p className="mt-3 text-[10px] font-black uppercase text-cyan-300">Hồ sơ nên có</p>{item.documents.map((doc) => <p key={doc} className="text-xs font-semibold leading-6 text-cyan-100">• {doc}</p>)}<p className="mt-3 text-[10px] font-black uppercase text-amber-300">Điểm cần quan sát trong mô phỏng</p>{item.risks.map((risk) => <p key={risk} className="text-xs font-semibold leading-6 text-amber-100">• {risk}</p>)}</div>)}</section>}
 
       {tab === 'docs' && <section className="grid gap-4 lg:grid-cols-2">{DOCUMENT_CHECKLIST_RULES.map((item) => <div key={item.scenario} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><FileText className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">Quiz hồ sơ: {item.scenario}</h2><div className="mt-4 grid gap-3 md:grid-cols-2"><div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">{item.minimumDocs.map((doc) => <p key={doc} className="text-xs font-semibold leading-6 text-slate-300">• {doc}</p>)}</div><div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4">{item.redFlags.map((flag) => <p key={flag} className="text-xs font-semibold leading-6 text-slate-300">• {flag}</p>)}</div></div></div>)}</section>}
 
       {tab === 'score' && <section className="grid gap-4 lg:grid-cols-5"><div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white"><Calculator className="h-4 w-4 text-cyan-300" />Score lab</h2>{[['Ngân sách mẫu',budget,setBudget],['Chi phí mẫu',actual,setActual],['Tạm ứng mẫu',advance,setAdvance],['Đã hoàn ứng mẫu',settled,setSettled]].map(([label,value,setter]) => <label key={label as string} className="mb-3 block"><span className="mb-1 block text-xs font-black text-slate-400">{label as string}</span><input type="number" value={value as number} onChange={(e) => (setter as React.Dispatch<React.SetStateAction<number>>)(Number(e.target.value) || 0)} className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400" /></label>)}</div><div className="lg:col-span-3 grid gap-4 md:grid-cols-3"><div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5"><p className="text-xs text-cyan-200">Budget Used</p><p className="mt-2 text-3xl font-black text-white">{result.budgetUsed.toFixed(1)}%</p></div><div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5"><p className="text-xs text-amber-200">Tạm ứng treo</p><p className="mt-2 text-2xl font-black text-white">{money(result.advanceLeft)}đ</p></div><div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-5"><p className="text-xs text-rose-200">Risk score</p><p className="mt-2 text-3xl font-black text-white">{result.riskScore}/100</p></div><div className="md:col-span-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white"><ShieldCheck className="h-4 w-4 text-emerald-300" />KPI học tập</h2><div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{ACCOUNTING_CONTROL_KPIS.map((item) => <div key={item.kpi} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4"><h3 className="text-xs font-black text-white">{item.kpi}</h3><code className="mt-3 block rounded-lg bg-black/30 p-3 text-[11px] font-bold text-cyan-300">{item.formula}</code><p className="mt-3 text-xs font-semibold leading-6 text-slate-400">{item.use}</p></div>)}</div></div></div></section>}
 
-      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab: học bằng case giả lập, không thay phần mềm kế toán và không thay người duyệt chuyên môn.</p></section>
+      {tab === 'coverage' && <section className="grid gap-4 lg:grid-cols-2">{MODULE_KNOWLEDGE_AUDIT.map((item) => <div key={item.module} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Target className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.module}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Góc nhìn: {item.roleView}</p><p className="mt-4 text-[10px] font-black uppercase text-rose-300">Kiến thức cần bổ sung/kiểm tra</p>{item.missingKnowledge.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-rose-100">• {x}</p>)}<p className="mt-4 text-[10px] font-black uppercase text-emerald-300">Đề xuất thêm</p>{item.recommendedAdditions.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-emerald-100">• {x}</p>)}<p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">Chuẩn đạt: {item.acceptanceCriteria}</p></div>)}</section>}
+
+      {tab === 'casebank' && <section className="grid gap-4 lg:grid-cols-3">{ADVANCED_CONSTRUCTION_CASES.map((item) => <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><BookOpen className="mb-3 h-5 w-5 text-purple-300" /><h2 className="text-sm font-black text-white">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{item.situation}</p><p className="mt-4 text-[10px] font-black uppercase text-cyan-300">Trọng tâm kế toán</p>{item.accountingFocus.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-cyan-100">• {x}</p>)}<p className="mt-4 text-[10px] font-black uppercase text-amber-300">Câu hỏi kiểm soát</p>{item.controlQuestions.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-amber-100">• {x}</p>)}</div>)}</section>}
+
+      {tab === 'blueprint' && <section className="space-y-4"><div className="grid gap-4 lg:grid-cols-2">{FINANCIAL_ACCOUNTING_BLUEPRINT.map((item) => <div key={item.area} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Briefcase className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">{item.area}</h2>{item.add.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}{DATA_AI_CONTROL_FRAMEWORK.map((item) => <div key={item.layer} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Database className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">{item.layer}</h2>{item.checks.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}</div><div className="grid gap-4 lg:grid-cols-2">{FULLSTACK_DELIVERY_BLUEPRINT.map((item) => <div key={item.layer} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Layers className="mb-3 h-5 w-5 text-indigo-300" /><h2 className="text-sm font-black text-white">{item.layer}</h2>{item.mustBuild.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}{GROWTH_BUSINESS_PLAYBOOK.map((item) => <div key={item.theme} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Target className="mb-3 h-5 w-5 text-amber-300" /><h2 className="text-sm font-black text-white">{item.theme}</h2>{item.actions.map((x) => <p key={x} className="text-xs font-semibold leading-6 text-slate-300">• {x}</p>)}</div>)}</div></section>}
+
+      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab: học bằng case giả lập, không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
     </div>
   );
 }
