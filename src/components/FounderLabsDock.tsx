@@ -6,15 +6,17 @@ const DistributionLeadBoard = React.lazy(() => import('./DistributionLeadBoard')
 const PersonaInterviewLab = React.lazy(() => import('./PersonaInterviewLab'));
 const ExperimentDecisionLog = React.lazy(() => import('./ExperimentDecisionLog'));
 const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
+const MonthlyFounderReview = React.lazy(() => import('./MonthlyFounderReview'));
 const StrategicLabsMini = React.lazy(() => import('./StrategicLabsMini'));
 const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'monthly_review' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
+  { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.' },
   { id: 'finance', label: 'Finance Lab', note: 'Burn rate, runway, MRR và margin.' },
   { id: 'tool_budget', label: 'Tool Budget', note: 'Theo dõi tiền AI, hosting, marketing và dev tool.' },
   { id: 'tool_cancel', label: 'Tool Cancel Plan', note: 'Lập lịch hủy tool, checklist backup và tiền tiết kiệm.' },
@@ -27,6 +29,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
 
 function renderLab(active: LabId) {
   if (active === 'dashboard') return <ExperimentDashboard />;
+  if (active === 'monthly_review') return <MonthlyFounderReview />;
   if (active === 'finance') return <FinanceLabMini />;
   if (active === 'tool_budget') return <ToolBudgetLedger />;
   if (active === 'tool_cancel') return <ToolCancelPlan />;
