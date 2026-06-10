@@ -1,195 +1,100 @@
 export const DEEP_KNOWLEDGE_PRINCIPLES = [
-  'Mỗi module phải gắn với một nghiệp vụ thật của công ty xây dựng: chi phí, hồ sơ, tạm ứng, kho, dầu, thuế, báo cáo, kiểm soát.',
-  'Không chỉ hiển thị chữ; phải có checklist, rủi ro, KPI, ví dụ tình huống, hành động tiếp theo và mẫu nội dung có thể copy.',
-  'Không để AI tự kết luận pháp lý hoặc tự duyệt chi. AI chỉ gợi ý, phân loại, cảnh báo và tạo bản nháp để người có quyền duyệt.',
-  'Luôn tách dữ liệu gốc, dữ liệu xử lý, dữ liệu báo cáo và log kiểm toán.',
-  'Tất cả kiến thức pháp luật/thuế trong app phải ghi là khung tham khảo và cần kiểm tra văn bản hiện hành trước khi áp dụng.'
+  'Đây là phần mềm học tập, nghiên cứu, mô phỏng và lên kế hoạch ý tưởng lập trình sản phẩm; không phải phần mềm nhập liệu kế toán/xuất báo cáo thay MISA AMIS, Bravo hay ERP chuyên nghiệp.',
+  'Kế toán - kiểm toán phải bao phủ đa ngành: thương mại, sản xuất, dịch vụ, xây dựng; không khóa tư duy vào một ngành xây dựng duy nhất.',
+  'Sản phẩm được xem như một công ty hoàn chỉnh của solo founder: học kiến thức, khảo sát, mô phỏng, R&D, thiết kế sản phẩm, vận hành AI agent, marketing, bán hàng, tài chính và cải tiến liên tục.',
+  'AI và AI agent đóng vai nhân viên: nghiên cứu, phân tích, viết nháp, kiểm thử, mô phỏng, lập kế hoạch; người sáng lập giữ quyền duyệt cuối cùng.',
+  'Không chỉ hiển thị chữ; mỗi module nên có checklist, rủi ro, KPI, case mô phỏng, dữ liệu mẫu, prompt mẫu, hành động tiếp theo và tiêu chí đạt.',
+  'Luôn tách dữ liệu gốc, dữ liệu xử lý, dữ liệu báo cáo, log kiểm toán và nhật ký quyết định của founder.',
+  'Tất cả kiến thức pháp luật, thuế, kế toán, kiểm toán trong app là khung học tập/tham khảo; trước khi áp dụng thật phải kiểm tra văn bản hiện hành và chuyên gia có thẩm quyền.'
 ];
 
 export const CONSTRUCTION_ACCOUNTING_DOMAINS = [
-  { domain: 'Chi phí công trình', scope: 'Vật tư, nhân công, máy thi công, thầu phụ, nhiên liệu, chi phí chung công trường.', mustHave: ['mã công trình', 'loại chi phí', 'NCC/người nhận', 'hồ sơ kèm', 'trạng thái duyệt', 'ngân sách còn lại'] },
-  { domain: 'Tạm ứng - hoàn ứng', scope: 'Theo dõi tiền ứng, người nhận, hạn hoàn ứng, chứng từ hoàn ứng, số còn treo.', mustHave: ['người nhận ứng', 'mục đích ứng', 'hạn hoàn ứng', 'số đã hoàn', 'số còn treo', 'tuổi tạm ứng'] },
-  { domain: 'Hồ sơ thanh toán', scope: 'Đề nghị thanh toán, hợp đồng, nghiệm thu, hóa đơn, phiếu nhập kho, biên bản đối chiếu.', mustHave: ['checklist hồ sơ', 'người phụ trách', 'ngày nhận', 'thiếu gì', 'được thanh toán chưa'] },
-  { domain: 'Kho vật tư', scope: 'Nhập, xuất, tồn, điều chuyển, vật tư công trình, phiếu kho giấy.', mustHave: ['mã vật tư', 'đơn vị tính', 'kho/công trình', 'số lượng nhập xuất', 'tồn sau giao dịch', 'phiếu liên quan'] },
-  { domain: 'Quỹ dầu', scope: 'Cấp dầu, nhập dầu, xe/máy nhận dầu, định mức, nhật trình, tồn quỹ.', mustHave: ['ngày cấp', 'xe/máy', 'người nhận', 'lít dầu', 'định mức', 'chênh lệch'] },
-  { domain: 'Thuế & hóa đơn', scope: 'Hóa đơn VAT, thông tin NCC, thuế suất, thanh toán không tiền mặt, chứng từ hợp lệ.', mustHave: ['số hóa đơn', 'ngày hóa đơn', 'MST NCC', 'tiền trước thuế', 'thuế', 'tổng tiền', 'file XML/PDF nếu có'] },
-  { domain: 'Báo cáo sếp', scope: 'Báo cáo ngắn về tiền, chi phí, công nợ, rủi ro và việc cần duyệt.', mustHave: ['KPI', 'so sánh ngân sách', 'việc cần xử lý', 'rủi ro đỏ/vàng/xanh'] },
-  { domain: 'Kiểm soát nội bộ', scope: 'Phân quyền, duyệt chi, khóa kỳ, log sửa dữ liệu, đối chiếu.', mustHave: ['ai nhập', 'ai duyệt', 'ai sửa', 'lý do sửa', 'thời điểm sửa', 'bằng chứng kèm'] }
+  { domain: 'Thương mại', scope: 'Mua hàng, bán hàng, tồn kho, chiết khấu, công nợ, hóa đơn, dòng tiền.', mustHave: ['mã hàng', 'NCC/khách hàng', 'giá vốn', 'doanh thu', 'công nợ', 'tồn kho', 'biên lợi nhuận'] },
+  { domain: 'Sản xuất', scope: 'BOM, định mức, nguyên vật liệu, nhân công, sản xuất dở dang, thành phẩm, tính giá thành.', mustHave: ['BOM', 'lệnh sản xuất', 'NVL xuất dùng', 'WIP', 'thành phẩm', 'giá thành', 'phế phẩm'] },
+  { domain: 'Dịch vụ', scope: 'Hợp đồng dịch vụ, nhân sự thực hiện, doanh thu theo kỳ, chi phí nhân sự, nghiệm thu dịch vụ.', mustHave: ['hợp đồng', 'timesheet', 'biên bản nghiệm thu', 'doanh thu ghi nhận', 'chi phí trực tiếp', 'SLA'] },
+  { domain: 'Xây dựng/dự án', scope: 'Công trình, dự toán, vật tư, thầu phụ, nghiệm thu, tạm ứng, hoàn ứng, chi phí theo dự án.', mustHave: ['mã công trình', 'dự toán', 'vật tư', 'thầu phụ', 'nghiệm thu', 'tạm ứng', 'chi phí dở dang'] },
+  { domain: 'Kiểm toán nội bộ đa ngành', scope: 'Kiểm soát dữ liệu, phân quyền, phê duyệt, đối chiếu, khóa kỳ, log sửa dữ liệu.', mustHave: ['ai nhập', 'ai duyệt', 'ai sửa', 'lý do sửa', 'bằng chứng', 'đối chiếu', 'ngoại lệ'] },
+  { domain: 'Founder finance', scope: 'Ngân sách vận hành, chi phí AI/tool, runway, giá bán, CAC, LTV, lợi nhuận theo sản phẩm.', mustHave: ['ngân sách tháng', 'chi phí tool', 'runway', 'giá gói', 'doanh thu thử nghiệm', 'tỷ lệ chuyển đổi'] }
 ];
 
 export const COST_TYPE_KNOWLEDGE = [
-  { type: 'Vật tư chính', examples: 'sắt thép, xi măng, cát đá, bê tông, gạch, sơn', documents: ['báo giá/đơn hàng', 'hợp đồng hoặc xác nhận mua', 'hóa đơn', 'phiếu nhập kho', 'biên bản giao nhận'], risks: ['không có phiếu nhập', 'đơn giá vượt dự toán', 'hóa đơn sai thông tin', 'nhập kho sau hóa đơn quá lâu'], kpis: ['chi phí vật tư/thầu', 'vượt ngân sách vật tư', 'tồn kho âm'] },
-  { type: 'Nhân công thuê ngoài', examples: 'khoán tháo dỡ, bốc xếp, nhân công thời vụ', documents: ['hợp đồng khoán', 'danh sách người làm', 'bảng chấm công/khối lượng', 'biên bản nghiệm thu', 'chứng từ khấu trừ/thuế nếu phát sinh'], risks: ['thiếu định danh người nhận', 'không có nghiệm thu khối lượng', 'gross-up thuế không nhất quán'], kpis: ['chi phí nhân công/công trình', 'số hồ sơ khoán thiếu chứng từ'] },
-  { type: 'Thầu phụ', examples: 'MEP, hoàn thiện, vận chuyển, lắp đặt', documents: ['hợp đồng thầu phụ', 'nghiệm thu', 'bảng xác nhận khối lượng', 'hóa đơn', 'đối chiếu công nợ'], risks: ['nghiệm thu chưa đủ', 'thanh toán vượt khối lượng', 'công nợ chưa đối chiếu'], kpis: ['công nợ thầu phụ', 'giá trị nghiệm thu chưa hóa đơn'] },
-  { type: 'Nhiên liệu/dầu', examples: 'dầu máy, dầu xe, dầu công trường', documents: ['hóa đơn dầu', 'phiếu cấp dầu', 'nhật trình xe/máy', 'bảng định mức', 'bảng tồn quỹ dầu'], risks: ['cấp vượt định mức', 'không có xe/máy nhận', 'hóa đơn không khớp lượng cấp'], kpis: ['lít dầu/công trình', 'chênh lệch định mức', 'tồn dầu cuối kỳ'] },
-  { type: 'Chi phí HCNS', examples: 'văn phòng phẩm, lương, phụ cấp, tuyển dụng, hành chính', documents: ['đề nghị thanh toán', 'hóa đơn/chứng từ', 'bảng phân bổ', 'phê duyệt bộ phận'], risks: ['khó phân bổ công trình', 'chi không có phê duyệt', 'nhầm chi phí chung và chi phí dự án'], kpis: ['HCNS/tháng', 'chi phí chung phân bổ/công trình'] },
-  { type: 'Máy thi công', examples: 'thuê máy, sửa chữa máy, nhiên liệu máy', documents: ['hợp đồng thuê', 'nhật trình máy', 'biên bản nghiệm thu ca máy', 'hóa đơn', 'phiếu cấp nhiên liệu'], risks: ['ca máy không khớp nhật trình', 'thiếu nghiệm thu', 'chi phí sửa chữa không phân bổ'], kpis: ['chi phí máy/ca', 'máy thi công theo công trình'] },
-  { type: 'Mua hàng không hóa đơn hoặc chứng từ yếu', examples: 'mua lẻ công trường, vận chuyển nhỏ, thuê xe lôi, chi phí phát sinh gấp', documents: ['đề nghị thanh toán', 'bảng kê/biên nhận', 'giải trình lý do không có hóa đơn', 'phê duyệt cấp có thẩm quyền', 'bằng chứng giao nhận nếu có'], risks: ['lặp lại nhiều lần gây rủi ro thuế', 'không xác minh được người nhận tiền', 'không gắn được mã công trình'], kpis: ['tỷ lệ chi không hóa đơn/tổng chi', 'số dòng thiếu người duyệt', 'giá trị chi nhỏ lặp lại'] },
-  { type: 'Tạm ứng - hoàn ứng', examples: 'ứng tiền mua vật tư, ứng cho chỉ huy trưởng, ứng chi dầu/xe/máy', documents: ['phiếu chi/ủy nhiệm chi ứng', 'đề nghị tạm ứng', 'bảng kê hoàn ứng', 'chứng từ chi', 'biên bản xử lý số dư'], risks: ['ứng mới khi ứng cũ chưa hoàn', 'chi sai mục đích ứng', 'không có hạn hoàn ứng'], kpis: ['tuổi tạm ứng bình quân', 'số tiền treo theo người nhận', 'tỷ lệ hoàn ứng đúng hạn'] },
-  { type: 'Doanh thu, nghiệm thu và công nợ chủ đầu tư', examples: 'nghiệm thu khối lượng, xuất hóa đơn theo giai đoạn, thu tiền chủ đầu tư', documents: ['hợp đồng đầu ra', 'phụ lục', 'biên bản nghiệm thu', 'hóa đơn đầu ra', 'biên bản đối chiếu công nợ'], risks: ['ghi nhận doanh thu lệch nghiệm thu', 'xuất hóa đơn sai thời điểm', 'công nợ quá hạn không cảnh báo'], kpis: ['doanh thu theo công trình', 'AR aging', 'nghiệm thu chưa hóa đơn'] }
+  { type: 'Mua hàng thương mại', examples: 'mua hàng bán lại, nhập kho, chiết khấu, hàng trả lại', documents: ['đơn đặt hàng', 'hợp đồng/đề nghị mua', 'hóa đơn', 'phiếu nhập kho', 'biên bản giao nhận'], risks: ['giá vốn sai', 'hàng về chưa hóa đơn', 'tồn kho lệch thực tế'], kpis: ['gross margin', 'inventory turnover', 'AP aging'] },
+  { type: 'Sản xuất và giá thành', examples: 'NVL chính, NVL phụ, nhân công, chi phí sản xuất chung, WIP', documents: ['BOM/định mức', 'lệnh sản xuất', 'phiếu xuất kho', 'bảng phân bổ chi phí', 'phiếu nhập thành phẩm'], risks: ['sai định mức', 'phân bổ SXC tùy tiện', 'không kiểm soát phế phẩm'], kpis: ['cost variance', 'yield rate', 'WIP aging'] },
+  { type: 'Dịch vụ', examples: 'tư vấn, bảo trì, thiết kế, triển khai phần mềm, thuê ngoài dịch vụ', documents: ['hợp đồng dịch vụ', 'timesheet/biên bản làm việc', 'nghiệm thu', 'hóa đơn', 'đối chiếu công nợ'], risks: ['ghi nhận doanh thu sai kỳ', 'thiếu nghiệm thu', 'không tách chi phí trực tiếp'], kpis: ['utilization rate', 'project margin', 'AR aging'] },
+  { type: 'Xây dựng/dự án', examples: 'vật tư, nhân công, máy thi công, thầu phụ, dầu, chi phí chung công trình', documents: ['dự toán', 'hợp đồng', 'phiếu nhập/xuất kho', 'nghiệm thu khối lượng', 'hóa đơn', 'hồ sơ thanh toán'], risks: ['vượt dự toán', 'thiếu nghiệm thu', 'chi phí treo lâu', 'tạm ứng quá hạn'], kpis: ['budget used %', 'project margin', 'advance aging'] },
+  { type: 'Chi phí không hóa đơn/chứng từ yếu', examples: 'mua lẻ, vận chuyển nhỏ, chi gấp, thuê ngoài nhỏ lẻ', documents: ['đề nghị thanh toán', 'bảng kê/biên nhận', 'giải trình', 'phê duyệt', 'bằng chứng giao nhận nếu có'], risks: ['rủi ro thuế', 'lặp lại nhiều lần', 'không xác minh được người nhận'], kpis: ['tỷ lệ chi không hóa đơn', 'số ngoại lệ/tháng', 'giá trị chi yếu chứng từ'] },
+  { type: 'Chi phí AI/tool của solo founder', examples: 'ChatGPT, Claude, Gemini, GitHub, hosting, domain, database, design tool', documents: ['kế hoạch sử dụng tool', 'hóa đơn/biên lai', 'bảng so sánh chi phí', 'đánh giá hiệu quả'], risks: ['đăng ký quá nhiều tool', 'trùng chức năng', 'không đo ROI'], kpis: ['tool cost/month', 'hours saved', 'feature shipped/tool'] }
 ];
 
 export const DOCUMENT_CHECKLIST_RULES = [
-  { scenario: 'Thanh toán nhà cung cấp vật tư', minimumDocs: ['đề nghị thanh toán', 'báo giá/đơn hàng', 'hóa đơn', 'phiếu nhập kho', 'đối chiếu công nợ nếu thanh toán nhiều lần'], redFlags: ['thiếu phiếu nhập', 'tên hàng không khớp đơn hàng', 'tổng tiền lệch hóa đơn'] },
-  { scenario: 'Thanh toán thầu phụ', minimumDocs: ['hợp đồng', 'nghiệm thu khối lượng', 'đề nghị thanh toán', 'hóa đơn', 'biên bản đối chiếu'], redFlags: ['khối lượng chưa nghiệm thu', 'thanh toán vượt tiến độ', 'thiếu người duyệt'] },
-  { scenario: 'Hoàn ứng công trình', minimumDocs: ['đề nghị hoàn ứng', 'chứng từ chi', 'bảng kê chi tiết', 'hóa đơn/phiếu thu/biên nhận', 'xác nhận người quản lý công trình'], redFlags: ['quá hạn hoàn ứng', 'chi không đúng mục đích ứng', 'chứng từ thiếu mã công trình'] },
-  { scenario: 'Cấp dầu công trường', minimumDocs: ['phiếu cấp dầu', 'người/xe/máy nhận', 'định mức', 'nhật trình', 'tồn quỹ dầu'], redFlags: ['vượt định mức', 'không có nhật trình', 'tồn âm'] },
-  { scenario: 'Chi phí không hóa đơn', minimumDocs: ['đề nghị thanh toán', 'giải trình lý do', 'biên nhận/chứng từ thay thế nếu có', 'phê duyệt cấp có thẩm quyền'], redFlags: ['lặp lại nhiều lần', 'giá trị lớn', 'không chứng minh được người nhận'] },
-  { scenario: 'Ủy quyền thanh toán hộ', minimumDocs: ['giấy ủy quyền/đề nghị thanh toán hộ', 'hóa đơn hoặc chứng từ mua hàng', 'bằng chứng chuyển tiền/thanh toán', 'xác nhận người nhận hàng/người quản lý', 'quy định hoàn chứng từ sau thanh toán'], redFlags: ['người được ủy quyền vừa đề nghị vừa duyệt', 'thanh toán hộ nhưng chứng từ đứng sai bên', 'không có thời hạn hoàn chứng từ'] },
-  { scenario: 'Khóa kỳ và sửa dữ liệu sau duyệt', minimumDocs: ['biên bản khóa kỳ', 'yêu cầu sửa dữ liệu', 'người duyệt sửa', 'log trước/sau', 'lý do điều chỉnh'], redFlags: ['sửa số tiền sau khi đã báo cáo', 'xóa dòng không có log', 'không lưu dấu vết người sửa'] }
+  { scenario: 'Mua hàng thương mại', minimumDocs: ['đơn đặt hàng/hợp đồng', 'hóa đơn', 'phiếu nhập kho', 'biên bản giao nhận', 'đối chiếu công nợ'], redFlags: ['hàng nhập không có chứng từ kho', 'giá mua vượt khung', 'hóa đơn lệch số lượng'] },
+  { scenario: 'Sản xuất thành phẩm', minimumDocs: ['BOM/định mức', 'lệnh sản xuất', 'phiếu xuất NVL', 'bảng phân bổ chi phí', 'phiếu nhập thành phẩm'], redFlags: ['NVL âm kho', 'WIP treo lâu', 'tỷ lệ hao hụt bất thường'] },
+  { scenario: 'Dịch vụ hoàn thành theo kỳ', minimumDocs: ['hợp đồng dịch vụ', 'timesheet/nhật ký công việc', 'biên bản nghiệm thu', 'hóa đơn', 'đối chiếu công nợ'], redFlags: ['ghi nhận doanh thu trước nghiệm thu', 'không có bằng chứng cung cấp dịch vụ', 'chi phí nhân sự không phân bổ'] },
+  { scenario: 'Chi phí xây dựng/dự án', minimumDocs: ['dự toán/hợp đồng', 'đề nghị thanh toán', 'phiếu kho hoặc nghiệm thu', 'hóa đơn/chứng từ', 'phê duyệt'], redFlags: ['thanh toán vượt dự toán', 'thiếu nghiệm thu', 'không gắn mã dự án'] },
+  { scenario: 'Tạm ứng - hoàn ứng', minimumDocs: ['đề nghị tạm ứng', 'chứng từ chi tiền', 'bảng kê hoàn ứng', 'chứng từ gốc', 'xác nhận số còn treo'], redFlags: ['ứng mới khi ứng cũ chưa hoàn', 'quá hạn hoàn ứng', 'chi sai mục đích'] },
+  { scenario: 'Solo founder dùng AI agent', minimumDocs: ['mục tiêu task', 'prompt giao việc', 'đầu ra mong muốn', 'checklist kiểm tra', 'log quyết định'], redFlags: ['AI tự quyết định thay founder', 'không test đầu ra', 'không lưu prompt/phiên bản'] }
 ];
 
 export const ACCOUNTING_CONTROL_KPIS = [
-  { kpi: 'Budget Used %', formula: 'actualCost / plannedBudget', use: 'Cảnh báo công trình sắp vượt ngân sách.' },
+  { kpi: 'Gross Margin %', formula: '(revenue - cogs) / revenue', use: 'Học kiểm soát biên lợi nhuận thương mại/dịch vụ/sản phẩm.' },
+  { kpi: 'Inventory Turnover', formula: 'cogs / averageInventory', use: 'Mô phỏng tốc độ quay vòng hàng tồn kho.' },
+  { kpi: 'Cost Variance %', formula: '(actualCost - standardCost) / standardCost', use: 'So sánh thực tế với định mức trong sản xuất/dự án.' },
+  { kpi: 'Budget Used %', formula: 'actualCost / plannedBudget', use: 'Cảnh báo dự án hoặc phòng ban sắp vượt ngân sách.' },
   { kpi: 'Advance Aging', formula: 'today - advanceDate', use: 'Tìm tạm ứng treo quá hạn.' },
-  { kpi: 'Document Completeness %', formula: 'availableDocs / requiredDocs', use: 'Biết hồ sơ có đủ điều kiện thanh toán chưa.' },
-  { kpi: 'VAT Math Difference', formula: 'invoiceTotal - beforeTax - vatAmount', use: 'Tìm hóa đơn lệch số học.' },
-  { kpi: 'Fuel Variance %', formula: '(actualFuel - standardFuel) / standardFuel', use: 'Cảnh báo cấp dầu vượt định mức.' },
-  { kpi: 'Inventory Negative Count', formula: 'count(stockBalance < 0)', use: 'Tìm lỗi nhập xuất kho.' },
-  { kpi: 'Payable Overdue', formula: 'unpaidAmount by dueDate', use: 'Theo dõi công nợ đến hạn.' },
-  { kpi: 'Boss Action Items', formula: 'criticalAlerts + pendingApprovals', use: 'Tạo danh sách việc sếp cần duyệt hôm nay.' },
-  { kpi: 'Gross-up Consistency', formula: 'netPay + withheldTax = contractGross', use: 'Kiểm tra hồ sơ khoán khi công ty chịu thuế thay người nhận.' },
-  { kpi: 'AR Collection Days', formula: 'daysSinceInvoice where unpaid > 0', use: 'Theo dõi tiền chưa thu từ chủ đầu tư/khách hàng.' },
-  { kpi: 'Data Quality Score', formula: 'validRows / totalRows', use: 'Đo chất lượng dữ liệu trước khi đưa vào báo cáo hoặc mô hình AI.' },
-  { kpi: 'Approval Cycle Time', formula: 'approvedAt - submittedAt', use: 'Tìm điểm nghẽn trong quy trình duyệt chi.' }
-];
-
-export const MODULE_DEPTH_REQUIREMENTS = [
-  { module: 'CommandCenter', add: ['bản đồ rủi ro ngày', 'KPI đỏ/vàng/xanh', 'việc cần duyệt', 'template báo cáo sếp', 'drilldown theo công trình'] },
-  { module: 'AccountingVietnam', add: ['hệ thống tài khoản tham khảo', 'luồng hạch toán mẫu', 'VAT/PIT/CIT checklist tham khảo', 'ví dụ bút toán xây dựng'] },
-  { module: 'InternalAuditWorkspace', add: ['audit program', 'risk-control matrix', 'sampling checklist', 'findings template', 'follow-up tracker'] },
-  { module: 'CustomDataWorkbench', add: ['schema validator', 'mapping Excel cũ', 'data quality rules', 'reconciliation sandbox', 'import/export guide'] },
-  { module: 'DataScienceEngineering', add: ['fact/dimension model', 'feature engineering', 'anomaly detection cases', 'data lineage', 'AI-ready dataset'] },
-  { module: 'AdvancedAIEngine', add: ['prompt schema', 'redaction', 'confidence threshold', 'human approval', 'audit log'] },
-  { module: 'WebAccountingRoadmap', add: ['database blueprint', 'role permission', 'MVP milestones', 'testing matrix', 'deploy decision tree'] },
-  { module: 'Sales/Marketing modules', add: ['ICP', 'qualification', 'funnel math', 'objection handling', 'NPS/retention feedback loop'] }
+  { kpi: 'Document Completeness %', formula: 'availableDocs / requiredDocs', use: 'Biết hồ sơ học tập đủ điều kiện mô phỏng chưa.' },
+  { kpi: 'AI Tool ROI', formula: 'hoursSavedValue / toolCost', use: 'Đo hiệu quả chi phí AI/tool cho solo founder.' },
+  { kpi: 'Experiment Conversion', formula: 'validatedIdeas / totalIdeas', use: 'Đo tỷ lệ ý tưởng sản phẩm/game/app sau mô phỏng có thể đi tiếp.' }
 ];
 
 export const MODULE_KNOWLEDGE_AUDIT = [
-  {
-    module: 'CommandCenter / Dashboard',
-    roleView: 'CEO, kế toán trưởng, quản lý công trình',
-    missingKnowledge: ['cash runway theo công trình', 'top rủi ro trong ngày', 'việc cần duyệt', 'so sánh ngân sách-thực tế', 'cảnh báo hồ sơ thiếu'],
-    recommendedAdditions: ['heatmap đỏ/vàng/xanh', 'one-page boss report', 'drilldown từ KPI xuống chứng từ gốc', 'mốc khóa kỳ và nhật ký sửa dữ liệu'],
-    acceptanceCriteria: 'Nhìn 3 phút biết tiền đang kẹt ở đâu, hồ sơ nào chưa đủ, khoản nào cần sếp duyệt.'
-  },
-  {
-    module: 'AccountingVietnam',
-    roleView: 'kế toán dự án, kế toán thuế, kiểm soát chứng từ',
-    missingKnowledge: ['mapping tài khoản', 'luồng Nợ/Có theo nghiệp vụ', 'gross-up thuế khoán', 'hồ sơ chi không hóa đơn', 'doanh thu-nghiệm thu-công nợ'],
-    recommendedAdditions: ['case định khoản mẫu', 'checklist chứng từ theo loại chi', 'thẻ rủi ro thuế/hóa đơn', 'bảng KPI kiểm soát tạm ứng-kho-dầu'],
-    acceptanceCriteria: 'Mỗi loại chi có đủ: chứng từ tối thiểu, rủi ro, KPI, gợi ý hạch toán và hành động tiếp theo.'
-  },
-  {
-    module: 'InternalAuditWorkspace',
-    roleView: 'kiểm toán nội bộ, CFO, người duyệt chi',
-    missingKnowledge: ['risk-control matrix', 'phân tách nhiệm vụ', 'chọn mẫu kiểm tra', 'mẫu finding', 'theo dõi khắc phục'],
-    recommendedAdditions: ['audit program theo chu trình mua hàng-thanh toán', 'sampling rules theo giá trị/rủi ro', 'mẫu phát hiện-nguyên nhân-tác động-khuyến nghị', 'follow-up owner/deadline/status'],
-    acceptanceCriteria: 'Từ một cảnh báo có thể sinh kế hoạch kiểm tra, bằng chứng cần lấy và kết luận nháp.'
-  },
-  {
-    module: 'CustomDataWorkbench',
-    roleView: 'kế toán nhập liệu, data analyst, dev',
-    missingKnowledge: ['data dictionary', 'schema validation', 'mapping file Excel cũ', 'quy tắc chống trùng', 'đối soát ngân hàng-kho-công nợ'],
-    recommendedAdditions: ['bảng quy chuẩn cột', 'kiểm tra mã công trình/tài khoản/ngày/số tiền', 'reconciliation sandbox', 'import log và rollback batch'],
-    acceptanceCriteria: 'Import dữ liệu xong biết dòng nào lỗi, lỗi vì sao, sửa thế nào và có thể truy ngược file gốc.'
-  },
-  {
-    module: 'DataScienceEngineering',
-    roleView: 'data engineer, kế toán phân tích, ML engineer',
-    missingKnowledge: ['fact/dimension model', 'data lineage', 'feature engineering', 'anomaly detection', 'dataset sẵn cho AI'],
-    recommendedAdditions: ['mô hình sao cho chi phí công trình', 'pipeline bronze-silver-gold', 'feature tuổi tạm ứng/chênh định mức/vượt ngân sách', 'nhãn rủi ro để train model'],
-    acceptanceCriteria: 'Dữ liệu kế toán có thể đi từ nhập liệu sang báo cáo, phân tích bất thường và huấn luyện mô hình nhỏ.'
-  },
-  {
-    module: 'MLApplied / AdvancedAIEngine',
-    roleView: 'AI product owner, dev fullstack, kiểm soát dữ liệu',
-    missingKnowledge: ['PII redaction', 'confidence threshold', 'human-in-the-loop', 'prompt schema', 'AI audit log'],
-    recommendedAdditions: ['không gửi CCCD/STK/hợp đồng nhạy cảm nếu chưa che', 'ngưỡng tin cậy thấp thì chuyển người duyệt', 'lưu prompt/input/output/version', 'RAG theo văn bản nội bộ đã duyệt'],
-    acceptanceCriteria: 'AI chỉ gợi ý có kiểm soát, không tự duyệt, không làm mất dấu vết và không lộ dữ liệu nhạy cảm.'
-  },
-  {
-    module: 'WebAccountingRoadmap / DeployBusiness',
-    roleView: 'fullstack dev, PM, người triển khai',
-    missingKnowledge: ['permission matrix', 'database blueprint', 'testing matrix', 'backup/restore', 'deploy decision tree'],
-    recommendedAdditions: ['vai trò thủ kho-HCNS-kế toán-sếp-admin', 'bảng giao dịch bất biến + bảng log sửa', 'test unit/e2e nghiệp vụ', 'phương án offline-first rồi cloud sync'],
-    acceptanceCriteria: 'Triển khai không chỉ chạy UI mà có phân quyền, dữ liệu, backup, test và lộ trình nâng cấp rõ.'
-  },
-  {
-    module: 'Marketing / Sales / Pricing',
-    roleView: 'growth, sales B2B, founder',
-    missingKnowledge: ['ICP ngành xây dựng', 'pain-point theo vai trò', 'qualification', 'funnel math', 'pricing theo gói'],
-    recommendedAdditions: ['chân dung kế toán-thủ kho-sếp', 'kịch bản demo theo nỗi đau chứng từ', 'lead scoring BANT/CHAMP', 'CAC-LTV-churn dashboard', 'case study trước/sau'],
-    acceptanceCriteria: 'Từ sản phẩm nội bộ có thể biến thành giải pháp bán thử cho SME xây dựng mà không nói chung chung.'
-  }
+  { module: 'Accounting & Audit Multi-Industry Lab', roleView: 'Kế toán trưởng + kiểm toán nội bộ', missingKnowledge: ['không được khóa vào xây dựng', 'cần case thương mại/sản xuất/dịch vụ/xây dựng', 'cần phân biệt học tập với nhập liệu thật'], recommendedAdditions: ['case bank đa ngành', 'ma trận chứng từ theo ngành', 'KPI kiểm soát đa ngành'], acceptanceCriteria: 'Người học chọn được ngành, hiểu chứng từ, rủi ro và KPI tương ứng mà không nghĩ đây là ERP nhập liệu.' },
+  { module: 'Simulation & Research Lab', roleView: 'Nhà nghiên cứu sản phẩm', missingKnowledge: ['mô hình mô phỏng khảo sát', 'dữ liệu giả lập', 'giả định/tham số', 'đo kết quả'], recommendedAdditions: ['case scenario builder', 'what-if model', 'survey script', 'hypothesis log'], acceptanceCriteria: 'Mỗi ý tưởng app/game/phần mềm có thể được mô phỏng bằng giả định, dữ liệu mẫu và tiêu chí quyết định tiếp tục/dừng.' },
+  { module: 'Solo Founder Company OS', roleView: 'CEO một người', missingKnowledge: ['quy trình vận hành công ty', 'phân vai AI nhân viên', 'cadence tuần/tháng', 'sổ quyết định'], recommendedAdditions: ['AI org chart', 'weekly operating rhythm', 'decision log', 'backlog ưu tiên'], acceptanceCriteria: 'Founder biết giao việc cho AI, nhận kết quả, kiểm tra, quyết định và lưu lại tri thức vận hành.' },
+  { module: 'AI Agent Workforce', roleView: 'COO/PM quản lý nhân viên AI', missingKnowledge: ['vai trò từng AI', 'chuẩn đầu ra', 'kiểm thử chéo', 'giới hạn quyền AI'], recommendedAdditions: ['AI accountant', 'AI auditor', 'AI dev', 'AI marketer', 'AI researcher', 'AI QA'], acceptanceCriteria: 'Mỗi agent có nhiệm vụ, prompt mẫu, đầu ra, tiêu chí kiểm tra và không được tự duyệt quyết định quan trọng.' },
+  { module: 'Low-Cost Tool Stack', roleView: 'CFO tiết kiệm chi phí', missingKnowledge: ['ưu tiên free/cheap', 'tránh tool trùng chức năng', 'đo ROI'], recommendedAdditions: ['tool map theo việc', 'monthly tool budget', 'free-first policy', 'switching rule'], acceptanceCriteria: 'Chi phí vận hành được kiểm soát, mỗi tool có lý do dùng và tiêu chí giữ/bỏ.' }
 ];
 
 export const ADVANCED_CONSTRUCTION_CASES = [
-  {
-    title: 'Gross-up thuế khoán nhân công',
-    situation: 'Đội thi công muốn nhận đủ tiền net, công ty chịu phần thuế thay nhưng hồ sơ phải khớp tổng hợp đồng, thuế khấu trừ và số thực trả.',
-    accountingFocus: ['phân biệt net/gross', 'kiểm tra tổng tiền hợp đồng', 'bảng thanh toán từng người', 'khấu trừ thuế và chứng từ nộp thay nếu phát sinh'],
-    controlQuestions: ['Hợp đồng, bảng thanh toán và đề nghị chi có cùng cách hiểu net/gross không?', 'Tổng thuế có lệch do làm tròn không?', 'Ai phê duyệt công ty chịu phần thuế?']
-  },
-  {
-    title: 'Phiếu nhập kho giấy 3 liên bị mờ',
-    situation: 'Thủ kho ghi tay ngoài công trường, liên lưu kế toán khó đọc, phần mềm cũ nhập liệu chậm.',
-    accountingFocus: ['chuẩn hóa mã vật tư', 'ảnh chụp chứng từ', 'đối chiếu phiếu nhập với hóa đơn', 'nhật ký người nhập-sửa'],
-    controlQuestions: ['Có số phiếu duy nhất không?', 'Có ảnh gốc kèm không?', 'Tồn kho có âm hoặc nhập trùng không?']
-  },
-  {
-    title: 'Tạm ứng mua vật tư nhiều dòng chi',
-    situation: 'Một khoản ứng dùng cho nhiều chi phí, nhiều chứng từ và có thể còn dư hoặc thiếu.',
-    accountingFocus: ['split line hoàn ứng', 'theo dõi tuổi tạm ứng', 'gắn từng dòng với công trình/hạng mục', 'xử lý số dư hoàn lại hoặc ứng thêm'],
-    controlQuestions: ['Có cấm ứng mới khi còn treo quá hạn không?', 'Có biết dòng nào thiếu chứng từ không?', 'Có đối chiếu số ứng - đã chi - hoàn lại không?']
-  }
+  { title: 'Thương mại: nhập hàng bán lại nhưng tồn kho lệch', situation: 'Hóa đơn có 100 sản phẩm, kho nhận 96, bán ra 20 trước khi đối chiếu.', accountingFocus: ['giá vốn', 'tồn kho', 'công nợ NCC', 'biên bản thiếu hàng'], controlQuestions: ['có biên bản giao nhận không?', 'ghi nhận thiếu hàng thế nào?', 'có khóa bán khi chưa nhập kho chuẩn không?'] },
+  { title: 'Sản xuất: định mức NVL lệch thực tế', situation: 'Định mức 1 sản phẩm dùng 2kg NVL nhưng thực tế 2.4kg, sản lượng đạt thấp.', accountingFocus: ['BOM', 'WIP', 'phế phẩm', 'cost variance'], controlQuestions: ['lệch do hao hụt hay gian lận?', 'có cập nhật định mức không?', 'giá thành có bị đội lên không?'] },
+  { title: 'Dịch vụ: nghiệm thu trễ nhưng đã xuất hóa đơn', situation: 'Team đã làm xong 80%, khách chưa ký nghiệm thu, founder muốn ghi nhận doanh thu.', accountingFocus: ['doanh thu theo kỳ', 'nghiệm thu', 'AR', 'rủi ro thu hồi tiền'], controlQuestions: ['đủ điều kiện ghi nhận chưa?', 'bằng chứng cung cấp dịch vụ là gì?', 'cần cảnh báo dòng tiền không?'] },
+  { title: 'Xây dựng: tạm ứng công trình quá hạn', situation: 'Chỉ huy trưởng ứng tiền mua vật tư, quá hạn hoàn ứng, chứng từ thiếu hóa đơn.', accountingFocus: ['tạm ứng', 'hoàn ứng', 'chi phí dự án', 'chứng từ yếu'], controlQuestions: ['còn treo bao nhiêu?', 'có ứng mới không?', 'phân loại rủi ro đỏ/vàng/xanh?'] },
+  { title: 'Founder: chọn ý tưởng app để thương mại hóa', situation: 'Có 5 ý tưởng app/game, tài nguyên ít, cần mô phỏng nhu cầu và chi phí MVP.', accountingFocus: ['ngân sách R&D', 'chi phí tool', 'giả định doanh thu', 'runway'], controlQuestions: ['ý tưởng nào có khách hàng rõ nhất?', 'MVP rẻ nhất là gì?', 'agent nào kiểm thử giả định?'] }
 ];
 
 export const FINANCIAL_ACCOUNTING_BLUEPRINT = [
-  { area: 'Sổ cái & định khoản', add: ['journal entry immutable ID', 'bút toán đảo/điều chỉnh thay vì xóa', 'mapping tài khoản theo loại chi', 'trạng thái nháp/duyệt/khóa kỳ'] },
-  { area: 'Công nợ phải trả', add: ['aging theo NCC', 'đối chiếu công nợ', 'lịch thanh toán', 'cảnh báo thanh toán không đủ hồ sơ'] },
-  { area: 'Công nợ phải thu', add: ['nghiệm thu chưa xuất hóa đơn', 'hóa đơn chưa thu tiền', 'aging theo chủ đầu tư', 'cam kết thanh toán'] },
-  { area: 'Ngân sách công trình', add: ['baseline budget', 'revised budget', 'actual committed cost', 'estimate at completion'] },
-  { area: 'Báo cáo quản trị', add: ['P&L theo công trình', 'cash-in/cash-out', 'top variance', 'boss action list'] }
+  { area: 'Khung học kế toán đa ngành', add: ['Thương mại: mua-bán-tồn kho-công nợ-biên lợi nhuận', 'Sản xuất: BOM-định mức-WIP-thành phẩm-giá thành', 'Dịch vụ: hợp đồng-timesheet-nghiệm thu-doanh thu theo kỳ', 'Xây dựng: dự toán-công trình-nghiệm thu-tạm ứng-chi phí dở dang'] },
+  { area: 'Khung kiểm toán/kiểm soát', add: ['segregation of duties mô phỏng', 'audit trail trước/sau', 'exception log', 'sampling checklist', 'red/yellow/green risk scoring'] },
+  { area: 'Founder finance', add: ['ngân sách tool AI', 'runway cá nhân/dự án', 'giá bán thử nghiệm', 'P&L mini theo sản phẩm', 'kill/keep/scale decision'] }
 ];
 
 export const DATA_AI_CONTROL_FRAMEWORK = [
-  { layer: 'Bronze - dữ liệu gốc', checks: ['lưu file gốc', 'batch import id', 'người nhập', 'timestamp', 'không sửa đè'] },
-  { layer: 'Silver - dữ liệu sạch', checks: ['chuẩn mã công trình', 'chuẩn NCC', 'kiểm tra ngày/số tiền', 'loại bỏ trùng', 'mapping tài khoản'] },
-  { layer: 'Gold - báo cáo', checks: ['KPI đã khóa kỳ', 'so sánh ngân sách', 'dashboard sếp', 'export PDF/Excel', 'log phiên bản'] },
-  { layer: 'AI Guardrail', checks: ['ẩn dữ liệu nhạy cảm', 'prompt có schema', 'confidence score', 'người duyệt cuối', 'audit log AI'] }
-];
-
-export const GROWTH_BUSINESS_PLAYBOOK = [
-  { theme: 'ICP ngành xây dựng', actions: ['nhắm công ty 20-200 nhân sự', 'có công trình ngoài hiện trường', 'đang dùng Excel/phần mềm cũ', 'đau ở chứng từ-kho-tạm ứng'] },
-  { theme: 'Thông điệp marketing', actions: ['giảm thời gian tổng hợp báo cáo sếp', 'không thay phần mềm kế toán ngay', 'chạy kèm Excel/quy trình cũ', 'kiểm soát chứng từ trước khi thanh toán'] },
-  { theme: 'Demo bán hàng', actions: ['import bảng chi phí mẫu', 'hiện cảnh báo hồ sơ thiếu', 'xuất báo cáo sếp', 'so sánh trước/sau 1 tuần dùng thử'] },
-  { theme: 'Pricing', actions: ['gói nội bộ 1 công ty', 'gói theo số công trình', 'setup phí thấp ban đầu', 'dịch vụ tùy biến chứng từ/quy trình'] }
+  { layer: 'Simulation data', checks: ['dữ liệu giả lập không lẫn dữ liệu thật', 'giả định rõ ràng', 'tham số thay đổi được', 'có kết quả what-if'] },
+  { layer: 'Knowledge base', checks: ['phân loại theo ngành', 'nguồn/phạm vi áp dụng', 'ngày cập nhật', 'mức độ chắc chắn'] },
+  { layer: 'AI guardrail', checks: ['AI chỉ đề xuất', 'không tự duyệt pháp lý/tài chính', 'bắt buộc checklist kiểm tra', 'log prompt và output'] },
+  { layer: 'Decision intelligence', checks: ['ý tưởng', 'giả định', 'thí nghiệm', 'kết quả', 'quyết định tiếp tục/dừng'] }
 ];
 
 export const FULLSTACK_DELIVERY_BLUEPRINT = [
-  { layer: 'Frontend', mustBuild: ['module nhập nhanh', 'bảng danh sách có lọc', 'dashboard KPI', 'màn duyệt', 'màn audit log'] },
-  { layer: 'Backend/API', mustBuild: ['CRUD có phân quyền', 'batch import', 'file attachment', 'approval workflow', 'export service'] },
-  { layer: 'Database', mustBuild: ['projects', 'vendors', 'cost_entries', 'documents', 'advances', 'inventory_movements', 'fuel_movements', 'journal_entries', 'audit_logs'] },
-  { layer: 'Security', mustBuild: ['role-based access', 'row-level policy theo công trình nếu dùng cloud', 'backup', 'restore', 'mask dữ liệu nhạy cảm'] },
-  { layer: 'Testing', mustBuild: ['test định khoản', 'test gross-up', 'test tạm ứng-hoàn ứng', 'test import trùng', 'test phân quyền', 'test khóa kỳ'] }
+  { layer: 'Frontend learning OS', mustBuild: ['dashboard công ty founder', 'tab học đa ngành', 'case simulator', 'agent workspace', 'decision log'] },
+  { layer: 'Backend/API', mustBuild: ['knowledge modules API', 'simulation scenario API', 'prompt template API', 'versioned notes', 'audit logs'] },
+  { layer: 'Database', mustBuild: ['industries', 'cases', 'simulations', 'agents', 'tasks', 'decisions', 'tool_costs'] },
+  { layer: 'Testing', mustBuild: ['unit test tính KPI', 'test dữ liệu case', 'test không mất tab cũ', 'test copy report', 'test responsive UI'] }
 ];
 
-export const BOSS_REPORT_TEMPLATE = [
-  '1. Tổng chi phí hôm nay / tháng này / lũy kế theo công trình.',
-  '2. Công trình vượt hoặc sắp vượt ngân sách.',
-  '3. Tạm ứng còn treo: ai giữ, bao lâu, số tiền bao nhiêu.',
-  '4. Hồ sơ thiếu chứng từ cần bổ sung trước khi thanh toán.',
-  '5. Công nợ đến hạn và khoản cần sếp duyệt.',
-  '6. Cảnh báo kho/dầu/VAT/chi phí bất thường.',
-  '7. Đề xuất hành động: duyệt, giữ lại, yêu cầu bổ sung, kiểm tra thêm.'
+export const GROWTH_BUSINESS_PLAYBOOK = [
+  { theme: 'Định vị sản phẩm', actions: ['Không bán như phần mềm kế toán thay MISA/Bravo', 'Định vị là lab học tập, mô phỏng và R&D sản phẩm cho solo founder', 'Tập trung người học kế toán muốn hiểu vận hành doanh nghiệp và làm sản phẩm'] },
+  { theme: 'Marketing tiết kiệm', actions: ['viết case study từ mô phỏng', 'làm video ngắn giải thích 1 tình huống', 'tạo checklist miễn phí để kéo người dùng', 'dùng landing page đơn giản'] },
+  { theme: 'Khảo sát thị trường', actions: ['phỏng vấn 5-10 người/ngành', 'đo pain point', 'test willingness to pay', 'ưu tiên MVP không cần backend phức tạp'] },
+  { theme: 'Thương mại hóa', actions: ['bản free học cơ bản', 'bản paid có case bank + simulator', 'dịch vụ custom module cho doanh nghiệp nhỏ', 'template/prompt pack cho AI agent'] }
 ];
 
-export const AI_PROMPT_SCHEMAS = [
-  { name: 'payment_file_review', fields: ['riskLevel', 'missingDocs', 'amountCheck', 'taxCheck', 'suggestedAction', 'needsHumanReview', 'confidence'] },
-  { name: 'cost_classification', fields: ['costType', 'projectCode', 'suggestedAccount', 'requiredDocs', 'riskFlags', 'confidence'] },
-  { name: 'boss_summary', fields: ['topKpis', 'redAlerts', 'pendingApprovals', 'cashRisks', 'recommendedActions'] },
-  { name: 'data_quality_scan', fields: ['invalidRows', 'duplicateVendors', 'missingProjectCodes', 'amountAnomalies', 'fixSuggestions'] },
-  { name: 'audit_finding', fields: ['condition', 'criteria', 'cause', 'effect', 'recommendation', 'owner', 'deadline', 'severity'] },
-  { name: 'sales_qualification', fields: ['industry', 'painPoint', 'budgetSignal', 'decisionMaker', 'urgency', 'nextStep'] }
+export const SOLO_FOUNDER_OPERATING_SYSTEM = [
+  { process: 'Chiến lược tuần', owner: 'Founder + AI Chief of Staff', rhythm: 'mỗi tuần', outputs: ['3 mục tiêu chính', 'backlog ưu tiên', 'việc dừng làm', 'rủi ro lớn nhất'] },
+  { process: 'R&D và mô phỏng', owner: 'AI Researcher + AI Data Analyst', rhythm: 'theo ý tưởng', outputs: ['giả thuyết', 'dữ liệu mẫu', 'mô hình what-if', 'kết luận tiếp tục/dừng'] },
+  { process: 'Thiết kế sản phẩm', owner: 'AI Product Manager + AI UX', rhythm: 'mỗi feature', outputs: ['user story', 'wireframe mô tả', 'acceptance criteria', 'test case'] },
+  { process: 'Lập trình', owner: 'AI Fullstack Dev + AI QA', rhythm: 'mỗi sprint nhỏ', outputs: ['code', 'test', 'changelog', 'hướng dẫn chạy'] },
+  { process: 'Tài chính và chi phí tool', owner: 'AI CFO', rhythm: 'hàng tháng', outputs: ['tool budget', 'ROI', 'runway', 'giữ/bỏ tool'] },
+  { process: 'Marketing và bán hàng', owner: 'AI Marketer + AI Sales', rhythm: 'hàng tuần', outputs: ['nội dung', 'landing copy', 'kịch bản demo', 'feedback khách hàng'] },
+  { process: 'Kiểm toán nội bộ sản phẩm', owner: 'AI Auditor', rhythm: 'trước khi release', outputs: ['rủi ro', 'log thay đổi', 'checklist an toàn', 'đề xuất sửa'] }
 ];
