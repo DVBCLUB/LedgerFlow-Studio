@@ -1,5 +1,16 @@
 import React, { useMemo, useState } from 'react';
 
+type ToolCost = {
+  id: string;
+  month: string;
+  tool: string;
+  category: 'AI' | 'Hosting' | 'Design' | 'Marketing' | 'Dev' | 'Other';
+  amount: number;
+  purpose: string;
+  keepDecision: 'Keep' | 'Review' | 'Cancel';
+};
+
+const toolBudgetStorageKey = 'ledgerflow-tool-budget-ledger-v1';
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(Math.round(value));
 
 const NumberInput = ({ label, value, setValue }: { label: string; value: number; setValue: (next: number) => void }) => (
@@ -14,6 +25,25 @@ const NumberInput = ({ label, value, setValue }: { label: string; value: number;
   </label>
 );
 
+const readToolBudget = (): ToolCost[] => {
+  try {
+    const raw = localStorage.getItem(toolBudgetStorageKey);
+    return raw ? (JSON.parse(raw) as ToolCost[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const summarizeToolBudget = (items: ToolCost[]) => {
+  const byCategory = (category: ToolCost['category']) => items.filter((item) => item.category === category).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const ai = byCategory('AI');
+  const hosting = byCategory('Hosting');
+  const marketing = byCategory('Marketing');
+  const otherTools = items.filter((item) => !['AI', 'Hosting', 'Marketing'].includes(item.category)).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+  const total = ai + hosting + marketing + otherTools;
+  return { ai, hosting, marketing, otherTools, total, count: items.length };
+};
+
 export default function FinanceLabMini() {
   const [cash, setCash] = useState(15000000);
   const [toolCost, setToolCost] = useState(450000);
@@ -24,6 +54,18 @@ export default function FinanceLabMini() {
   const [price, setPrice] = useState(99000);
   const [churn, setChurn] = useState(5);
   const [variableCostRate, setVariableCostRate] = useState(15);
+  const [toolBudgetSnapshot, setToolBudgetSnapshot] = useState(() => summarizeToolBudget(readToolBudget()));
+
+  const refreshToolBudget = () => setToolBudgetSnapshot(summarizeToolBudget(readToolBudget()));
+
+  const applyToolBudget = () => {
+    const snapshot = summarizeToolBudget(readToolBudget());
+    setToolBudgetSnapshot(snapshot);
+    setToolCost(snapshot.otherTools);
+    setHostingCost(snapshot.hosting);
+    setAiCost(snapshot.ai);
+    setMarketingCost(snapshot.marketing);
+  };
 
   const result = useMemo(() => {
     const burnRate = toolCost + hostingCost + aiCost + marketingCost;
@@ -50,12 +92,28 @@ export default function FinanceLabMini() {
         </p>
       </div>
 
+      <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Tool Budget Link</p>
+            <h3 className="mt-1 text-sm font-black text-white">Đọc burn thực tế từ Tool Budget Ledger</h3>
+            <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">
+              Đã đọc {toolBudgetSnapshot.count} dòng chi phí • Tổng: {money(toolBudgetSnapshot.total)}đ • AI: {money(toolBudgetSnapshot.ai)}đ • Hosting: {money(toolBudgetSnapshot.hosting)}đ • Marketing: {money(toolBudgetSnapshot.marketing)}đ • Tool khác: {money(toolBudgetSnapshot.otherTools)}đ
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button onClick={refreshToolBudget} className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300">Refresh</button>
+            <button onClick={applyToolBudget} className="rounded-xl bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950">Dùng burn từ Tool Budget</button>
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 lg:grid-cols-5">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 lg:col-span-2">
           <h3 className="mb-4 text-sm font-black text-white">Input mô phỏng</h3>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-1">
             <NumberInput label="Tiền mặt còn lại" value={cash} setValue={setCash} />
-            <NumberInput label="Chi phí tool/tháng" value={toolCost} setValue={setToolCost} />
+            <NumberInput label="Chi phí tool khác/tháng" value={toolCost} setValue={setToolCost} />
             <NumberInput label="Hosting/tháng" value={hostingCost} setValue={setHostingCost} />
             <NumberInput label="AI/API/tháng" value={aiCost} setValue={setAiCost} />
             <NumberInput label="Marketing test/tháng" value={marketingCost} setValue={setMarketingCost} />
