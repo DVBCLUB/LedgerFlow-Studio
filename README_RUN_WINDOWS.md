@@ -18,11 +18,25 @@ File này sẽ tự kiểm tra `node_modules`. Nếu chưa có, nó chạy `npm 
 npm run dev
 ```
 
-Mở trình duyệt tại:
+Khi terminal hiện dòng tương tự:
 
 ```text
-http://localhost:5173
+Server running on http://0.0.0.0:3000
 ```
+
+thì mở trình duyệt tại:
+
+```text
+http://localhost:3000
+```
+
+Nếu không vào được, thử:
+
+```text
+http://127.0.0.1:3000
+```
+
+Lưu ý: cửa sổ terminal phải để mở khi đang dùng app. Dòng `npm warn deprecated` hoặc `npm audit` là cảnh báo thư viện, không phải lỗi làm app không chạy.
 
 ## Đóng phần mềm
 
