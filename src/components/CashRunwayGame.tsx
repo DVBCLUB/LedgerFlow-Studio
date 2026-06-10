@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { addGameSession } from '../utils/gameSessionHistory';
 
 type Decision = 'Cut tools' | 'Raise price' | 'Find paid pilot' | 'Build more features' | 'Pause launch';
 
@@ -55,6 +56,7 @@ function calculateGame(scenario: Scenario) {
 export default function CashRunwayGame() {
   const [scenarios, setScenarios] = useState<Scenario[]>(readScenarios);
   const [activeId, setActiveId] = useState(scenarios[0]?.id || defaultScenarios[0].id);
+  const [sessionMessage, setSessionMessage] = useState('');
   const active = scenarios.find((item) => item.id === activeId) || scenarios[0] || defaultScenarios[0];
   const game = useMemo(() => calculateGame(active), [active]);
 
@@ -88,6 +90,17 @@ export default function CashRunwayGame() {
     setActiveId(defaultScenarios[0].id);
   };
 
+  const recordSession = () => {
+    addGameSession({
+      gameId: 'cash-runway-game',
+      gameLabel: 'Cash Runway Game',
+      score: game.survivalScore,
+      verdict: game.verdict,
+      note: `${active.name} • Decision: ${active.decision} • Runway: ${game.runway >= 99 ? 'infinite' : `${game.runway.toFixed(1)} months`}`
+    });
+    setSessionMessage('Đã lưu lượt chơi vào Game History.');
+  };
+
   return (
     <section className="space-y-4 text-slate-100">
       <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
@@ -108,6 +121,10 @@ export default function CashRunwayGame() {
       <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5">
         <p className="text-[10px] font-black uppercase text-emerald-300">Verdict</p>
         <h3 className="mt-2 text-lg font-black text-white">{game.verdict}</h3>
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <button onClick={recordSession} className="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Lưu lượt chơi</button>
+          {sessionMessage && <span className="text-xs font-bold text-emerald-100">{sessionMessage}</span>}
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
