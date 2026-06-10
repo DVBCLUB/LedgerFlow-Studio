@@ -7,6 +7,7 @@ const PersonaInterviewLab = React.lazy(() => import('./PersonaInterviewLab'));
 const ExperimentDecisionLog = React.lazy(() => import('./ExperimentDecisionLog'));
 const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
 const AIStaffAssignmentBoard = React.lazy(() => import('./AIStaffAssignmentBoard'));
+const AIOutputQualityReview = React.lazy(() => import('./AIOutputQualityReview'));
 const ContentRepurposeBoard = React.lazy(() => import('./ContentRepurposeBoard'));
 const SyntheticSurveyBuilder = React.lazy(() => import('./SyntheticSurveyBuilder'));
 const ABSimulationLab = React.lazy(() => import('./ABSimulationLab'));
@@ -27,11 +28,12 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'ai_staff' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
   { id: 'ai_staff', label: 'AI Staff Board', note: 'Giao việc cho ChatGPT, Claude, Gemini, Copilot/Codex.' },
+  { id: 'ai_quality', label: 'AI Quality Review', note: 'Kiểm tra output AI trước khi dùng vào code, content, tài liệu.' },
   { id: 'content', label: 'Content Repurpose', note: 'Biến case, lead, interview thành post, demo, email.' },
   { id: 'synthetic_survey', label: 'Synthetic Survey', note: 'Khảo sát giả lập, bias warning và validation plan.' },
   { id: 'ab_simulation', label: 'A/B Simulation', note: 'So sánh pricing, landing, onboarding, demo script.' },
@@ -60,6 +62,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
 function renderLab(active: LabId) {
   if (active === 'dashboard') return <ExperimentDashboard />;
   if (active === 'ai_staff') return <AIStaffAssignmentBoard />;
+  if (active === 'ai_quality') return <AIOutputQualityReview />;
   if (active === 'content') return <ContentRepurposeBoard />;
   if (active === 'synthetic_survey') return <SyntheticSurveyBuilder />;
   if (active === 'ab_simulation') return <ABSimulationLab />;
