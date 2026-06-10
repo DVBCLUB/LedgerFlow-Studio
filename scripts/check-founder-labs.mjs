@@ -8,6 +8,7 @@ const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
 const mainPath = path.join(root, 'src', 'main.tsx');
 
 const requiredLabs = [
+  { component: 'CompanyOS', tab: 'company_os', label: 'Company OS', storageKeys: [] },
   { component: 'ExperimentDashboard', tab: 'dashboard', label: 'Experiment Dashboard', storageKeys: [] },
   { component: 'AIStaffAssignmentBoard', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
   { component: 'ContentRepurposeBoard', tab: 'content', label: 'Content Repurpose', storageKeys: ['ledgerflow-content-repurpose-board-v1'] },
