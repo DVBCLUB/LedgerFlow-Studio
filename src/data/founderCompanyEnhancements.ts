@@ -112,3 +112,189 @@ export const SURVEY_QUESTION_BANK = [
   'Bạn muốn đầu ra là checklist, sơ đồ, bảng tính, báo cáo PDF, prompt hay code mẫu?',
   'Một tính năng nào nếu có thì bạn sẽ dùng thử ngay trong tuần này?'
 ];
+
+export const FOUNDER_DAILY_KPI_DASHBOARD = [
+  {
+    group: 'Learning & Domain Depth',
+    purpose: 'Đo mức tiến bộ kiến thức kế toán/kiểm toán/kinh doanh/marketing/dev/ML thay vì chỉ đo số dòng code.',
+    kpis: ['case hoàn thành/ngày', 'số ngành đã mô phỏng', 'số red flag hiểu đúng', 'số decision memo có bằng chứng'],
+    warning: 'Nếu chỉ code thêm màn hình mà không tăng case mô phỏng, sản phẩm sẽ rỗng kiến thức.'
+  },
+  {
+    group: 'Product & R&D',
+    purpose: 'Đo ý tưởng nào đáng build và ý tưởng nào phải dừng.',
+    kpis: ['idea score trung bình', 'số giả thuyết đã test', 'số người được khảo sát', 'tỷ lệ GO/HOLD/NO-GO'],
+    warning: 'Nếu chưa có khảo sát nhưng đã build lớn, rủi ro lãng phí thời gian rất cao.'
+  },
+  {
+    group: 'AI Workforce',
+    purpose: 'Đo hiệu quả nhân viên AI/AI agent như một đội ngũ thật.',
+    kpis: ['task giao cho AI', 'task đạt acceptance', 'task phải làm lại', 'prompt tái sử dụng được'],
+    warning: 'Nếu AI không có input/output/acceptance rõ thì founder mất quyền kiểm soát.'
+  },
+  {
+    group: 'Cost Control',
+    purpose: 'Giữ nguyên tắc chi phí thấp nhất, miễn phí trước, trả phí chỉ khi có bằng chứng.',
+    kpis: ['chi phí tool/tháng', 'tool đang dùng thật', 'tool phải hủy', 'chi phí cho mỗi experiment'],
+    warning: 'Nếu trả phí trước khi có use case lặp lại, sản phẩm dễ chết vì burn rate.'
+  },
+  {
+    group: 'Commercialization',
+    purpose: 'Đo đường ra thị trường: người dùng, demo, nội dung, phản hồi và khả năng trả tiền.',
+    kpis: ['demo đã gửi', 'phản hồi thu được', 'lead quan tâm', 'willingness-to-pay signal'],
+    warning: 'Nếu không có kênh phân phối, sản phẩm hay vẫn có thể không bán được.'
+  }
+];
+
+export const AI_AGENT_WORK_ORDER_BOARD = [
+  {
+    id: 'WO-001',
+    status: 'Ready',
+    ownerAgent: 'AI Product Manager',
+    task: 'Viết PRD cho Simulator đa ngành phiên bản 1',
+    input: ['định nghĩa app là learning/R&D lab', 'ngành: thương mại, sản xuất, dịch vụ, xây dựng', 'không cạnh tranh trực tiếp ERP'],
+    expectedOutput: ['persona', 'pain point', 'input/output simulator', 'test case', 'scope không làm'],
+    founderReview: 'Founder duyệt trước khi giao AI Fullstack Dev code.'
+  },
+  {
+    id: 'WO-002',
+    status: 'Ready',
+    ownerAgent: 'AI Auditor',
+    task: 'Rà soát rủi ro hiểu nhầm pháp lý/kế toán trong nội dung học tập',
+    input: ['case bank', 'quiz chứng từ', 'simulation rules', 'boundary statement'],
+    expectedOutput: ['risk list', 'severity', 'wording cần sửa', 'disclaimer module'],
+    founderReview: 'Không release nếu app khiến người dùng tưởng đây là tư vấn pháp lý/kế toán chính thức.'
+  },
+  {
+    id: 'WO-003',
+    status: 'Ready',
+    ownerAgent: 'AI Fullstack Dev',
+    task: 'Thiết kế localStorage schema cho work order, decision log và experiment log',
+    input: ['không backend ở MVP', 'cần export/import JSON', 'không phá UI hiện tại'],
+    expectedOutput: ['schema', 'component plan', 'test manual', 'migration note'],
+    founderReview: 'Chỉ build sau khi schema đơn giản, có thể copy dữ liệu ra ngoài.'
+  },
+  {
+    id: 'WO-004',
+    status: 'Ready',
+    ownerAgent: 'AI Marketer',
+    task: 'Thiết kế landing page message cho sản phẩm learning simulation lab',
+    input: ['không bán như ERP', 'đối tượng solo founder/kế toán/dev học bằng AI', 'chi phí thấp'],
+    expectedOutput: ['headline', 'subheadline', '3 use case', 'CTA khảo sát', 'điều không hứa'],
+    founderReview: 'Thông điệp phải nói rõ đây là lab mô phỏng, không thay MISA/Bravo.'
+  }
+];
+
+export const PRODUCT_IDEA_PORTFOLIO = [
+  {
+    idea: 'Case Bank kế toán/kiểm toán đa ngành',
+    targetUser: 'người học kế toán, kế toán viên trẻ, founder muốn hiểu vận hành',
+    pain: 8,
+    mvpCheapness: 9,
+    distribution: 7,
+    technicalRisk: 3,
+    firstMvp: '50 case có input/output/red flag/quiz, xuất markdown hoặc PDF',
+    monetization: 'bán template/case pack giá thấp hoặc gói học theo ngành'
+  },
+  {
+    idea: 'AI Agent Prompt Pack cho solo founder',
+    targetUser: 'người tự làm sản phẩm bằng AI nhưng không biết giao việc',
+    pain: 9,
+    mvpCheapness: 10,
+    distribution: 8,
+    technicalRisk: 2,
+    firstMvp: '100 prompt theo vai trò PM/Dev/QA/Audit/Marketing/Finance',
+    monetization: 'bán prompt pack, Notion/Markdown template, khóa hướng dẫn workflow'
+  },
+  {
+    idea: 'Simulator tài chính mini cho ý tưởng app/game',
+    targetUser: 'solo founder, sinh viên, người muốn test ý tưởng trước khi code',
+    pain: 7,
+    mvpCheapness: 8,
+    distribution: 6,
+    technicalRisk: 4,
+    firstMvp: 'what-if simulator nhập chi phí, giá bán, kênh bán, rủi ro kỹ thuật',
+    monetization: 'freemium, bán export report hoặc bộ template triển khai'
+  },
+  {
+    idea: 'Game học kiểm toán nội bộ bằng tình huống',
+    targetUser: 'người học kiểm toán/kế toán muốn học qua mô phỏng',
+    pain: 6,
+    mvpCheapness: 5,
+    distribution: 5,
+    technicalRisk: 7,
+    firstMvp: 'prototype 10 tình huống, điểm rủi ro, lựa chọn hành động',
+    monetization: 'course/game mini, cần test nhu cầu trước khi đầu tư lớn'
+  }
+];
+
+export const OPERATING_SOP_LIBRARY = [
+  {
+    sop: 'SOP-01: Nhận ý tưởng mới',
+    trigger: 'Founder hoặc AI đề xuất một ý tưởng app/game/module mới.',
+    steps: ['ghi ý tưởng 1 câu', 'xác định người dùng', 'chấm pain/buyer/MVP/distribution/risk', 'giao AI PM viết PRD ngắn', 'đưa vào GO/HOLD/NO-GO'],
+    output: 'một idea card có điểm số, bằng chứng và quyết định tiếp theo'
+  },
+  {
+    sop: 'SOP-02: Giao việc cho AI agent',
+    trigger: 'Một việc cần AI làm thay founder.',
+    steps: ['nêu vai trò AI', 'nêu input', 'nêu output', 'nêu acceptance criteria', 'cấm AI tự quyết phần founder phải duyệt'],
+    output: 'work order rõ ràng, có thể copy qua ChatGPT/Claude/Gemini/Copilot'
+  },
+  {
+    sop: 'SOP-03: Release tính năng nhỏ',
+    trigger: 'Có code hoặc dữ liệu mới muốn đưa vào app.',
+    steps: ['kiểm tra không phá UI cũ', 'test tab liên quan', 'copy report mô phỏng', 'AI Auditor rà soát rủi ro', 'ghi decision log'],
+    output: 'release note nhỏ, có lý do và rủi ro còn lại'
+  },
+  {
+    sop: 'SOP-04: Dừng một ý tưởng',
+    trigger: 'Ý tưởng có điểm thấp, không có kênh bán hoặc rủi ro kỹ thuật quá cao.',
+    steps: ['ghi lý do dừng', 'lưu bài học', 'tách phần có thể tái dùng', 'không để backlog phình ra', 'review lại sau 30 ngày nếu có bằng chứng mới'],
+    output: 'kill memo giúp founder tiết kiệm thời gian và tiền'
+  }
+];
+
+export const FOUNDER_RISK_REGISTER = [
+  {
+    risk: 'Sản phẩm bị hiểu nhầm là phần mềm kế toán ERP',
+    severity: 'High',
+    signal: 'người dùng hỏi nhập liệu, xuất báo cáo thuế, thay MISA/Bravo',
+    control: 'luôn ghi rõ learning/R&D/simulation lab; không hứa thay phần mềm kế toán thật'
+  },
+  {
+    risk: 'AI bịa kiến thức pháp lý/kế toán',
+    severity: 'High',
+    signal: 'câu trả lời quá chắc chắn nhưng không có nguồn hoặc không có disclaimer',
+    control: 'tách nội dung học tập với tư vấn chính thức; yêu cầu kiểm chứng văn bản hiện hành khi dùng thực tế'
+  },
+  {
+    risk: 'Founder build quá rộng',
+    severity: 'Medium',
+    signal: 'thêm nhiều tab nhưng không có use case dùng hằng ngày',
+    control: 'mỗi tuần chỉ chọn 3 ưu tiên; mỗi module phải có input/output rõ'
+  },
+  {
+    risk: 'Chi phí tool tăng trước doanh thu',
+    severity: 'Medium',
+    signal: 'nhiều subscription AI/dev/design nhưng ít experiment được hoàn thành',
+    control: 'free-first, keep/kill rule theo usage và doanh thu tiềm năng'
+  },
+  {
+    risk: 'Dữ liệu mô phỏng không đủ sâu',
+    severity: 'Medium',
+    signal: 'case chỉ là mô tả, chưa có số liệu, chưa có red flag, chưa có kết luận',
+    control: 'mỗi case phải có dataset, rule tính, cảnh báo và câu hỏi kiểm soát'
+  }
+];
+
+export const RELEASE_READINESS_CHECKLIST = [
+  'Tính năng mới có phục vụ định vị learning/R&D/simulation/company OS không?',
+  'Có phá tab cũ, route cũ hoặc dữ liệu cũ không?',
+  'Có input/output rõ cho founder hoặc người học không?',
+  'Có chỗ nào khiến người dùng hiểu nhầm đây là tư vấn kế toán/pháp lý chính thức không?',
+  'Có thể dùng miễn phí/localStorage trước khi cần backend không?',
+  'Có thể copy/export kết quả ra ngoài để tránh khóa dữ liệu không?',
+  'Có decision log ghi vì sao build và build tiếp bước nào không?',
+  'Có checklist test tay để founder tự kiểm không?'
+];
