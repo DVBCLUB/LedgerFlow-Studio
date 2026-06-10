@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
-import { CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS, CT1_RELEASE_AUDIT_CHECKLIST } from '../data/ct1ProtectionRules';
+import {
+  CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS,
+  CT1_MODEL_HEALTH_CHECKS,
+  CT1_RELEASE_AUDIT_CHECKLIST
+} from '../data/ct1ProtectionRules';
 
 export default function CT1GlobalSimulationGuard() {
   const [open, setOpen] = useState(false);
@@ -12,7 +16,7 @@ export default function CT1GlobalSimulationGuard() {
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-slate-100 print:hidden">
       {open && (
-        <div className="mb-3 w-80 rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-4 shadow-2xl backdrop-blur">
+        <div className="mb-3 max-h-[80vh] w-[22rem] overflow-y-auto rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-4 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300">CT1 Simulation Guard</p>
@@ -36,9 +40,28 @@ export default function CT1GlobalSimulationGuard() {
             ))}
           </div>
 
+          <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+            <p className="text-[10px] font-black uppercase text-cyan-300">Model health check</p>
+            <div className="mt-3 space-y-2">
+              {CT1_MODEL_HEALTH_CHECKS.map((item) => (
+                <div key={item.model} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-black text-white">{item.model}</p>
+                    <span className="rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2 py-1 text-[9px] font-black uppercase text-emerald-300">
+                      {item.visibility}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-[10px] font-semibold leading-5 text-slate-400">Phải chạy: {item.mustWork.join(' • ')}</p>
+                  <p className="mt-2 text-[10px] font-bold leading-5 text-amber-200">Dấu hiệu lỗi: {item.failSignal}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="mt-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
             <p className="text-[10px] font-black uppercase text-amber-300">Release guard</p>
             <p className="mt-2 text-[11px] font-semibold leading-5 text-amber-100">{CT1_RELEASE_AUDIT_CHECKLIST[0]}</p>
+            <p className="mt-1 text-[11px] font-semibold leading-5 text-amber-100">{CT1_RELEASE_AUDIT_CHECKLIST[9]}</p>
           </div>
         </div>
       )}
