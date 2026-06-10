@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { addGameSession } from '../utils/gameSessionHistory';
 
 type Decision = 'BUILD' | 'HOLD' | 'KILL';
 
@@ -40,6 +41,7 @@ const saveScenario = (scenario: Scenario) => localStorage.setItem(STORAGE_KEY, J
 export default function PMFDecisionGame() {
   const [scenario, setScenario] = useState<Scenario>(readScenario);
   const [submitted, setSubmitted] = useState(false);
+  const [savedMessage, setSavedMessage] = useState('');
 
   const result = useMemo(() => {
     const rawScore = scenario.painScore * 22 + scenario.paySignal * 24 + scenario.evidenceScore * 20 + scenario.distributionScore * 16 - scenario.buildCost * 14;
@@ -60,12 +62,25 @@ export default function PMFDecisionGame() {
     const next = { ...scenario, [key]: value };
     setScenario(next);
     saveScenario(next);
+    setSavedMessage('');
   };
 
   const reset = () => {
     setScenario(defaultScenario);
     saveScenario(defaultScenario);
     setSubmitted(false);
+    setSavedMessage('');
+  };
+
+  const saveSession = () => {
+    addGameSession({
+      gameId: 'pmf-decision-game',
+      gameLabel: 'PMF Decision Game',
+      score: result.founderScore,
+      verdict: result.verdict,
+      note: `${scenario.decision} cho ${scenario.persona.slice(0, 90)} • PMF ${result.pmfScore}/100 • Ideal ${result.idealDecision}`
+    });
+    setSavedMessage('Đã lưu lượt chơi vào Game History.');
   };
 
   return (
@@ -111,7 +126,7 @@ export default function PMFDecisionGame() {
           </label>
 
           <div className="flex flex-wrap gap-3">
-            <button onClick={() => setSubmitted(true)} className="rounded-2xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Chấm quyết định</button>
+            <button onClick={() => { setSubmitted(true); setSavedMessage(''); }} className="rounded-2xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Chấm quyết định</button>
             <button onClick={reset} className="rounded-2xl border border-slate-700 px-4 py-3 text-xs font-black text-slate-300 hover:border-emerald-400">Reset demo</button>
           </div>
         </div>
@@ -134,6 +149,8 @@ export default function PMFDecisionGame() {
               <p className="text-xs font-black text-cyan-200">{result.verdict}</p>
               <p className="mt-3 text-xs font-semibold leading-6 text-slate-200">{result.advice}</p>
               <p className="mt-3 text-[11px] font-semibold text-slate-400">Decision bonus/penalty: {result.decisionBonus}</p>
+              <button onClick={saveSession} className="mt-4 rounded-xl border border-cyan-400/40 bg-cyan-400/10 px-4 py-3 text-xs font-black text-cyan-100 hover:bg-cyan-400/20">Lưu lượt chơi</button>
+              {savedMessage && <p className="mt-3 text-xs font-bold text-emerald-200">{savedMessage}</p>}
             </div>
           )}
         </div>
