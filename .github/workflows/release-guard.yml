@@ -54,6 +54,9 @@ jobs:
       - name: Founder Labs integrity check
         run: npm run check:founder-labs
 
+      - name: Accounting calculation guard
+        run: npm run check:accounting-calculations
+
       - name: TypeScript check
         run: npm run lint
 
