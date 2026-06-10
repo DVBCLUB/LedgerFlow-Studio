@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GAME_SESSION_HISTORY_KEY, readGameSessions, type GameSession } from '../utils/gameSessionHistory';
 
 type GameSnapshot = {
@@ -107,7 +107,22 @@ function fmtDate(value?: string) {
 }
 
 export default function GameProgressDashboard() {
-  const sessions = useMemo(() => readGameSessions(), []);
+  const [sessions, setSessions] = useState<GameSession[]>(() => readGameSessions());
+  const [lastRefreshedAt, setLastRefreshedAt] = useState(() => new Date().toISOString());
+
+  const refreshSessions = () => {
+    setSessions(readGameSessions());
+    setLastRefreshedAt(new Date().toISOString());
+  };
+
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (!event.key || event.key === GAME_SESSION_HISTORY_KEY) refreshSessions();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const historyAttempts = sessions.length;
 
   const games = useMemo(() => GAME_KEYS.map((game) => {
@@ -123,9 +138,10 @@ export default function GameProgressDashboard() {
       ...game,
       played: scores.length > 0,
       attempts: scores.length,
+      historyAttempts: matchedSessions.length,
       bestScore,
       averageScore,
-      verdict: verdict(bestScore),
+      verdict: latest?.verdict || verdict(bestScore),
       source: sessionScores.length ? 'Game History' : legacyScores.length ? 'Legacy snapshot' : 'Chưa có dữ liệu',
       latestPlayedAt: latest?.playedAt,
       latestVerdict: latest?.verdict
@@ -137,15 +153,24 @@ export default function GameProgressDashboard() {
   const weakGames = games.filter((game) => !game.played || game.bestScore < 60);
   const nextGame = weakGames[0] || games.find((game) => game.bestScore < 80) || games[0];
   const learningScore = Math.round((played / Math.max(games.length, 1)) * 50 + Math.min(bestAverage, 100) * 0.5);
+  const recentSessions = useMemo(() => [...sessions].sort((a, b) => b.playedAt.localeCompare(a.playedAt)).slice(0, 8), [sessions]);
 
   return (
     <section className="space-y-4 text-slate-100">
       <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
-        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Game Progress</p>
-        <h2 className="mt-2 text-xl font-black text-white">Dashboard tiến độ mini-game</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-          Nguồn chính: <span className="font-black text-emerald-200">{GAME_SESSION_HISTORY_KEY}</span>. Dashboard ưu tiên lịch sử từng lượt chơi, chỉ fallback snapshot cũ khi game chưa có dữ liệu trong Game History.
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Game Progress</p>
+            <h2 className="mt-2 text-xl font-black text-white">Dashboard tiến độ mini-game</h2>
+            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+              Nguồn chính: <span className="font-black text-emerald-200">{GAME_SESSION_HISTORY_KEY}</span>. Dashboard ưu tiên lịch sử từng lượt chơi, chỉ fallback snapshot cũ khi game chưa có dữ liệu trong Game History.
+            </p>
+          </div>
+          <button onClick={refreshSessions} className="rounded-2xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3 text-xs font-black text-emerald-100 hover:bg-emerald-400/20">
+            Refresh history
+          </button>
+        </div>
+        <p className="mt-3 text-[11px] font-semibold text-slate-500">Cập nhật lần cuối: {fmtDate(lastRefreshedAt)}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -184,10 +209,14 @@ export default function GameProgressDashboard() {
               <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-300">{game.verdict}</span>
             </div>
             <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{game.skill}</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 <p className="text-[10px] font-black uppercase text-slate-500">Attempts</p>
                 <p className="mt-1 text-xl font-black text-white">{game.attempts}</p>
+              </div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-slate-500">History</p>
+                <p className="mt-1 text-xl font-black text-emerald-300">{game.historyAttempts}</p>
               </div>
               <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
                 <p className="text-[10px] font-black uppercase text-slate-500">Best</p>
@@ -204,6 +233,36 @@ export default function GameProgressDashboard() {
             <p className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-400">{game.recommendation}</p>
           </div>
         ))}
+      </div>
+
+      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase text-cyan-300">Recent Game History</p>
+            <h3 className="mt-1 text-lg font-black text-white">8 lượt chơi gần nhất từ nguồn chính</h3>
+          </div>
+          <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-400">{GAME_SESSION_HISTORY_KEY}</span>
+        </div>
+
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800">
+          {recentSessions.length === 0 ? (
+            <p className="p-4 text-sm font-semibold text-slate-400">Chưa có lượt chơi trong Game History. Hãy vào từng mini-game và bấm lưu/nộp bài.</p>
+          ) : (
+            <div className="divide-y divide-slate-800">
+              {recentSessions.map((session) => (
+                <div key={session.id} className="grid gap-3 p-4 text-xs font-semibold text-slate-300 md:grid-cols-[10rem_1fr_4rem_10rem]">
+                  <div className="text-slate-500">{fmtDate(session.playedAt)}</div>
+                  <div>
+                    <p className="font-black text-white">{session.gameLabel}</p>
+                    {session.note && <p className="mt-1 leading-5 text-slate-400">{session.note}</p>}
+                  </div>
+                  <div className="font-black text-emerald-300">{session.score}</div>
+                  <div className="text-slate-300">{session.verdict}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
