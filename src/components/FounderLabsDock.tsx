@@ -9,13 +9,15 @@ const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
 const StrategicLabsMini = React.lazy(() => import('./StrategicLabsMini'));
 const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
+const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'dashboard' | 'finance' | 'tool_budget' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'dashboard' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
   { id: 'finance', label: 'Finance Lab', note: 'Burn rate, runway, MRR và margin.' },
   { id: 'tool_budget', label: 'Tool Budget', note: 'Theo dõi tiền AI, hosting, marketing và dev tool.' },
+  { id: 'tool_cancel', label: 'Tool Cancel Plan', note: 'Lập lịch hủy tool, checklist backup và tiền tiết kiệm.' },
   { id: 'leads', label: 'Lead Board', note: 'Nguồn khách, demo, paid signal, next action.' },
   { id: 'persona', label: 'Persona Interview', note: 'Pain, pay signal và evidence score.' },
   { id: 'decisions', label: 'Decision Log', note: 'BUILD / HOLD / KILL có bằng chứng.' },
@@ -27,6 +29,7 @@ function renderLab(active: LabId) {
   if (active === 'dashboard') return <ExperimentDashboard />;
   if (active === 'finance') return <FinanceLabMini />;
   if (active === 'tool_budget') return <ToolBudgetLedger />;
+  if (active === 'tool_cancel') return <ToolCancelPlan />;
   if (active === 'leads') return <DistributionLeadBoard />;
   if (active === 'persona') return <PersonaInterviewLab />;
   if (active === 'decisions') return <ExperimentDecisionLog />;
