@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { addGameSession } from '../utils/gameSessionHistory';
 
 type Scenario = {
   id: string;
@@ -96,6 +97,7 @@ export default function DocumentMatchingGame() {
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
   const [runs, setRuns] = useState<SavedRun[]>(readRuns);
   const [submitted, setSubmitted] = useState(false);
+  const [message, setMessage] = useState('');
 
   const scenario = scenarios.find((item) => item.id === scenarioId) || scenarios[0];
   const allDocs = useMemo(() => [...scenario.correctDocs, ...scenario.decoys].sort(), [scenario]);
@@ -105,6 +107,7 @@ export default function DocumentMatchingGame() {
 
   const toggleDoc = (doc: string) => {
     setSubmitted(false);
+    setMessage('');
     setSelectedDocs((current) => current.includes(doc) ? current.filter((item) => item !== doc) : [...current, doc]);
   };
 
@@ -120,12 +123,21 @@ export default function DocumentMatchingGame() {
     const next = [nextRun, ...runs].slice(0, 25);
     setRuns(next);
     saveRuns(next);
+    addGameSession({
+      gameId: 'document-matching-game',
+      gameLabel: 'Document Matching Game',
+      score: result.score,
+      verdict: result.verdict,
+      note: `${scenario.industry} • ${scenario.transaction} • đúng ${result.correctSelected}, bỏ sót ${result.missed}, chọn sai ${result.wrongSelected}`
+    });
     setSubmitted(true);
+    setMessage('Đã lưu lượt chơi vào Game History.');
   };
 
   const reset = () => {
     setSelectedDocs([]);
     setSubmitted(false);
+    setMessage('');
   };
 
   return (
@@ -147,7 +159,7 @@ export default function DocumentMatchingGame() {
 
       <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
         <label className="text-[10px] font-black uppercase text-slate-500">Chọn case</label>
-        <select value={scenarioId} onChange={(event) => { setScenarioId(event.target.value); setSelectedDocs([]); setSubmitted(false); }} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-3 text-sm font-bold text-white">
+        <select value={scenarioId} onChange={(event) => { setScenarioId(event.target.value); setSelectedDocs([]); setSubmitted(false); setMessage(''); }} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-3 text-sm font-bold text-white">
           {scenarios.map((item) => <option key={item.id} value={item.id}>{item.industry} - {item.transaction}</option>)}
         </select>
       </div>
@@ -172,9 +184,10 @@ export default function DocumentMatchingGame() {
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <button onClick={submit} className="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài</button>
+            <button onClick={submit} className="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài & lưu lịch sử</button>
             <button onClick={reset} className="rounded-xl border border-slate-700 px-4 py-3 text-xs font-black text-slate-300 hover:border-cyan-400">Làm lại</button>
           </div>
+          {message && <p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs font-bold text-emerald-100">{message}</p>}
         </div>
       </div>
 
