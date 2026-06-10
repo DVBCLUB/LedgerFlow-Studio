@@ -5,6 +5,7 @@ import {
   CT1_MODEL_HEALTH_CHECKS,
   CT1_RELEASE_AUDIT_CHECKLIST
 } from '../data/ct1ProtectionRules';
+import { DISTRIBUTION_ENGINE, FINANCE_LAB, GAME_EDUCATION_LAB, PAYMENT_DECISION_MATRIX, PERSONA_LAB } from '../data/founderStrategicLabs';
 
 const tabAliases: Record<string, string[]> = {
   dashboard: ['Founder Dashboard'],
@@ -15,6 +16,14 @@ const tabAliases: Record<string, string[]> = {
   workorders: ['AI Work Orders'],
   risks: ['Risk & Release']
 };
+
+const strategicLabs = [
+  { title: 'Persona Lab', count: PERSONA_LAB.length, note: 'Người dùng giả lập để kiểm tra pain point và giả thuyết khảo sát.' },
+  { title: 'Finance Lab', count: FINANCE_LAB.length, note: 'Burn rate, runway, MRR và gross margin cho solo founder.' },
+  { title: 'Payment Matrix', count: PAYMENT_DECISION_MATRIX.length, note: 'So sánh payment processor, MoR và thanh toán thủ công.' },
+  { title: 'Distribution Engine', count: DISTRIBUTION_ENGINE.length, note: 'Content, community research và demo-led selling.' },
+  { title: 'Game Education Lab', count: GAME_EDUCATION_LAB.length, note: 'Mini-game học tập theo case, điểm số và quyết định.' }
+];
 
 const openModel = (tab: string) => {
   window.location.hash = '/accounting_vn';
@@ -54,6 +63,21 @@ export default function SimulationGuard() {
                 <p className="mt-1 text-[11px] leading-5 text-slate-400">{item.reason}</p>
               </button>
             ))}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3">
+            <p className="text-[10px] font-black uppercase text-emerald-300">Strategic Labs</p>
+            <div className="mt-3 space-y-2">
+              {strategicLabs.map((item) => (
+                <div key={item.title} className="rounded-lg border border-slate-800 bg-slate-950/70 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="text-xs font-black text-white">{item.title}</p>
+                    <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-black text-emerald-200">{item.count}</span>
+                  </div>
+                  <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">{item.note}</p>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
