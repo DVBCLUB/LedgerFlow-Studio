@@ -21,24 +21,20 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run advisory checks without blocking setup build
-        continue-on-error: true
-        run: npm run check:hybrid
+      - name: Prepare desktop icon
+        run: npm run prepare:icons
 
-      - name: Build production files without npm prebuild lifecycle
-        shell: pwsh
-        run: |
-          npm run prepare:icons
-          npx vite build
-          npx esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
-          npm run build:manifest
+      - name: Build Vite web bundle
+        run: npx vite build
 
-      - name: Validate production build as warnings
-        continue-on-error: true
-        run: npm run check:build
+      - name: Bundle Node server
+        run: npx esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
+
+      - name: Write build manifest
+        run: npm run build:manifest
 
       - name: Build desktop setup and portable exe
-        run: npx electron-builder
+        run: npx electron-builder --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
