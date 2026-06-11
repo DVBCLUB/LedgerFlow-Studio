@@ -34,7 +34,7 @@ jobs:
         run: npm run build:manifest
 
       - name: Build desktop setup and portable exe
-        run: npx electron-builder --publish never
+        run: npx electron-builder --publish never -c.asar=false
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
