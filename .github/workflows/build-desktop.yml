@@ -1,102 +1,14 @@
-name: Build LedgerFlow Hub Desktop
+name: DISABLED - Legacy cross-platform desktop build
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "package.json"
-      - "package-lock.json"
-      - "server.ts"
-      - "vite.config.ts"
-      - "src/**"
-      - "desktop/**"
-      - "public/**"
-      - "scripts/**"
-      - ".env.example"
-      - ".github/workflows/build-desktop.yml"
 
 jobs:
-  build-desktop:
-    name: Build ${{ matrix.name }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Windows EXE
-            os: windows-latest
-            platform: win32
-            artifact: LedgerFlow-Hub-Windows
-            files: |
-              release/*.exe
-              release/*.blockmap
-          - name: macOS DMG
-            os: macos-latest
-            platform: darwin
-            artifact: LedgerFlow-Hub-macOS
-            files: |
-              release/*.dmg
-              release/*.blockmap
-          - name: Linux AppImage
-            os: ubuntu-latest
-            platform: linux
-            artifact: LedgerFlow-Hub-Linux
-            files: |
-              release/*.AppImage
-              release/*.blockmap
-
-    runs-on: ${{ matrix.os }}
-
+  disabled:
+    name: Legacy desktop workflow disabled
+    runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Environment configuration check
-        run: npm run check:env
-
-      - name: Simulation module integrity check
-        run: npm run check:simulations
-
-      - name: Desktop package configuration check
-        run: npm run check:desktop
-
-      - name: Offline readiness check
-        run: npm run check:offline
-
-      - name: TypeScript check
-        run: npm run lint
-
-      - name: Build desktop package
-        run: npm run desktop:dist
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Production build smoke check
-        run: npm run check:build
-
-      - name: Runtime API smoke check
-        run: npm run check:runtime
-
-      - name: Release artifact check
-        run: npm run check:release
-        env:
-          LEDGERFLOW_RELEASE_PLATFORM: ${{ matrix.platform }}
-
-      - name: Upload desktop artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: ${{ matrix.files }}
-          if-no-files-found: error
-          retention-days: 14
+      - name: Explain disabled workflow
+        run: |
+          echo "This legacy cross-platform desktop workflow is disabled to avoid duplicate failing Windows builds."
+          echo "Use the simplified workflow instead: Build Windows Desktop."
