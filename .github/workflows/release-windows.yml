@@ -35,13 +35,8 @@ jobs:
         run: npm install
 
       - name: Run release readiness checks as warnings
-        shell: pwsh
-        run: |
-          npm run check:hybrid
-          if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Release readiness checks reported issues, but Windows setup packaging will continue. Fix these warnings after producing a testable installer."
-            exit 0
-          }
+        continue-on-error: true
+        run: npm run check:hybrid
 
       - name: Build production app without prebuild gate
         shell: pwsh
@@ -73,13 +68,8 @@ jobs:
           $exeFiles | ForEach-Object { "- $($_.FullName) ($($_.Length) bytes)" }
 
       - name: Validate release artifacts as warnings
-        shell: pwsh
-        run: |
-          npm run check:release
-          if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Release artifact check reported issues, but generated files will still be uploaded for manual testing."
-            exit 0
-          }
+        continue-on-error: true
+        run: npm run check:release
 
       - name: Upload setup artifact
         uses: actions/upload-artifact@v4
