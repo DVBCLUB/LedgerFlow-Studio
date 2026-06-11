@@ -83,6 +83,7 @@
     "files": [
       "dist/**/*",
       "desktop/**/*",
+      "build/**/*",
       "package.json",
       "node_modules/**/*"
     ],
