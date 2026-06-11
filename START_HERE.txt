@@ -22,4 +22,9 @@ TRONG APP:
 - Tab Start Here se huong dan nen mo Company OS, Game Library, Game Progress, Finance Lab hay Backup / Restore.
 - Truoc khi update/cai ban moi, vao Backup / Restore de xuat backup JSON.
 
+TAI LIEU QUAN TRONG:
+- docs/RELEASE_READINESS_CHECKLIST.md: checklist phat hanh file .exe.
+- docs/GET_WINDOWS_SETUP_EXE.md: cach lay file setup tu GitHub Actions/Releases.
+- docs/COMPANY_OS_GUARDRAILS.md: nguyen tac khong pha cau truc Company OS.
+
 Tai lieu chi tiet nam trong thu muc docs.
