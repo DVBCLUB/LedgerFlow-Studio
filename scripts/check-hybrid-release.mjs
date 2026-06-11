@@ -5,6 +5,7 @@ const mode = process.argv.includes('--release') ? 'release' : 'prebuild';
 const prebuildChecks = [
   { name: 'Environment configuration', command: 'npm', args: ['run', 'check:env'] },
   { name: 'Simulation registry and module integrity', command: 'npm', args: ['run', 'check:simulations'] },
+  { name: 'Founder Labs dock and Company OS integrity', command: 'npm', args: ['run', 'check:founder-labs'] },
   { name: 'Desktop packaging configuration', command: 'npm', args: ['run', 'check:desktop'] },
   { name: 'Offline readiness', command: 'npm', args: ['run', 'check:offline'] },
   { name: 'TypeScript', command: 'npm', args: ['run', 'lint'] }
