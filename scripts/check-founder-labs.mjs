@@ -8,6 +8,8 @@ const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
 const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.md');
 const mainPath = path.join(root, 'src', 'main.tsx');
 
+const requiredBackupOnlyKeys = ['ledgerflow-founder-labs-last-backup-v1'];
+
 const requiredLabs = [
   { component: 'StartHereLab', tab: 'start_here', label: 'Start Here', storageKeys: [] },
   { component: 'CompanyOS', tab: 'company_os', label: 'Company OS', storageKeys: [] },
@@ -142,6 +144,12 @@ for (const lab of requiredLabs) {
     if (!backupContent.includes(key)) {
       errors.push(`LabsBackupRestore does not include storage key '${key}'.`);
     }
+  }
+}
+
+for (const key of requiredBackupOnlyKeys) {
+  if (!backupContent.includes(key)) {
+    errors.push(`LabsBackupRestore does not include backup metadata key '${key}'.`);
   }
 }
 
