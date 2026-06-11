@@ -9,6 +9,7 @@ const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.m
 const mainPath = path.join(root, 'src', 'main.tsx');
 
 const requiredLabs = [
+  { component: 'StartHereLab', tab: 'start_here', label: 'Start Here', storageKeys: [] },
   { component: 'CompanyOS', tab: 'company_os', label: 'Company OS', storageKeys: [] },
   { component: 'ExperimentDashboard', tab: 'dashboard', label: 'Experiment Dashboard', storageKeys: [] },
   { component: 'AIStaffAssignmentBoard', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
