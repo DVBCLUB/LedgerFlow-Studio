@@ -1,5 +1,5 @@
 @echo off
-setlocal
+setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
 title Build LedgerFlow Hub Windows Installer
 
@@ -7,8 +7,9 @@ echo ==================================================
 echo  LedgerFlow Hub - Tao file cai dat Windows .exe
 echo ==================================================
 echo.
-echo File nay KHONG chay app dev.
-echo File nay chi dung de dong goi ra ban cai dat trong thu muc release.
+echo File nay KHONG chay app dev/localhost.
+echo File nay dung de dong goi ra ban cai dat trong thu muc release.
+echo Sau khi xong, ban chi can bam file .exe trong release de cai dat.
 echo.
 
 where node >nul 2>nul
@@ -27,7 +28,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [1/4] Kiem tra thu muc project...
+echo [1/5] Kiem tra thu muc project...
 if not exist package.json (
   echo [LOI] Hay dat file nay o thu muc goc LedgerFlow-Studio, cung cap voi package.json.
   pause
@@ -40,7 +41,23 @@ if not exist desktop\main.cjs (
   exit /b 1
 )
 
-echo [2/4] Cai/cap nhat thu vien...
+if not exist build\icon.ico (
+  echo [CANH BAO] Chua thay build\icon.ico. Script build se thu tao icon trong buoc build.
+  echo Neu build ra file .exe khong co logo, hay bao ChatGPT kiem tra lai icon.
+  echo.
+)
+
+echo [2/5] Don thu muc release cu de tranh nham file .exe cu...
+if exist release (
+  rmdir /s /q release
+  if exist release (
+    echo [LOI] Khong xoa duoc thu muc release cu. Hay dong cac file .exe/installer dang mo roi chay lai.
+    pause
+    exit /b 1
+  )
+)
+
+echo [3/5] Cai/cap nhat thu vien...
 echo Lan dau co the lau. Neu da cai roi, npm se bo qua phan lon.
 call npm install
 if errorlevel 1 (
@@ -51,7 +68,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [3/4] Build va dong goi installer...
+echo [4/5] Build va dong goi installer...
 echo Qua trinh nay co the mat vai phut lan dau tien.
 echo Neu thay nhieu dong WARN thi chua chac la loi. Chi khi co dong [LOI] moi la build fail.
 set CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -60,24 +77,42 @@ if errorlevel 1 (
   echo.
   echo [LOI] Build installer that bai.
   echo Hay chup man hinh tu dong loi dau tien den dong nay gui cho ChatGPT.
-  echo Thuong gap: script check cu, thieu file icon, hoac Electron Builder tai goi bi loi mang.
+  echo Thuong gap: script check, thieu file icon, hoac Electron Builder tai goi bi loi mang.
   pause
   exit /b 1
 )
 
 echo.
-echo [4/4] Hoan tat.
+echo [5/5] Kiem tra file .exe da tao...
 if not exist release (
   echo [LOI] Build bao thanh cong nhung khong thay thu muc release.
   pause
   exit /b 1
 )
 
-echo File cai dat nam trong thu muc release.
-echo Hay tim file co duoi .exe, vi du: LedgerFlow-Hub-0.1.0-x64.exe
+set EXE_COUNT=0
+for /f "delims=" %%F in ('dir /b /a:-d "release\*.exe" 2^>nul') do (
+  set /a EXE_COUNT+=1
+  echo   [EXE] release\%%F
+)
+
+if "%EXE_COUNT%"=="0" (
+  echo [LOI] Khong tim thay file .exe trong thu muc release.
+  echo Hay mo thu muc release va chup man hinh danh sach file gui cho ChatGPT.
+  start "" "%cd%\release"
+  pause
+  exit /b 1
+)
+
+echo.
+echo ==================================================
+echo  BUILD THANH CONG
+echo ==================================================
+echo.
+echo Thu muc thanh pham: %cd%\release
+echo Bam file .exe trong danh sach tren de cai dat LedgerFlow Hub.
+echo Neu Windows hien SmartScreen, chon More info ^> Run anyway.
 echo.
 start "" "%cd%\release"
-
-echo Bam file .exe trong thu muc release de cai dat LedgerFlow Hub.
 pause
 endlocal
