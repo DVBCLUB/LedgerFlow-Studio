@@ -1,0 +1,15 @@
+LEDGERFLOW HUB - DOC TRUOC KHI DUNG
+
+Neu ban muon tao file cai dat Windows .exe:
+1. Bam dup file: BUILD_WINDOWS_INSTALLER.bat
+2. Cho build xong.
+3. Mo thu muc release.
+4. Bam file .exe de cai dat LedgerFlow Hub.
+
+Khong can bam cac file trong src, scripts, desktop, tools neu ban chi muon dung phan mem.
+
+Neu build loi:
+- Chup man hinh doan loi dau tien den dong [LOI]
+- Gui cho ChatGPT de sua tiep.
+
+Tai lieu chi tiet nam trong thu muc docs.
