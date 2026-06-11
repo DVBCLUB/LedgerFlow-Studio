@@ -5,6 +5,7 @@ const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
 const registryPath = path.join(root, 'src', 'data', 'simulationRegistry.ts');
 const appPath = path.join(root, 'src', 'App.tsx');
+const mainPath = path.join(root, 'src', 'main.tsx');
 const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
 
 function parseRegistryComponents() {
@@ -83,6 +84,7 @@ for (const moduleName of criticalModules) {
 }
 
 const appContent = fs.existsSync(appPath) ? fs.readFileSync(appPath, 'utf8') : '';
+const mainContent = fs.existsSync(mainPath) ? fs.readFileSync(mainPath, 'utf8') : '';
 const dockContent = fs.existsSync(dockPath) ? fs.readFileSync(dockPath, 'utf8') : '';
 
 const dockHostedRoutes = new Set([
@@ -103,8 +105,14 @@ const dockHostedComponents = new Set([
   'ExperimentDashboard'
 ]);
 
-if (dockHostedComponents.size > 0 && !appContent.includes('FounderLabsDock')) {
-  errors.push('App.tsx does not render FounderLabsDock. Dock-hosted simulation modules would be hidden from the app.');
+const rendersFounderLabsDock = appContent.includes('FounderLabsDock') || mainContent.includes('FounderLabsDock');
+
+if (dockHostedComponents.size > 0 && !rendersFounderLabsDock) {
+  errors.push('App/main runtime does not render FounderLabsDock. Dock-hosted simulation modules would be hidden from the app.');
+}
+
+if (mainContent.includes('FounderLabsDock') && !mainContent.includes("./components/FounderLabsDock")) {
+  warnings.push('src/main.tsx mentions FounderLabsDock but may not import it from ./components/FounderLabsDock.tsx.');
 }
 
 for (const moduleName of criticalModules) {
