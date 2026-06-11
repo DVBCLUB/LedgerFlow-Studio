@@ -1,6 +1,7 @@
 import React, { Suspense, useState } from 'react';
 import { FlaskConical, X } from 'lucide-react';
 
+const StartHereLab = React.lazy(() => import('./StartHereLab'));
 const CompanyOS = React.lazy(() => import('./CompanyOS'));
 const FinanceLabMini = React.lazy(() => import('./FinanceLabMini'));
 const DistributionLeadBoard = React.lazy(() => import('./DistributionLeadBoard'));
@@ -36,9 +37,10 @@ const LabsBackupRestore = React.lazy(() => import('./LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('./ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('./ToolCancelPlan'));
 
-type LabId = 'company_os' | 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'game_progress' | 'game_history' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
+type LabId = 'start_here' | 'company_os' | 'dashboard' | 'ai_staff' | 'ai_quality' | 'content' | 'synthetic_survey' | 'ab_simulation' | 'mor_readiness' | 'pricing_offer' | 'product_launch' | 'learning_path' | 'automation' | 'moat' | 'case_bank' | 'audit_game' | 'cash_runway_game' | 'pmf_game' | 'document_matching_game' | 'cost_flow_game' | 'game_library' | 'game_progress' | 'game_history' | 'monthly_review' | 'one_page_report' | 'weekly_actions' | 'daily_standup' | 'finance' | 'tool_budget' | 'tool_cancel' | 'leads' | 'persona' | 'decisions' | 'strategy' | 'backup';
 
 const labs: Array<{ id: LabId; label: string; note: string }> = [
+  { id: 'start_here', label: 'Start Here', note: 'Màn hình bắt đầu: chọn đúng luồng dùng app, game, finance, backup hoặc release.' },
   { id: 'company_os', label: 'Company OS', note: 'Bảng đánh giá Claude: scorecard, AI workforce, roadmap, doanh thu, vận hành và GTM.' },
   { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.' },
   { id: 'ai_staff', label: 'AI Staff Board', note: 'Giao việc cho ChatGPT, Claude, Gemini, Copilot/Codex.' },
@@ -76,6 +78,7 @@ const labs: Array<{ id: LabId; label: string; note: string }> = [
 ];
 
 function renderLab(active: LabId) {
+  if (active === 'start_here') return <StartHereLab />;
   if (active === 'company_os') return <CompanyOS />;
   if (active === 'dashboard') return <ExperimentDashboard />;
   if (active === 'ai_staff') return <AIStaffAssignmentBoard />;
@@ -110,12 +113,12 @@ function renderLab(active: LabId) {
   if (active === 'decisions') return <ExperimentDecisionLog />;
   if (active === 'strategy') return <StrategicLabsMini />;
   if (active === 'backup') return <LabsBackupRestore />;
-  return <ExperimentDashboard />;
+  return <StartHereLab />;
 }
 
 export default function FounderLabsDock() {
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<LabId>('company_os');
+  const [active, setActive] = useState<LabId>('start_here');
 
   return (
     <div className="fixed bottom-4 left-4 z-50 print:hidden">
