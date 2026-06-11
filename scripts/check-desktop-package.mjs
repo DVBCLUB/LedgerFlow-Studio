@@ -4,6 +4,7 @@ import path from 'path';
 const root = process.cwd();
 const packagePath = path.join(root, 'package.json');
 const desktopMainPath = path.join(root, 'desktop', 'main.cjs');
+const desktopIconPath = path.join(root, 'build', 'icon.ico');
 const errors = [];
 const warnings = [];
 
@@ -22,6 +23,10 @@ if (!fs.existsSync(packagePath)) {
 
 if (!fs.existsSync(desktopMainPath)) {
   errors.push('Missing desktop/main.cjs.');
+}
+
+if (!fs.existsSync(desktopIconPath)) {
+  errors.push('Missing build/icon.ico. Run npm run prepare:icons before desktop packaging.');
 }
 
 const pkg = fs.existsSync(packagePath) ? readJson(packagePath) : null;
@@ -44,7 +49,7 @@ if (pkg) {
     errors.push('build.artifactName must be LedgerFlow-Hub-${version}-${arch}.${ext}.');
   }
 
-  const requiredFiles = ['dist/**/*', 'desktop/**/*', 'package.json', 'node_modules/**/*'];
+  const requiredFiles = ['dist/**/*', 'desktop/**/*', 'build/**/*', 'package.json', 'node_modules/**/*'];
   const configuredFiles = Array.isArray(build.files) ? build.files : [];
   for (const requiredFile of requiredFiles) {
     if (!configuredFiles.includes(requiredFile)) {
@@ -54,6 +59,14 @@ if (pkg) {
 
   if (!build.directories || build.directories.output !== 'release') {
     errors.push('build.directories.output must be release.');
+  }
+
+  if (!build.directories || build.directories.buildResources !== 'build') {
+    errors.push('build.directories.buildResources must be build.');
+  }
+
+  if (!build.win || build.win.icon !== 'build/icon.ico') {
+    errors.push('build.win.icon must be build/icon.ico.');
   }
 
   if (!build.win || !Array.isArray(build.win.target)) {
@@ -69,6 +82,12 @@ if (pkg) {
   if (!build.nsis) {
     errors.push('build.nsis config is required for Windows shortcut creation.');
   } else {
+    if (build.nsis.installerIcon !== 'build/icon.ico') {
+      errors.push('build.nsis.installerIcon must be build/icon.ico.');
+    }
+    if (build.nsis.uninstallerIcon !== 'build/icon.ico') {
+      errors.push('build.nsis.uninstallerIcon must be build/icon.ico.');
+    }
     if (build.nsis.createDesktopShortcut !== 'always') {
       errors.push('build.nsis.createDesktopShortcut must be always.');
     }
@@ -108,7 +127,10 @@ if (fs.existsSync(desktopMainPath)) {
     'will-navigate',
     'Open local data folder',
     'dist/server.cjs',
-    'db_storage.json'
+    'db_storage.json',
+    'getDesktopIconPath',
+    'build',
+    'icon.ico'
   ];
 
   for (const marker of requiredMarkers) {
@@ -138,4 +160,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log('LedgerFlow desktop package check passed: Electron shell, shortcuts, artifact naming and release targets verified.');
+console.log('LedgerFlow desktop package check passed: Electron shell, shortcuts, icon assets, artifact naming and release targets verified.');
