@@ -22,13 +22,8 @@ jobs:
         run: npm install
 
       - name: Run advisory checks without blocking setup build
-        shell: pwsh
-        run: |
-          npm run check:hybrid
-          if ($LASTEXITCODE -ne 0) {
-            Write-Warning "Hybrid checks reported issues. Continuing so the Windows setup artifact can still be built for testing. Fix warnings before public release."
-          }
-          exit 0
+        continue-on-error: true
+        run: npm run check:hybrid
 
       - name: Build production files without npm prebuild lifecycle
         shell: pwsh
