@@ -30,15 +30,20 @@ jobs:
       - name: Write build manifest
         run: npm run build:manifest
 
-      - name: Remove generated Windows icon resources
+      - name: Prepare safe empty build resources
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path build-empty | Out-Null
           Remove-Item build\icon.ico -ErrorAction SilentlyContinue
           Remove-Item build\icon.png -ErrorAction SilentlyContinue
+          Remove-Item build\*.ico -ErrorAction SilentlyContinue
+          Remove-Item build\*.icns -ErrorAction SilentlyContinue
+          Remove-Item build\*.png -ErrorAction SilentlyContinue
+          "Remaining build resource files:"
           Get-ChildItem build -ErrorAction SilentlyContinue | Select-Object FullName, Length
 
       - name: Build desktop setup and portable exe
-        run: npx electron-builder@24.13.3 --publish never --config.asar=false
+        run: npx electron-builder@24.13.3 --publish never --config.asar=false --config.directories.buildResources=build-empty
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
