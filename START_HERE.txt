@@ -1,15 +1,25 @@
 LEDGERFLOW HUB - DOC TRUOC KHI DUNG
 
-Neu ban muon tao file cai dat Windows .exe:
+NEU BAN CHI MUON DUNG PHAN MEM:
+- DUNG TAI source code ZIP tu nut Code -> Download ZIP.
+- Hay vao GitHub Releases hoac Actions artifact va tai file .exe.
+- File dung de cai dat thuong co ten gan giong: LedgerFlow-Hub-0.1.0-x64.exe
+
+NEU BAN DANG CAM BO SOURCE CODE NAY VA MUON TU TAO FILE .EXE:
 1. Bam dup file: BUILD_WINDOWS_INSTALLER.bat
 2. Cho build xong.
 3. Mo thu muc release.
 4. Bam file .exe de cai dat LedgerFlow Hub.
 
-Khong can bam cac file trong src, scripts, desktop, tools neu ban chi muon dung phan mem.
+KHONG CAN BAM cac file trong src, scripts, desktop, tools neu ban chi muon dung phan mem.
 
-Neu build loi:
+NEU BUILD LOI:
 - Chup man hinh doan loi dau tien den dong [LOI]
 - Gui cho ChatGPT de sua tiep.
+
+TRONG APP:
+- Bam nut Labs.
+- Tab Start Here se huong dan nen mo Company OS, Game Library, Game Progress, Finance Lab hay Backup / Restore.
+- Truoc khi update/cai ban moi, vao Backup / Restore de xuat backup JSON.
 
 Tai lieu chi tiet nam trong thu muc docs.
