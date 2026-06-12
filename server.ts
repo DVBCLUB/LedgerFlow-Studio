@@ -11,6 +11,7 @@ import { diagnoseAIRouter, testAIKey } from "./server/services/aiRouter";
 import { runAIPreflight } from "./server/services/aiDoctor";
 import { clearAIUsageLogs, readAIUsageLogs } from "./server/services/aiUsageLog";
 import { disarmAIVaultAutoLock, getAIVaultAutoLockStatus, markAIVaultActivity, updateAIVaultAutoLockConfig } from "./server/services/aiVaultAutoLock";
+import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnectors, readIntegrationEvents, testIntegrationConnector, updateIntegrationConnector } from "./server/services/integrationRegistry";
 
 dotenv.config();
 
@@ -23,6 +24,8 @@ const aiBackupExportSchema = z.object({ passphrase: z.string().min(8, "Mật kh�
 const aiBackupImportSchema = z.object({ passphrase: z.string().min(8, "Mật khẩu backup phải có ít nhất 8 ký tự."), mode: z.enum(["merge", "replace"]).default("merge"), backup: z.object({ version: z.literal(1), app: z.literal("LedgerFlow Studio"), exportedAt: z.string(), kdf: z.literal("scrypt"), cipher: z.literal("aes-256-gcm"), salt: z.string(), iv: z.string(), tag: z.string(), payload: z.string(), note: z.string() }) });
 const aiVaultPassphraseSchema = z.object({ passphrase: z.string().min(8, "Mật khẩu AI Vault phải có ít nhất 8 ký tự.") });
 const aiVaultAutoLockSchema = z.object({ enabled: z.boolean().optional(), timeoutMinutes: z.number().min(1).max(1440).optional() });
+const integrationPatchSchema = z.object({ enabled: z.boolean().optional(), status: z.enum(["connected", "local", "manual", "planned", "error"]).optional(), priority: z.enum(["P0", "P1", "P2", "P3"]).optional(), url: z.string().optional(), localCommand: z.string().optional(), notes: z.string().optional() });
+const integrationEventSchema = z.object({ type: z.enum(["status", "test", "config", "handoff", "note"]).default("note"), level: z.enum(["info", "success", "warning", "error"]).default("info"), message: z.string().min(1) });
 type GeminiGenerateInput = z.infer<typeof geminiGenerateSchema>;
 
 function getSimulatedMarketSurveyResponse(niche: string, direction?: string) { return { summary: `Mô phỏng nghiên cứu thị trường cho: ${niche}.`, metrics: { pricingPreferred: [], painPoints: [], channels: [] }, personas: [], gaps: [], competitors: [], blueprint: { direction: direction || "B2D Tool" }, sources: [{ title: "Fallback simulator", url: "local" }] }; }
@@ -38,12 +41,19 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
   app.use((req, res, next) => { const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"]; const origin = req.headers.origin; if (origin) { const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".run.app") || /https:\/\/ais-.*\.run\.app/.test(origin); if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin); } res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS"); res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization"); if (req.method === "OPTIONS") res.sendStatus(204); else next(); });
   const apiLimiter = rateLimit({ windowMs: 60_000, max: 30, message: { error: "Bạn đã đạt giới hạn yêu cầu/phút. Vui lòng thử lại sau.", isRateLimit: true }, standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false } });
-  app.use("/api/gemini/", apiLimiter); app.use("/api/ai/", apiLimiter);
+  app.use("/api/gemini/", apiLimiter); app.use("/api/ai/", apiLimiter); app.use("/api/integrations/", apiLimiter);
   app.get("/api/health", (req, res) => res.json({ status: "ok", time: new Date() }));
 
   const STORAGE_FILE = path.join(process.cwd(), "db_storage.json");
   app.get("/api/db/load", async (req, res) => { try { if (!fs.existsSync(STORAGE_FILE)) return res.json({ success: true, data: {} }); res.json({ success: true, data: JSON.parse(await fs.promises.readFile(STORAGE_FILE, "utf-8")) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
   app.post("/api/db/save", async (req, res) => { try { const parsed = databaseSaveSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); await fs.promises.writeFile(STORAGE_FILE, JSON.stringify(parsed.data.payload, null, 2), "utf-8"); res.json({ success: true, message: "Database synchronized successfully on the server." }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to save database state." }); } });
+
+  app.get("/api/integrations", async (req, res) => { try { res.json({ success: true, connectors: await listIntegrationConnectors(), events: await readIntegrationEvents(30) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to list integrations." }); } });
+  app.patch("/api/integrations/:id", async (req, res) => { try { const parsed = integrationPatchSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, connector: await updateIntegrationConnector(req.params.id, parsed.data) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to update integration." }); } });
+  app.post("/api/integrations/:id/test", async (req, res) => { try { res.json({ success: true, connector: await testIntegrationConnector(req.params.id), events: await readIntegrationEvents(30) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to test integration." }); } });
+  app.post("/api/integrations/:id/events", async (req, res) => { try { const parsed = integrationEventSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, event: await appendIntegrationEvent({ connectorId: req.params.id, ...parsed.data }) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to append integration event." }); } });
+  app.get("/api/integrations/events", async (req, res) => { try { res.json({ success: true, events: await readIntegrationEvents(Number(req.query.limit ?? 100)) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to read integration events." }); } });
+  app.delete("/api/integrations/events", async (req, res) => { try { await clearIntegrationEvents(); res.json({ success: true }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to clear integration events." }); } });
 
   app.get("/api/ai/providers", (req, res) => res.json({ success: true, providers: getSupportedAIProviders() }));
   app.get("/api/ai/vault/status", async (req, res) => { try { res.json({ success: true, vault: await getAIVaultSecurityStatus(), autoLock: await getAIVaultAutoLockStatus() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to read AI vault status." }); } });
