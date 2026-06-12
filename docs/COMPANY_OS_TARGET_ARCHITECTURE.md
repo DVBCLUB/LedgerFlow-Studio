@@ -22,6 +22,7 @@ LedgerFlow Hub = software company operating system.
 It manages:
 
 - Products.
+- Knowledge library.
 - Customers and leads.
 - Marketing campaigns.
 - Sales pipeline.
@@ -29,7 +30,7 @@ It manages:
 - Projects and delivery.
 - AI staff / AI agents.
 - Data, models, simulation, and sandbox experiments.
-- Integrations with GitHub, AI gateways, local tools, Google Workspace, and other platforms.
+- Integrations with GitHub, AI gateways, VS Code/Cursor, local tools, Google Workspace, and other platforms.
 
 It does **not** mean every company using the app must have warehouse, fuel, or construction operations.
 
@@ -50,7 +51,54 @@ Contains:
 - AI recommendations.
 - Quick links to active workspaces.
 
-### 2. Product Studio
+### 2. Knowledge Library
+
+Purpose: company memory and context source for all AI/AI agent work.
+
+This is not a static document folder. It is the place where knowledge is entered, classified, searched, exported, and later fed into AI agents.
+
+Contains:
+
+- Manual knowledge input.
+- Product notes.
+- Accounting/domain knowledge.
+- Prompt packs.
+- Customer notes.
+- Design decisions.
+- Coding rules.
+- GitHub/CI lessons learned.
+- Marketing and sales insights.
+- Game design notes.
+- Import/export knowledge packs.
+- Future vector database / RAG source.
+
+### 3. AI Nhân sự / AI Operations Center
+
+Purpose: central dispatch center for AI, AI agents, software tools, and system data flow.
+
+This is **not** normal HR/HCNS. It is where all AI-related operations are coordinated.
+
+Contains:
+
+- AI staff map.
+- AI Chief of Staff.
+- AI developer / code agent.
+- AI designer / product agent.
+- AI marketer.
+- AI accountant.
+- AI auditor.
+- AI data analyst.
+- Q&A router.
+- Code generation workflow.
+- GitHub issue / commit / push coordination.
+- VS Code / Cursor / Copilot handoff.
+- Design workflow.
+- Data intake from files, logs, GitHub, docs, prompts, and user notes.
+- Data output to answers, code, PR plans, reports, tasks, designs, and knowledge library.
+- Output quality checklist.
+- Agent permission rules.
+
+### 4. Product Studio
 
 Purpose: manage software products, game products, and product experiments.
 
@@ -74,7 +122,7 @@ Product lines should include:
 - Internal company OS modules.
 - Games and interactive learning products.
 
-### 3. Marketing & Growth
+### 5. Marketing & Growth
 
 Purpose: make sure the company can actually sell and grow, not only build software.
 
@@ -91,7 +139,7 @@ Contains:
 - AI marketer tasks.
 - Survey and customer discovery.
 
-### 4. Sales & CRM
+### 6. Sales & CRM
 
 Purpose: track customers, leads, demos, proposals, and conversion.
 
@@ -107,7 +155,7 @@ Contains:
 - Lost reason.
 - Renewal / support opportunities.
 
-### 5. Finance & Accounting
+### 7. Finance & Accounting
 
 Purpose: internal finance control and accounting product thinking.
 
@@ -124,7 +172,7 @@ Contains:
 - Vietnamese accounting assistant.
 - Accounting sandbox for product features.
 
-### 6. Projects & Delivery
+### 8. Projects & Delivery
 
 Purpose: manage active work regardless of industry.
 
@@ -146,31 +194,7 @@ Contains:
 
 Use `Dự án` globally. Use `Công trình` only inside the construction accounting template.
 
-### 7. AI Nhân sự
-
-Purpose: merge HR/Admin and AI Workforce into one AI-staff management workspace.
-
-This replaces the old split between `HCNS - Hành chính` and `AI Workforce`.
-
-Contains:
-
-- Human role map.
-- AI staff map.
-- AI Chief of Staff.
-- AI Accountant.
-- AI Auditor.
-- AI Data Analyst.
-- AI Developer.
-- AI Marketer.
-- AI Customer Support.
-- Prompt packs.
-- Output quality checklist.
-- Task assignment board.
-- Internal admin tasks.
-- Authorization / handoff documents.
-- Role permissions.
-
-### 8. Documents & Approval
+### 9. Documents & Approval
 
 Purpose: evidence vault and workflow.
 
@@ -185,7 +209,7 @@ Contains:
 - Document handoff to accounting.
 - Product/release approval documents.
 
-### 9. Analytics, Models & Sandbox
+### 10. Analytics, Models & Sandbox
 
 Purpose: keep the original Google AI Studio spirit: charts, models, experiments, and interactive simulation.
 
@@ -206,7 +230,7 @@ Contains:
 - Synthetic data lab.
 - Model registry.
 
-### 10. Integration Hub
+### 11. Integration Hub
 
 Purpose: connect existing platforms instead of rebuilding everything.
 
@@ -215,13 +239,14 @@ Contains:
 - AI Gateway.
 - GitHub connector.
 - Local tools connector.
+- VS Code / Cursor handoff.
 - Google Workspace connector.
 - Supabase cloud sync.
 - Webhook/n8n/Make/Zapier.
 - MISA/SmartPro import/export bridge for accounting-product workflows.
 - Future AI agent connectors.
 
-### 11. System Settings
+### 12. System Settings
 
 Purpose: keep technical configuration away from normal users.
 
@@ -241,21 +266,22 @@ Contains:
 Replace the old `Bước/Giai đoạn` navigation with:
 
 1. Công ty hôm nay
-2. Product Studio
-3. Marketing & Growth
-4. Sales & CRM
-5. Tài chính - Kế toán
-6. Dự án & Delivery
-7. AI Nhân sự
-8. Hồ sơ - Phê duyệt
-9. Analytics - Models - Sandbox
-10. Tích hợp
-11. Cài đặt hệ thống
+2. Thư viện tri thức
+3. AI Nhân sự
+4. Product Studio
+5. Marketing & Growth
+6. Sales & CRM
+7. Tài chính - Kế toán
+8. Dự án & Delivery
+9. Hồ sơ - Phê duyệt
+10. Analytics - Models - Sandbox
+11. Tích hợp
+12. Cài đặt hệ thống
 
 Removed from top-level navigation:
 
 - `Mua hàng - Kho - Dầu` because it is not a universal workspace for a software company.
-- `HCNS - Hành chính` as a separate workspace because it is merged into `AI Nhân sự`.
+- `HCNS - Hành chính` as a separate workspace because AI Nhân sự is the AI Operations Center.
 
 Industry-specific inventory/fuel/warehouse flows can still exist inside optional templates, for example:
 
@@ -265,6 +291,26 @@ Industry-specific inventory/fuel/warehouse flows can still exist inside optional
 
 They must not define the main company OS.
 
+## AI Nhân sự data-flow rule
+
+AI Nhân sự should be designed around this flow:
+
+```txt
+User / File / GitHub / VS Code / Logs / Docs / Prompt
+        ↓
+Knowledge Library + Context Pack
+        ↓
+AI Gateway / Agent Router
+        ↓
+AI role: Q&A / Code / Design / Marketing / Data / Audit
+        ↓
+Output: answer / code / PR plan / design / report / task
+        ↓
+GitHub / VS Code / Product Studio / Library / Integration Hub
+```
+
+Important: AI Nhân sự may coordinate code generation and GitHub push workflows, but dangerous shell execution must remain controlled through safe connectors, CI, and founder review.
+
 ## Module registry concept
 
 Future refactor should introduce a registry like:
@@ -272,18 +318,25 @@ Future refactor should introduce a registry like:
 ```ts
 export const companyModules = [
   {
+    id: 'knowledge-library',
+    label: 'Thư viện tri thức',
+    roleAccess: ['owner', 'ai-ops', 'product', 'developer'],
+    component: 'KnowledgeLibraryWorkspace',
+    tags: ['knowledge', 'context', 'rag', 'prompt', 'library']
+  },
+  {
+    id: 'ai-nhan-su',
+    label: 'AI Nhân sự',
+    roleAccess: ['owner', 'ai-ops', 'developer'],
+    component: 'AIOpsCenterWorkspace',
+    tags: ['ai-agent', 'github', 'vscode', 'code', 'design', 'data-flow']
+  },
+  {
     id: 'product-studio',
     label: 'Product Studio',
     roleAccess: ['owner', 'product', 'developer'],
     component: 'ProductStudioWorkspace',
     tags: ['software', 'game', 'roadmap', 'release']
-  },
-  {
-    id: 'marketing-growth',
-    label: 'Marketing & Growth',
-    roleAccess: ['owner', 'marketing', 'sales'],
-    component: 'MarketingGrowthWorkspace',
-    tags: ['content', 'campaign', 'lead', 'positioning']
   }
 ]
 ```
@@ -300,12 +353,13 @@ src/
     navigation.ts
   modules/
     command-center/
+    knowledge-library/
+    ai-nhan-su/
     product-studio/
     marketing-growth/
     sales-crm/
     finance-accounting/
     projects-delivery/
-    ai-nhan-su/
     documents-approval/
     analytics-models-sandbox/
     integration-hub/
@@ -339,6 +393,8 @@ The UI should feel like:
 - Software company command room.
 - Product company dashboard.
 - Clean role-based workspaces.
+- Knowledge-first AI context system.
+- AI agent operations center.
 - Marketing and sales visible, not hidden.
 - Charts, models, games, and sandbox surfaced as first-class modules.
 - Construction shown only as one industry template.
@@ -354,8 +410,14 @@ Core entities:
 - GameProject
 - Feature
 - Release
+- KnowledgeItem
+- KnowledgeSource
+- ContextPack
 - Department
 - UserRole
+- AgentRole
+- AgentTask
+- AgentOutput
 - Customer
 - Lead
 - Campaign
@@ -386,12 +448,13 @@ Optional industry entities should be template-scoped:
 Milestone `Software Company OS Reform P0`:
 
 1. Add Company OS home as default landing page.
-2. Add navigation registry.
-3. Replace construction-heavy global labels with product/software-company language.
-4. Add top-level Marketing & Growth.
-5. Add top-level Product Studio for software and games.
-6. Merge HR/Admin into AI Nhân sự.
-7. Remove warehouse/fuel from top-level navigation.
-8. Surface Analytics, Models & Sandbox.
-9. Move technical sync panels out of default home.
-10. Keep old modules available under `Legacy Labs` until migrated.
+2. Add Knowledge Library with manual input/search/export.
+3. Redefine AI Nhân sự as AI Operations Center.
+4. Add navigation registry.
+5. Replace construction-heavy global labels with product/software-company language.
+6. Add top-level Marketing & Growth.
+7. Add top-level Product Studio for software and games.
+8. Remove warehouse/fuel from top-level navigation.
+9. Surface Analytics, Models & Sandbox.
+10. Move technical sync panels out of default home.
+11. Keep old modules available under `Legacy Labs` until migrated.
