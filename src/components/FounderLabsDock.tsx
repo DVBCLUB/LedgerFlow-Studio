@@ -8,7 +8,7 @@ const DistributionLeadBoard = React.lazy(() => import('./DistributionLeadBoard')
 const PersonaInterviewLab = React.lazy(() => import('./PersonaInterviewLab'));
 const ExperimentDecisionLog = React.lazy(() => import('./ExperimentDecisionLog'));
 const ExperimentDashboard = React.lazy(() => import('./ExperimentDashboard'));
-const AIStaffAssignmentBoard = React.lazy(() => import('./AIStaffAssignmentBoard'));
+const AIStaffAssignmentBoard = React.lazy(() => import('./agent-ops/tabs/PeopleTab'));
 const AIOutputQualityReview = React.lazy(() => import('./AIOutputQualityReview'));
 const ContentRepurposeBoard = React.lazy(() => import('./ContentRepurposeBoard'));
 const SyntheticSurveyBuilder = React.lazy(() => import('./SyntheticSurveyBuilder'));
