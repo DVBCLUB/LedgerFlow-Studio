@@ -20,6 +20,7 @@ import RollbackCenter from './RollbackCenter';
 import ReleaseArtifactCenter from './ReleaseArtifactCenter';
 import ConnectorSdkRegistry from './ConnectorSdkRegistry';
 import AuditTrailPanel from './AuditTrailPanel';
+import CIRunInspectorPanel from './CIRunInspectorPanel';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
 import ToolPolicyRegistry from './ToolPolicyRegistry';
@@ -30,7 +31,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'skills' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<'sessions' | 'skills' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -155,6 +156,12 @@ export default function AIOpsCenterLauncher() {
                   Audit
                 </button>
                 <button
+                  onClick={() => setView('ci')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'ci' ? 'border-orange-300 bg-orange-400/10 text-orange-100' : 'border-slate-700 text-slate-300 hover:border-orange-300'}`}
+                >
+                  CI Runs
+                </button>
+                <button
                   onClick={() => setView('workboard')}
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'workboard' ? 'border-violet-300 bg-violet-400/10 text-violet-100' : 'border-slate-700 text-slate-300 hover:border-violet-300'}`}
                 >
@@ -205,6 +212,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'release' && <ReleaseArtifactCenter />}
             {view === 'connectors' && <ConnectorSdkRegistry />}
             {view === 'audit' && <AuditTrailPanel />}
+            {view === 'ci' && <CIRunInspectorPanel />}
             {view === 'workboard' && <AIOpsWorkboard />}
             {view === 'policy' && <ToolPolicyRegistry />}
             {view === 'recovery' && <CIRecoveryQueue />}
