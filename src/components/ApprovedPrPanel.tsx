@@ -54,6 +54,21 @@ type ReviewDeskPrefill = {
   sourceCardId?: string;
 };
 
+type CiFixPackage = {
+  id: string;
+  sourceCardId: string;
+  repo: string;
+  branchName: string;
+  pullRequestNumber: number;
+  pullRequestUrl: string;
+  workflowRunUrl: string;
+  workflowName: string;
+  status: string;
+  conclusion: string | null;
+  createdAt: string;
+  prompt: string;
+};
+
 const approvalPhrase = ['APPROVE', 'AI', 'GITHUB', 'PUSH'].join(' ');
 
 function readPrefill(): ReviewDeskPrefill | null {
@@ -114,6 +129,40 @@ function runConclusionText(run: GitHubWorkflowRunSummary) {
   return run.conclusion || 'completed';
 }
 
+function isFailedRun(run?: GitHubWorkflowRunSummary | null) {
+  if (!run) return false;
+  return run.status === 'completed' && !['success', 'skipped', 'neutral'].includes(String(run.conclusion || '').toLowerCase());
+}
+
+function writeCiFixPackage(input: { sourceCardId: string; result: DraftPrResult; run: GitHubWorkflowRunSummary }) {
+  const pack: CiFixPackage = {
+    id: `ci-fix-${Date.now()}`,
+    sourceCardId: input.sourceCardId || '',
+    repo: input.result.repo,
+    branchName: input.result.branchName,
+    pullRequestNumber: input.result.pullRequestNumber,
+    pullRequestUrl: input.result.pullRequestUrl,
+    workflowRunUrl: input.run.htmlUrl,
+    workflowName: input.run.name,
+    status: input.run.status,
+    conclusion: input.run.conclusion,
+    createdAt: new Date().toLocaleString('vi-VN'),
+    prompt: [
+      'Analyze this failed GitHub Actions run for LedgerFlow.',
+      `Repository: ${input.result.repo}`,
+      `Branch: ${input.result.branchName}`,
+      `Pull Request: #${input.result.pullRequestNumber}`,
+      `PR URL: ${input.result.pullRequestUrl}`,
+      `Workflow: ${input.run.name}`,
+      `Run URL: ${input.run.htmlUrl}`,
+      `Conclusion: ${input.run.conclusion}`,
+      'Return: root cause, likely files to inspect, minimal fix plan, and manual verification checklist.'
+    ].join('\n')
+  };
+  localStorage.setItem('ledgerflow_ci_fix_package_v1', JSON.stringify(pack));
+  window.dispatchEvent(new CustomEvent('ledgerflow-ci-fix-package', { detail: pack }));
+}
+
 export default function ApprovedPrPanel() {
   const prefill = readPrefill();
   const [sourceCardId, setSourceCardId] = useState(prefill?.sourceCardId || '');
@@ -125,6 +174,7 @@ export default function ApprovedPrPanel() {
   const [approval, setApproval] = useState('');
   const [result, setResult] = useState<DraftPrResult | null>(() => readLastResult());
   const [statusSnapshot, setStatusSnapshot] = useState<GitHubStatusSnapshot | null>(null);
+  const [ciFixReady, setCiFixReady] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -155,6 +205,7 @@ export default function ApprovedPrPanel() {
   const canSubmit = approval === approvalPhrase && title.trim() && filePath.trim() && fileContent.trim();
   const activeBranch = result?.branchName || branchName;
   const latestBranchRun = useMemo(() => statusSnapshot?.latestRuns.find((run) => run.branch === activeBranch), [statusSnapshot, activeBranch]);
+  const failedRun = isFailedRun(latestBranchRun);
 
   async function submit() {
     if (!canSubmit) return;
@@ -162,6 +213,7 @@ export default function ApprovedPrPanel() {
     setError('');
     setResult(null);
     setStatusSnapshot(null);
+    setCiFixReady(false);
     try {
       const response = await fetch('/api/integrations/github/approved-change-request', {
         method: 'POST',
@@ -193,6 +245,7 @@ export default function ApprovedPrPanel() {
     if (!target) return;
     setChecking(true);
     setError('');
+    setCiFixReady(false);
     try {
       const params = new URLSearchParams({ repo: target.repo });
       const response = await fetch(`/api/integrations/github/summary?${params.toString()}`);
@@ -205,14 +258,20 @@ export default function ApprovedPrPanel() {
       const openPr = Array.isArray(summary?.openPullRequests)
         ? summary.openPullRequests.find((item: any) => Number(item.number) === target.pullRequestNumber)
         : null;
+      const branchRuns = runs.filter((run) => run.branch === target.branchName);
       const snapshot: GitHubStatusSnapshot = {
         checkedAt: new Date().toLocaleString('vi-VN'),
-        latestRuns: runs.filter((run) => run.branch === target.branchName),
+        latestRuns: branchRuns,
         openPullRequestUrl: openPr?.htmlUrl || target.pullRequestUrl,
         openPullRequestState: openPr?.state || 'unknown'
       };
       setStatusSnapshot(snapshot);
       localStorage.setItem('ledgerflow_review_desk_last_status_v1', JSON.stringify(snapshot));
+      const latest = branchRuns[0];
+      if (isFailedRun(latest)) {
+        writeCiFixPackage({ sourceCardId, result: target, run: latest });
+        setCiFixReady(true);
+      }
     } catch (err) {
       const snapshot: GitHubStatusSnapshot = { checkedAt: new Date().toLocaleString('vi-VN'), latestRuns: [], error: err instanceof Error ? err.message : 'Cannot check PR status.' };
       setStatusSnapshot(snapshot);
@@ -266,7 +325,9 @@ export default function ApprovedPrPanel() {
               <p className="font-black text-white">{latestBranchRun.name}</p>
               <p>{runConclusionText(latestBranchRun)}</p>
               <a className="font-black text-cyan-200 underline" href={latestBranchRun.htmlUrl} target="_blank" rel="noreferrer">Open workflow run</a>
+              {failedRun && <p className="mt-2 rounded-xl border border-orange-400/35 bg-orange-400/10 p-2 text-orange-200">Workflow failed. CI fix package đã được tạo để AI Ops/CI Doctor xử lý tiếp.</p>}
             </div> : <p className="mt-2 text-slate-400">Chưa thấy workflow run cho branch này trong latest runs. Đợi Actions vài phút rồi bấm lại.</p>}
+            {ciFixReady && <button onClick={() => { window.location.hash = '#/ci_doctor'; }} className="mt-3 rounded-full border border-orange-400/40 px-3 py-1 text-[11px] font-black text-orange-200 hover:bg-orange-400/10">Open CI Doctor</button>}
           </div>}
           <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-xs font-black text-white">Kiểm soát</p>
@@ -276,6 +337,7 @@ export default function ApprovedPrPanel() {
               <li>✓ CI kiểm tra trước khi merge</li>
               <li>✓ Founder duyệt cuối cùng</li>
               <li>✓ Kết quả PR ghi ngược về audit local</li>
+              <li>✓ Nếu CI đỏ, tạo gói lỗi cho CI Doctor</li>
             </ul>
           </div>
         </div>
