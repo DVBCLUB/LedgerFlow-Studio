@@ -6,6 +6,7 @@ import AgentRuntimeOrchestratorPanel from './AgentRuntimeOrchestratorPanel';
 import BrowserSimulationPlanner from './BrowserSimulationPlanner';
 import ProjectMemoryDecisionLog from './ProjectMemoryDecisionLog';
 import SecurityControlCenter from './SecurityControlCenter';
+import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
 import ApprovalSessionBridge from './ApprovalSessionBridge';
@@ -32,7 +33,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'skills' | 'runtime' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<'sessions' | 'skills' | 'runtime' | 'tools' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -74,7 +75,7 @@ export default function AIOpsCenterLauncher() {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-950 p-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-300">AI Operations Center</p>
-                <h2 className="mt-1 text-xl font-black text-white">Agent Sessions, Runtime, Skills, Memory, Security, Approval, Sandbox, Release, Rollback, Audit & Build Monitor</h2>
+                <h2 className="mt-1 text-xl font-black text-white">Agent Sessions, Runtime, Tools, Skills, Memory, Security, Approval, Sandbox, Release, Rollback, Audit & Build Monitor</h2>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Điều phối AI agent theo kiểu OpenClaw nhưng sandbox-first, approval-first, audit-first.</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -89,6 +90,12 @@ export default function AIOpsCenterLauncher() {
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'runtime' ? 'border-fuchsia-300 bg-fuchsia-400/10 text-fuchsia-100' : 'border-slate-700 text-slate-300 hover:border-fuchsia-300'}`}
                 >
                   Runtime
+                </button>
+                <button
+                  onClick={() => setView('tools')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'tools' ? 'border-teal-300 bg-teal-400/10 text-teal-100' : 'border-slate-700 text-slate-300 hover:border-teal-300'}`}
+                >
+                  Tools
                 </button>
                 <button
                   onClick={() => setView('skills')}
@@ -208,6 +215,7 @@ export default function AIOpsCenterLauncher() {
             </div>
             {view === 'sessions' && <AgentSessionQueue />}
             {view === 'runtime' && <AgentRuntimeOrchestratorPanel />}
+            {view === 'tools' && <ToolExecutionLayerPanel />}
             {view === 'skills' && <AgentSkillRegistry />}
             {view === 'memory' && <ProjectMemoryDecisionLog />}
             {view === 'security' && <SecurityControlCenter />}
