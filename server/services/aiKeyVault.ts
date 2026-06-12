@@ -59,9 +59,27 @@ export interface DecryptedAIKeyEntry extends Omit<AIKeyRecord, "encryptedKey"> {
   apiKey: string;
 }
 
+export interface AIKeyBackupFile {
+  version: 1;
+  app: "LedgerFlow Studio";
+  exportedAt: string;
+  kdf: "scrypt";
+  cipher: "aes-256-gcm";
+  salt: string;
+  iv: string;
+  tag: string;
+  payload: string;
+  note: string;
+}
+
 interface VaultFile {
   version: 1;
   entries: AIKeyRecord[];
+}
+
+interface BackupPayload {
+  version: 1;
+  entries: Array<Omit<DecryptedAIKeyEntry, "id" | "createdAt" | "updatedAt" | "lastStatus" | "lastError">>;
 }
 
 const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
@@ -131,19 +149,7 @@ export async function createAIKey(input: AIKeyInput): Promise<AIKeySummary> {
 
   const now = new Date().toISOString();
   const vault = await readVault();
-  const record: AIKeyRecord = {
-    id: crypto.randomUUID(),
-    provider: input.provider,
-    label: (input.label?.trim() || `${provider.label} key ${vault.entries.filter(e => e.provider === input.provider).length + 1}`).slice(0, 80),
-    model: (input.model?.trim() || provider.defaultModel).slice(0, 120),
-    baseUrl: input.baseUrl?.trim() || undefined,
-    encryptedKey: encrypt(apiKey),
-    enabled: input.enabled ?? true,
-    priority: Number.isFinite(input.priority) ? Number(input.priority) : vault.entries.length + 1,
-    createdAt: now,
-    updatedAt: now,
-    lastStatus: "untested",
-  };
+  const record = buildRecord(input, vault.entries.length + 1, now);
   vault.entries.push(record);
   await writeVault(vault);
   return toSummary(record);
@@ -201,6 +207,166 @@ export async function setAIKeyStatus(id: string, status: AIKeyRecord["lastStatus
   } catch {
     // Status update is best-effort; never break AI generation because telemetry failed.
   }
+}
+
+export async function exportAIKeyBackup(passphrase: string): Promise<AIKeyBackupFile> {
+  assertStrongPassphrase(passphrase);
+  const vault = await readVault();
+
+  const payload: BackupPayload = {
+    version: 1,
+    entries: vault.entries
+      .slice()
+      .sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt))
+      .map((entry) => ({
+        provider: entry.provider,
+        label: entry.label,
+        model: entry.model,
+        baseUrl: entry.baseUrl,
+        apiKey: decrypt(entry.encryptedKey),
+        enabled: entry.enabled,
+        priority: entry.priority,
+      })),
+  };
+
+  const salt = crypto.randomBytes(16);
+  const iv = crypto.randomBytes(12);
+  const key = deriveBackupKey(passphrase, salt);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const encrypted = Buffer.concat([
+    cipher.update(JSON.stringify(payload), "utf8"),
+    cipher.final(),
+  ]);
+  const tag = cipher.getAuthTag();
+
+  return {
+    version: 1,
+    app: "LedgerFlow Studio",
+    exportedAt: new Date().toISOString(),
+    kdf: "scrypt",
+    cipher: "aes-256-gcm",
+    salt: salt.toString("base64"),
+    iv: iv.toString("base64"),
+    tag: tag.toString("base64"),
+    payload: encrypted.toString("base64"),
+    note: "Encrypted AI key backup. Import inside LedgerFlow Studio AI Settings using the same password.",
+  };
+}
+
+export async function importAIKeyBackup(
+  backup: AIKeyBackupFile,
+  passphrase: string,
+  mode: "merge" | "replace" = "merge"
+): Promise<{ imported: number; total: number; keys: AIKeySummary[] }> {
+  assertStrongPassphrase(passphrase);
+  const payload = decryptBackupPayload(backup, passphrase);
+  const vault = await readVault();
+  const now = new Date().toISOString();
+
+  const nextEntries = mode === "replace" ? [] : vault.entries.slice();
+  let imported = 0;
+
+  for (const item of payload.entries) {
+    const provider = getProvider(item.provider);
+    const apiKey = (item.apiKey ?? "").trim();
+    if (provider.requiresApiKey && !apiKey) continue;
+
+    const duplicate = nextEntries.find((entry) => {
+      try {
+        return entry.provider === item.provider && decrypt(entry.encryptedKey) === apiKey && (entry.model || provider.defaultModel) === (item.model || provider.defaultModel);
+      } catch {
+        return false;
+      }
+    });
+
+    if (duplicate && mode === "merge") {
+      duplicate.label = item.label?.trim().slice(0, 80) || duplicate.label;
+      duplicate.model = item.model?.trim().slice(0, 120) || provider.defaultModel;
+      duplicate.baseUrl = item.baseUrl?.trim() || undefined;
+      duplicate.enabled = item.enabled ?? duplicate.enabled;
+      duplicate.priority = Number.isFinite(item.priority) ? Number(item.priority) : duplicate.priority;
+      duplicate.updatedAt = now;
+      duplicate.lastStatus = "untested";
+      duplicate.lastError = undefined;
+      imported += 1;
+      continue;
+    }
+
+    nextEntries.push(buildRecord({
+      provider: item.provider,
+      label: item.label,
+      apiKey,
+      model: item.model,
+      baseUrl: item.baseUrl,
+      priority: Number.isFinite(item.priority) ? Number(item.priority) : nextEntries.length + 1,
+      enabled: item.enabled,
+    }, nextEntries.length + 1, now));
+    imported += 1;
+  }
+
+  const newVault: VaultFile = { version: 1, entries: nextEntries };
+  await writeVault(newVault);
+  const keys = await listAIKeys();
+  return { imported, total: payload.entries.length, keys };
+}
+
+function decryptBackupPayload(backup: AIKeyBackupFile, passphrase: string): BackupPayload {
+  if (!backup || backup.version !== 1 || backup.app !== "LedgerFlow Studio") {
+    throw new Error("File backup không đúng định dạng LedgerFlow Studio.");
+  }
+  if (backup.kdf !== "scrypt" || backup.cipher !== "aes-256-gcm") {
+    throw new Error("File backup dùng thuật toán không được hỗ trợ.");
+  }
+
+  try {
+    const salt = Buffer.from(backup.salt, "base64");
+    const iv = Buffer.from(backup.iv, "base64");
+    const tag = Buffer.from(backup.tag, "base64");
+    const encrypted = Buffer.from(backup.payload, "base64");
+    const key = deriveBackupKey(passphrase, salt);
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+    decipher.setAuthTag(tag);
+    const raw = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
+    const parsed = JSON.parse(raw) as BackupPayload;
+    if (parsed.version !== 1 || !Array.isArray(parsed.entries)) {
+      throw new Error("Payload backup không hợp lệ.");
+    }
+    return parsed;
+  } catch (err: any) {
+    throw new Error(`Không mở được backup. Kiểm tra lại mật khẩu hoặc file backup. ${err.message || ""}`.trim());
+  }
+}
+
+function buildRecord(input: AIKeyInput, fallbackPriority: number, now: string): AIKeyRecord {
+  const provider = getProvider(input.provider);
+  const apiKey = (input.apiKey ?? "").trim();
+  if (provider.requiresApiKey && !apiKey) {
+    throw new Error(`API key is required for ${provider.label}.`);
+  }
+
+  return {
+    id: crypto.randomUUID(),
+    provider: input.provider,
+    label: (input.label?.trim() || `${provider.label} key`).slice(0, 80),
+    model: (input.model?.trim() || provider.defaultModel).slice(0, 120),
+    baseUrl: input.baseUrl?.trim() || undefined,
+    encryptedKey: encrypt(apiKey),
+    enabled: input.enabled ?? true,
+    priority: Number.isFinite(input.priority) ? Number(input.priority) : fallbackPriority,
+    createdAt: now,
+    updatedAt: now,
+    lastStatus: "untested",
+  };
+}
+
+function assertStrongPassphrase(passphrase: string): void {
+  if (!passphrase || passphrase.length < 8) {
+    throw new Error("Mật khẩu backup phải có ít nhất 8 ký tự.");
+  }
+}
+
+function deriveBackupKey(passphrase: string, salt: Buffer): Buffer {
+  return crypto.scryptSync(passphrase, salt, 32, { N: 16384, r: 8, p: 1 });
 }
 
 function toSummary(record: AIKeyRecord): AIKeySummary {
