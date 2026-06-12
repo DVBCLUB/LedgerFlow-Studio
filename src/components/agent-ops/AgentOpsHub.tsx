@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import WorkboardTab from './tabs/WorkboardTab';
 import RunTab from './tabs/RunTab';
 import SkillsTab from './tabs/SkillsTab';
@@ -23,6 +23,11 @@ type Props = { initialTab?: AgentOpsHubTab; onClose: () => void };
 
 export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props) {
   const [tab, setTab] = useState<AgentOpsHubTab>(initialTab);
+
+  useEffect(() => {
+    setTab(initialTab);
+  }, [initialTab]);
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 p-4 backdrop-blur">
       <div className="mx-auto max-w-6xl">
