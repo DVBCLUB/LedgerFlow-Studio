@@ -48,6 +48,16 @@ export interface AIVaultSecurityStatus {
   message: string;
 }
 
+export interface AIVaultAutoLockStatus {
+  enabled: boolean;
+  timeoutMinutes: number;
+  armed: boolean;
+  lastActivityAt?: string;
+  expiresAt?: string;
+  remainingSeconds?: number;
+  message: string;
+}
+
 export interface AIUsageLogEntry {
   id: string;
   timestamp: string;
@@ -120,6 +130,20 @@ export async function fetchAIProviders(): Promise<AIProviderDefinition[]> {
 export async function fetchAIVaultStatus(): Promise<AIVaultSecurityStatus> {
   const data = await readJson<{ vault: AIVaultSecurityStatus }>(await fetch("/api/ai/vault/status"));
   return data.vault;
+}
+
+export async function fetchAIVaultAutoLockStatus(): Promise<AIVaultAutoLockStatus> {
+  const data = await readJson<{ autoLock: AIVaultAutoLockStatus }>(await fetch("/api/ai/vault/auto-lock"));
+  return data.autoLock;
+}
+
+export async function updateAIVaultAutoLock(payload: Partial<Pick<AIVaultAutoLockStatus, "enabled" | "timeoutMinutes">>): Promise<AIVaultAutoLockStatus> {
+  const data = await readJson<{ autoLock: AIVaultAutoLockStatus }>(await fetch("/api/ai/vault/auto-lock", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }));
+  return data.autoLock;
 }
 
 export async function setAIVaultPassphrase(passphrase: string): Promise<AIVaultSecurityStatus> {
