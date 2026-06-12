@@ -47,26 +47,41 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
 
-      - name: List generated release files
+      - name: Prepare user download package
         shell: pwsh
         run: |
           if (-not (Test-Path release)) {
             throw "Missing release folder. electron-builder did not create output."
           }
-          Get-ChildItem release -Recurse | Select-Object FullName, Length
           $exeFiles = Get-ChildItem release -Filter *.exe -Recurse
           if ($exeFiles.Count -eq 0) {
             throw "No .exe setup/portable file was generated in release/."
           }
-          "Generated Windows exe files:"
-          $exeFiles | ForEach-Object { "- $($_.FullName) ($($_.Length) bytes)" }
+          New-Item -ItemType Directory -Force -Path windows-download | Out-Null
+          Copy-Item release\*.exe windows-download\ -Force
+          if (Test-Path release\*.blockmap) { Copy-Item release\*.blockmap windows-download\ -Force }
+          if (Test-Path release\*.yml) { Copy-Item release\*.yml windows-download\ -Force }
+          @'
+          LedgerFlow Hub - Windows App
 
-      - name: Upload release folder
+          Day la goi tai danh cho nguoi dung Windows.
+
+          Cach dung:
+          1. Giai nen file zip nay.
+          2. Bam file .exe ben trong de mo/cai dat LedgerFlow Hub.
+          3. Neu Windows hien SmartScreen, chon More info > Run anyway.
+
+          Luu y:
+          - Day KHONG phai source code zip.
+          - Neu muon code/sua app, hay dung repo GitHub.
+          - Neu muon chi su dung app, chi can file .exe trong thu muc nay.
+          '@ | Set-Content -Encoding UTF8 windows-download\START_HERE.txt
+          "Generated user download package:"
+          Get-ChildItem windows-download | Select-Object Name, Length
+
+      - name: Upload Windows user download zip
         uses: actions/upload-artifact@v4
         with:
-          name: LedgerFlow-Hub-Windows-release
-          path: |
-            release/**/*.exe
-            release/**/*.blockmap
-            release/**/*.yml
+          name: LedgerFlow-Hub-Windows-Download
+          path: windows-download/**/*
           if-no-files-found: error
