@@ -15,11 +15,12 @@ LedgerFlow Studio is organized as a hybrid React + Express + Electron applicatio
 ├── scripts/                 # Build checks, doctors, release utilities
 ├── server/                  # Backend services used by server.ts
 ├── src/                     # React frontend application
-├── tools/                   # Local helper utilities and future tool adapters
+├── tools/                   # Local helper utilities and platform-specific tools
 ├── server.ts                # Express API server + Vite middleware
-├── package.json             # Scripts, dependencies, Electron Builder config
-└── BUILD_WINDOWS_INSTALLER.bat
+└── package.json             # Scripts, dependencies, Electron Builder config
 ```
+
+Root should stay lean. Keep only files that must be at the project root for Node, Vite, TypeScript, GitHub, or developer onboarding.
 
 ## Runtime entrypoints
 
@@ -28,7 +29,8 @@ LedgerFlow Studio is organized as a hybrid React + Express + Electron applicatio
 | Local web/dev | `npm run dev` → `server.ts` |
 | Production server | `npm run build` then `npm start` → `dist/server.cjs` |
 | Desktop | `desktop/main.cjs` loads the production app |
-| Windows installer | `BUILD_WINDOWS_INSTALLER.bat` / `npm run desktop:dist` |
+| Windows installer local build | `tools/windows/BUILD_WINDOWS_INSTALLER.bat` / `npm run desktop:dist` |
+| Windows user download | GitHub Actions artifact `LedgerFlow-Hub-Windows-Download` |
 
 ## Frontend organization
 
@@ -85,6 +87,17 @@ docs/runbooks/windows-desktop-build.md
 docs/runbooks/runtime-testing.md
 ```
 
+## Tools organization
+
+```text
+tools/
+└── windows/
+    ├── BUILD_WINDOWS_INSTALLER.bat
+    └── README.md
+```
+
+`tools/windows/BUILD_WINDOWS_INSTALLER.bat` is for developers who want to build the installer locally. It should not be the primary user download path. End users should download the Windows artifact from GitHub Actions.
+
 ## Scripts organization
 
 Scripts in `scripts/` are intentionally kept as `.mjs` Node scripts for cross-platform compatibility.
@@ -97,6 +110,23 @@ Scripts in `scripts/` are intentionally kept as `.mjs` Node scripts for cross-pl
 | Maintenance | `clean.mjs` |
 
 Avoid adding shell-only logic to `package.json`; prefer Node scripts so Windows/GitHub Actions/local machines behave consistently.
+
+## User download package
+
+The source-code zip from GitHub is not the app installer. A user-ready Windows package is created by the `Build Windows Desktop` workflow and uploaded as:
+
+```text
+LedgerFlow-Hub-Windows-Download
+```
+
+That artifact contains:
+
+```text
+*.exe
+START_HERE.txt
+```
+
+A user should download that artifact, unzip it, and run the `.exe`.
 
 ## Local ignored files
 
