@@ -9,6 +9,7 @@ import DevHandoffLauncher from './components/DevHandoffLauncher.tsx';
 import GitHubCIDoctorLauncher from './components/GitHubCIDoctorLauncher.tsx';
 import LocalAuthGate from './components/LocalAuthGate.tsx';
 import ApprovedPrPanel from './components/ApprovedPrPanel.tsx';
+import AIOpsCenterLauncher from './components/AIOpsCenterLauncher.tsx';
 import './index.css';
 
 function ReviewOverlay() {
@@ -23,6 +24,7 @@ createRoot(document.getElementById('root')!).render(
       <ReviewOverlay />
       <SimulationGuard />
       <FounderLabsDock />
+      <AIOpsCenterLauncher />
       <GitHubCIDoctorLauncher />
       <DevHandoffLauncher />
       <AISettingsLauncher />
