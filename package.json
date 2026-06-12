@@ -92,6 +92,7 @@
     ],
     "asar": false,
     "win": {
+      "icon": "build/icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -104,7 +105,9 @@
       "createDesktopShortcut": "always",
       "createStartMenuShortcut": true,
       "shortcutName": "LedgerFlow Hub",
-      "uninstallDisplayName": "LedgerFlow Hub"
+      "uninstallDisplayName": "LedgerFlow Hub",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     },
     "mac": {
       "target": "dmg"
