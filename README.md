@@ -35,6 +35,39 @@ npm run dev
 
 Rồi mở `http://localhost:3000`.
 
+## AI Gateway
+
+LedgerFlow Studio đã có màn hình **AI Gateway** để nhập nhiều API key trực tiếp trong phần mềm, không cần sửa `.env` trên từng máy.
+
+Mở app rồi bấm nút nổi **AI Gateway** ở góc phải dưới, hoặc mở trực tiếp:
+
+```text
+http://127.0.0.1:3000/#/ai_settings
+```
+
+AI Gateway hỗ trợ nhiều key/provider và tự fallback khi hết quota:
+
+```text
+Gemini nhiều tài khoản → Groq → OpenRouter → Claude → Ollama local
+```
+
+Tài liệu chi tiết:
+
+```text
+docs/AI_GATEWAY.md
+```
+
+## Kiểm tra chất lượng code
+
+Trước khi build hoặc push:
+
+```bash
+npm run lint
+npm run build
+```
+
+Repo đã có GitHub Actions CI để tự chạy type-check và build khi push/pull request.
+
 ## Tài liệu
 
 Tài liệu chi tiết đã gom vào thư mục:
