@@ -93,6 +93,26 @@ export interface GitHubCIFailureContext {
   lastCheckedAt: string;
 }
 
+export type LocalToolId = 'vscode' | 'cursor' | 'github' | 'actions' | 'terminal';
+
+export interface LocalToolStatus {
+  id: LocalToolId;
+  label: string;
+  available: boolean;
+  command?: string;
+  message: string;
+}
+
+export interface LocalToolSummary {
+  projectRoot: string;
+  repo: string;
+  repoUrl: string;
+  actionsUrl: string;
+  tools: LocalToolStatus[];
+  safeCommands: Array<{ label: string; command: string; purpose: string }>;
+  checkedAt: string;
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
   if (!response.ok || data?.success === false) {
@@ -209,6 +229,21 @@ export async function createGitHubConnectorIssue(input: {
     }),
   );
   return data.issue;
+}
+
+export async function fetchLocalToolSummary(): Promise<LocalToolSummary> {
+  const data = await readJson<{ success: true; summary: LocalToolSummary }>(await fetch('/api/integrations/local-tools/status'));
+  return data.summary;
+}
+
+export async function openLocalTool(tool: Exclude<LocalToolId, 'terminal'>): Promise<{ opened: boolean; message: string }> {
+  return readJson<{ success: true; opened: boolean; message: string }>(
+    await fetch('/api/integrations/local-tools/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tool }),
+    }),
+  );
 }
 
 export async function fetchGitHubCIFailureContext(repo?: string): Promise<GitHubCIFailureContext> {
