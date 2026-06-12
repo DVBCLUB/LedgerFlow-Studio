@@ -2,14 +2,24 @@ LEDGERFLOW HUB - DOC TRUOC KHI DUNG
 
 NEU BAN CHI MUON DUNG PHAN MEM:
 - DUNG TAI source code ZIP tu nut Code -> Download ZIP.
-- Hay vao GitHub Releases hoac Actions artifact va tai file .exe.
-- File dung de cai dat thuong co ten gan giong: LedgerFlow-Hub-0.1.0-x64.exe
+- Hay vao GitHub Actions artifact va tai goi: LedgerFlow-Hub-Windows-Download.
+- Giai nen goi do, bam file .exe de mo LedgerFlow Hub.
+
+DANG NHAP BAN DESKTOP/LOCAL:
+- User: admin
+- Pass: ledgerflow2026
+
+Ghi chu:
+- Day la dang nhap local de mo app tren may tinh.
+- Supabase/GitHub/AI Gateway la cau hinh tich hop ben trong app, khong phai tai khoan de mo app.
+- Sau nay se nang cap Auth/Role Center cho Admin, Ke toan, Thu kho, HCNS, Sep, Dev.
 
 NEU BAN DANG CAM BO SOURCE CODE NAY VA MUON TU TAO FILE .EXE:
-1. Bam dup file: BUILD_WINDOWS_INSTALLER.bat
-2. Cho build xong.
-3. Mo thu muc release.
-4. Bam file .exe de cai dat LedgerFlow Hub.
+1. Mo Terminal tai thu muc project.
+2. Chay: tools\\windows\\BUILD_WINDOWS_INSTALLER.bat
+3. Cho build xong.
+4. Mo thu muc release.
+5. Bam file .exe de cai dat LedgerFlow Hub.
 
 KHONG CAN BAM cac file trong src, scripts, desktop, tools neu ban chi muon dung phan mem.
 
@@ -18,13 +28,16 @@ NEU BUILD LOI:
 - Gui cho ChatGPT de sua tiep.
 
 TRONG APP:
-- Bam nut Labs.
-- Tab Start Here se huong dan nen mo Company OS, Game Library, Game Progress, Finance Lab hay Backup / Restore.
-- Truoc khi update/cai ban moi, vao Backup / Restore de xuat backup JSON.
+- AI Gateway: nhap API key va quan ly AI fallback.
+- Integration Hub: ket noi GitHub, Local Tools, cac nen tang ngoai.
+- Dev Handoff: tao prompt/task cho VS Code, Cursor, Copilot.
+- CI Doctor: doc loi GitHub Actions va tao huong sua.
 
 TAI LIEU QUAN TRONG:
-- docs/RELEASE_READINESS_CHECKLIST.md: checklist phat hanh file .exe.
-- docs/GET_WINDOWS_SETUP_EXE.md: cach lay file setup tu GitHub Actions/Releases.
-- docs/COMPANY_OS_GUARDRAILS.md: nguyen tac khong pha cau truc Company OS.
+- AGENTS.md: huong dan cho AI/agent khi sua repo.
+- docs/PROJECT_STRUCTURE.md: ban do cau truc project.
+- docs/AI_GATEWAY.md: huong dan AI Gateway.
+- docs/INTEGRATION_HUB.md: huong dan trung tam tich hop.
+- docs/CI_DOCTOR.md: huong dan xu ly loi CI.
 
 Tai lieu chi tiet nam trong thu muc docs.
