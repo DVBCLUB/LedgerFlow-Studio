@@ -14,7 +14,7 @@ const requiredLabs = [
   { component: 'StartHereLab', tab: 'start_here', label: 'Start Here', storageKeys: [] },
   { component: 'CompanyOS', tab: 'company_os', label: 'Company OS', storageKeys: [] },
   { component: 'ExperimentDashboard', tab: 'dashboard', label: 'Experiment Dashboard', storageKeys: [] },
-  { component: 'AIStaffAssignmentBoard', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
+  { component: 'AIStaffAssignmentBoard', componentPath: 'src/components/agent-ops/tabs/PeopleTab.tsx', importPath: './agent-ops/tabs/PeopleTab', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
   { component: 'AIOutputQualityReview', tab: 'ai_quality', label: 'AI Quality Review', storageKeys: [] },
   { component: 'ContentRepurposeBoard', tab: 'content', label: 'Content Repurpose', storageKeys: ['ledgerflow-content-repurpose-board-v1'] },
   { component: 'SyntheticSurveyBuilder', tab: 'synthetic_survey', label: 'Synthetic Survey', storageKeys: ['ledgerflow-synthetic-survey-builder-v1'] },
@@ -114,19 +114,21 @@ if (!defaultActiveMatch) {
 }
 
 for (const lab of requiredLabs) {
-  const componentPath = path.join(componentDir, `${lab.component}.tsx`);
+  const componentRelativePath = lab.componentPath ?? `src/components/${lab.component}.tsx`;
+  const componentPath = path.join(root, componentRelativePath);
   if (!fs.existsSync(componentPath)) {
-    errors.push(`Missing Founder Lab component: src/components/${lab.component}.tsx`);
+    errors.push(`Missing Founder Lab component: ${componentRelativePath}`);
     continue;
   }
 
   const componentContent = fs.readFileSync(componentPath, 'utf8');
   if (!/export\s+default/.test(componentContent)) {
-    errors.push(`Founder Lab component has no default export: ${lab.component}.tsx`);
+    errors.push(`Founder Lab component has no default export: ${componentRelativePath}`);
   }
 
-  if (!dockContent.includes(`import('./${lab.component}')`)) {
-    errors.push(`FounderLabsDock does not lazy-load ${lab.component}.`);
+  const importPath = lab.importPath ?? `./${lab.component}`;
+  if (!dockContent.includes(`import('${importPath}')`)) {
+    errors.push(`FounderLabsDock does not lazy-load ${lab.component} from ${importPath}.`);
   }
 
   if (!dockContent.includes(`{ id: '${lab.tab}', label: '${lab.label}'`)) {

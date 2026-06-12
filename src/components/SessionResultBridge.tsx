@@ -1,16 +1,5 @@
 import { useEffect } from 'react';
-
-type SessionStatus = 'Draft' | 'Queued' | 'Running' | 'Waiting Approval' | 'Blocked' | 'Done';
-type StepStatus = 'Todo' | 'Running' | 'Waiting Approval' | 'Done' | 'Blocked';
-
-type SessionStep = {
-  id: string;
-  title: string;
-  owner: string;
-  tool: string;
-  status: StepStatus;
-  note: string;
-};
+import type { SessionStatus, SessionStep, StepStatus } from '../types/agentOps';
 
 type AgentSession = {
   id: string;

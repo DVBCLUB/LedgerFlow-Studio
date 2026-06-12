@@ -9,8 +9,8 @@ import DevHandoffLauncher from './components/DevHandoffLauncher.tsx';
 import GitHubCIDoctorLauncher from './components/GitHubCIDoctorLauncher.tsx';
 import LocalAuthGate from './components/LocalAuthGate.tsx';
 import ApprovedPrPanel from './components/ApprovedPrPanel.tsx';
-import AIOpsCenterLauncher from './components/AIOpsCenterLauncher.tsx';
-import FastReviewModeLauncher from './components/FastReviewModeLauncher.tsx';
+import AgentOpsHubLauncher from './components/agent-ops/AgentOpsHubLauncher.tsx';
+import OpsToolsLauncher from './components/agent-ops/OpsToolsLauncher.tsx';
 import FastConnectorModeBridge from './components/FastConnectorModeBridge.tsx';
 import SecretExposureGuardBridge from './components/SecretExposureGuardBridge.tsx';
 import './index.css';
@@ -57,8 +57,8 @@ createRoot(document.getElementById('root')!).render(
       <FounderLabsDock />
       <SecretExposureGuardBridge />
       <FastConnectorModeBridge />
-      <AIOpsCenterLauncher />
-      <FastReviewModeLauncher />
+      <AgentOpsHubLauncher />
+      <OpsToolsLauncher />
       <GitHubCIDoctorLauncher />
       <DevHandoffLauncher />
       <AISettingsLauncher />

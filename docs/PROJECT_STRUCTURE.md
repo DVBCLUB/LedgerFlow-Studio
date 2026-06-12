@@ -37,6 +37,9 @@ Root should stay lean. Keep only files that must be at the project root for Node
 ```text
 src/
 ├── components/              # Main React feature components and launchers
+│   └── agent-ops/           # AgentOpsHub shell, launcher, and tabs
+├── types/                   # Shared frontend TypeScript type sources
+│   └── agentOps.ts          # Single source for AgentOps records/status/risk types
 ├── utils/                   # Frontend API clients and shared helpers
 ├── App.tsx                  # Main application shell
 └── main.tsx                 # React mount point + overlay launchers
@@ -47,6 +50,26 @@ Important frontend patterns:
 - Large feature overlays use `*Launcher.tsx` so they can be mounted without rewriting `App.tsx`.
 - API calls should be wrapped in `src/utils/*Api.ts` instead of being scattered across components.
 - New connector panels should be composed into `IntegrationHub.tsx` or mounted as a launcher if they are large.
+- Agent / AI Ops / Approval UI belongs under `src/components/agent-ops/`; shared AgentOps records belong in `src/types/agentOps.ts`.
+
+## AgentOpsHub organization
+
+```text
+src/components/agent-ops/
+├── AgentOpsHub.tsx          # Agent / AI Ops / Approval hub shell with tab navigation
+├── AgentOpsHubLauncher.tsx  # Hash-route launcher for old AgentOps routes
+├── OpsToolsLauncher.tsx     # Auxiliary ops panels that are outside AgentOps consolidation scope
+└── tabs/
+    ├── WorkboardTab.tsx
+    ├── RunTab.tsx
+    ├── SkillsTab.tsx
+    ├── PeopleTab.tsx
+    ├── GateTab.tsx
+    ├── ConnectorsTab.tsx
+    └── ReviewModeTab.tsx
+```
+
+`src/types/agentOps.ts` is the single source of truth for shared AgentOps entities such as `WorkCard`, `SessionStep`, `AgentSkill`, `ApprovalRequest`, `ConnectorDefinition`, and `PatchItem`. Do not redefine duplicate status/risk/session types inside future AgentOps UI components.
 
 ## Backend organization
 
@@ -69,11 +92,12 @@ Important backend patterns:
 
 ```text
 docs/
-├── AI_GATEWAY.md            # AI key manager, vault, fallback, diagnostics
-├── CI_DOCTOR.md             # GitHub Actions failure analyzer workflow
-├── INTEGRATION_HUB.md       # Connector architecture and registry
-├── PROJECT_STRUCTURE.md     # This map
-└── ...                      # Future module docs
+├── AGENTOPS_HUB_CONSOLIDATION.md # AgentOpsHub consolidation note
+├── AI_GATEWAY.md                 # AI key manager, vault, fallback, diagnostics
+├── CI_DOCTOR.md                  # GitHub Actions failure analyzer workflow
+├── INTEGRATION_HUB.md            # Connector architecture and registry
+├── PROJECT_STRUCTURE.md          # This map
+└── ...                           # Future module docs
 ```
 
 Suggested future docs:

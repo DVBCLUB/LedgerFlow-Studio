@@ -17,7 +17,16 @@ export const CT1_PROTECTED_TABS = [
   'risks',
   'cases',
   'datasets',
-  'experiments'
+  'experiments',
+  'agent_ops',
+  'ai_ops',
+  'agent_sessions',
+  'agent_skills',
+  'ai_staff',
+  'approvals',
+  'connectors',
+  'fast_mode',
+  'fast-review'
 ];
 
 export const CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS = [
@@ -27,7 +36,8 @@ export const CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS = [
   { tab: 'portfolio', label: 'Idea Portfolio', reason: 'Chấm điểm ý tưởng thương mại hóa.' },
   { tab: 'decisions', label: 'Decision Log', reason: 'Nhật ký quyết định và bằng chứng của founder.' },
   { tab: 'workorders', label: 'AI Work Orders', reason: 'Bảng giao việc cho nhân viên AI/AI agent, luôn cần founder review.' },
-  { tab: 'risks', label: 'Risk & Release', reason: 'Kiểm soát rủi ro trước khi release để không phá mô hình cũ.' }
+  { tab: 'risks', label: 'Risk & Release', reason: 'Kiểm soát rủi ro trước khi release để không phá mô hình cũ.' },
+  { tab: 'agent_ops', label: 'AgentOpsHub', reason: 'Hub mới giữ AI Ops, Approval, Connector và Review Mode trong một điểm truy cập.' }
 ];
 
 export const CT1_MODEL_HEALTH_CHECKS = [
@@ -72,6 +82,12 @@ export const CT1_MODEL_HEALTH_CHECKS = [
     visibility: 'tab-required',
     mustWork: ['hiện risk register', 'hiện release checklist', 'giữ cảnh báo không phải ERP'],
     failSignal: 'Release checklist biến mất hoặc không còn cảnh báo bảo vệ mô hình.'
+  },
+  {
+    model: 'AgentOpsHub',
+    visibility: 'tab-required',
+    mustWork: ['mở route ai_ops', 'mở agent_sessions', 'mở approvals', 'mở connectors', 'mở fast_mode'],
+    failSignal: 'Route cũ không mở được AgentOpsHub hoặc tab con bị trống bất thường.'
   }
 ];
 
@@ -99,6 +115,12 @@ export const CT1_MODEL_VERSION_REGISTRY = [
     currentVersion: 'v1',
     status: 'protected',
     changePolicy: 'Nếu đổi schema phải có migration, không đổi storage key tùy tiện.'
+  },
+  {
+    model: 'AgentOpsHub localStorage',
+    currentVersion: 'v1',
+    status: 'protected',
+    changePolicy: 'Không đổi key localStorage cũ của workboard, sessions, approvals, connectors và review mode nếu chưa có migration.'
   }
 ];
 
@@ -112,5 +134,5 @@ export const CT1_RELEASE_AUDIT_CHECKLIST = [
   'Ưu tiên free-first, localStorage và static data trước khi thêm backend/tool trả phí.',
   'UI giữ phong cách dark/cyan/card hiện tại.',
   'Các mô hình chính phải luôn truy cập được từ tab chính hoặc pinned shortcuts.',
-  'Trước khi merge phải click qua Dashboard, Score lab, Simulator, Portfolio, Decision Log và AI Work Orders.'
+  'Trước khi merge phải click qua Dashboard, Score lab, Simulator, Portfolio, Decision Log, AI Work Orders và AgentOpsHub.'
 ];

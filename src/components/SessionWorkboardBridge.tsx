@@ -1,21 +1,5 @@
 import { useEffect } from 'react';
-
-type WorkKind = 'Q&A' | 'Code' | 'Design' | 'Data' | 'Marketing' | 'Integration';
-type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
-
-type WorkCard = {
-  id: string;
-  title: string;
-  kind: WorkKind;
-  owner: string;
-  status: 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-  risk: RiskLevel;
-  request: string;
-  plan: string[];
-  tools: string[];
-  approval: string;
-  sourceSessionId?: string;
-};
+import type { RiskLevel, WorkCard, WorkKind } from '../types/agentOps';
 
 type AuditEntry = {
   id: string;
@@ -42,22 +26,21 @@ function readLocal<T>(key: string, fallback: T): T {
 }
 
 function normalizeKind(kind?: string): WorkKind {
-  if (kind === 'Q&A' || kind === 'Code' || kind === 'Design' || kind === 'Data' || kind === 'Marketing' || kind === 'Integration') return kind;
-  if (kind === 'CI Fix') return 'Code';
+  if (kind === 'Q&A' || kind === 'Code' || kind === 'Design' || kind === 'Data' || kind === 'Marketing' || kind === 'Integration' || kind === 'CI Fix' || kind === 'Audit' || kind === 'Product' || kind === 'Ops') return kind;
   return 'Code';
 }
 
 function riskFor(kind: WorkKind): RiskLevel {
-  if (kind === 'Code' || kind === 'Integration') return 'HIGH';
-  if (kind === 'Data' || kind === 'Design') return 'MEDIUM';
+  if (kind === 'Code' || kind === 'Integration' || kind === 'CI Fix') return 'HIGH';
+  if (kind === 'Data' || kind === 'Design' || kind === 'Audit' || kind === 'Ops') return 'MEDIUM';
   return 'LOW';
 }
 
 function ownerFor(kind: WorkKind) {
-  if (kind === 'Code') return 'AI Code / Dev Agent';
+  if (kind === 'Code' || kind === 'CI Fix') return 'AI Code / Dev Agent';
   if (kind === 'Design') return 'AI Thiết kế sản phẩm';
   if (kind === 'Marketing') return 'AI Marketing / Sales';
-  if (kind === 'Data') return 'AI Dữ liệu / Tri thức';
+  if (kind === 'Data' || kind === 'Audit') return 'AI Dữ liệu / Tri thức';
   return 'AI Điều phối trưởng';
 }
 
@@ -82,7 +65,7 @@ export default function SessionWorkboardBridge() {
         risk,
         request: prefill.request.trim(),
         plan: ['Đọc Context Pack', 'Lập kế hoạch nhỏ', 'Kiểm tra Tool Policy', 'Chờ founder duyệt nếu có rủi ro'],
-        tools: kind === 'Code' ? ['Knowledge Library', 'Tool Policy', 'Review Desk', 'Build Monitor'] : kind === 'Integration' ? ['Integration Hub', 'Tool Policy', 'Review Desk'] : ['Knowledge Library', 'Sandbox'],
+        tools: kind === 'Code' || kind === 'CI Fix' ? ['Knowledge Library', 'Tool Policy', 'Review Desk', 'Build Monitor'] : kind === 'Integration' ? ['Integration Hub', 'Tool Policy', 'Review Desk'] : ['Knowledge Library', 'Sandbox'],
         approval: risk === 'LOW' ? 'Có thể xử lý trong sandbox.' : 'Cần founder review trước khi hành động ngoài sandbox.',
         sourceSessionId: prefill.sourceSessionId
       };
