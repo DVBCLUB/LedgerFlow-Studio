@@ -8,6 +8,7 @@ import { z } from "zod";
 import { callAI, streamAI, checkAIProxyHealth, type ChatMessage, type CallAIOptions } from "./server/services/aiClient";
 import { createAIKey, deleteAIKey, exportAIKeyBackup, getSupportedAIProviders, importAIKeyBackup, listAIKeys, updateAIKey } from "./server/services/aiKeyVault";
 import { diagnoseAIRouter, testAIKey } from "./server/services/aiRouter";
+import { clearAIUsageLogs, readAIUsageLogs } from "./server/services/aiUsageLog";
 
 dotenv.config();
 
@@ -47,6 +48,8 @@ async function startServer() {
   app.delete("/api/ai/keys/:id", async (req, res) => { try { res.json({ success: true, deleted: await deleteAIKey(req.params.id) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to delete AI key." }); } });
   app.post("/api/ai/keys/test", async (req, res) => { const parsed = aiKeyCreateSchema.pick({ provider: true, apiKey: true, model: true, baseUrl: true }).safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await testAIKey(parsed.data); res.status(result.success ? 200 : 400).json(result); });
   app.get("/api/ai/diagnostics", async (req, res) => { try { res.json({ success: true, diagnostics: await diagnoseAIRouter() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to diagnose AI router." }); } });
+  app.get("/api/ai/logs", async (req, res) => { try { const limit = Number(req.query.limit ?? 100); res.json({ success: true, logs: await readAIUsageLogs(limit) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to read AI usage logs." }); } });
+  app.delete("/api/ai/logs", async (req, res) => { try { await clearAIUsageLogs(); res.json({ success: true }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to clear AI usage logs." }); } });
   app.post("/api/ai/backup/export", async (req, res) => { try { const parsed = aiBackupExportSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, backup: await exportAIKeyBackup(parsed.data.passphrase) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to export AI key backup." }); } });
   app.post("/api/ai/backup/import", async (req, res) => { try { const parsed = aiBackupImportSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await importAIKeyBackup(parsed.data.backup, parsed.data.passphrase, parsed.data.mode); res.json({ success: true, ...result }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to import AI key backup." }); } });
 
