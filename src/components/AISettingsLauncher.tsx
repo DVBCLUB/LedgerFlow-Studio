@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { KeyRound, Loader2, X } from 'lucide-react';
 
+const AIVaultSecurityPanel = React.lazy(() => import('./AIVaultSecurityPanel'));
 const AISetupWizardPanel = React.lazy(() => import('./AISetupWizardPanel'));
 const AISettingsManager = React.lazy(() => import('./AISettingsManager'));
 
@@ -76,6 +77,7 @@ export default function AISettingsLauncher() {
                 </div>
               }
             >
+              <AIVaultSecurityPanel />
               <AISetupWizardPanel />
               <AISettingsManager />
             </Suspense>
