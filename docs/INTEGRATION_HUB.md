@@ -62,7 +62,39 @@ V2 hiện làm an toàn:
 - Test connector.
 - Lưu trạng thái và thông báo lần test gần nhất.
 - Ghi event log local.
-- Chưa tự ghi/sửa/xóa dữ liệu ngoài.
+- Chưa tự ghi/sửa/xóa dữ liệu ngoài, trừ GitHub issue khi người dùng bấm tạo và đã cấu hình token.
+
+### GitHub Connector v1 đã có
+
+File chính:
+
+```text
+server/services/githubConnector.ts
+src/components/GitHubConnectorPanel.tsx
+```
+
+API kỹ thuật:
+
+```text
+GET  /api/integrations/github/summary
+POST /api/integrations/github/issues
+```
+
+Khả năng:
+
+- Đọc repo mặc định `DVBCLUB/LedgerFlow-Studio` hoặc repo URL trong registry.
+- Đọc 5 workflow runs gần nhất từ GitHub Actions.
+- Đọc issues mở.
+- Đọc pull requests mở.
+- Tạo GitHub Issue từ trong LedgerFlow nếu máy local có biến môi trường:
+
+```text
+GITHUB_TOKEN=...
+# hoặc
+GH_TOKEN=...
+```
+
+Không lưu GitHub token trong frontend. Token chỉ đọc từ môi trường backend local. Nếu không có token, đọc repo public vẫn hoạt động, nhưng tạo issue sẽ báo cần token.
 
 ---
 
@@ -238,21 +270,3 @@ LedgerFlow làm:
 
 - Quản lý hồ sơ chứng từ.
 - Gắn chứng từ vào khoản chi.
-- Tự kiểm tra thiếu file.
-- Tạo checklist hồ sơ thanh toán.
-- AI đọc chứng từ và gợi ý phân loại.
-
-### 2.6. Automation Hub
-
-Kết nối:
-
-- n8n
-- Make
-- Zapier
-- Webhook custom
-
-Nguyên tắc:
-
-- Automation phải chạy qua trigger/action rõ ràng.
-- Hành động ghi dữ liệu/gửi mail phải có chế độ duyệt.
-- Mọi automation phải ghi log và có cách tắt nhanh.
