@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState } from 'react';
 import { KeyRound, Loader2, X } from 'lucide-react';
 
+const AISetupWizardPanel = React.lazy(() => import('./AISetupWizardPanel'));
 const AISettingsManager = React.lazy(() => import('./AISettingsManager'));
 
 function isAISettingsHash() {
@@ -75,6 +76,7 @@ export default function AISettingsLauncher() {
                 </div>
               }
             >
+              <AISetupWizardPanel />
               <AISettingsManager />
             </Suspense>
           </div>
