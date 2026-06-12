@@ -4,6 +4,7 @@ import AgentSessionQueue from './AgentSessionQueue';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
 import ApprovalSessionBridge from './ApprovalSessionBridge';
+import ApprovalReviewDeskBridge from './ApprovalReviewDeskBridge';
 import ApprovalGatePanel from './ApprovalGatePanel';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
@@ -38,6 +39,7 @@ export default function AIOpsCenterLauncher() {
       {open && <SessionWorkboardBridge />}
       {open && <SessionResultBridge />}
       {open && <ApprovalSessionBridge />}
+      {open && <ApprovalReviewDeskBridge />}
       <button
         onClick={openPanel}
         className="fixed bottom-56 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80"
