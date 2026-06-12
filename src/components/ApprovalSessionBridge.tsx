@@ -52,6 +52,7 @@ const SESSIONS_KEY = 'ledgerflow_agent_sessions_v1';
 const SESSION_EVENTS_KEY = 'ledgerflow_agent_session_events_v1';
 const APPROVALS_KEY = 'ledgerflow_approval_gate_requests_v1';
 const APPROVAL_EVENTS_KEY = 'ledgerflow_approval_gate_events_v1';
+const REVIEW_MODE_KEY = 'ledgerflow_review_mode_v1';
 
 function readLocal<T>(key: string, fallback: T): T {
   try {
@@ -64,6 +65,11 @@ function readLocal<T>(key: string, fallback: T): T {
 
 function writeLocal<T>(key: string, value: T) {
   localStorage.setItem(key, JSON.stringify(value));
+}
+
+function isFastSecureMode() {
+  const mode = readLocal<{ mode?: string }>(REVIEW_MODE_KEY, { mode: 'fast_secure' });
+  return mode.mode !== 'strict_review';
 }
 
 function addHours(hours: number) {
@@ -84,10 +90,15 @@ function approvalStepIsWaiting(session: AgentSession) {
   return session.steps.some((step) => step.tool === 'Approval Gate' && step.status === 'Waiting Approval');
 }
 
+function hasFastModeEvent(events: SessionEvent[], sessionId: string) {
+  return events.some((event) => event.sessionId === sessionId && event.action === 'FAST_SECURE_REVIEW_DESK_APPROVAL_ONLY');
+}
+
 function syncApprovalSessions() {
   const sessions = readLocal<AgentSession[]>(SESSIONS_KEY, []);
   if (!sessions.length) return;
 
+  const fastSecure = isFastSecureMode();
   let approvals = readLocal<ApprovalRequest[]>(APPROVALS_KEY, []);
   let approvalEvents = readLocal<ApprovalEvent[]>(APPROVAL_EVENTS_KEY, []);
   let sessionEvents = readLocal<SessionEvent[]>(SESSION_EVENTS_KEY, []);
@@ -101,36 +112,49 @@ function syncApprovalSessions() {
     if (approval.sourceSessionId) approvalsBySession.set(approval.sourceSessionId, approval);
   }
 
-  for (const session of sessions) {
-    if ((session.risk === 'MEDIUM' || session.risk === 'HIGH') && approvalStepIsWaiting(session) && !approvalsBySession.has(session.id)) {
-      const request: ApprovalRequest = {
-        id: `approval-session-${session.id}-${Date.now()}`,
-        title: `Duyệt phiên AI: ${session.title}`,
-        source: `Agent Session · ${session.id}`,
-        sourceSessionId: session.id,
-        risk: session.risk,
-        action: session.kind === 'Code' || session.kind === 'Integration' || session.kind === 'CI Fix' ? 'Cho phép đưa phiên sang Review Desk tạo Draft PR' : 'Cho phép AI tiếp tục xử lý phiên',
-        details: `${session.goal}\n\nGuardrail: chỉ làm trong sandbox/Review Desk, không merge thẳng main, không ghi secret, không vượt phạm vi session.`,
-        createdAt: new Date().toISOString(),
-        expiresAt: addHours(2),
-        status: 'Pending'
-      };
-      approvals = [request, ...approvals];
-      approvalsBySession.set(session.id, request);
-      approvalEvents = appendApprovalEvent(approvalEvents, request.id, 'AUTO_CREATED_FROM_SESSION', `Tự tạo approval request từ session ${session.id}.`);
-      sessionEvents = appendSessionEvent(sessionEvents, session.id, 'APPROVAL_REQUEST_CREATED', `Tự tạo yêu cầu duyệt ${request.id}.`);
-      changedApprovals = true;
-      changedApprovalEvents = true;
-      changedSessionEvents = true;
+  if (!fastSecure) {
+    for (const session of sessions) {
+      if ((session.risk === 'MEDIUM' || session.risk === 'HIGH') && approvalStepIsWaiting(session) && !approvalsBySession.has(session.id)) {
+        const request: ApprovalRequest = {
+          id: `approval-session-${session.id}-${Date.now()}`,
+          title: `Duyệt phiên AI: ${session.title}`,
+          source: `Agent Session · ${session.id}`,
+          sourceSessionId: session.id,
+          risk: session.risk,
+          action: session.kind === 'Code' || session.kind === 'Integration' || session.kind === 'CI Fix' ? 'Cho phép đưa phiên sang Review Desk tạo Draft PR' : 'Cho phép AI tiếp tục xử lý phiên',
+          details: `${session.goal}\n\nGuardrail: chỉ làm trong sandbox/Review Desk, không merge thẳng main, không ghi secret, không vượt phạm vi session.`,
+          createdAt: new Date().toISOString(),
+          expiresAt: addHours(2),
+          status: 'Pending'
+        };
+        approvals = [request, ...approvals];
+        approvalsBySession.set(session.id, request);
+        approvalEvents = appendApprovalEvent(approvalEvents, request.id, 'AUTO_CREATED_FROM_SESSION', `Tự tạo approval request từ session ${session.id}.`);
+        sessionEvents = appendSessionEvent(sessionEvents, session.id, 'APPROVAL_REQUEST_CREATED', `Tự tạo yêu cầu duyệt ${request.id}.`);
+        changedApprovals = true;
+        changedApprovalEvents = true;
+        changedSessionEvents = true;
+      }
     }
   }
 
   const nextSessions = sessions.map((session) => {
     const approval = approvalsBySession.get(session.id);
-    if (!approval) return session;
-
     const approvalStep = session.steps.find((step) => step.tool === 'Approval Gate');
     if (!approvalStep) return session;
+
+    if (fastSecure && !approval && approvalStep.status === 'Waiting Approval') {
+      changedSessions = true;
+      if (!hasFastModeEvent(sessionEvents, session.id)) {
+        changedSessionEvents = true;
+        sessionEvents = appendSessionEvent(sessionEvents, session.id, 'FAST_SECURE_REVIEW_DESK_APPROVAL_ONLY', 'Fast Secure: bỏ approval phụ của session; Review Desk là lớp approve chính trước khi tạo Draft PR.');
+      }
+      const steps = session.steps.map((step) => step.tool === 'Approval Gate' ? { ...step, status: 'Done' as StepStatus } : step);
+      const current = steps.find((step) => step.status !== 'Done') ?? steps[steps.length - 1];
+      return { ...session, status: 'Running' as SessionStatus, currentStepId: current.id, steps };
+    }
+
+    if (!approval) return session;
 
     let nextStepStatus: StepStatus = approvalStep.status;
     let nextSessionStatus: SessionStatus = session.status;
@@ -143,8 +167,8 @@ function syncApprovalSessions() {
       nextSessionStatus = 'Blocked';
     }
     if (approval.status === 'Pending') {
-      nextStepStatus = 'Waiting Approval';
-      nextSessionStatus = 'Waiting Approval';
+      nextStepStatus = fastSecure ? 'Done' : 'Waiting Approval';
+      nextSessionStatus = fastSecure ? 'Running' : 'Waiting Approval';
     }
 
     if (approvalStep.status === nextStepStatus && session.status === nextSessionStatus) return session;
@@ -175,10 +199,12 @@ export default function ApprovalSessionBridge() {
     const timer = window.setInterval(syncApprovalSessions, 1200);
     window.addEventListener('ledgerflow-approval-gate-sync', onSync);
     window.addEventListener('ledgerflow-agent-session-sync', onSync);
+    window.addEventListener('ledgerflow-review-mode-changed', onSync);
     return () => {
       window.clearInterval(timer);
       window.removeEventListener('ledgerflow-approval-gate-sync', onSync);
       window.removeEventListener('ledgerflow-agent-session-sync', onSync);
+      window.removeEventListener('ledgerflow-review-mode-changed', onSync);
     };
   }, []);
 
