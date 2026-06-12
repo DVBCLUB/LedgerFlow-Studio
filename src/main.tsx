@@ -11,6 +11,7 @@ import LocalAuthGate from './components/LocalAuthGate.tsx';
 import ApprovedPrPanel from './components/ApprovedPrPanel.tsx';
 import AIOpsCenterLauncher from './components/AIOpsCenterLauncher.tsx';
 import FastReviewModeLauncher from './components/FastReviewModeLauncher.tsx';
+import FastConnectorModeBridge from './components/FastConnectorModeBridge.tsx';
 import './index.css';
 
 function ReviewOverlay() {
@@ -53,6 +54,7 @@ createRoot(document.getElementById('root')!).render(
       <ReviewOverlay />
       <SimulationGuard />
       <FounderLabsDock />
+      <FastConnectorModeBridge />
       <AIOpsCenterLauncher />
       <FastReviewModeLauncher />
       <GitHubCIDoctorLauncher />
