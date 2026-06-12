@@ -15,6 +15,7 @@ type ReviewDeskPrefill = {
   summary?: string;
   filePath?: string;
   fileContent?: string;
+  sourceCardId?: string;
 };
 
 const approvalPhrase = ['APPROVE', 'AI', 'GITHUB', 'PUSH'].join(' ');
@@ -28,8 +29,19 @@ function readPrefill(): ReviewDeskPrefill | null {
   }
 }
 
+function writeReviewResult(result: DraftPrResult, sourceCardId?: string) {
+  const payload = {
+    sourceCardId: sourceCardId || '',
+    result,
+    at: new Date().toLocaleString('vi-VN')
+  };
+  localStorage.setItem('ledgerflow_review_desk_last_result_v1', JSON.stringify(payload));
+  window.dispatchEvent(new CustomEvent('ledgerflow-review-desk-result', { detail: payload }));
+}
+
 export default function ApprovedPrPanel() {
   const prefill = readPrefill();
+  const [sourceCardId, setSourceCardId] = useState(prefill?.sourceCardId || '');
   const [title, setTitle] = useState(prefill?.title || 'AI update: reviewed LedgerFlow change');
   const [branchName, setBranchName] = useState(prefill?.branchName || 'ai/reviewed-ledgerflow-change');
   const [summary, setSummary] = useState(prefill?.summary || 'Reviewed change prepared from LedgerFlow AI Operations Center.');
@@ -41,17 +53,26 @@ export default function ApprovedPrPanel() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const onStorage = () => {
+    const applyPrefill = () => {
       const next = readPrefill();
       if (!next) return;
+      if (next.sourceCardId) setSourceCardId(next.sourceCardId);
       if (next.title) setTitle(next.title);
       if (next.branchName) setBranchName(next.branchName);
       if (next.summary) setSummary(next.summary);
       if (next.filePath) setFilePath(next.filePath);
       if (next.fileContent) setFileContent(next.fileContent);
     };
+    const onStorage = () => applyPrefill();
+    const onFocus = () => applyPrefill();
     window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
+    window.addEventListener('focus', onFocus);
+    window.addEventListener('hashchange', applyPrefill);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('hashchange', applyPrefill);
+    };
   }, []);
 
   const canSubmit = approval === approvalPhrase && title.trim() && filePath.trim() && fileContent.trim();
@@ -77,7 +98,9 @@ export default function ApprovedPrPanel() {
       if (!response.ok || data?.success === false) {
         throw new Error(data?.error || `Request failed: ${response.status}`);
       }
-      setResult(data.result as DraftPrResult);
+      const nextResult = data.result as DraftPrResult;
+      setResult(nextResult);
+      writeReviewResult(nextResult, sourceCardId);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Cannot create draft PR.');
     } finally {
@@ -96,6 +119,7 @@ export default function ApprovedPrPanel() {
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <div className="grid gap-3">
+          {sourceCardId && <p className="rounded-2xl border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-xs font-bold text-violet-200">Nguồn từ Workboard: {sourceCardId}</p>}
           <label className="text-xs font-black text-slate-400">PR title<input className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={title} onChange={(event) => setTitle(event.target.value)} /></label>
           <label className="text-xs font-black text-slate-400">Branch<input className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={branchName} onChange={(event) => setBranchName(event.target.value)} /></label>
           <label className="text-xs font-black text-slate-400">Summary<textarea className="mt-1 min-h-[96px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
@@ -118,6 +142,7 @@ export default function ApprovedPrPanel() {
               <li>✓ Không merge tự động</li>
               <li>✓ CI kiểm tra trước khi merge</li>
               <li>✓ Founder duyệt cuối cùng</li>
+              <li>✓ Kết quả PR ghi ngược về audit local</li>
             </ul>
           </div>
         </div>
