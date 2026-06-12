@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { callAI, streamAI, checkAIProxyHealth, type ChatMessage, type CallAIOptions } from "./server/services/aiClient";
-import { createAIKey, deleteAIKey, getSupportedAIProviders, listAIKeys, updateAIKey } from "./server/services/aiKeyVault";
+import { createAIKey, deleteAIKey, exportAIKeyBackup, getSupportedAIProviders, importAIKeyBackup, listAIKeys, updateAIKey } from "./server/services/aiKeyVault";
 import { diagnoseAIRouter, testAIKey } from "./server/services/aiRouter";
 
 dotenv.config();
@@ -16,6 +16,8 @@ const geminiGenerateSchema = z.object({ prompt: z.string().min(1, "Prompt cannot
 const aiProviderSchema = z.enum(["gemini", "groq", "openrouter", "anthropic", "ollama"]);
 const aiKeyCreateSchema = z.object({ provider: aiProviderSchema, label: z.string().optional(), apiKey: z.string().optional(), model: z.string().optional(), baseUrl: z.string().optional(), priority: z.number().optional(), enabled: z.boolean().optional() });
 const aiKeyUpdateSchema = aiKeyCreateSchema.partial().extend({ lastStatus: z.enum(["ok", "error", "quota", "untested"]).optional(), lastError: z.string().optional() });
+const aiBackupExportSchema = z.object({ passphrase: z.string().min(8, "Mật khẩu backup phải có ít nhất 8 ký tự.") });
+const aiBackupImportSchema = z.object({ passphrase: z.string().min(8, "Mật khẩu backup phải có ít nhất 8 ký tự."), mode: z.enum(["merge", "replace"]).default("merge"), backup: z.object({ version: z.literal(1), app: z.literal("LedgerFlow Studio"), exportedAt: z.string(), kdf: z.literal("scrypt"), cipher: z.literal("aes-256-gcm"), salt: z.string(), iv: z.string(), tag: z.string(), payload: z.string(), note: z.string() }) });
 type GeminiGenerateInput = z.infer<typeof geminiGenerateSchema>;
 
 function getSimulatedMarketSurveyResponse(niche: string, direction?: string) { return { summary: `Mô phỏng nghiên cứu thị trường cho: ${niche}.`, metrics: { pricingPreferred: [], painPoints: [], channels: [] }, personas: [], gaps: [], competitors: [], blueprint: { direction: direction || "B2D Tool" }, sources: [{ title: "Fallback simulator", url: "local" }] }; }
@@ -45,6 +47,8 @@ async function startServer() {
   app.delete("/api/ai/keys/:id", async (req, res) => { try { res.json({ success: true, deleted: await deleteAIKey(req.params.id) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to delete AI key." }); } });
   app.post("/api/ai/keys/test", async (req, res) => { const parsed = aiKeyCreateSchema.pick({ provider: true, apiKey: true, model: true, baseUrl: true }).safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await testAIKey(parsed.data); res.status(result.success ? 200 : 400).json(result); });
   app.get("/api/ai/diagnostics", async (req, res) => { try { res.json({ success: true, diagnostics: await diagnoseAIRouter() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to diagnose AI router." }); } });
+  app.post("/api/ai/backup/export", async (req, res) => { try { const parsed = aiBackupExportSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, backup: await exportAIKeyBackup(parsed.data.passphrase) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to export AI key backup." }); } });
+  app.post("/api/ai/backup/import", async (req, res) => { try { const parsed = aiBackupImportSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await importAIKeyBackup(parsed.data.backup, parsed.data.passphrase, parsed.data.mode); res.json({ success: true, ...result }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to import AI key backup." }); } });
 
   app.get("/api/gemini/status", async (req, res) => { const keys = await listAIKeys().catch(() => []); const routerHealthy = await checkAIProxyHealth(); res.json({ success: true, usingCustomKey: keys.length > 0, keyName: keys.length > 0 ? `AI Key Vault (${keys.filter(k => k.enabled).length}/${keys.length} enabled)` : "No local AI keys configured", isProReady: routerHealthy, localKeyCount: keys.length, enabledKeyCount: keys.filter(k => k.enabled).length }); });
   app.post("/api/gemini/generate", async (req, res) => { try { const parsed = geminiGenerateSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") }); const response = await callAI(buildAIMessages(parsed.data), { model: resolveProxyModel(parsed.data.model) }); res.json({ success: true, text: response.content, modelUsed: response.modelUsed }); } catch (err: any) { const isQuota = isRateLimitOrQuotaError(err); res.status(isQuota ? 400 : 500).json({ success: false, isMissingKey: isQuota, error: err.message || "An error occurred during generation." }); } });
