@@ -13,6 +13,33 @@ Không biến LedgerFlow thành bản sao của VS Code, GitHub, Google Drive, M
 
 ---
 
+## 0. Integration Hub v1 trong app
+
+Đã có màn hình nhẹ trong app:
+
+```text
+Nút nổi: Integration Hub
+Hash mở nhanh: #/integration_hub hoặc #/integration-hub
+```
+
+V1 hiện làm các việc an toàn:
+
+- Hiển thị các nhóm connector chính: AI Gateway, GitHub, VS Code/Cursor, Google Workspace, MISA/SmartPro, Document Vault, Automation, Data Hub.
+- Phân loại trạng thái: đã có nền, local-first, handoff thủ công, đang quy hoạch.
+- Có nút mở nhanh sang GitHub repo, GitHub Actions, Issues, AI Gateway.
+- Có lộ trình v1 → v5 để phát triển connector thật.
+- Chưa tự ghi/sửa/xóa dữ liệu ngoài; chỉ là trung tâm điều phối và handoff.
+
+Các file chính:
+
+```text
+src/components/IntegrationHub.tsx
+src/components/IntegrationHubLauncher.tsx
+src/main.tsx
+```
+
+---
+
 ## 1. Nguyên tắc kiến trúc
 
 ### 1.1. Hub, không phải clone
@@ -259,154 +286,13 @@ AI đề xuất → tạo action draft → user duyệt → connector chạy →
 
 ---
 
-## 4. Lộ trình triển khai
-
-### Giai đoạn 1 — Integration Hub shell
-
-Mục tiêu: tạo trung tâm điều phối, chưa cần kết nối thật hết.
-
-Làm:
-
-- Trang Integration Hub trong app.
-- Danh sách connector theo nhóm.
-- Trạng thái: chưa cấu hình / đã cấu hình / lỗi.
-- Nút mở GitHub, VS Code, AI Gateway, docs.
-- Lưu cấu hình connector local.
-- Audit log cơ bản.
-
-Connector v1:
-
-- AI Gateway
-- GitHub
-- VS Code/Cursor handoff
-- Google Workspace placeholder
-- Accounting/Excel placeholder
-- Automation/Webhook placeholder
-
-### Giai đoạn 2 — DevOps connector thật
-
-Làm:
-
-- Cấu hình repo GitHub.
-- Tạo GitHub Issue từ yêu cầu.
-- Đọc trạng thái Actions.
-- Đọc log lỗi CI.
-- AI phân tích lỗi.
-- Tạo prompt cho Cursor/VS Code.
-
-### Giai đoạn 3 — Workspace connector
-
-Làm:
-
-- Google Drive/Sheets/Gmail/Calendar ở mức bán tự động.
-- Tạo link chứng từ.
-- Tạo draft email.
-- Nhắc hạn hoàn ứng/thanh toán.
-
-### Giai đoạn 4 — Accounting bridge
-
-Làm:
-
-- Import/export Excel/CSV.
-- Template cho SmartPro/MISA nếu không có API.
-- Mapping cột.
-- Kiểm tra lỗi trước khi import.
-
-### Giai đoạn 5 — Automation marketplace
-
-Làm:
-
-- Webhook inbound/outbound.
-- n8n/Make/Zapier recipe.
-- Action approval.
-- Scheduler.
-
----
-
-## 5. Ưu tiên v1 nên build ngay
-
-### Màn hình: Integration Hub
-
-Các card:
-
-1. AI Gateway
-2. GitHub
-3. VS Code / Cursor
-4. Google Workspace
-5. Accounting / SmartPro / MISA
-6. Document Storage
-7. Automation / Webhook
-
-Mỗi card có:
-
-- Trạng thái.
-- Mô tả.
-- Nút cấu hình.
-- Nút test kết nối.
-- Nút mở nhanh.
-- Capability list.
-
-### Màn hình: DevOps Control
-
-Các chức năng v1:
-
-- Nhập yêu cầu phát triển.
-- AI tạo spec/checklist/prompt.
-- Copy prompt cho Cursor/VS Code.
-- Tạo GitHub Issue.
-- Mở GitHub Actions.
-
----
-
-## 6. Quy tắc bảo mật
-
-- Không lưu token/key ở frontend localStorage nếu có quyền ghi/sửa/xóa.
-- Key/token phải đi qua encrypted vault.
-- Log không được chứa secret.
-- Action nguy hiểm phải cần duyệt.
-- Không tự động gửi email, push code, xóa chứng từ hoặc sửa dữ liệu kế toán khi chưa xác nhận.
-- Có danh sách file/endpoint nhạy cảm không cho AI sửa nếu chưa xác nhận.
-
----
-
-## 7. Tên module đề xuất
-
-Tên chính:
+## 4. Lộ trình ưu tiên
 
 ```text
-LedgerFlow Integration Hub
+V1: Integration Hub UI, link nhanh, trạng thái, roadmap, handoff an toàn.
+V2: GitHub connector đọc Actions/Issues/PR và phân tích lỗi CI bằng AI Gateway.
+V3: DevOps Center tạo spec, checklist, prompt cho VS Code/Cursor.
+V4: Google Workspace connector cho Sheets/Drive/Gmail/Calendar.
+V5: Document Vault + Data Hub chuẩn hóa chứng từ/Excel/CSV.
+V6: Automation Hub với webhook/n8n/Make/Zapier, có duyệt trước khi chạy.
 ```
-
-Tên phụ:
-
-```text
-DevOps Center
-Workspace Center
-Accounting Bridge
-Automation Center
-Document Hub
-AI Gateway
-```
-
----
-
-## 8. Đích đến dài hạn
-
-LedgerFlow không chỉ là phần mềm kế toán. Nó là:
-
-```text
-Operating System nội bộ cho công ty nhỏ
-```
-
-Tức là một màn hình trung tâm để:
-
-- Quản lý tiền.
-- Quản lý chứng từ.
-- Quản lý công việc.
-- Quản lý AI.
-- Quản lý code/phần mềm.
-- Quản lý kết nối dữ liệu.
-- Quản lý báo cáo.
-- Quản lý tự động hóa.
-
-Các phần mềm khác vẫn tồn tại, LedgerFlow chỉ đứng giữa để điều phối và kiểm soát.
