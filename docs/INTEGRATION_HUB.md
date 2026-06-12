@@ -96,6 +96,38 @@ GH_TOKEN=...
 
 Không lưu GitHub token trong frontend. Token chỉ đọc từ môi trường backend local. Nếu không có token, đọc repo public vẫn hoạt động, nhưng tạo issue sẽ báo cần token.
 
+### Local Tools Connector v1 đã có
+
+Mục tiêu: kết nối LedgerFlow với các công cụ local miễn phí/có sẵn như VS Code, Cursor, terminal và trình duyệt GitHub.
+
+File chính:
+
+```text
+server/services/localToolConnector.ts
+src/components/LocalToolsPanel.tsx
+```
+
+API kỹ thuật:
+
+```text
+GET  /api/integrations/local-tools/status
+POST /api/integrations/local-tools/open
+```
+
+Khả năng:
+
+- Phát hiện lệnh `code` / `code.cmd` để mở VS Code.
+- Phát hiện lệnh `cursor` / `cursor.cmd` để mở Cursor.
+- Mở GitHub repo và GitHub Actions bằng trình duyệt.
+- Sinh danh sách lệnh terminal an toàn để người dùng copy/chạy thủ công.
+
+Nguyên tắc bảo mật:
+
+- Không tự chạy `npm run build`, `git push`, `delete`, `rm`, `del`, hoặc lệnh nguy hiểm.
+- Chỉ mở tool đã whitelist: VS Code, Cursor, GitHub, Actions.
+- Lệnh terminal chỉ hiển thị/copy, không tự chạy.
+- Event log ghi lại thao tác mở tool/handoff.
+
 ### Dev Handoff Center v1 đã có
 
 Mục tiêu: kết nối LedgerFlow với VS Code / Cursor / Copilot theo kiểu **handoff nhẹ**, không clone IDE.
