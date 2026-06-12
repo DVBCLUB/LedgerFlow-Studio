@@ -32,8 +32,14 @@ export interface CallAIOptions {
 
 export interface CallAIResult {
   content: string;
+  /** Backward-compatible alias used by older server routes. */
+  text?: string;
   /** Provider/model that actually answered. */
   modelUsed?: string;
+  /** Backward-compatible aliases used by older server routes. */
+  provider?: string;
+  model?: string;
+  usage?: unknown;
   raw: unknown;
 }
 
@@ -45,7 +51,13 @@ export async function callAI(
   messages: ChatMessage[],
   options: CallAIOptions = {}
 ): Promise<CallAIResult> {
-  return callAIWithFallback(messages, options);
+  const result = await callAIWithFallback(messages, options);
+  return {
+    ...result,
+    text: result.content,
+    provider: result.modelUsed?.split("/")[0],
+    model: result.modelUsed,
+  };
 }
 
 /**
@@ -63,6 +75,6 @@ export async function* streamAI(
  * Health check: true when at least one local encrypted AI key is enabled,
  * or when the optional LiteLLM proxy is reachable.
  */
-export async function checkAIProxyHealth(): Promise<boolean> {
-  return checkAIRouterHealth();
+export async function checkAIProxyHealth(): Promise<{ ok: boolean }> {
+  return { ok: await checkAIRouterHealth() };
 }
