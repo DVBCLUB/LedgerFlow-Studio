@@ -7,6 +7,7 @@ import BrowserSimulationPlanner from './BrowserSimulationPlanner';
 import ProjectMemoryDecisionLog from './ProjectMemoryDecisionLog';
 import SecurityControlCenter from './SecurityControlCenter';
 import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
+import RuntimeToolBridge from './RuntimeToolBridge';
 import LocalHandoffCenter from './LocalHandoffCenter';
 import PRControlCenter from './PRControlCenter';
 import PRDigestSyncBridge from './PRDigestSyncBridge';
@@ -60,6 +61,7 @@ export default function AIOpsCenterLauncher() {
   return (
     <>
       {open && <RuntimeInboxBridge />}
+      {open && <RuntimeToolBridge />}
       {open && <SessionWorkboardBridge />}
       {open && <SessionResultBridge />}
       {open && <ApprovalSessionBridge />}
@@ -108,7 +110,6 @@ export default function AIOpsCenterLauncher() {
                 <button onClick={() => setView('audit')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'audit' ? 'border-slate-300 bg-slate-400/10 text-slate-100' : 'border-slate-700 text-slate-300 hover:border-slate-300'}`}>Audit</button>
                 <button onClick={() => setView('ci')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'ci' ? 'border-orange-300 bg-orange-400/10 text-orange-100' : 'border-slate-700 text-slate-300 hover:border-orange-300'}`}>CI Runs</button>
                 <button onClick={() => setView('workboard')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'workboard' ? 'border-violet-300 bg-violet-400/10 text-violet-100' : 'border-slate-700 text-slate-300 hover:border-violet-300'}`}>Workboard</button>
-                <button onClick={() => setView('policy')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'policy' ? 'border-rose-300 bg-rose-400/10 text-rose-100' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}>Policy</button>
                 <button onClick={() => setView('recovery')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'recovery' ? 'border-amber-300 bg-amber-400/10 text-amber-100' : 'border-slate-700 text-slate-300 hover:border-amber-300'}`}>CI Recovery</button>
                 <button onClick={() => setView('build')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'build' ? 'border-cyan-300 bg-cyan-400/10 text-cyan-100' : 'border-slate-700 text-slate-300 hover:border-cyan-300'}`}>Build Monitor</button>
                 <button onClick={() => { window.location.hash = '#/review_desk'; setOpen(false); }} className="rounded-2xl border border-emerald-400/40 px-4 py-2 text-xs font-black text-emerald-200 hover:bg-emerald-400/10">Review Desk</button>
