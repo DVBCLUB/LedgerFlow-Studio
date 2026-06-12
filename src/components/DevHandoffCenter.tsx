@@ -17,6 +17,9 @@ import { appendIntegrationEvent } from '../utils/integrationHubApi';
 const repoUrl = 'https://github.com/DVBCLUB/LedgerFlow-Studio';
 const actionsUrl = `${repoUrl}/actions`;
 const issuesUrl = `${repoUrl}/issues`;
+const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-900/70 px-4 py-3 text-sm font-semibold text-white outline-none placeholder:text-slate-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20';
+const primaryButtonClass = 'inline-flex items-center gap-2 rounded-xl border border-cyan-500/40 bg-cyan-950/50 px-3 py-2 text-xs font-black text-cyan-100 hover:border-cyan-300 hover:bg-cyan-900/40';
+const mutedButtonClass = 'inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-black text-slate-200 hover:border-cyan-500 hover:bg-slate-800';
 
 function slugify(input: string): string {
   return input
@@ -139,19 +142,19 @@ export default function DevHandoffCenter() {
             <FileText className="h-4 w-4 text-cyan-300" /> Nhập yêu cầu phát triển
           </div>
           <Field label="Tiêu đề task">
-            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Thêm Google Workspace connector v1" className="input" />
+            <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ví dụ: Thêm Google Workspace connector v1" className={inputClass} />
           </Field>
           <Field label="Mục tiêu nghiệp vụ / sản phẩm">
-            <textarea value={goal} onChange={(event) => setGoal(event.target.value)} rows={6} placeholder="Mô tả bạn muốn phần mềm làm gì, người dùng bấm ở đâu, kết quả ra sao..." className="input resize-y" />
+            <textarea value={goal} onChange={(event) => setGoal(event.target.value)} rows={6} placeholder="Mô tả bạn muốn phần mềm làm gì, người dùng bấm ở đâu, kết quả ra sao..." className={`${inputClass} resize-y`} />
           </Field>
           <Field label="Ràng buộc không được vi phạm">
-            <textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} rows={4} className="input resize-y" />
+            <textarea value={constraints} onChange={(event) => setConstraints(event.target.value)} rows={4} className={`${inputClass} resize-y`} />
           </Field>
           <Field label="File/khu vực nên kiểm tra trước">
-            <textarea value={files} onChange={(event) => setFiles(event.target.value)} rows={4} className="input resize-y font-mono" />
+            <textarea value={files} onChange={(event) => setFiles(event.target.value)} rows={4} className={`${inputClass} resize-y font-mono`} />
           </Field>
           <Field label="Acceptance checklist">
-            <textarea value={acceptance} onChange={(event) => setAcceptance(event.target.value)} rows={4} className="input resize-y" />
+            <textarea value={acceptance} onChange={(event) => setAcceptance(event.target.value)} rows={4} className={`${inputClass} resize-y`} />
           </Field>
         </div>
 
@@ -164,10 +167,10 @@ export default function DevHandoffCenter() {
               <p className="mt-1 text-xs font-semibold text-slate-500">Branch đề xuất: <span className="text-cyan-200">{branchName}</span></p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => void copyPrompt()} className="btn-primary">
+              <button type="button" onClick={() => void copyPrompt()} className={primaryButtonClass}>
                 <Clipboard className="h-3.5 w-3.5" /> {copied ? 'Đã copy' : 'Copy prompt'}
               </button>
-              <button type="button" onClick={() => void exportTask()} className="btn-muted">
+              <button type="button" onClick={() => void exportTask()} className={mutedButtonClass}>
                 <Download className="h-3.5 w-3.5" /> Export .md
               </button>
             </div>
