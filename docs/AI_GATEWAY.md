@@ -89,6 +89,34 @@ Trong AI Gateway:
 
 Hệ thống chỉ trả về trạng thái, latency và thông báo lỗi; không hiển thị key thật ra giao diện sau khi lưu.
 
+## AI Vault và mật khẩu chủ
+
+AI Gateway lưu API key trong backend local, không lưu trong React `localStorage`. Mặc định vault dùng mã hóa local tự động bằng file `.ledgerflow_secret`.
+
+Nếu muốn bảo vệ mạnh hơn, mở AI Gateway và dùng khối **Bảo mật AI Vault**:
+
+1. Nhập mật khẩu chủ ít nhất 8 ký tự.
+2. Bấm **Bật mật khẩu chủ**.
+3. Hệ thống sẽ giải mã các key cũ rồi mã hóa lại toàn bộ bằng mật khẩu chủ.
+
+Khi vault ở chế độ mật khẩu chủ:
+
+```text
+Đang khóa  → app không giải mã key và không gọi AI được bằng key local
+Mở khóa    → app dùng key bình thường cho tới khi khóa lại hoặc restart server
+```
+
+Endpoint kỹ thuật:
+
+```text
+GET  /api/ai/vault/status
+POST /api/ai/vault/passphrase
+POST /api/ai/vault/unlock
+POST /api/ai/vault/lock
+```
+
+Lưu ý: nếu quên mật khẩu chủ thì không thể mở lại key trong vault. Khi đó dùng file backup mã hóa đã export trước đó, hoặc nhập key lại từ đầu.
+
 ## Diagnostics toàn bộ provider
 
 Bấm **Kiểm tra tất cả provider** để kiểm tra toàn bộ key đang lưu.
@@ -178,6 +206,8 @@ React UI nhập key
 → ghi vào ai_keys.vault.json
 → frontend chỉ thấy key dạng mask
 ```
+
+Nếu bật mật khẩu chủ, khóa mã hóa vault được dẫn xuất từ mật khẩu bằng `scrypt` và chỉ giữ trong RAM của process server sau khi mở khóa.
 
 ## LiteLLM còn dùng không?
 
