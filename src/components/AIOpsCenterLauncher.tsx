@@ -8,6 +8,7 @@ import ProjectMemoryDecisionLog from './ProjectMemoryDecisionLog';
 import SecurityControlCenter from './SecurityControlCenter';
 import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
 import LocalHandoffCenter from './LocalHandoffCenter';
+import RuntimeInboxBridge from './RuntimeInboxBridge';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
 import ApprovalSessionBridge from './ApprovalSessionBridge';
@@ -55,6 +56,7 @@ export default function AIOpsCenterLauncher() {
 
   return (
     <>
+      {open && <RuntimeInboxBridge />}
       {open && <SessionWorkboardBridge />}
       {open && <SessionResultBridge />}
       {open && <ApprovalSessionBridge />}
