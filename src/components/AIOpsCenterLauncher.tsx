@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AIOpsWorkboard from './AIOpsWorkboard';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
+import ToolPolicyRegistry from './ToolPolicyRegistry';
 
 function isAIOpsRoute() {
   return window.location.hash === '#/ai_ops' || window.location.hash === '#/ai-ops' || window.location.hash === '#/ai_nhan_su';
@@ -9,7 +10,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'workboard' | 'recovery' | 'build'>('workboard');
+  const [view, setView] = useState<'workboard' | 'recovery' | 'build' | 'policy'>('workboard');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -44,7 +45,7 @@ export default function AIOpsCenterLauncher() {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-950 p-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-300">AI Operations Center</p>
-                <h2 className="mt-1 text-xl font-black text-white">Agent Workboard, Recovery & Build Monitor</h2>
+                <h2 className="mt-1 text-xl font-black text-white">Agent Workboard, Policy, Recovery & Build Monitor</h2>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Điều phối AI agent theo kiểu OpenClaw nhưng sandbox-first, approval-first, audit-first.</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -53,6 +54,12 @@ export default function AIOpsCenterLauncher() {
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'workboard' ? 'border-violet-300 bg-violet-400/10 text-violet-100' : 'border-slate-700 text-slate-300 hover:border-violet-300'}`}
                 >
                   Workboard
+                </button>
+                <button
+                  onClick={() => setView('policy')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'policy' ? 'border-rose-300 bg-rose-400/10 text-rose-100' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}
+                >
+                  Policy
                 </button>
                 <button
                   onClick={() => setView('recovery')}
@@ -81,6 +88,7 @@ export default function AIOpsCenterLauncher() {
               </div>
             </div>
             {view === 'workboard' && <AIOpsWorkboard />}
+            {view === 'policy' && <ToolPolicyRegistry />}
             {view === 'recovery' && <CIRecoveryQueue />}
             {view === 'build' && <BuildMonitorPanel />}
           </div>
