@@ -6,11 +6,11 @@
   <title>LedgerFlow AI Settings</title>
   <style>
     body{margin:0;background:#03060c;color:#e5e7eb;font-family:Segoe UI,Arial,sans-serif}
-    .wrap{max-width:1080px;margin:auto;padding:32px 16px}
+    .wrap{max-width:1180px;margin:auto;padding:32px 16px}
     .card{background:#0f172a;border:1px solid #334155;border-radius:18px;padding:18px;margin:14px 0}
     input,select,textarea{width:100%;box-sizing:border-box;background:#020617;color:#e5e7eb;border:1px solid #334155;border-radius:12px;padding:10px;margin:6px 0 12px}
     button{background:#7c3aed;color:white;border:0;border-radius:12px;padding:10px 14px;font-weight:800;cursor:pointer;margin:3px 0}
-    .muted{color:#94a3b8}.item{border:1px solid #334155;border-radius:14px;padding:12px;margin:10px 0;background:#020617}.danger{background:#9f1239}.secondary{background:#1e293b}.ok{color:#86efac}.quota{color:#fbbf24}.error{color:#fca5a5}.pill{display:inline-block;border:1px solid #334155;border-radius:999px;padding:3px 8px;margin:3px;color:#94a3b8;font-size:12px}pre{white-space:pre-wrap;word-break:break-word}.small{font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:720px){.grid{grid-template-columns:1fr}}
+    button:disabled{opacity:.55;cursor:not-allowed}.muted{color:#94a3b8}.item{border:1px solid #334155;border-radius:14px;padding:12px;margin:10px 0;background:#020617}.danger{background:#9f1239}.secondary{background:#1e293b}.ok{color:#86efac}.quota{color:#fbbf24}.error{color:#fca5a5}.pill{display:inline-block;border:1px solid #334155;border-radius:999px;padding:3px 8px;margin:3px;color:#94a3b8;font-size:12px}pre{white-space:pre-wrap;word-break:break-word}.small{font-size:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.priorityBox{width:90px;display:inline-block;margin:4px 8px 4px 0}.chatOut{min-height:110px;background:#020617;border:1px solid #334155;border-radius:14px;padding:12px;white-space:pre-wrap;word-break:break-word}@media(max-width:720px){.grid{grid-template-columns:1fr}.row{display:block}}
   </style>
 </head>
 <body>
@@ -30,6 +30,21 @@
       <button id="save">Lưu</button>
       <p id="note" class="muted small"></p>
       <pre id="msg" class="muted"></pre>
+    </div>
+
+    <div class="card">
+      <h2>Test chat trực tiếp</h2>
+      <p class="muted small">Dùng danh sách key đã lưu và fallback thật. Sau khi gửi, xem phần “Nhật ký AI” để biết provider/key nào vừa được dùng.</p>
+      <textarea id="chatPrompt" rows="4" placeholder="Nhập câu hỏi test, ví dụ: Tóm tắt quy trình hạch toán tạm ứng hoàn ứng trong 5 dòng."></textarea>
+      <div class="row">
+        <select id="chatModel" style="max-width:260px">
+          <option value="ai-assistant">Nhanh / tiết kiệm</option>
+          <option value="ai-assistant-pro">Pro / ưu tiên model mạnh</option>
+        </select>
+        <button id="chatSend">Gửi non-stream</button>
+        <button id="chatStream" class="secondary">Gửi streaming</button>
+      </div>
+      <div id="chatOut" class="chatOut muted">Chưa test.</div>
     </div>
 
     <div class="card">
@@ -64,7 +79,16 @@
 
     <div class="card">
       <h2>Danh sách đã lưu</h2>
+      <p class="muted small">Priority càng nhỏ chạy càng trước. Ví dụ Gemini 1 = 1, Gemini 2 = 2, Groq = 10, Ollama = 99.</p>
       <div id="list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Nhật ký AI</h2>
+      <p class="muted small">Log chỉ lưu local trên máy, không chứa API key thật. Dùng để kiểm tra fallback đang chạy qua provider nào.</p>
+      <button id="loadLogs" class="secondary">Tải nhật ký</button>
+      <button id="clearLogs" class="danger">Xóa nhật ký</button>
+      <div id="logs"></div>
     </div>
 
     <p><a href="/#/assistant" style="color:#c4b5fd">← Quay về AI Chat</a></p>
@@ -80,17 +104,22 @@
     function readKeyForm() { const payload = { provider: $("provider").value, label: $("label").value, model: $("model").value, baseUrl: $("baseUrl").value, priority: Number($("priority").value || 1), enabled: true }; payload["api" + "Key"] = $("secret").value; return payload; }
     async function loadProviders() { const data = await api("/api/ai/providers"); providers = data.providers || []; $("provider").innerHTML = providers.map(p => `<option value="${p.id}">${p.label}</option>`).join(""); setDefaultModel(); }
     function setDefaultModel() { const provider = providers.find(x => x.id === $("provider").value); if (provider) { if (!$("model").value) $("model").value = provider.defaultModel; $("note").textContent = provider.note + " | Link lấy key: " + provider.docsUrl; } }
-    async function loadKeys() { const data = await api("/api/ai/keys"); const keys = data.keys || []; $("list").innerHTML = keys.length ? keys.map(k => `<div class="item"><b>${esc(k.label)}</b> ${k.enabled ? '<span class="pill">đang bật</span>' : '<span class="pill">đang tắt</span>'}<br><span class="muted">${esc(k.providerLabel)} • ${esc(k.model)} • ${esc(k.maskedKey)} • priority ${k.priority} • <span class="${k.lastStatus}">${k.lastStatus}</span></span>${k.lastError ? `<pre class="error small">${esc(k.lastError)}</pre>` : ""}<br><button class="secondary" onclick="toggleKey('${k.id}', ${!k.enabled})">${k.enabled ? "Tắt" : "Bật"}</button> <button class="danger" onclick="deleteKey('${k.id}')">Xóa</button></div>`).join("") : '<p class="muted">Chưa có provider nào.</p>'; }
+    async function loadKeys() { const data = await api("/api/ai/keys"); const keys = data.keys || []; $("list").innerHTML = keys.length ? keys.map(k => `<div class="item"><b>${esc(k.label)}</b> ${k.enabled ? '<span class="pill">đang bật</span>' : '<span class="pill">đang tắt</span>'}<br><span class="muted">${esc(k.providerLabel)} • ${esc(k.model)} • ${esc(k.maskedKey)} • <span class="${k.lastStatus}">${k.lastStatus}</span></span>${k.lastError ? `<pre class="error small">${esc(k.lastError)}</pre>` : ""}<div class="row"><label class="muted small">Priority</label><input class="priorityBox" id="prio-${k.id}" type="number" value="${Number(k.priority || 1)}"><button class="secondary" onclick="savePriority('${k.id}')">Lưu priority</button><button class="secondary" onclick="toggleKey('${k.id}', ${!k.enabled})">${k.enabled ? "Tắt" : "Bật"}</button><button class="danger" onclick="deleteKey('${k.id}')">Xóa</button></div></div>`).join("") : '<p class="muted">Chưa có provider nào.</p>'; }
+    async function savePriority(id) { const priority = Number($("prio-" + id).value || 1); await api("/api/ai/keys/" + id, { method: "PATCH", body: JSON.stringify({ priority }) }); await loadKeys(); }
     async function toggleKey(id, enabled) { await api("/api/ai/keys/" + id, { method: "PATCH", body: JSON.stringify({ enabled }) }); loadKeys(); }
     async function deleteKey(id) { if (confirm("Xóa cấu hình này?")) { await api("/api/ai/keys/" + id, { method: "DELETE" }); loadKeys(); } }
-    async function diagnose() { $("diagnostics").innerHTML = '<p class="muted">Đang kiểm tra...</p>'; try { const data = await api("/api/ai/diagnostics"); const results = data.diagnostics.results || []; $("diagnostics").innerHTML = `<p class="${data.diagnostics.ok ? "ok" : "error"}">${data.diagnostics.ok ? "Có provider dùng được" : "Chưa có provider dùng được"}</p>` + results.map(x => `<div class="item"><b>${esc(x.provider)} / ${esc(x.label)}</b><br><span class="${x.status}">${x.status}</span> <span class="muted">${x.latencyMs || 0}ms ${x.model ? ("• " + esc(x.model)) : ""}</span><pre class="small muted">${esc(x.message || "")}</pre></div>`).join(""); loadKeys(); } catch (error) { $("diagnostics").innerHTML = '<pre class="error">Lỗi: ' + esc(error.message) + '</pre>'; } }
+    async function diagnose() { $("diagnostics").innerHTML = '<p class="muted">Đang kiểm tra...</p>'; try { const data = await api("/api/ai/diagnostics"); const results = data.diagnostics.results || []; $("diagnostics").innerHTML = `<p class="${data.diagnostics.ok ? "ok" : "error"}">${data.diagnostics.ok ? "Có provider dùng được" : "Chưa có provider dùng được"}</p>` + results.map(x => `<div class="item"><b>${esc(x.provider)} / ${esc(x.label)}</b><br><span class="${x.status}">${x.status}</span> <span class="muted">${x.latencyMs || 0}ms ${x.model ? ("• " + esc(x.model)) : ""}</span><pre class="small muted">${esc(x.message || "")}</pre></div>`).join(""); await loadKeys(); await loadLogs(); } catch (error) { $("diagnostics").innerHTML = '<pre class="error">Lỗi: ' + esc(error.message) + '</pre>'; } }
     async function exportBackup() { try { const passphrase = $("exportPass").value; const data = await api("/api/ai/backup/export", { method: "POST", body: JSON.stringify({ passphrase }) }); const blob = new Blob([JSON.stringify(data.backup, null, 2)], { type: "application/json" }); const url = URL.createObjectURL(blob); const a = document.createElement("a"); const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-"); a.href = url; a.download = `ledgerflow-ai-keys-${stamp}.backup.json`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); backupMsg("Đã tạo file backup mã hóa. Hãy cất file và nhớ mật khẩu."); } catch (error) { backupMsg("Lỗi export: " + error.message); } }
     async function importBackup() { try { const file = $("backupFile").files[0]; if (!file) throw new Error("Chưa chọn file backup."); const backup = JSON.parse(await file.text()); const passphrase = $("importPass").value; const mode = $("importMode").value; const data = await api("/api/ai/backup/import", { method: "POST", body: JSON.stringify({ backup, passphrase, mode }) }); backupMsg(`Đã nhập ${data.imported}/${data.total} cấu hình. Chế độ: ${mode}.`); await loadKeys(); } catch (error) { backupMsg("Lỗi import: " + error.message); } }
+    async function sendChat(streaming) { const prompt = $("chatPrompt").value.trim(); if (!prompt) { $("chatOut").textContent = "Chưa nhập câu hỏi."; return; } $("chatSend").disabled = true; $("chatStream").disabled = true; $("chatOut").textContent = "Đang gọi AI...\n"; try { if (!streaming) { const data = await api("/api/gemini/generate", { method: "POST", body: JSON.stringify({ prompt, model: $("chatModel").value }) }); $("chatOut").textContent = (data.text || "") + (data.modelUsed ? `\n\nModel used: ${data.modelUsed}` : ""); } else { await streamChat(prompt); } await loadLogs(); await loadKeys(); } catch (error) { $("chatOut").textContent = "Lỗi: " + error.message; } finally { $("chatSend").disabled = false; $("chatStream").disabled = false; } }
+    async function streamChat(prompt) { const response = await fetch("/api/gemini/stream", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, model: $("chatModel").value }) }); if (!response.ok || !response.body) { const data = await response.json().catch(() => ({})); throw new Error(data.error || "Stream failed"); } const reader = response.body.getReader(); const decoder = new TextDecoder(); let buffer = ""; let output = ""; $("chatOut").textContent = ""; while (true) { const { done, value } = await reader.read(); if (done) break; buffer += decoder.decode(value, { stream: true }); const events = buffer.split("\n\n"); buffer = events.pop() || ""; for (const event of events) { for (const line of event.split("\n")) { const trimmed = line.trim(); if (!trimmed.startsWith("data:")) continue; const payload = trimmed.slice(5).trim(); if (payload === "[DONE]") return; try { const json = JSON.parse(payload); if (json.error) throw new Error(json.error); if (json.text) { output += json.text; $("chatOut").textContent = output; } } catch (err) { if (String(err.message || err).startsWith("Unexpected")) continue; throw err; } } } } }
+    async function loadLogs() { try { const data = await api("/api/ai/logs?limit=80"); const logs = data.logs || []; $("logs").innerHTML = logs.length ? logs.map(x => `<div class="item"><b>${esc(x.provider)} / ${esc(x.label)}</b> <span class="pill">${esc(x.mode)}</span><br><span class="${x.status}">${x.status}</span> <span class="muted">${new Date(x.at).toLocaleString()} • ${x.latencyMs}ms ${x.model ? "• " + esc(x.model) : ""}</span><br><span class="muted small">Prompt: ${Number(x.promptChars || 0).toLocaleString()} ký tự • Output: ${Number(x.outputChars || 0).toLocaleString()} ký tự</span>${x.error ? `<pre class="error small">${esc(x.error)}</pre>` : ""}</div>`).join("") : '<p class="muted">Chưa có log.</p>'; } catch (error) { $("logs").innerHTML = '<pre class="error">Lỗi tải log: ' + esc(error.message) + '</pre>'; } }
+    async function clearLogs() { if (!confirm("Xóa toàn bộ nhật ký AI local?")) return; await api("/api/ai/logs", { method: "DELETE" }); await loadLogs(); }
     $("provider").onchange = () => { $("model").value = ""; setDefaultModel(); };
-    $("test").onclick = async () => { try { const data = await api("/api/ai/keys/test", { method: "POST", body: JSON.stringify(readKeyForm()) }); msg("OK: " + (data.content || "") + "\nModel: " + (data.modelUsed || "")); } catch (error) { msg("Lỗi: " + error.message); } };
+    $("test").onclick = async () => { try { const data = await api("/api/ai/keys/test", { method: "POST", body: JSON.stringify(readKeyForm()) }); msg("OK: " + (data.content || "") + "\nModel: " + (data.modelUsed || "")); await loadLogs(); } catch (error) { msg("Lỗi: " + error.message); await loadLogs(); } };
     $("save").onclick = async () => { try { await api("/api/ai/keys", { method: "POST", body: JSON.stringify(readKeyForm()) }); $("secret").value = ""; $("label").value = ""; msg("Đã lưu."); loadKeys(); } catch (error) { msg("Lỗi: " + error.message); } };
-    $("reload").onclick = loadKeys; $("diagnose").onclick = diagnose; $("exportBackup").onclick = exportBackup; $("importBackup").onclick = importBackup;
-    loadProviders().then(loadKeys).catch(error => msg(error.message));
+    $("reload").onclick = loadKeys; $("diagnose").onclick = diagnose; $("exportBackup").onclick = exportBackup; $("importBackup").onclick = importBackup; $("chatSend").onclick = () => sendChat(false); $("chatStream").onclick = () => sendChat(true); $("loadLogs").onclick = loadLogs; $("clearLogs").onclick = clearLogs;
+    loadProviders().then(loadKeys).then(loadLogs).catch(error => msg(error.message));
   </script>
 </body>
 </html>
