@@ -17,6 +17,17 @@ type WorkCard = {
   approval: string;
 };
 
+type KnowledgeItem = {
+  id: string;
+  title: string;
+  category: string;
+  source: string;
+  tags: string;
+  content: string;
+  priority: 'Cao' | 'Vừa' | 'Thấp';
+  createdAt: string;
+};
+
 type AuditEntry = {
   id: string;
   at: string;
@@ -90,6 +101,29 @@ const initialAudit: AuditEntry[] = [
   }
 ];
 
+const fallbackKnowledge: KnowledgeItem[] = [
+  {
+    id: 'fallback-company-os',
+    title: 'LedgerFlow là Software Company OS',
+    category: 'Chiến lược sản phẩm',
+    source: 'Built-in fallback',
+    tags: 'company-os, product, ai-agent',
+    content: 'LedgerFlow là hệ điều hành cho công ty phần mềm nhỏ, không phải công ty xây dựng. Các module phải xoay quanh sản phẩm, marketing, sales, AI operations, sandbox, tích hợp và tài chính.',
+    priority: 'Cao',
+    createdAt: 'Built-in'
+  },
+  {
+    id: 'fallback-ai-ops',
+    title: 'AI Nhân sự là AI Operations Center',
+    category: 'AI Operations',
+    source: 'Built-in fallback',
+    tags: 'ai-ops, github, vscode, code, approval',
+    content: 'AI Nhân sự là nơi điều phối AI/AI agent, code, design, GitHub, VS Code, dữ liệu vào/ra, approval và audit. Không phải HCNS thông thường.',
+    priority: 'Cao',
+    createdAt: 'Built-in'
+  }
+];
+
 const statusOrder: WorkStatus[] = ['Inbox', 'Planning', 'Waiting Approval', 'Ready', 'Done'];
 const kindOptions: WorkKind[] = ['Q&A', 'Code', 'Design', 'Data', 'Marketing', 'Integration'];
 
@@ -134,11 +168,32 @@ function exportJson(filename: string, payload: unknown) {
   URL.revokeObjectURL(url);
 }
 
+function scoreKnowledge(card: WorkCard, item: KnowledgeItem) {
+  const haystack = `${item.title} ${item.category} ${item.tags} ${item.content}`.toLowerCase();
+  const words = `${card.title} ${card.kind} ${card.owner} ${card.request} ${card.tools.join(' ')}`
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word.length >= 3);
+  const uniqueWords = Array.from(new Set(words));
+  let score = item.priority === 'Cao' ? 3 : item.priority === 'Vừa' ? 1 : 0;
+  for (const word of uniqueWords) {
+    if (haystack.includes(word)) score += 1;
+  }
+  if (card.kind === 'Code' && /code|github|vscode|ci|dev|agent|push/i.test(`${item.tags} ${item.content}`)) score += 4;
+  if (card.kind === 'Marketing' && /marketing|sales|crm|content|lead/i.test(`${item.tags} ${item.content}`)) score += 4;
+  if (card.kind === 'Design' && /design|ui|ux|product|prd/i.test(`${item.tags} ${item.content}`)) score += 4;
+  if (card.kind === 'Integration' && /integration|connector|github|api|gateway/i.test(`${item.tags} ${item.content}`)) score += 4;
+  return score;
+}
+
 export default function AIOpsWorkboard() {
   const [cards, setCards] = useState<WorkCard[]>(() => readLocal('ledgerflow_aiops_cards_v1', initialCards));
   const [audit, setAudit] = useState<AuditEntry[]>(() => readLocal('ledgerflow_aiops_audit_v1', initialAudit));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
   const [selectedId, setSelectedId] = useState(cards[0]?.id ?? initialCards[0].id);
+  const [showContext, setShowContext] = useState(true);
 
   useEffect(() => {
     localStorage.setItem('ledgerflow_aiops_cards_v1', JSON.stringify(cards));
@@ -149,6 +204,15 @@ export default function AIOpsWorkboard() {
   }, [audit]);
 
   const selected = useMemo(() => cards.find((card) => card.id === selectedId) ?? cards[0], [cards, selectedId]);
+  const knowledge = useMemo(() => readLocal<KnowledgeItem[]>('ledgerflow_knowledge_library_v1', fallbackKnowledge), []);
+  const contextPack = useMemo(() => {
+    if (!selected) return [];
+    return knowledge
+      .map((item) => ({ item, score: scoreKnowledge(selected, item) }))
+      .filter((entry) => entry.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+  }, [knowledge, selected]);
 
   const pushAudit = (action: string, cardId: string, detail: string) => {
     setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
@@ -240,9 +304,26 @@ export default function AIOpsWorkboard() {
     pushAudit('STATUS_CHANGED', selected.id, `Đổi trạng thái từ ${selected.status} sang ${status}.`);
   };
 
+  const exportContextPack = () => {
+    if (!selected) return;
+    const payload = {
+      card: selected,
+      generatedAt: new Date().toLocaleString('vi-VN'),
+      context: contextPack.map(({ item, score }) => ({ ...item, matchScore: score }))
+    };
+    localStorage.setItem('ledgerflow_aiops_context_pack_v1', JSON.stringify(payload));
+    pushAudit('CONTEXT_PACK_EXPORTED', selected.id, `Xuất context pack gồm ${payload.context.length} mục tri thức.`);
+    exportJson(`ledgerflow-context-${selected.id}.json`, payload);
+  };
+
   const openReviewDesk = () => {
     if (!selected) return;
     const slug = slugify(selected.title);
+    const contextText = contextPack.length ? [
+      '',
+      '## Knowledge Context Pack',
+      ...contextPack.map(({ item, score }) => `- [${score}] ${item.title} (${item.category}) — ${item.content.slice(0, 240)}`)
+    ] : [];
     const prepared = {
       sourceCardId: selected.id,
       title: `AI update: ${selected.title}`,
@@ -258,7 +339,8 @@ export default function AIOpsWorkboard() {
         selected.request,
         '',
         'Plan:',
-        ...selected.plan.map((item) => `- ${item}`)
+        ...selected.plan.map((item) => `- ${item}`),
+        ...contextText
       ].join('\n'),
       filePath: `docs/ai-reviewed/${slug}.md`,
       fileContent: [
@@ -275,6 +357,9 @@ export default function AIOpsWorkboard() {
         '## Plan',
         ...selected.plan.map((item) => `- ${item}`),
         '',
+        '## Knowledge Context Pack',
+        ...(contextPack.length ? contextPack.map(({ item, score }) => `- Score ${score}: ${item.title} (${item.category}) — ${item.content}`) : ['No matching knowledge item found.']),
+        '',
         '## Approval note',
         selected.approval,
         '',
@@ -283,7 +368,8 @@ export default function AIOpsWorkboard() {
       ].join('\n')
     };
     localStorage.setItem('ledgerflow_review_desk_prefill_v1', JSON.stringify(prepared));
-    pushAudit('OPEN_REVIEW_DESK', selected.id, 'Chuẩn bị dữ liệu cho Review Desk từ work card hiện tại.');
+    localStorage.setItem('ledgerflow_aiops_context_pack_v1', JSON.stringify({ card: selected, context: contextPack.map(({ item, score }) => ({ ...item, matchScore: score })) }));
+    pushAudit('OPEN_REVIEW_DESK', selected.id, `Chuẩn bị Review Desk kèm ${contextPack.length} mục tri thức.`);
     window.location.hash = '#/review_desk';
   };
 
@@ -298,7 +384,7 @@ export default function AIOpsWorkboard() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">OpenClaw-inspired control board</p>
           <h3 className="mt-1 text-xl font-black text-white">AI Ops Workboard</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Inbox, tool cards, risk, approval và audit workflow cho AI agent. P0 điều phối an toàn, action có rủi ro phải đi qua review.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Inbox, context pack, tool cards, risk, approval và audit workflow cho AI agent. Action có rủi ro phải đi qua review.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={() => exportJson('ledgerflow-aiops-audit.json', audit)} className="rounded-full border border-slate-700 px-3 py-1 text-xs font-black text-slate-300 hover:border-violet-300">Xuất audit</button>
@@ -349,6 +435,30 @@ export default function AIOpsWorkboard() {
               <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Tool cards</p>
               <div className="mt-2 flex flex-wrap gap-2">{selected.tools.map((tool) => <span key={tool} className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-xs font-bold text-slate-300">{tool}</span>)}</div>
             </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-cyan-400/35 bg-cyan-400/10 p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="text-xs font-black text-cyan-200">Knowledge Context Pack</p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-400">Tự gom tri thức liên quan từ Thư viện để AI đọc trước khi hành động.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setShowContext((value) => !value)} className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-300 hover:border-cyan-300">{showContext ? 'Ẩn' : 'Hiện'}</button>
+                <button onClick={exportContextPack} className="rounded-full border border-cyan-400/40 px-3 py-1 text-[10px] font-black text-cyan-200 hover:bg-cyan-400/10">Xuất context</button>
+              </div>
+            </div>
+            {showContext && <div className="mt-3 space-y-2">
+              {contextPack.map(({ item, score }) => <div key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-xs font-black text-white">{item.title}</p>
+                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300">score {score}</span>
+                </div>
+                <p className="mt-1 text-[11px] font-bold text-slate-500">{item.category} · {item.source} · {item.tags}</p>
+                <p className="mt-2 line-clamp-3 text-xs font-semibold leading-5 text-slate-300">{item.content}</p>
+              </div>)}
+              {contextPack.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold text-slate-400">Chưa tìm thấy tri thức phù hợp. Hãy nhập thêm vào Thư viện tri thức.</p>}
+            </div>}
           </div>
 
           <div className="mt-4 rounded-2xl border border-amber-400/35 bg-amber-400/10 p-3">
