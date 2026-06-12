@@ -9,7 +9,6 @@ import DevHandoffLauncher from './components/DevHandoffLauncher.tsx';
 import GitHubCIDoctorLauncher from './components/GitHubCIDoctorLauncher.tsx';
 import LocalAuthGate from './components/LocalAuthGate.tsx';
 import ApprovedPrPanel from './components/ApprovedPrPanel.tsx';
-import AIOpsCenterLauncher from './components/AIOpsCenterLauncher.tsx';
 import AgentOpsHubLauncher from './components/agent-ops/AgentOpsHubLauncher.tsx';
 import FastConnectorModeBridge from './components/FastConnectorModeBridge.tsx';
 import SecretExposureGuardBridge from './components/SecretExposureGuardBridge.tsx';
@@ -58,7 +57,6 @@ createRoot(document.getElementById('root')!).render(
       <SecretExposureGuardBridge />
       <FastConnectorModeBridge />
       <AgentOpsHubLauncher />
-      <AIOpsCenterLauncher />
       <GitHubCIDoctorLauncher />
       <DevHandoffLauncher />
       <AISettingsLauncher />
