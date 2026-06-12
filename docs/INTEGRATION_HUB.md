@@ -13,30 +13,56 @@ Không biến LedgerFlow thành bản sao của VS Code, GitHub, Google Drive, M
 
 ---
 
-## 0. Integration Hub v1 trong app
+## 0. Integration Hub trong app
 
-Đã có màn hình nhẹ trong app:
+Đã có màn hình trong app:
 
 ```text
 Nút nổi: Integration Hub
 Hash mở nhanh: #/integration_hub hoặc #/integration-hub
 ```
 
-V1 hiện làm các việc an toàn:
+### V1 đã có
 
 - Hiển thị các nhóm connector chính: AI Gateway, GitHub, VS Code/Cursor, Google Workspace, MISA/SmartPro, Document Vault, Automation, Data Hub.
-- Phân loại trạng thái: đã có nền, local-first, handoff thủ công, đang quy hoạch.
 - Có nút mở nhanh sang GitHub repo, GitHub Actions, Issues, AI Gateway.
 - Có lộ trình v1 → v5 để phát triển connector thật.
-- Chưa tự ghi/sửa/xóa dữ liệu ngoài; chỉ là trung tâm điều phối và handoff.
 
-Các file chính:
+### V2 đã có nền móng registry thật
+
+Integration Hub không còn chỉ là card tĩnh. Backend có registry local để lưu trạng thái connector:
 
 ```text
+server/services/integrationRegistry.ts
+src/utils/integrationHubApi.ts
 src/components/IntegrationHub.tsx
-src/components/IntegrationHubLauncher.tsx
-src/main.tsx
 ```
+
+File local runtime, không commit GitHub:
+
+```text
+integration_registry.json
+integration_events.log.json
+```
+
+API kỹ thuật:
+
+```text
+GET    /api/integrations
+PATCH  /api/integrations/:id
+POST   /api/integrations/:id/test
+POST   /api/integrations/:id/events
+GET    /api/integrations/events
+DELETE /api/integrations/events
+```
+
+V2 hiện làm an toàn:
+
+- Bật/tắt connector.
+- Test connector.
+- Lưu trạng thái và thông báo lần test gần nhất.
+- Ghi event log local.
+- Chưa tự ghi/sửa/xóa dữ liệu ngoài.
 
 ---
 
@@ -220,79 +246,13 @@ LedgerFlow làm:
 
 Kết nối:
 
-- n8n self-host/free
+- n8n
 - Make
 - Zapier
-- Webhook
-- Local scripts
+- Webhook custom
 
-LedgerFlow làm:
+Nguyên tắc:
 
-- Nhận webhook.
-- Gửi webhook.
-- Chạy automation có kiểm soát.
-- Log toàn bộ hành động.
-
----
-
-## 3. Kiến trúc kỹ thuật đề xuất
-
-### 3.1. Connector Registry
-
-Tạo registry quản lý connector:
-
-```ts
-export interface IntegrationConnector {
-  id: string;
-  name: string;
-  category: 'ai' | 'devops' | 'workspace' | 'accounting' | 'storage' | 'automation';
-  status: 'available' | 'configured' | 'error' | 'disabled';
-  capabilities: IntegrationCapability[];
-}
-```
-
-### 3.2. Capability chuẩn
-
-```ts
-export interface IntegrationCapability {
-  id: string;
-  label: string;
-  type: 'read' | 'write' | 'sync' | 'analyze' | 'export' | 'import';
-  requiresApproval: boolean;
-}
-```
-
-### 3.3. Action log chuẩn
-
-```ts
-export interface IntegrationActionLog {
-  id: string;
-  connectorId: string;
-  action: string;
-  status: 'draft' | 'approved' | 'success' | 'error';
-  createdAt: string;
-  summary: string;
-  error?: string;
-}
-```
-
-### 3.4. Approval layer
-
-Mọi action nguy hiểm đi qua approval:
-
-```text
-AI đề xuất → tạo action draft → user duyệt → connector chạy → ghi log
-```
-
----
-
-## 4. Lộ trình ưu tiên
-
-```text
-V1: Integration Hub UI, link nhanh, trạng thái, roadmap, handoff an toàn.
-V2: GitHub connector đọc Actions/Issues/PR và phân tích lỗi CI bằng AI Gateway.
-V3: DevOps Center tạo spec, checklist, prompt cho VS Code/Cursor.
-V4: Google Workspace connector cho Sheets/Drive/Gmail/Calendar.
-V5: Document Vault + Data Hub chuẩn hóa chứng từ/Excel/CSV.
-V6: Automation Hub với webhook/n8n/Make/Zapier, có duyệt trước khi chạy.
-```
+- Automation phải chạy qua trigger/action rõ ràng.
+- Hành động ghi dữ liệu/gửi mail phải có chế độ duyệt.
+- Mọi automation phải ghi log và có cách tắt nhanh.
