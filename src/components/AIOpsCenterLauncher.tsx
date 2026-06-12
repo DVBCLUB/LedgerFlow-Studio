@@ -6,6 +6,7 @@ import SessionResultBridge from './SessionResultBridge';
 import ApprovalSessionBridge from './ApprovalSessionBridge';
 import ApprovalReviewDeskBridge from './ApprovalReviewDeskBridge';
 import SandboxApprovalBridge from './SandboxApprovalBridge';
+import ConnectorPolicyBridge from './ConnectorPolicyBridge';
 import ApprovalGatePanel from './ApprovalGatePanel';
 import SandboxPatchWorkspace from './SandboxPatchWorkspace';
 import ConnectorSdkRegistry from './ConnectorSdkRegistry';
@@ -44,6 +45,7 @@ export default function AIOpsCenterLauncher() {
       {open && <ApprovalSessionBridge />}
       {open && <ApprovalReviewDeskBridge />}
       {open && <SandboxApprovalBridge />}
+      {open && <ConnectorPolicyBridge />}
       <button
         onClick={openPanel}
         className="fixed bottom-56 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80"
