@@ -69,7 +69,20 @@ type CiFixPackage = {
   prompt: string;
 };
 
+type BuildRecord = {
+  id: string;
+  at: string;
+  repo: string;
+  branch: string;
+  source: 'Manual' | 'Review Desk' | 'AI Ops';
+  status: 'Unknown' | 'Queued' | 'Running' | 'Success' | 'Failed';
+  notes: string;
+  runUrl?: string | null;
+  artifactName?: string | null;
+};
+
 const approvalPhrase = ['APPROVE', 'AI', 'GITHUB', 'PUSH'].join(' ');
+const buildMonitorKey = 'ledgerflow_build_monitor_v1';
 
 function readPrefill(): ReviewDeskPrefill | null {
   try {
@@ -88,6 +101,29 @@ function readLastResult(): DraftPrResult | null {
   } catch {
     return null;
   }
+}
+
+function readBuildRecords(): BuildRecord[] {
+  try {
+    const raw = localStorage.getItem(buildMonitorKey);
+    return raw ? JSON.parse(raw) as BuildRecord[] : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeBuildRecord(record: BuildRecord) {
+  const current = readBuildRecords();
+  const next = [record, ...current.filter((old) => !(old.repo === record.repo && old.branch === record.branch))];
+  localStorage.setItem(buildMonitorKey, JSON.stringify(next));
+  window.dispatchEvent(new CustomEvent('ledgerflow-build-monitor-record', { detail: record }));
+}
+
+function statusFromRun(run?: GitHubWorkflowRunSummary | null): BuildRecord['status'] {
+  if (!run) return 'Queued';
+  if (run.status === 'queued') return 'Queued';
+  if (run.status !== 'completed') return 'Running';
+  return String(run.conclusion || '').toLowerCase() === 'success' ? 'Success' : 'Failed';
 }
 
 function normalizeDraftResult(input: unknown, fallbackFiles: string[]): DraftPrResult {
@@ -175,6 +211,7 @@ export default function ApprovedPrPanel() {
   const [result, setResult] = useState<DraftPrResult | null>(() => readLastResult());
   const [statusSnapshot, setStatusSnapshot] = useState<GitHubStatusSnapshot | null>(null);
   const [ciFixReady, setCiFixReady] = useState(false);
+  const [buildSynced, setBuildSynced] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -214,6 +251,7 @@ export default function ApprovedPrPanel() {
     setResult(null);
     setStatusSnapshot(null);
     setCiFixReady(false);
+    setBuildSynced(false);
     try {
       const response = await fetch('/api/integrations/github/approved-change-request', {
         method: 'POST',
@@ -233,6 +271,18 @@ export default function ApprovedPrPanel() {
       const nextResult = normalizeDraftResult(data.result, [filePath]);
       setResult(nextResult);
       writeReviewResult(nextResult, sourceCardId);
+      writeBuildRecord({
+        id: `build-${Date.now()}`,
+        at: new Date().toLocaleString('vi-VN'),
+        repo: nextResult.repo,
+        branch: nextResult.branchName,
+        source: 'Review Desk',
+        status: 'Queued',
+        notes: `Draft PR #${nextResult.pullRequestNumber} created from Review Desk. Waiting for GitHub Actions.`,
+        runUrl: null,
+        artifactName: 'LedgerFlow-Hub-Windows-Download'
+      });
+      setBuildSynced(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Cannot create draft PR.');
     } finally {
@@ -253,10 +303,10 @@ export default function ApprovedPrPanel() {
       if (!response.ok || data?.success === false) {
         throw new Error(data?.error || `Status check failed: ${response.status}`);
       }
-      const summary = data.summary;
-      const runs = Array.isArray(summary?.latestRuns) ? summary.latestRuns as GitHubWorkflowRunSummary[] : [];
-      const openPr = Array.isArray(summary?.openPullRequests)
-        ? summary.openPullRequests.find((item: any) => Number(item.number) === target.pullRequestNumber)
+      const summaryPayload = data.summary;
+      const runs = Array.isArray(summaryPayload?.latestRuns) ? summaryPayload.latestRuns as GitHubWorkflowRunSummary[] : [];
+      const openPr = Array.isArray(summaryPayload?.openPullRequests)
+        ? summaryPayload.openPullRequests.find((item: any) => Number(item.number) === target.pullRequestNumber)
         : null;
       const branchRuns = runs.filter((run) => run.branch === target.branchName);
       const snapshot: GitHubStatusSnapshot = {
@@ -268,6 +318,18 @@ export default function ApprovedPrPanel() {
       setStatusSnapshot(snapshot);
       localStorage.setItem('ledgerflow_review_desk_last_status_v1', JSON.stringify(snapshot));
       const latest = branchRuns[0];
+      writeBuildRecord({
+        id: `build-${Date.now()}`,
+        at: new Date().toLocaleString('vi-VN'),
+        repo: target.repo,
+        branch: target.branchName,
+        source: 'Review Desk',
+        status: statusFromRun(latest),
+        notes: latest ? `Workflow ${latest.name}: ${runConclusionText(latest)}. PR #${target.pullRequestNumber}.` : `No workflow run found yet for PR #${target.pullRequestNumber}. Check again later.`,
+        runUrl: latest?.htmlUrl || null,
+        artifactName: 'LedgerFlow-Hub-Windows-Download'
+      });
+      setBuildSynced(true);
       if (isFailedRun(latest)) {
         writeCiFixPackage({ sourceCardId, result: target, run: latest });
         setCiFixReady(true);
@@ -307,6 +369,7 @@ export default function ApprovedPrPanel() {
           </div>
           <button disabled={!canSubmit || busy} onClick={submit} className="mt-3 w-full rounded-2xl bg-emerald-300 px-4 py-3 text-xs font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{busy ? 'Creating draft PR...' : 'Create branch + Draft PR'}</button>
           {error && <p className="mt-3 rounded-2xl border border-rose-400/35 bg-rose-400/10 p-3 text-xs font-bold text-rose-200">{error}</p>}
+          {buildSynced && <p className="mt-3 rounded-2xl border border-cyan-400/35 bg-cyan-400/10 p-3 text-xs font-bold text-cyan-200">Đã đồng bộ sang Build Monitor.</p>}
           {result && <div className="mt-3 rounded-2xl border border-emerald-400/35 bg-emerald-400/10 p-3 text-xs font-semibold leading-5 text-slate-200">
             <p className="font-black text-emerald-200">Draft PR #{result.pullRequestNumber || '?'}</p>
             <p>{result.repo}</p>
@@ -338,6 +401,7 @@ export default function ApprovedPrPanel() {
               <li>✓ Founder duyệt cuối cùng</li>
               <li>✓ Kết quả PR ghi ngược về audit local</li>
               <li>✓ Nếu CI đỏ, tạo gói lỗi cho CI Doctor</li>
+              <li>✓ Build Monitor tự nhận trạng thái PR/CI</li>
             </ul>
           </div>
         </div>
