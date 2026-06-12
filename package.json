@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "web:dev": "tsx server.ts",
+    "ai:doctor": "node scripts/ai-doctor.mjs",
     "prepare:icons": "node scripts/prepare-desktop-icons.mjs",
     "check:simulations": "node scripts/check-simulation-modules.mjs",
     "check:founder-labs": "node scripts/check-founder-labs.mjs",
