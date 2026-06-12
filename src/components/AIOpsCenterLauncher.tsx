@@ -9,6 +9,7 @@ import ConfigHealthMonitor from './ConfigHealthMonitor';
 import SecurityControlCenter from './SecurityControlCenter';
 import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
 import RuntimeToolBridge from './RuntimeToolBridge';
+import RuntimeQueueAssistantBridge from './RuntimeQueueAssistantBridge';
 import LocalHandoffCenter from './LocalHandoffCenter';
 import PRControlCenter from './PRControlCenter';
 import PRDigestSyncBridge from './PRDigestSyncBridge';
@@ -65,6 +66,7 @@ export default function AIOpsCenterLauncher() {
   return (
     <>
       {open && <RuntimeInboxBridge />}
+      {open && <RuntimeQueueAssistantBridge />}
       {open && <RuntimeToolBridge />}
       {open && <SessionWorkboardBridge />}
       {open && <SessionResultBridge />}
