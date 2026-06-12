@@ -9,6 +9,7 @@ import SecurityControlCenter from './SecurityControlCenter';
 import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
 import LocalHandoffCenter from './LocalHandoffCenter';
 import PRControlCenter from './PRControlCenter';
+import PRDigestSyncBridge from './PRDigestSyncBridge';
 import RuntimeInboxBridge from './RuntimeInboxBridge';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
@@ -67,6 +68,7 @@ export default function AIOpsCenterLauncher() {
       {open && <SandboxApprovalBridge />}
       {open && <ConnectorPolicyBridge />}
       {open && <ReleaseDraftSyncBridge />}
+      {open && <PRDigestSyncBridge />}
       <button
         onClick={openPanel}
         className="fixed bottom-56 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80"
