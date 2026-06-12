@@ -5,7 +5,7 @@ const routeToTab: Record<string, AgentOpsHubTab> = {
   '#/ai_ops': 'workboard',
   '#/ai-ops': 'workboard',
   '#/ai_nhan_su': 'workboard',
-  '#/agent_sessions': 'workboard',
+  '#/agent_sessions': 'runtime',
   '#/agent_skills': 'skills',
   '#/ai_staff': 'staff',
   '#/approvals': 'approvals',
