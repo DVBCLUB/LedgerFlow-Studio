@@ -10,6 +10,36 @@ export interface GitHubWorkflowRunSummary {
   updatedAt: string;
 }
 
+export interface GitHubWorkflowStepSummary {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  number: number;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface GitHubWorkflowJobSummary {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  htmlUrl: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  failedSteps: GitHubWorkflowStepSummary[];
+  steps: GitHubWorkflowStepSummary[];
+}
+
+export interface GitHubWorkflowRunJobsResult {
+  repo: string;
+  runId: number;
+  jobs: GitHubWorkflowJobSummary[];
+  failedJobs: GitHubWorkflowJobSummary[];
+  hasFailures: boolean;
+  lastCheckedAt: string;
+}
+
 export interface GitHubIssueSummary {
   number: number;
   title: string;
@@ -171,6 +201,32 @@ function mapRun(run: any): GitHubWorkflowRunSummary {
   };
 }
 
+function mapWorkflowStep(step: any): GitHubWorkflowStepSummary {
+  return {
+    name: String(step.name || "Step"),
+    status: String(step.status || "unknown"),
+    conclusion: step.conclusion ?? null,
+    number: Number(step.number || 0),
+    startedAt: step.started_at ?? null,
+    completedAt: step.completed_at ?? null,
+  };
+}
+
+function mapWorkflowJob(job: any): GitHubWorkflowJobSummary {
+  const steps = Array.isArray(job.steps) ? job.steps.map(mapWorkflowStep) : [];
+  return {
+    id: Number(job.id),
+    name: String(job.name || "Job"),
+    status: String(job.status || "unknown"),
+    conclusion: job.conclusion ?? null,
+    htmlUrl: String(job.html_url || ""),
+    startedAt: job.started_at ?? null,
+    completedAt: job.completed_at ?? null,
+    failedSteps: steps.filter((step) => step.conclusion === "failure" || step.conclusion === "cancelled"),
+    steps,
+  };
+}
+
 function mapIssue(issue: any): GitHubIssueSummary {
   return {
     number: Number(issue.number),
@@ -322,6 +378,26 @@ export async function getGitHubSummary(inputRepo?: string): Promise<GitHubConnec
     actionsUrl: `https://github.com/${repo}/actions`,
     issuesUrl: `https://github.com/${repo}/issues`,
     pullsUrl: `https://github.com/${repo}/pulls`,
+    lastCheckedAt: new Date().toISOString(),
+  };
+}
+
+export async function getGitHubWorkflowRunJobs(inputRepo: string | undefined, runId: number): Promise<GitHubWorkflowRunJobsResult> {
+  if (!Number.isFinite(runId) || runId <= 0) throw new Error("Workflow run id không hợp lệ.");
+  const repo = normalizeGitHubRepo(inputRepo);
+  const encodedRepo = encodeRepo(repo);
+  const jobsResponse = await githubFetch<any>(`/repos/${encodedRepo}/actions/runs/${encodeURIComponent(String(runId))}/jobs?per_page=50`, {}, true).catch(async (err: any) => {
+    if (String(err?.message || "").toLowerCase().includes("requires authentication")) throw err;
+    return { jobs: [] };
+  });
+  const jobs = Array.isArray(jobsResponse.jobs) ? jobsResponse.jobs.map(mapWorkflowJob) : [];
+  const failedJobs = jobs.filter((job) => job.conclusion === "failure" || job.failedSteps.length > 0);
+  return {
+    repo,
+    runId,
+    jobs,
+    failedJobs,
+    hasFailures: failedJobs.length > 0,
     lastCheckedAt: new Date().toISOString(),
   };
 }
