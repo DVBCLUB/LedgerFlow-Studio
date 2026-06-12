@@ -28,6 +28,51 @@ export interface IntegrationEvent {
   createdAt: string;
 }
 
+export interface GitHubWorkflowRunSummary {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  branch: string;
+  event: string;
+  htmlUrl: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GitHubIssueSummary {
+  number: number;
+  title: string;
+  state: string;
+  htmlUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  labels: string[];
+  isPullRequest: boolean;
+}
+
+export interface GitHubConnectorSummary {
+  repo: string;
+  tokenConfigured: boolean;
+  repository?: {
+    fullName: string;
+    private: boolean;
+    defaultBranch: string;
+    htmlUrl: string;
+    description: string | null;
+    openIssuesCount: number;
+    pushedAt: string | null;
+    updatedAt: string | null;
+  };
+  latestRuns: GitHubWorkflowRunSummary[];
+  openIssues: GitHubIssueSummary[];
+  openPullRequests: GitHubIssueSummary[];
+  actionsUrl: string;
+  issuesUrl: string;
+  pullsUrl: string;
+  lastCheckedAt: string;
+}
+
 async function readJson<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
   if (!response.ok || data?.success === false) {
@@ -83,4 +128,26 @@ export async function fetchIntegrationEvents(limit = 100): Promise<IntegrationEv
 
 export async function clearIntegrationEvents(): Promise<void> {
   await readJson<{ success: true }>(await fetch('/api/integrations/events', { method: 'DELETE' }));
+}
+
+export async function fetchGitHubConnectorSummary(repo?: string): Promise<GitHubConnectorSummary> {
+  const query = repo ? `?repo=${encodeURIComponent(repo)}` : '';
+  const data = await readJson<{ success: true; summary: GitHubConnectorSummary }>(await fetch(`/api/integrations/github/summary${query}`));
+  return data.summary;
+}
+
+export async function createGitHubConnectorIssue(input: {
+  repo?: string;
+  title: string;
+  body?: string;
+  labels?: string[];
+}): Promise<GitHubIssueSummary> {
+  const data = await readJson<{ success: true; issue: GitHubIssueSummary }>(
+    await fetch('/api/integrations/github/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  );
+  return data.issue;
 }
