@@ -27,6 +27,7 @@ import FounderReviewChecklist from './FounderReviewChecklist';
 import RollbackCenter from './RollbackCenter';
 import ReleaseArtifactCenter from './ReleaseArtifactCenter';
 import ArtifactInspectorPanel from './ArtifactInspectorPanel';
+import MergeReadinessCenter from './MergeReadinessCenter';
 import ConnectorSdkRegistry from './ConnectorSdkRegistry';
 import AuditTrailPanel from './AuditTrailPanel';
 import CIRunInspectorPanel from './CIRunInspectorPanel';
@@ -38,9 +39,11 @@ function isAIOpsRoute() {
   return window.location.hash === '#/ai_ops' || window.location.hash === '#/ai-ops' || window.location.hash === '#/ai_nhan_su';
 }
 
+type AIOpsView = 'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'pr' | 'readiness' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy';
+
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'pr' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<AIOpsView>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -95,6 +98,7 @@ export default function AIOpsCenterLauncher() {
                 <button onClick={() => setView('tools')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'tools' ? 'border-teal-300 bg-teal-400/10 text-teal-100' : 'border-slate-700 text-slate-300 hover:border-teal-300'}`}>Tools</button>
                 <button onClick={() => setView('local')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'local' ? 'border-lime-300 bg-lime-400/10 text-lime-100' : 'border-slate-700 text-slate-300 hover:border-lime-300'}`}>Local</button>
                 <button onClick={() => setView('pr')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'pr' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>PR Control</button>
+                <button onClick={() => setView('readiness')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'readiness' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Readiness</button>
                 <button onClick={() => setView('skills')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'skills' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}>Skills</button>
                 <button onClick={() => setView('memory')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'memory' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Memory</button>
                 <button onClick={() => setView('security')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'security' ? 'border-rose-300 bg-rose-400/10 text-rose-100' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}>Security</button>
@@ -121,6 +125,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'tools' && <ToolExecutionLayerPanel />}
             {view === 'local' && <LocalHandoffCenter />}
             {view === 'pr' && <PRControlCenter />}
+            {view === 'readiness' && <MergeReadinessCenter />}
             {view === 'skills' && <AgentSkillRegistry />}
             {view === 'memory' && <ProjectMemoryDecisionLog />}
             {view === 'security' && <SecurityControlCenter />}
