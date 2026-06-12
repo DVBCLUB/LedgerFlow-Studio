@@ -7,6 +7,10 @@ import ToolExecutionLayerPanel from '../ToolExecutionLayerPanel';
 import RuntimeToolBridge from '../RuntimeToolBridge';
 import RuntimeQueueAssistantBridge from '../RuntimeQueueAssistantBridge';
 import RuntimeInboxBridge from '../RuntimeInboxBridge';
+import SessionWorkboardBridge from '../SessionWorkboardBridge';
+import SessionResultBridge from '../SessionResultBridge';
+import SandboxApprovalBridge from '../SandboxApprovalBridge';
+import ReleaseDraftSyncBridge from '../ReleaseDraftSyncBridge';
 import LocalHandoffCenter from '../LocalHandoffCenter';
 import PRControlCenter from '../PRControlCenter';
 import PRDigestSyncBridge from '../PRDigestSyncBridge';
@@ -76,6 +80,10 @@ export default function OpsToolsLauncher() {
       {open && <RuntimeInboxBridge />}
       {open && <RuntimeQueueAssistantBridge />}
       {open && <RuntimeToolBridge />}
+      {open && <SessionWorkboardBridge />}
+      {open && <SessionResultBridge />}
+      {open && <SandboxApprovalBridge />}
+      {open && <ReleaseDraftSyncBridge />}
       {open && <PRDigestSyncBridge />}
       <button onClick={openPanel} className="fixed bottom-72 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80" title="Open Ops Tools">
         <span className="block text-[10px] uppercase tracking-[0.18em] text-violet-300">Ops Tools</span>
