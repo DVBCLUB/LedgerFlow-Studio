@@ -1,40 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type Tone = 'cyan' | 'violet' | 'emerald' | 'amber' | 'rose' | 'blue' | 'orange';
 
-type ScoreItem = {
-  area: string;
-  grade: string;
-  tone: Tone;
-  next: string;
-};
-
-type AgentRole = {
+type KnowledgeItem = {
   id: string;
   title: string;
-  dept: string;
-  tone: Tone;
-  task: string;
-  prompt: string;
-  criteria: string[];
-  tools: string[];
-  frequency: string;
+  category: string;
+  source: string;
+  tags: string;
+  content: string;
+  priority: 'Cao' | 'Vừa' | 'Thấp';
+  createdAt: string;
 };
 
-type RoadmapItem = {
+type AgentLane = {
   title: string;
-  why: string;
-  effortHours: number;
-  value: string;
-  tag: string;
+  mission: string;
+  tools: string[];
+  outputs: string[];
   tone: Tone;
-};
-
-type WeekDay = {
-  day: string;
-  theme: string;
-  tone: Tone;
-  tasks: string[];
 };
 
 const toneClass: Record<Tone, { border: string; bg: string; text: string; chip: string }> = {
@@ -47,191 +31,248 @@ const toneClass: Record<Tone, { border: string; bg: string; text: string; chip: 
   orange: { border: 'border-orange-400/35', bg: 'bg-orange-400/10', text: 'text-orange-200', chip: 'bg-orange-300 text-slate-950' }
 };
 
-const scorecard: ScoreItem[] = [
-  { area: 'Định vị sản phẩm', grade: 'A-', tone: 'emerald', next: 'Thêm badge mô phỏng + disclaimer rõ trên landing page.' },
-  { area: 'Mô phỏng & synthetic users', grade: 'B', tone: 'cyan', next: 'Build Persona Lab và bias warning trong Synthetic Survey.' },
-  { area: 'AI workforce', grade: 'B+', tone: 'cyan', next: 'Gắn task tracker + output QA score cho từng agent.' },
-  { area: 'Tài chính solo founder', grade: 'C+', tone: 'amber', next: 'Hoàn thiện SaaS Finance Lab: MRR, runway, MoR decision.' },
-  { area: 'Marketing & phân phối', grade: 'C+', tone: 'amber', next: 'Thêm Distribution CRM nhẹ + content calendar Zalo/Facebook.' },
-  { area: 'Kế toán/kiểm toán đa ngành', grade: 'B+', tone: 'cyan', next: 'Mở rộng case bank cho thương mại, sản xuất, dịch vụ.' },
-  { area: 'Game giáo dục', grade: 'C', tone: 'amber', next: 'Hoàn thiện Game Design Lab MVP + một mini-game release thử.' }
-];
-
-const roles: AgentRole[] = [
-  {
-    id: 'cos', title: 'AI Chief of Staff', dept: 'CEO Office', tone: 'violet',
-    task: 'Tổng hợp kế hoạch tuần, ưu tiên backlog, weekly standup và cảnh báo rủi ro.',
-    prompt: 'Đọc backlog. Chọn top 3 task ưu tiên nhất, nêu 1 việc nên tạm dừng, rủi ro lớn nhất tuần này và next action cụ thể. Đừng tự quyết thay founder.',
-    criteria: ['Top 3 task + lý do chọn', 'Việc nên pause', 'Rủi ro lớn nhất', 'Next action cụ thể'],
-    tools: ['Claude', 'GitHub Issues', 'Decision Log'], frequency: 'Sáng thứ 2 hàng tuần'
-  },
-  {
-    id: 'pm', title: 'AI Product Manager', dept: 'Product', tone: 'cyan',
-    task: 'Viết PRD, user stories, acceptance criteria, UI copy và GO/NO-GO.',
-    prompt: 'Biến ý tưởng thành PRD ngắn: persona, pain point, tối đa 3 MVP features, màn hình chính, data model, acceptance criteria và test cases.',
-    criteria: ['Persona rõ', 'Pain point cụ thể', 'MVP tối đa 3 features', 'Edge cases', 'Test cases chạy được'],
-    tools: ['Claude', 'Figma Free', 'Obsidian'], frequency: 'Khi có feature mới'
-  },
-  {
-    id: 'dev', title: 'AI Fullstack Dev', dept: 'Engineering', tone: 'emerald',
-    task: 'Code tính năng, fix bug, refactor, viết test, review PR.',
-    prompt: 'Dựa PRD, đề xuất file cần sửa tối thiểu. Không phá UI hiện tại, không đổi kiến trúc vô lý, có checklist test tay và liệt kê risk kỹ thuật.',
-    criteria: ['Không đổi kiến trúc tùy tiện', 'File sửa cụ thể', 'Checklist test đầy đủ', 'Risk kỹ thuật rõ'],
-    tools: ['Claude Code', 'VS Code/Cursor', 'GitHub Actions'], frequency: 'Hàng ngày trong sprint build'
-  },
-  {
-    id: 'audit', title: 'AI Internal Auditor', dept: 'Audit & Risk', tone: 'amber',
-    task: 'Review feature trước release, kiểm tra compliance, risk scoring.',
-    prompt: 'Rà soát feature theo rủi ro dữ liệu, quyền duyệt, hiểu nhầm pháp lý/kế toán, lỗi UX, lỗi mô phỏng. Cho GO/HOLD/NO-GO với lý do.',
-    criteria: ['Risk list đầy đủ', 'Severity rõ', 'Đề xuất kiểm soát', 'GO/HOLD/NO-GO'],
-    tools: ['Claude', 'Release checklist', 'Quality Review'], frequency: 'Trước mỗi release'
-  },
-  {
-    id: 'mkt', title: 'AI Marketer', dept: 'Marketing', tone: 'rose',
-    task: 'Viết nội dung Zalo/Facebook/LinkedIn, survey script, demo storyboard.',
-    prompt: 'Viết 5 câu hỏi khảo sát pain point + 1 script demo 3 phút. Không hứa thay phần mềm kế toán chính thức. Founder review trước khi post.',
-    criteria: ['Có câu hỏi mở', 'Có câu WTP', 'Demo flow rõ', 'Không quảng cáo quá mức'],
-    tools: ['Claude', 'Canva', 'Zalo OA', 'CapCut'], frequency: '2-3 lần mỗi tuần'
-  },
-  {
-    id: 'analyst', title: 'AI Data Analyst', dept: 'Research', tone: 'blue',
-    task: 'Phân tích survey, market research, ML prototype và anomaly detection.',
-    prompt: 'Phân tích kết quả khảo sát. Chỉ ra pattern, outlier, bias, action và cảnh báo kết luận sai khi sample nhỏ.',
-    criteria: ['Insight cụ thể', 'Bias warning bắt buộc', 'Action items', 'Confidence level'],
-    tools: ['Python Sandbox', 'Google Sheets', 'Pandas/Scikit-learn'], frequency: 'Khi có survey hoặc event logs'
-  },
-  {
-    id: 'fin', title: 'AI Finance Advisor', dept: 'Finance', tone: 'orange',
-    task: 'Burn rate, pricing model, MRR simulation, keep/kill tool subscriptions.',
-    prompt: 'Tính runway, gross margin, break-even price. Đề xuất keep/kill cho tools, đánh giá pricing theo WTP và MoR phù hợp.',
-    criteria: ['Số liệu có nguồn', 'Best/base/worst scenario', 'Tool budget update', 'MoR recommendation'],
-    tools: ['Finance Lab', 'Tool Budget', 'Claude'], frequency: 'Hàng tháng + trước đổi giá'
-  }
-];
-
-const roadmap: RoadmapItem[] = [
-  { title: 'Tách AccountingVietnam.tsx', why: 'Component lớn làm AI dễ sửa hỏng và tăng technical debt.', effortHours: 4, value: 'Giảm bug risk', tag: 'Kỹ thuật', tone: 'emerald' },
-  { title: 'SaaS Finance Lab đầy đủ', why: 'Founder cần MRR/runway/pricing để quyết định thương mại hóa.', effortHours: 8, value: 'Revenue decision', tag: 'Finance', tone: 'amber' },
-  { title: 'Synthetic Persona Lab MVP', why: 'Simulation-first giúp test giả thuyết trước khi khảo sát thật.', effortHours: 6, value: 'R&D velocity', tag: 'Research', tone: 'cyan' },
-  { title: 'Company OS / Scorecard tab', why: 'Guardrail để app không drift thành ERP kế toán truyền thống.', effortHours: 3, value: 'Product guardrail', tag: 'Product', tone: 'violet' },
-  { title: 'Distribution CRM nhẹ', why: 'Theo dõi lead, pain point và paid signal từ khảo sát thực.', effortHours: 5, value: 'Sales pipeline', tag: 'Marketing', tone: 'rose' },
-  { title: 'Game Design Lab MVP', why: 'Game giáo dục là điểm khác biệt với MISA/ERP.', effortHours: 5, value: 'Differentiation', tag: 'Game', tone: 'blue' },
-  { title: 'Supabase Auth + RLS', why: 'Nền tảng bắt buộc để đi SaaS proper và workspace/team.', effortHours: 12, value: 'Revenue enabler', tag: 'Kỹ thuật', tone: 'emerald' },
-  { title: 'Audit Red Flag mini-game polish', why: 'Game đã có sẵn, nên hoàn thiện để release thử nghiệm viral.', effortHours: 8, value: 'Retention', tag: 'Game', tone: 'blue' }
-];
-
-const week: WeekDay[] = [
-  { day: 'Thứ 2', theme: 'Planning', tone: 'violet', tasks: ['Chief of Staff chọn top 3 task tuần', 'Update scorecard + risk register', 'Viết work orders cho AI agents', 'Check tool budget', 'Review Idea Portfolio GO/HOLD/NO-GO'] },
-  { day: 'Thứ 3', theme: 'Build sprint 1', tone: 'emerald', tasks: ['Claude Code session 2-3h', 'AI PM chốt PRD nếu có feature mới', 'Push PR + chạy check', 'Ghi decision log nếu có quyết định kỹ thuật'] },
-  { day: 'Thứ 4', theme: 'Build sprint 2', tone: 'emerald', tasks: ['Hoàn thiện task #2 hoặc fix bug', 'AI Auditor review release', 'Build + kiểm tra desktop', 'Chuẩn bị changelog/demo'] },
-  { day: 'Thứ 5', theme: 'R&D & Domain', tone: 'cyan', tasks: ['Đọc tài liệu domain 45 phút', 'Thêm knowledge content vào modules', 'Refine simulation model', 'Data Analyst phân tích survey/event data'] },
-  { day: 'Thứ 6', theme: 'Marketing & Sales', tone: 'rose', tasks: ['AI Marketer draft 2 posts', 'Founder review rồi tự post', 'Record demo 3-5 phút', 'Follow up leads từ Distribution CRM'] },
-  { day: 'Thứ 7', theme: 'Finance & Strategy', tone: 'amber', tasks: ['Update MRR tracker + tool budget', 'Finance Advisor monthly review', 'Review Idea Portfolio', 'Plan sprint tuần tới'] },
-  { day: 'Chủ nhật', theme: 'Rest', tone: 'blue', tasks: ['Nghỉ để bảo vệ creativity', 'Chỉ đọc nhẹ nếu muốn', 'Ghi ý tưởng tự nhiên', 'Không code/commit/deploy'] }
-];
-
-const gtmPhases = [
-  { phase: 'Tháng 1-3', title: 'Credibility & Community', goal: '100+ followers, 10-20 beta users, 30+ survey responses', actions: ['Zalo group Kế toán AI & Simulation Lab', 'Facebook Page 3 posts/tuần', 'Build-in-public trên LinkedIn', 'Lead magnet: 10 Red Flags kiểm toán xây dựng', 'Survey pain point 8 câu'] },
-  { phase: 'Tháng 4-6', title: 'Beta & First Revenue', goal: '50 paying users, MRR 10M VND, NPS > 30', actions: ['Private beta 20 kế toán/founder', 'Lifetime deal giới hạn 30 slots', 'Supabase Auth live', 'Partner content với KOL kế toán', 'Guest post tài chính/SME'] },
-  { phase: 'Tháng 7-12', title: 'Scale & Diversify', goal: '200+ users, MRR 50M VND, 2 template packs', actions: ['Product Hunt launch bản English', 'Template/prompt packs', 'Referral program', 'B2B SME package', 'CSV import từ MISA/export kế toán'] }
-];
-
 const tabs = [
-  { id: 'company', label: 'Công ty OS' },
-  { id: 'ai', label: 'AI Workforce' },
-  { id: 'roadmap', label: 'P0 Roadmap' },
-  { id: 'revenue', label: 'Doanh thu' },
-  { id: 'ops', label: 'Vận hành' },
-  { id: 'gtm', label: 'GTM Vietnam' }
+  { id: 'company', label: 'Công ty hôm nay' },
+  { id: 'library', label: 'Thư viện tri thức' },
+  { id: 'ai', label: 'AI Nhân sự' },
+  { id: 'product', label: 'Product Studio' },
+  { id: 'marketing', label: 'Marketing & Sales' },
+  { id: 'sandbox', label: 'Models & Sandbox' },
+  { id: 'finance', label: 'Tài chính' }
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
 
-function Chip({ children, tone }: { children: React.ReactNode; tone: Tone }) {
-  return <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${toneClass[tone].chip}`}>{children}</span>;
-}
+const starterKnowledge: KnowledgeItem[] = [
+  {
+    id: 'k-001',
+    title: 'Định vị LedgerFlow Hub',
+    category: 'Chiến lược sản phẩm',
+    source: 'Founder note',
+    tags: 'company-os, software, ai-agent',
+    content: 'LedgerFlow là hệ điều hành cho công ty phần mềm nhỏ: quản trị sản phẩm, marketing, sales, tài chính, AI nhân sự, sandbox, tích hợp GitHub/VS Code/AI Gateway. Không được đóng khung thành công ty xây dựng.',
+    priority: 'Cao',
+    createdAt: 'Mặc định'
+  },
+  {
+    id: 'k-002',
+    title: 'Accounting product lines',
+    category: 'Sản phẩm kế toán',
+    source: 'Product architecture',
+    tags: 'kế toán, xây dựng, dịch vụ, thương mại, sản xuất',
+    content: 'Phần mềm kế toán là một dòng sản phẩm. Template ngành gồm xây dựng, dịch vụ, thương mại, sản xuất. Công trình chỉ là template xây dựng, không phải toàn bộ app.',
+    priority: 'Cao',
+    createdAt: 'Mặc định'
+  },
+  {
+    id: 'k-003',
+    title: 'AI Nhân sự là trung tâm điều phối hệ thống',
+    category: 'AI Operations',
+    source: 'Founder correction',
+    tags: 'ai-nhân-sự, github, vscode, code, push, design',
+    content: 'AI Nhân sự không phải HCNS thường. Đây là nơi điều phối AI/AI agent: trả lời câu hỏi, tạo code, review, push qua GitHub, thiết kế UI, liên kết VS Code/Cursor/GitHub, nhận dữ liệu vào và đẩy dữ liệu ra.',
+    priority: 'Cao',
+    createdAt: 'Mặc định'
+  }
+];
+
+const agentLanes: AgentLane[] = [
+  {
+    title: 'AI Điều phối trưởng',
+    mission: 'Nhận yêu cầu từ founder, phân loại thành việc hỏi đáp, code, thiết kế, dữ liệu, marketing hoặc tích hợp.',
+    tools: ['AI Gateway', 'Task Router', 'Knowledge Library'],
+    outputs: ['Kế hoạch xử lý', 'Việc giao cho AI khác', 'Checklist kiểm tra'],
+    tone: 'violet'
+  },
+  {
+    title: 'AI Code / Dev Agent',
+    mission: 'Tạo code, sửa bug, refactor, viết prompt handoff cho Cursor/VS Code/Copilot và theo dõi CI.',
+    tools: ['VS Code', 'Cursor', 'GitHub', 'CI Doctor'],
+    outputs: ['Patch', 'PR/commit plan', 'Test checklist', 'Build status'],
+    tone: 'emerald'
+  },
+  {
+    title: 'AI Thiết kế sản phẩm',
+    mission: 'Biến ý tưởng thành màn hình, flow, wireframe, PRD, UX copy và cấu trúc module.',
+    tools: ['Product Studio', 'Design Prompt', 'Screenshot Review'],
+    outputs: ['PRD', 'UI flow', 'Component brief', 'Acceptance criteria'],
+    tone: 'cyan'
+  },
+  {
+    title: 'AI Dữ liệu / Tri thức',
+    mission: 'Gom dữ liệu từ thư viện, file, log, issue, ghi chú và biến thành context cho AI trả lời đúng.',
+    tools: ['Thư viện tri thức', 'Import/Export', 'Analytics Sandbox'],
+    outputs: ['Context pack', 'Tóm tắt tri thức', 'Nguồn dữ liệu'],
+    tone: 'blue'
+  },
+  {
+    title: 'AI Marketing / Sales',
+    mission: 'Tạo nội dung bán hàng, khảo sát thị trường, kịch bản demo, follow-up khách hàng và phân tích funnel.',
+    tools: ['Marketing Hub', 'Sales CRM', 'Survey Simulator'],
+    outputs: ['Content plan', 'Demo script', 'Lead notes', 'Campaign idea'],
+    tone: 'rose'
+  },
+  {
+    title: 'AI Kiểm soát / Auditor',
+    mission: 'Kiểm tra output trước khi dùng: đúng yêu cầu, không lệch hướng, không phá code, không sai nghiệp vụ.',
+    tools: ['Quality checklist', 'GitHub Actions', 'Release notes'],
+    outputs: ['GO/HOLD/NO-GO', 'Risk list', 'Fix request'],
+    tone: 'amber'
+  }
+];
+
+const productLines = [
+  ['LedgerFlow Company OS', 'Hệ điều hành công ty phần mềm: điều phối sản phẩm, AI, dữ liệu, tích hợp, tài chính, marketing.'],
+  ['Accounting for Construction', 'Template kế toán ngành xây dựng: công trình, chi phí, hồ sơ, vật tư nếu cần. Không phải global app.'],
+  ['Accounting for Services', 'Dịch vụ, hợp đồng, doanh thu, chi phí nhân sự, nghiệm thu, công nợ.'],
+  ['Accounting for Trading', 'Mua bán hàng hóa, tồn kho, biên lợi nhuận, công nợ, hóa đơn.'],
+  ['Accounting for Manufacturing', 'NVL, BOM, lệnh sản xuất, thành phẩm, giá thành, lô sản xuất.'],
+  ['Game / Learning Products', 'Game kế toán, game kiểm toán, mô phỏng quản trị, học qua tình huống.']
+];
 
 function Panel({ children, tone = 'cyan', className = '' }: { children: React.ReactNode; tone?: Tone; className?: string }) {
   const t = toneClass[tone];
   return <section className={`rounded-3xl border ${t.border} ${t.bg} p-4 ${className}`}>{children}</section>;
 }
 
+function Chip({ children, tone }: { children: React.ReactNode; tone: Tone }) {
+  return <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${toneClass[tone].chip}`}>{children}</span>;
+}
+
 function SectionTitle({ title, subtitle }: { title: string; subtitle: string }) {
   return (
     <div className="mb-4">
-      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">LedgerFlow Studio Company OS</p>
+      <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-300">LedgerFlow Software Company OS</p>
       <h3 className="mt-1 text-xl font-black text-white">{title}</h3>
       <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">{subtitle}</p>
     </div>
   );
 }
 
-function CompanyTab() {
+function CompanyTodayTab() {
   return (
     <div>
-      <SectionTitle title="Công ty thu nhỏ 1 người" subtitle="Founder là CEO, AI là nhân viên theo vai trò. Module này biến bảng đánh giá Claude thành dashboard vận hành trong app." />
-      <Panel tone="cyan" className="mb-4 text-center">
-        <div className="mx-auto inline-flex flex-col items-center gap-2">
-          <div className="rounded-2xl bg-cyan-300 px-6 py-3 text-sm font-black text-slate-950 shadow-lg">FOUNDER / CEO — Quốc Bảo</div>
-          <p className="text-xs font-semibold text-slate-400">Người quyết định cuối cùng · AI chỉ đề xuất và soạn nháp</p>
-        </div>
-        <div className="mx-auto my-4 h-5 w-px bg-slate-600" />
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-          {roles.map((role) => <div key={role.id} className={`rounded-2xl border ${toneClass[role.tone].border} bg-slate-950/50 p-3`}><p className="text-xs font-black text-white">{role.title.replace('AI ', '')}</p><p className={`mt-1 text-[11px] font-bold ${toneClass[role.tone].text}`}>{role.dept}</p></div>)}
-        </div>
-      </Panel>
-
-      <div className="mb-4 grid gap-3 md:grid-cols-2">
-        {scorecard.map((item) => (
-          <Panel key={item.area} tone={item.tone}>
-            <div className="flex gap-3">
-              <span className={`text-2xl font-black ${toneClass[item.tone].text}`}>{item.grade}</span>
-              <div>
-                <p className="text-sm font-black text-white">{item.area}</p>
-                <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">→ {item.next}</p>
-              </div>
-            </div>
-          </Panel>
-        ))}
+      <SectionTitle title="Công ty phần mềm thu nhỏ" subtitle="Founder điều hành một studio sản phẩm: phần mềm kế toán đa ngành, AI tools, game, sandbox, marketing, sales và tích hợp hệ thống." />
+      <div className="mb-4 grid gap-3 md:grid-cols-3">
+        {[
+          ['Sản phẩm đang xây', '6 dòng', 'Company OS, accounting templates, AI/data tools, game products', 'emerald' as Tone],
+          ['AI điều phối', `${agentLanes.length} lane`, 'AI hỏi đáp, code, thiết kế, data, marketing, kiểm soát', 'violet' as Tone],
+          ['Tri thức nội bộ', 'Library-first', 'Mọi ghi chú, quy tắc, prompt, nghiệp vụ đổ về thư viện', 'cyan' as Tone]
+        ].map(([title, value, note, tone]) => <Panel key={title} tone={tone as Tone}><Chip tone={tone as Tone}>{title}</Chip><p className="mt-3 text-2xl font-black text-white">{value}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{note}</p></Panel>)}
       </div>
-
-      <Panel tone="emerald">
-        <p className="text-xs font-black uppercase tracking-wider text-emerald-200">10 nguyên tắc vận hành</p>
+      <Panel tone="amber">
+        <p className="text-sm font-black text-white">Nguyên tắc chống lệch hướng</p>
         <div className="mt-3 grid gap-2 md:grid-cols-2">
           {[
-            ['Founder là CEO, AI là nhân viên', 'AI đề xuất, founder duyệt.'],
-            ['Free-first, pay khi có bằng chứng', 'Chỉ trả tiền tool khi ROI rõ.'],
-            ['Simulate trước, build sau', 'Mô phỏng giả thuyết rồi mới build lớn.'],
-            ['Không phải ERP', 'Tập trung học, R&D, mô phỏng, điều hành.'],
-            ['Component nhỏ, data module rõ', 'Dễ test, dễ sửa, ít vỡ app.'],
-            ['Offline-first', 'Cloud sync chỉ là tính năng thêm.'],
-            ['Guardrail trước release', 'Không bypass checklist dù feature nhỏ.'],
-            ['Build in public', 'Biến quá trình build thành content.'],
-            ['Mọi feature hỏi: ai trả tiền?', 'Revenue-aware từ ngày đầu.'],
-            ['Chủ nhật không code', 'Burnout là rủi ro solo founder lớn.']
-          ].map(([title, desc], index) => <div key={title} className="rounded-2xl border border-slate-800 bg-slate-950/50 p-3"><p className="text-xs font-black text-white">{String(index + 1).padStart(2, '0')} · {title}</p><p className="mt-1 text-xs font-semibold text-slate-400">{desc}</p></div>)}
+            'Không biến app thành công ty xây dựng.',
+            'Công trình chỉ nằm trong template kế toán xây dựng.',
+            'Marketing và Sales là phòng ban bắt buộc vì phần mềm phải bán được.',
+            'AI Nhân sự là trung tâm điều phối AI/AI agent/hệ thống.',
+            'Thư viện tri thức là nơi gom kiến thức, prompt, nghiệp vụ và dữ liệu.',
+            'Sandbox, biểu đồ, mô hình, game là lõi sản phẩm, không phải đồ chơi phụ.'
+          ].map((item) => <div key={item} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 text-xs font-semibold text-slate-300">✓ {item}</div>)}
         </div>
       </Panel>
     </div>
   );
 }
 
-function AIWorkforceTab() {
-  const [selected, setSelected] = useState(roles[0].id);
-  const activeRole = roles.find((role) => role.id === selected) ?? roles[0];
+function KnowledgeLibraryTab() {
+  const [items, setItems] = useState<KnowledgeItem[]>(() => {
+    try {
+      const raw = localStorage.getItem('ledgerflow_knowledge_library_v1');
+      return raw ? JSON.parse(raw) as KnowledgeItem[] : starterKnowledge;
+    } catch {
+      return starterKnowledge;
+    }
+  });
+  const [draft, setDraft] = useState({ title: '', category: 'Sản phẩm', source: '', tags: '', content: '', priority: 'Vừa' as KnowledgeItem['priority'] });
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    localStorage.setItem('ledgerflow_knowledge_library_v1', JSON.stringify(items));
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((item) => [item.title, item.category, item.source, item.tags, item.content].join(' ').toLowerCase().includes(q));
+  }, [items, query]);
+
+  const addKnowledge = () => {
+    if (!draft.title.trim() || !draft.content.trim()) return;
+    const next: KnowledgeItem = {
+      id: `k-${Date.now()}`,
+      title: draft.title.trim(),
+      category: draft.category.trim() || 'Chưa phân loại',
+      source: draft.source.trim() || 'Nhập tay',
+      tags: draft.tags.trim(),
+      content: draft.content.trim(),
+      priority: draft.priority,
+      createdAt: new Date().toLocaleString('vi-VN')
+    };
+    setItems((current) => [next, ...current]);
+    setDraft({ title: '', category: draft.category, source: '', tags: '', content: '', priority: 'Vừa' });
+  };
+
+  const removeKnowledge = (id: string) => setItems((current) => current.filter((item) => item.id !== id));
+  const exportJson = () => {
+    const blob = new Blob([JSON.stringify(items, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ledgerflow-knowledge-library.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
-      <SectionTitle title="AI Workforce" subtitle="7 vai trò AI có prompt chuẩn, acceptance criteria, tool stack và tần suất rõ ràng." />
-      <div className="grid gap-3 lg:grid-cols-[18rem_1fr]">
-        <div className="space-y-2">
-          {roles.map((role) => <button key={role.id} onClick={() => setSelected(role.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected === role.id ? `${toneClass[role.tone].border} ${toneClass[role.tone].bg}` : 'border-slate-800 bg-slate-950/50 hover:border-emerald-500/40'}`}><p className="text-sm font-black text-white">{role.title}</p><p className="mt-1 text-[11px] font-bold text-slate-400">{role.dept} · {role.frequency}</p></button>)}
-        </div>
-        <Panel tone={activeRole.tone}>
-          <div className="flex flex-wrap items-start justify-between gap-3"><div><Chip tone={activeRole.tone}>{activeRole.dept}</Chip><h3 className="mt-3 text-lg font-black text-white">{activeRole.title}</h3><p className="mt-2 text-sm font-semibold leading-6 text-slate-300">{activeRole.task}</p></div></div>
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Prompt mẫu</p><p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{activeRole.prompt}</p></div>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Acceptance criteria</p><ul className="mt-2 space-y-2">{activeRole.criteria.map((item) => <li key={item} className="text-xs font-semibold text-slate-300">✓ {item}</li>)}</ul></div>
-            <div><p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Tools</p><div className="mt-2 flex flex-wrap gap-2">{activeRole.tools.map((tool) => <span key={tool} className="rounded-full border border-slate-800 bg-slate-950 px-3 py-1 text-xs font-bold text-slate-300">{tool}</span>)}</div></div>
+      <SectionTitle title="Thư viện tri thức" subtitle="Nơi gom kiến thức công ty, nghiệp vụ, prompt, ý tưởng sản phẩm, quy tắc AI, ghi chú khách hàng và dữ liệu context cho AI agent." />
+      <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
+        <Panel tone="emerald">
+          <p className="text-sm font-black text-white">Nhập kiến thức mới</p>
+          <div className="mt-3 grid gap-3">
+            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300" placeholder="Tiêu đề kiến thức" value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} />
+            <div className="grid gap-2 md:grid-cols-2">
+              <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
+                {['Sản phẩm', 'Kế toán', 'Marketing', 'Sales', 'AI Agent', 'Code/GitHub', 'Thiết kế', 'Game', 'Sandbox', 'Khách hàng', 'Quy trình'].map((cat) => <option key={cat}>{cat}</option>)}
+              </select>
+              <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={draft.priority} onChange={(e) => setDraft({ ...draft, priority: e.target.value as KnowledgeItem['priority'] })}>
+                {['Cao', 'Vừa', 'Thấp'].map((p) => <option key={p}>{p}</option>)}
+              </select>
+            </div>
+            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300" placeholder="Nguồn: khách hàng, Claude, Gemini, file, cuộc họp..." value={draft.source} onChange={(e) => setDraft({ ...draft, source: e.target.value })} />
+            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-emerald-300" placeholder="Tag: ai, github, sales, kế toán..." value={draft.tags} onChange={(e) => setDraft({ ...draft, tags: e.target.value })} />
+            <textarea className="min-h-[150px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white outline-none focus:border-emerald-300" placeholder="Nhập nội dung kiến thức / quy tắc / prompt / ghi chú..." value={draft.content} onChange={(e) => setDraft({ ...draft, content: e.target.value })} />
+            <div className="flex flex-wrap gap-2">
+              <button onClick={addKnowledge} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950">Lưu vào thư viện</button>
+              <button onClick={exportJson} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-emerald-300">Xuất JSON</button>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel tone="cyan">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-black text-white">Kho kiến thức</p>
+              <p className="text-xs font-semibold text-slate-400">{items.length} mục · lưu local trên máy trước, sau này nối cloud/vector database.</p>
+            </div>
+            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white outline-none focus:border-cyan-300" placeholder="Tìm kiến thức..." value={query} onChange={(e) => setQuery(e.target.value)} />
+          </div>
+          <div className="mt-4 max-h-[540px] space-y-3 overflow-y-auto pr-1">
+            {filtered.map((item) => <div key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+              <div className="flex flex-wrap items-start justify-between gap-2">
+                <div>
+                  <div className="flex flex-wrap gap-2"><Chip tone={item.priority === 'Cao' ? 'rose' : item.priority === 'Vừa' ? 'amber' : 'blue'}>{item.priority}</Chip><span className="rounded-full border border-slate-700 px-2.5 py-1 text-[10px] font-black text-slate-300">{item.category}</span></div>
+                  <p className="mt-2 text-sm font-black text-white">{item.title}</p>
+                </div>
+                <button onClick={() => removeKnowledge(item.id)} className="rounded-xl border border-slate-700 px-2 py-1 text-[10px] font-black text-slate-400 hover:border-rose-300 hover:text-rose-200">Xóa</button>
+              </div>
+              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300 whitespace-pre-wrap">{item.content}</p>
+              <p className="mt-2 text-[11px] font-bold text-slate-500">Nguồn: {item.source} · Tag: {item.tags || 'chưa có'} · {item.createdAt}</p>
+            </div>)}
+            {filtered.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm font-semibold text-slate-400">Không tìm thấy kiến thức phù hợp.</p>}
           </div>
         </Panel>
       </div>
@@ -239,20 +280,94 @@ function AIWorkforceTab() {
   );
 }
 
-function RoadmapTab() {
-  const totalHours = useMemo(() => roadmap.reduce((sum, item) => sum + item.effortHours, 0), []);
+function AIOpsCenterTab() {
   return (
     <div>
-      <SectionTitle title="P0 Roadmap" subtitle="Các việc ưu tiên để LedgerFlow đi từ learning/R&D app sang sản phẩm có thể thương mại hóa." />
-      <div className="space-y-3">
-        {roadmap.map((item, index) => <Panel key={item.title} tone={item.tone}><div className="grid gap-3 md:grid-cols-[3rem_1fr_5rem]"><div className={`text-lg font-black ${toneClass[item.tone].text}`}>#{String(index + 1).padStart(2, '0')}</div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-black text-white">{item.title}</h3><Chip tone={item.tone}>{item.tag}</Chip></div><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{item.why}</p><p className="mt-1 text-[11px] font-bold text-slate-500">Tác động: {item.value}</p></div><div className="text-right"><p className={`text-2xl font-black ${toneClass[item.tone].text}`}>{item.effortHours}h</p><p className="text-[10px] font-bold uppercase text-slate-500">estimate</p></div></div></Panel>)}
+      <SectionTitle title="AI Nhân sự / AI Operations Center" subtitle="Đây là trung tâm điều phối AI, AI agent, phần mềm liên quan và dữ liệu vào/ra: hỏi đáp, tạo code, push code, thiết kế, VS Code, GitHub, sandbox, knowledge base." />
+      <div className="mb-4 grid gap-3 md:grid-cols-4">
+        {[
+          ['Dữ liệu vào', 'Tri thức, file, log, issue, prompt, yêu cầu founder', 'blue' as Tone],
+          ['Bộ não điều phối', 'AI Gateway + task router + knowledge context', 'violet' as Tone],
+          ['Công cụ hành động', 'VS Code, Cursor, GitHub, CI, design, sandbox', 'emerald' as Tone],
+          ['Dữ liệu ra', 'Câu trả lời, code, PR plan, thiết kế, báo cáo, task', 'cyan' as Tone]
+        ].map(([title, note, tone]) => <Panel key={title} tone={tone as Tone}><Chip tone={tone as Tone}>{title}</Chip><p className="mt-3 text-xs font-semibold leading-5 text-slate-300">{note}</p></Panel>)}
       </div>
-      <Panel tone="cyan" className="mt-4"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-sm font-black text-white">Tổng effort P0</p><p className="mt-1 text-xs font-semibold text-slate-400">Ưu tiên #1 → #4 trước, sau đó mở rộng GTM và SaaS.</p></div><p className="text-4xl font-black text-cyan-200">{totalHours}h</p></div></Panel>
+
+      <div className="grid gap-3 lg:grid-cols-2">
+        {agentLanes.map((lane) => <Panel key={lane.title} tone={lane.tone}>
+          <Chip tone={lane.tone}>{lane.title}</Chip>
+          <p className="mt-3 text-sm font-semibold leading-6 text-slate-300">{lane.mission}</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Công cụ liên quan</p>
+              <div className="mt-2 flex flex-wrap gap-2">{lane.tools.map((tool) => <span key={tool} className="rounded-full border border-slate-800 bg-slate-950 px-3 py-1 text-xs font-bold text-slate-300">{tool}</span>)}</div>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Output</p>
+              <ul className="mt-2 space-y-1">{lane.outputs.map((output) => <li key={output} className="text-xs font-semibold text-slate-300">✓ {output}</li>)}</ul>
+            </div>
+          </div>
+        </Panel>)}
+      </div>
+
+      <Panel tone="amber" className="mt-4">
+        <p className="text-sm font-black text-white">Luật an toàn khi AI tạo/push code</p>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          {[
+            'AI phải đọc Thư viện tri thức và AGENTS.md trước khi sửa code.',
+            'Code/push phải đi qua GitHub connector hoặc Dev Handoff, không chạy shell nguy hiểm tự do.',
+            'Mỗi task phải có file cần sửa, checklist test, risk và tiêu chí nghiệm thu.',
+            'CI Doctor đọc lỗi GitHub Actions rồi tạo prompt sửa lỗi cho VS Code/Cursor.',
+            'Founder duyệt cuối cùng trước khi release hoặc đổi kiến trúc lớn.',
+            'Mọi output quan trọng phải quay lại Thư viện tri thức để làm context lần sau.'
+          ].map((rule) => <div key={rule} className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 text-xs font-semibold text-slate-300">✓ {rule}</div>)}
+        </div>
+      </Panel>
     </div>
   );
 }
 
-function RevenueTab() {
+function ProductStudioTab() {
+  return (
+    <div>
+      <SectionTitle title="Product Studio" subtitle="Nơi quản lý các dòng sản phẩm: Company OS, phần mềm kế toán đa ngành, AI/data tools và game." />
+      <div className="grid gap-3 md:grid-cols-2">
+        {productLines.map(([title, note], index) => <Panel key={title} tone={(['emerald', 'cyan', 'blue', 'orange', 'amber', 'violet'] as Tone[])[index]}><p className="text-sm font-black text-white">{title}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{note}</p></Panel>)}
+      </div>
+    </div>
+  );
+}
+
+function MarketingSalesTab() {
+  return (
+    <div>
+      <SectionTitle title="Marketing & Sales" subtitle="Phần mềm phải có phòng marketing và bán hàng: nghiên cứu khách hàng, tạo nội dung, demo, lead, follow-up và CRM." />
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {[
+          ['Định vị', 'LedgerFlow dành cho founder/công ty nhỏ muốn dùng AI để xây, bán và vận hành sản phẩm.'],
+          ['Kênh', 'Facebook, Zalo, TikTok, YouTube, GitHub, cộng đồng kế toán, cộng đồng AI/dev.'],
+          ['Lead magnet', 'Template kế toán, checklist kiểm toán, mini game, demo sandbox, case study.'],
+          ['Demo script', '3 phút: vấn đề → mô phỏng → AI điều phối → xuất báo cáo/tri thức.'],
+          ['CRM nhẹ', 'Lead, nhu cầu, ngành, mức đau, đã demo chưa, bước follow-up.'],
+          ['AI Marketer', 'Tạo content, survey, landing copy, kịch bản video, email/Zalo follow-up.']
+        ].map(([title, note]) => <Panel key={title} tone="rose"><p className="text-sm font-black text-white">{title}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{note}</p></Panel>)}
+      </div>
+    </div>
+  );
+}
+
+function SandboxTab() {
+  return (
+    <div>
+      <SectionTitle title="Analytics, Models & Sandbox" subtitle="Khôi phục đúng tinh thần Google AI Studio ban đầu: biểu đồ, mô hình, mô phỏng, sandbox SQL/Python, game/ML và thử nghiệm dữ liệu." />
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        {['SQL Sandbox', 'Python Sandbox', 'What-if Financial Model', 'Market Survey Simulator', 'Forecasting / ML Workbench', 'Game & Education Lab', 'Synthetic Data Lab', 'Dashboard & Charts', 'Model Registry'].map((name, index) => <Panel key={name} tone={(['cyan', 'blue', 'emerald', 'rose', 'violet', 'amber', 'orange', 'cyan', 'emerald'] as Tone[])[index]}><p className="text-sm font-black text-white">{name}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">Module này phải được đưa lên rõ ràng, không chôn trong demo/lộ trình.</p></Panel>)}
+      </div>
+    </div>
+  );
+}
+
+function FinanceTab() {
   const [users, setUsers] = useState(50);
   const [priceK, setPriceK] = useState(199);
   const [churn, setChurn] = useState(5);
@@ -261,10 +376,7 @@ function RevenueTab() {
   const arr = useMemo(() => netMrr * 12, [netMrr]);
   return (
     <div>
-      <SectionTitle title="Doanh thu" subtitle="Pricing, MRR simulator, template packs và hướng MoR cho sản phẩm số." />
-      <div className="mb-4 grid gap-3 md:grid-cols-3">
-        {[{ name: 'Starter', price: 'Free', tone: 'blue' as Tone, note: 'Offline modules, localStorage, limited simulations' }, { name: 'Pro', price: '199K VND/tháng', tone: 'cyan' as Tone, note: 'Unlimited simulations, export, AI integration, cloud sync sau' }, { name: 'Team', price: '799K VND/tháng', tone: 'violet' as Tone, note: '5 users/workspace, shared AI work order board, onboarding' }].map((tier) => <Panel key={tier.name} tone={tier.tone}><Chip tone={tier.tone}>{tier.name}</Chip><p className="mt-3 text-xl font-black text-white">{tier.price}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{tier.note}</p></Panel>)}
-      </div>
+      <SectionTitle title="Tài chính sản phẩm" subtitle="Mô phỏng doanh thu SaaS/template/game: MRR, ARR, churn, giá bán, margin và quyết định giữ/bỏ công cụ." />
       <Panel tone="emerald">
         <p className="text-xs font-black uppercase tracking-wider text-emerald-200">MRR Simulator</p>
         <div className="mt-4 grid gap-4">
@@ -272,30 +384,6 @@ function RevenueTab() {
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-4">{[{ label: 'Gross MRR', value: `${grossMrr.toFixed(1)}M` }, { label: 'Net MRR', value: `${netMrr.toFixed(1)}M` }, { label: 'ARR', value: `${arr.toFixed(0)}M` }, { label: 'Margin est.', value: '~85%' }].map((metric) => <div key={metric.label} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-[10px] font-black uppercase text-slate-500">{metric.label}</p><p className="mt-1 text-xl font-black text-emerald-200">{metric.value}</p><p className="text-[10px] font-bold text-slate-500">VND / mô phỏng</p></div>)}</div>
       </Panel>
-      <Panel tone="violet" className="mt-4"><p className="text-sm font-black text-white">Khuyến nghị MoR</p><p className="mt-2 text-xs font-semibold leading-6 text-slate-300">Ưu tiên Polar.sh hoặc Lemon Squeezy khi bán sản phẩm số quốc tế để giảm gánh VAT/GST, chargeback và tax ops cho solo founder.</p></Panel>
-    </div>
-  );
-}
-
-function OpsTab() {
-  const [selectedDay, setSelectedDay] = useState(0);
-  const current = week[selectedDay];
-  return (
-    <div>
-      <SectionTitle title="Vận hành" subtitle="Nhịp tuần founder, tool stack free-first và burn estimate." />
-      <div className="mb-4 flex flex-wrap gap-2">{week.map((item, index) => <button key={item.day} onClick={() => setSelectedDay(index)} className={`rounded-full border px-3 py-2 text-xs font-black transition ${selectedDay === index ? `${toneClass[item.tone].border} ${toneClass[item.tone].bg} text-white` : 'border-slate-800 bg-slate-950/50 text-slate-400 hover:border-emerald-500/40'}`}>{item.day}</button>)}</div>
-      <Panel tone={current.tone} className="mb-4"><Chip tone={current.tone}>{current.theme}</Chip><h3 className="mt-3 text-lg font-black text-white">{current.day}</h3><ul className="mt-3 space-y-2">{current.tasks.map((task) => <li key={task} className="text-sm font-semibold leading-6 text-slate-300">→ {task}</li>)}</ul></Panel>
-      <div className="grid gap-3 md:grid-cols-3">{[{ phase: 'Pre-launch', cost: '0 đ/tháng', note: '100% free tier' }, { phase: 'Beta', cost: '~800K-1.2M', note: 'Vercel Pro + Claude/API nhỏ' }, { phase: 'Growth', cost: '~3-5M', note: 'Supabase + ads nhỏ' }].map((item) => <Panel key={item.phase} tone="emerald"><p className="text-xs font-black text-white">{item.phase}</p><p className="mt-2 text-xl font-black text-emerald-200">{item.cost}</p><p className="mt-1 text-xs font-semibold text-slate-400">{item.note}</p></Panel>)}</div>
-    </div>
-  );
-}
-
-function GTMTab() {
-  return (
-    <div>
-      <SectionTitle title="GTM Vietnam" subtitle="3 phase 12 tháng, target khách hàng VN và kênh phân phối ưu tiên." />
-      <div className="mb-4 grid gap-3 md:grid-cols-2 lg:grid-cols-4">{[{ title: 'Kế toán freelance', wtp: '100-200K/tháng' }, { title: 'Sinh viên kế toán', wtp: '50-100K/tháng' }, { title: 'Chủ SME/founder', wtp: '200-500K/tháng' }, { title: 'Solo dev/tech founder', wtp: '100-300K/tháng' }].map((item) => <Panel key={item.title} tone="cyan"><p className="text-sm font-black text-white">{item.title}</p><p className="mt-2 text-xs font-bold text-emerald-200">WTP: {item.wtp}</p></Panel>)}</div>
-      <div className="space-y-3">{gtmPhases.map((phase, index) => <Panel key={phase.phase} tone={index === 0 ? 'cyan' : index === 1 ? 'violet' : 'emerald'}><div className="grid gap-3 md:grid-cols-[7rem_1fr]"><div><Chip tone={index === 0 ? 'cyan' : index === 1 ? 'violet' : 'emerald'}>{phase.phase}</Chip></div><div><h3 className="text-sm font-black text-white">{phase.title}</h3><p className="mt-1 text-xs font-bold text-emerald-200">Mục tiêu: {phase.goal}</p><ul className="mt-3 space-y-2">{phase.actions.map((action) => <li key={action} className="text-xs font-semibold leading-5 text-slate-300">✓ {action}</li>)}</ul></div></div></Panel>)}</div>
     </div>
   );
 }
@@ -303,19 +391,22 @@ function GTMTab() {
 export default function CompanyOS() {
   const [tab, setTab] = useState<TabId>('company');
   return (
-    <div className="mx-auto max-w-5xl text-slate-100">
+    <div className="mx-auto max-w-6xl text-slate-100">
       <div className="mb-5 rounded-3xl border border-emerald-500/25 bg-slate-950/70 p-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">Founder operating dashboard</p>
-        <h2 className="mt-2 text-2xl font-black text-white">LedgerFlow Studio — Company OS</h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-slate-400">Bảng đánh giá và kế hoạch vận hành từ Claude được chuyển thành module nội bộ: scorecard, AI workforce, roadmap, revenue, operations và GTM.</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">Software company operating dashboard</p>
+        <h2 className="mt-2 text-2xl font-black text-white">LedgerFlow Hub — Company OS</h2>
+        <p className="mt-2 text-sm font-semibold leading-6 text-slate-400">Trung tâm điều hành công ty phần mềm: sản phẩm, marketing, sales, tài chính, thư viện tri thức, AI nhân sự, sandbox, tích hợp GitHub/VS Code/AI Gateway. Không còn đóng khung thành công ty xây dựng.</p>
       </div>
-      <div className="mb-5 flex gap-2 overflow-x-auto border-b border-slate-800 pb-2">{tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`rounded-full px-4 py-2 text-xs font-black transition ${tab === item.id ? 'bg-emerald-300 text-slate-950' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'}`}>{item.label}</button>)}</div>
-      {tab === 'company' && <CompanyTab />}
-      {tab === 'ai' && <AIWorkforceTab />}
-      {tab === 'roadmap' && <RoadmapTab />}
-      {tab === 'revenue' && <RevenueTab />}
-      {tab === 'ops' && <OpsTab />}
-      {tab === 'gtm' && <GTMTab />}
+      <div className="mb-5 flex gap-2 overflow-x-auto border-b border-slate-800 pb-2">
+        {tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${tab === item.id ? 'bg-emerald-300 text-slate-950' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'}`}>{item.label}</button>)}
+      </div>
+      {tab === 'company' && <CompanyTodayTab />}
+      {tab === 'library' && <KnowledgeLibraryTab />}
+      {tab === 'ai' && <AIOpsCenterTab />}
+      {tab === 'product' && <ProductStudioTab />}
+      {tab === 'marketing' && <MarketingSalesTab />}
+      {tab === 'sandbox' && <SandboxTab />}
+      {tab === 'finance' && <FinanceTab />}
     </div>
   );
 }
