@@ -23,6 +23,7 @@ import PatchDiffReviewCenter from './PatchDiffReviewCenter';
 import FounderReviewChecklist from './FounderReviewChecklist';
 import RollbackCenter from './RollbackCenter';
 import ReleaseArtifactCenter from './ReleaseArtifactCenter';
+import ArtifactInspectorPanel from './ArtifactInspectorPanel';
 import ConnectorSdkRegistry from './ConnectorSdkRegistry';
 import AuditTrailPanel from './AuditTrailPanel';
 import CIRunInspectorPanel from './CIRunInspectorPanel';
@@ -36,7 +37,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -98,6 +99,7 @@ export default function AIOpsCenterLauncher() {
                 <button onClick={() => setView('founder')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'founder' ? 'border-lime-300 bg-lime-400/10 text-lime-100' : 'border-slate-700 text-slate-300 hover:border-lime-300'}`}>Founder Review</button>
                 <button onClick={() => setView('rollback')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'rollback' ? 'border-rose-300 bg-rose-400/10 text-rose-100' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}>Rollback</button>
                 <button onClick={() => setView('release')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'release' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Release</button>
+                <button onClick={() => setView('artifacts')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'artifacts' ? 'border-lime-300 bg-lime-400/10 text-lime-100' : 'border-slate-700 text-slate-300 hover:border-lime-300'}`}>Artifacts</button>
                 <button onClick={() => setView('connectors')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'connectors' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}>Connectors</button>
                 <button onClick={() => setView('audit')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'audit' ? 'border-slate-300 bg-slate-400/10 text-slate-100' : 'border-slate-700 text-slate-300 hover:border-slate-300'}`}>Audit</button>
                 <button onClick={() => setView('ci')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'ci' ? 'border-orange-300 bg-orange-400/10 text-orange-100' : 'border-slate-700 text-slate-300 hover:border-orange-300'}`}>CI Runs</button>
@@ -123,6 +125,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'founder' && <FounderReviewChecklist />}
             {view === 'rollback' && <RollbackCenter />}
             {view === 'release' && <ReleaseArtifactCenter />}
+            {view === 'artifacts' && <ArtifactInspectorPanel />}
             {view === 'connectors' && <ConnectorSdkRegistry />}
             {view === 'audit' && <AuditTrailPanel />}
             {view === 'ci' && <CIRunInspectorPanel />}
