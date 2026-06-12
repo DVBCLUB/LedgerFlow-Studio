@@ -3,6 +3,7 @@ import { Download, KeyRound, Loader2, MessageCircle, RefreshCw, ShieldCheck, Tra
 import {
   AIKeyPayload,
   AIKeySummary,
+  AIPreflightReport,
   AIProviderDefinition,
   AIUsageLogEntry,
   callAIFromSettings,
@@ -15,6 +16,7 @@ import {
   fetchAIUsageLogs,
   importAIKeyBackup,
   runAIDiagnostics,
+  runAIPreflight,
   streamAIFromSettings,
   testAIKey,
   updateAIKey,
@@ -23,6 +25,7 @@ import {
 const statusClass: Record<string, string> = {
   ok: "bg-emerald-950/30 text-emerald-300 border-emerald-800/50",
   quota: "bg-amber-950/30 text-amber-300 border-amber-800/50",
+  warn: "bg-amber-950/30 text-amber-300 border-amber-800/50",
   error: "bg-rose-950/30 text-rose-300 border-rose-800/50",
   untested: "bg-slate-900/60 text-slate-400 border-slate-800",
 };
@@ -41,6 +44,7 @@ export default function AISettingsManager() {
   const [providers, setProviders] = useState<AIProviderDefinition[]>([]);
   const [keys, setKeys] = useState<AIKeySummary[]>([]);
   const [logs, setLogs] = useState<AIUsageLogEntry[]>([]);
+  const [preflight, setPreflight] = useState<AIPreflightReport | null>(null);
   const [form, setForm] = useState<AIKeyPayload>(defaultForm);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -87,6 +91,21 @@ export default function AISettingsManager() {
       apiKey: provider?.requiresApiKey === false ? "" : prev.apiKey,
       baseUrl: providerId === "ollama" ? prev.baseUrl || "http://127.0.0.1:11434" : prev.baseUrl,
     }));
+  }
+
+  async function handlePreflight() {
+    setBusy(true);
+    setMessage("Đang chạy AI Preflight Check...");
+    try {
+      const report = await runAIPreflight();
+      setPreflight(report);
+      await reload();
+      setMessage(report.summary);
+    } catch (err: any) {
+      setMessage(`Lỗi preflight: ${err.message || err}`);
+    } finally {
+      setBusy(false);
+    }
   }
 
   async function handleSaveKey() {
@@ -217,17 +236,57 @@ export default function AISettingsManager() {
               Nhập nhiều key Gemini/Groq/OpenRouter/Claude/Ollama trực tiếp trong phần mềm. Backend mã hóa key, tự fallback theo priority khi quota hoặc provider lỗi.
             </p>
           </div>
-          <button
-            onClick={handleDiagnostics}
-            disabled={busy}
-            className="inline-flex items-center gap-2 rounded-xl border border-purple-700 bg-purple-600/20 px-4 py-2 text-xs font-black text-purple-100 hover:bg-purple-600/30 disabled:opacity-60"
-          >
-            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-            Kiểm tra tất cả provider
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handlePreflight}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-700 bg-emerald-600/20 px-4 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-600/30 disabled:opacity-60"
+            >
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+              Preflight Check
+            </button>
+            <button
+              onClick={handleDiagnostics}
+              disabled={busy}
+              className="inline-flex items-center gap-2 rounded-xl border border-purple-700 bg-purple-600/20 px-4 py-2 text-xs font-black text-purple-100 hover:bg-purple-600/30 disabled:opacity-60"
+            >
+              {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+              Kiểm tra tất cả provider
+            </button>
+          </div>
         </div>
         {message && <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-300">{message}</div>}
       </div>
+
+      {preflight && (
+        <div className="rounded-2xl border border-slate-900 bg-slate-950/60 p-5 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-black text-white">AI Preflight Report</h3>
+              <p className="text-xs text-slate-400 mt-1">{preflight.summary} · {new Date(preflight.checkedAt).toLocaleString("vi-VN")}</p>
+            </div>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 text-center">
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-2"><div className="text-[9px] text-slate-500 font-black uppercase">Keys</div><div className="text-sm text-white font-black">{preflight.stats.enabledKeys}/{preflight.stats.totalKeys}</div></div>
+              <div className="rounded-xl border border-emerald-900 bg-emerald-950/20 p-2"><div className="text-[9px] text-emerald-400 font-black uppercase">OK</div><div className="text-sm text-white font-black">{preflight.stats.okKeys}</div></div>
+              <div className="rounded-xl border border-amber-900 bg-amber-950/20 p-2"><div className="text-[9px] text-amber-400 font-black uppercase">Quota</div><div className="text-sm text-white font-black">{preflight.stats.quotaKeys}</div></div>
+              <div className="rounded-xl border border-rose-900 bg-rose-950/20 p-2"><div className="text-[9px] text-rose-400 font-black uppercase">Error</div><div className="text-sm text-white font-black">{preflight.stats.errorKeys}</div></div>
+              <div className="rounded-xl border border-slate-800 bg-slate-950 p-2 md:col-span-2"><div className="text-[9px] text-slate-500 font-black uppercase">Recent issues</div><div className="text-sm text-white font-black">{preflight.stats.recentErrors}</div></div>
+            </div>
+          </div>
+          <div className="grid md:grid-cols-2 gap-2">
+            {preflight.checks.map((check) => (
+              <div key={check.id} className="rounded-xl border border-slate-900 bg-slate-950/80 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-black text-white">{check.label}</span>
+                  <span className={`rounded-full border px-2 py-0.5 text-[9px] font-black uppercase ${statusClass[check.severity] || statusClass.untested}`}>{check.severity}</span>
+                </div>
+                <div className="mt-1 text-[11px] text-slate-400">{check.message}</div>
+                {check.action && <div className="mt-2 text-[10px] text-amber-300 font-bold">Gợi ý: {check.action}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-1 rounded-2xl border border-slate-900 bg-slate-950/60 p-5 space-y-4">
