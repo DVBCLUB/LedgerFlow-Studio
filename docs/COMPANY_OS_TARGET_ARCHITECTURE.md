@@ -1,99 +1,176 @@
-# LedgerFlow Hub - Target Company OS Architecture
+# LedgerFlow Hub - Target Software Company OS Architecture
 
 ## Product north star
 
-LedgerFlow Hub is a compact operating system for a small company. It should feel like a company control room, not a loose collection of demos.
+LedgerFlow Hub is a compact operating system for a small software/product company. It should feel like a company control room for building, selling, operating, and improving products, not a loose collection of demos and not a construction-company ERP.
 
-The app must support multiple business contexts:
+The company behind LedgerFlow may build multiple product lines:
 
-- Construction projects.
-- Trading.
-- Services.
-- Manufacturing.
-- Internal administration.
-- Accounting and audit workflows.
-- AI-assisted management.
+- Accounting software products for many industries.
+- Accounting templates for construction, services, trading, and manufacturing.
+- AI/data products.
+- Internal automation tools.
+- Games and interactive learning products.
+- Research/sandbox experiments that can become future products.
 
-Construction is an industry pack, not the whole product.
+Construction accounting is only one industry template inside the accounting product line. It must not dominate global product language.
+
+## Correct product framing
+
+LedgerFlow Hub = software company operating system.
+
+It manages:
+
+- Products.
+- Customers and leads.
+- Marketing campaigns.
+- Sales pipeline.
+- Finance and accounting.
+- Projects and delivery.
+- AI staff / AI agents.
+- Data, models, simulation, and sandbox experiments.
+- Integrations with GitHub, AI gateways, local tools, Google Workspace, and other platforms.
+
+It does **not** mean every company using the app must have warehouse, fuel, or construction operations.
 
 ## Top-level workspaces
 
 ### 1. Command Center
 
-Purpose: one-page CEO / boss view.
+Purpose: one-page CEO / founder / boss view.
 
 Contains:
 
 - Today priorities.
-- Cash position.
-- Receivables / payables summary.
-- Pending approvals.
-- Project health.
-- Risk alerts.
+- Revenue / cash overview.
+- Product progress.
+- Sales and marketing signals.
+- Customer / support alerts.
+- Delivery risk.
 - AI recommendations.
+- Quick links to active workspaces.
 
-### 2. Finance & Accounting
+### 2. Product Studio
 
-Purpose: accounting control and financial operations.
+Purpose: manage software products, game products, and product experiments.
 
 Contains:
 
-- General ledger sandbox.
-- Cash/bank transactions.
+- Product portfolio.
+- Feature backlog.
+- Version roadmap.
+- Release checklist.
+- User feedback.
+- Game design lab.
+- Accounting software product line.
+- AI/data product experiments.
+
+Product lines should include:
+
+- Accounting for construction industry.
+- Accounting for service businesses.
+- Accounting for trading businesses.
+- Accounting for manufacturing businesses.
+- Internal company OS modules.
+- Games and interactive learning products.
+
+### 3. Marketing & Growth
+
+Purpose: make sure the company can actually sell and grow, not only build software.
+
+Contains:
+
+- Market positioning.
+- Target customer segments.
+- Content calendar.
+- Campaign ideas.
+- Landing page copy.
+- Demo scripts.
+- Lead magnet / free template ideas.
+- Channel plan: Facebook, Zalo, TikTok, LinkedIn, YouTube, GitHub, community.
+- AI marketer tasks.
+- Survey and customer discovery.
+
+### 4. Sales & CRM
+
+Purpose: track customers, leads, demos, proposals, and conversion.
+
+Contains:
+
+- Lead list.
+- Customer list.
+- Demo pipeline.
+- Proposal tracking.
+- Follow-up reminders.
+- Pain point notes.
+- Deal stage.
+- Lost reason.
+- Renewal / support opportunities.
+
+### 5. Finance & Accounting
+
+Purpose: internal finance control and accounting product thinking.
+
+Contains:
+
+- Cash / bank transactions.
+- Revenue and expense tracking.
 - Payables.
 - Receivables.
 - Advances and settlements.
-- Cost allocation.
 - Tax/document checklist.
+- Cost allocation.
+- Pricing and profitability model.
 - Vietnamese accounting assistant.
+- Accounting sandbox for product features.
 
-### 3. Project Portfolio
+### 6. Projects & Delivery
 
-Purpose: manage projects generically.
+Purpose: manage active work regardless of industry.
 
 Contains:
 
-- Project list.
+- Client implementation projects.
+- Internal product development projects.
+- Game development projects.
+- AI/data experiments.
 - Budget vs actual.
-- Cost packages.
-- Advance / reimbursement by project.
+- Timeline / milestones.
 - Documents by project.
-- Project dashboard.
+- Delivery dashboard.
 - Industry templates:
-  - Construction.
-  - Trading campaign.
-  - Service contract.
-  - Manufacturing batch.
+  - Construction accounting package.
+  - Service business package.
+  - Trading business package.
+  - Manufacturing package.
 
-### 4. Procurement & Inventory
+Use `Dự án` globally. Use `Công trình` only inside the construction accounting template.
 
-Purpose: control purchasing, warehouse, materials, and fuel.
+### 7. AI Nhân sự
 
-Contains:
+Purpose: merge HR/Admin and AI Workforce into one AI-staff management workspace.
 
-- Purchase requests.
-- Suppliers.
-- Quotations.
-- Purchase orders.
-- Goods receipt notes.
-- Warehouse ledger.
-- Fuel fund.
-- Handwritten voucher intake helper.
-
-### 5. HR & Admin
-
-Purpose: internal administration and people operations.
+This replaces the old split between `HCNS - Hành chính` and `AI Workforce`.
 
 Contains:
 
-- Admin expenses.
-- Staff advances.
-- Payroll checklist.
-- Outsourced labor settlement.
-- Authorization letters.
-- Office assets.
+- Human role map.
+- AI staff map.
+- AI Chief of Staff.
+- AI Accountant.
+- AI Auditor.
+- AI Data Analyst.
+- AI Developer.
+- AI Marketer.
+- AI Customer Support.
+- Prompt packs.
+- Output quality checklist.
+- Task assignment board.
+- Internal admin tasks.
+- Authorization / handoff documents.
+- Role permissions.
 
-### 6. Documents & Approval
+### 8. Documents & Approval
 
 Purpose: evidence vault and workflow.
 
@@ -106,50 +183,28 @@ Contains:
 - Approval status.
 - Missing document alerts.
 - Document handoff to accounting.
+- Product/release approval documents.
 
-### 7. Analytics & Reporting
+### 9. Analytics, Models & Sandbox
 
-Purpose: management reports and charts.
+Purpose: keep the original Google AI Studio spirit: charts, models, experiments, and interactive simulation.
 
 Contains:
 
+- Executive dashboards.
 - P&L overview.
 - Cashflow chart.
-- Budget burn chart.
-- Project variance chart.
-- Aging reports.
-- Department cost dashboard.
-- Export for boss report.
-
-### 8. Simulation & Sandbox Lab
-
-Purpose: keep the original Google AI Studio spirit: models, charts, experiments, and interactive simulation.
-
-Contains:
-
+- Product KPI dashboard.
+- Marketing funnel chart.
+- Sales pipeline chart.
 - SQL sandbox.
 - Python sandbox.
 - What-if financial models.
 - Market survey simulator.
-- Cost scenario simulator.
 - Forecasting and ML workbench.
 - Game/education lab.
 - Synthetic data lab.
-
-### 9. AI Workforce
-
-Purpose: manage AI as company staff.
-
-Contains:
-
-- AI Chief of Staff.
-- AI Accountant.
-- AI Auditor.
-- AI Data Analyst.
-- AI Developer handoff.
-- Prompt packs.
-- Output quality checklist.
-- Task assignment board.
+- Model registry.
 
 ### 10. Integration Hub
 
@@ -161,9 +216,9 @@ Contains:
 - GitHub connector.
 - Local tools connector.
 - Google Workspace connector.
-- MISA/SmartPro import/export bridge.
 - Supabase cloud sync.
 - Webhook/n8n/Make/Zapier.
+- MISA/SmartPro import/export bridge for accounting-product workflows.
 - Future AI agent connectors.
 
 ### 11. System Settings
@@ -179,22 +234,36 @@ Contains:
 - Desktop diagnostics.
 - Startup logs.
 - Developer tools.
+- Build/release settings.
 
 ## New navigation model
 
 Replace the old `Bước/Giai đoạn` navigation with:
 
 1. Công ty hôm nay
-2. Tài chính - Kế toán
-3. Dự án
-4. Mua hàng - Kho - Dầu
-5. HCNS - Hành chính
-6. Hồ sơ - Phê duyệt
-7. Báo cáo - Biểu đồ
-8. Mô phỏng - Sandbox
-9. AI Nhân sự
+2. Product Studio
+3. Marketing & Growth
+4. Sales & CRM
+5. Tài chính - Kế toán
+6. Dự án & Delivery
+7. AI Nhân sự
+8. Hồ sơ - Phê duyệt
+9. Analytics - Models - Sandbox
 10. Tích hợp
 11. Cài đặt hệ thống
+
+Removed from top-level navigation:
+
+- `Mua hàng - Kho - Dầu` because it is not a universal workspace for a software company.
+- `HCNS - Hành chính` as a separate workspace because it is merged into `AI Nhân sự`.
+
+Industry-specific inventory/fuel/warehouse flows can still exist inside optional templates, for example:
+
+- Construction accounting template.
+- Trading inventory template.
+- Manufacturing materials template.
+
+They must not define the main company OS.
 
 ## Module registry concept
 
@@ -203,11 +272,18 @@ Future refactor should introduce a registry like:
 ```ts
 export const companyModules = [
   {
-    id: 'finance',
-    label: 'Tài chính - Kế toán',
-    roleAccess: ['owner', 'accounting'],
-    component: 'FinanceAccountingWorkspace',
-    tags: ['ledger', 'cash', 'advance', 'tax']
+    id: 'product-studio',
+    label: 'Product Studio',
+    roleAccess: ['owner', 'product', 'developer'],
+    component: 'ProductStudioWorkspace',
+    tags: ['software', 'game', 'roadmap', 'release']
+  },
+  {
+    id: 'marketing-growth',
+    label: 'Marketing & Growth',
+    roleAccess: ['owner', 'marketing', 'sales'],
+    component: 'MarketingGrowthWorkspace',
+    tags: ['content', 'campaign', 'lead', 'positioning']
   }
 ]
 ```
@@ -224,19 +300,24 @@ src/
     navigation.ts
   modules/
     command-center/
+    product-studio/
+    marketing-growth/
+    sales-crm/
     finance-accounting/
-    project-portfolio/
-    procurement-inventory/
-    hr-admin/
+    projects-delivery/
+    ai-nhan-su/
     documents-approval/
-    analytics-reporting/
-    simulation-sandbox/
-    ai-workforce/
+    analytics-models-sandbox/
     integration-hub/
     system-settings/
   components/
     shared/
   data/
+    industry-templates/
+      construction-accounting/
+      service-accounting/
+      trading-accounting/
+      manufacturing-accounting/
   utils/
 ```
 
@@ -255,26 +336,33 @@ Do not move all files at once. Migrate one module at a time:
 
 The UI should feel like:
 
-- Company command room.
-- Clean dashboard.
-- Role-based workspaces.
-- Less technical wording on home screen.
+- Software company command room.
+- Product company dashboard.
+- Clean role-based workspaces.
+- Marketing and sales visible, not hidden.
+- Charts, models, games, and sandbox surfaced as first-class modules.
+- Construction shown only as one industry template.
 - Technical panels hidden under Settings / Dev tools.
-- Charts and models surfaced as first-class modules.
 
 ## Data model direction
 
 Core entities:
 
 - Company
+- Product
+- ProductLine
+- GameProject
+- Feature
+- Release
 - Department
 - UserRole
+- Customer
+- Lead
+- Campaign
+- Deal
 - Project
 - CostItem
 - Document
-- Supplier
-- Customer
-- InventoryItem
 - CashTransaction
 - AdvanceRequest
 - ApprovalRequest
@@ -282,15 +370,28 @@ Core entities:
 - SimulationModel
 - AIJob
 - IntegrationConnection
+- IndustryTemplate
+
+Optional industry entities should be template-scoped:
+
+- ConstructionProject
+- ServiceContract
+- TradingInventoryItem
+- ManufacturingBatch
+- WarehouseItem
+- FuelLedger
 
 ## First implementation milestone
 
-Milestone `Company OS Reform P0`:
+Milestone `Software Company OS Reform P0`:
 
 1. Add Company OS home as default landing page.
 2. Add navigation registry.
-3. Re-label construction to industry template.
-4. Surface Simulation & Sandbox Lab.
-5. Move technical sync panels out of default home.
-6. Add role-focused dashboard cards.
-7. Keep old modules available under `Legacy Labs` until migrated.
+3. Replace construction-heavy global labels with product/software-company language.
+4. Add top-level Marketing & Growth.
+5. Add top-level Product Studio for software and games.
+6. Merge HR/Admin into AI Nhân sự.
+7. Remove warehouse/fuel from top-level navigation.
+8. Surface Analytics, Models & Sandbox.
+9. Move technical sync panels out of default home.
+10. Keep old modules available under `Legacy Labs` until migrated.
