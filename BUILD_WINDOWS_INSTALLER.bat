@@ -28,7 +28,7 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [1/5] Kiem tra thu muc project...
+echo [1/6] Kiem tra thu muc project...
 if not exist package.json (
   echo [LOI] Hay dat file nay o thu muc goc LedgerFlow-Studio, cung cap voi package.json.
   pause
@@ -41,13 +41,7 @@ if not exist desktop\main.cjs (
   exit /b 1
 )
 
-if not exist build\icon.ico (
-  echo [CANH BAO] Chua thay build\icon.ico. Script build se thu tao icon trong buoc build.
-  echo Neu build ra file .exe khong co logo, hay bao ChatGPT kiem tra lai icon.
-  echo.
-)
-
-echo [2/5] Don thu muc release cu de tranh nham file .exe cu...
+echo [2/6] Don thu muc release cu de tranh nham file .exe cu...
 if exist release (
   rmdir /s /q release
   if exist release (
@@ -57,7 +51,7 @@ if exist release (
   )
 )
 
-echo [3/5] Cai/cap nhat thu vien...
+echo [3/6] Cai/cap nhat thu vien...
 echo Lan dau co the lau. Neu da cai roi, npm se bo qua phan lon.
 call npm install
 if errorlevel 1 (
@@ -68,7 +62,24 @@ if errorlevel 1 (
 )
 
 echo.
-echo [4/5] Build va dong goi installer...
+echo [4/6] Tao lai icon Windows hop le...
+echo Buoc nay ghi de build\icon.ico de tranh dung nham icon cu bi loi resedit.
+call npm run prepare:icons
+if errorlevel 1 (
+  echo [LOI] Tao build\icon.ico that bai.
+  echo Hay chup man hinh loi va gui cho ChatGPT.
+  pause
+  exit /b 1
+)
+
+if not exist build\icon.ico (
+  echo [LOI] Script prepare:icons chay xong nhung van khong thay build\icon.ico.
+  pause
+  exit /b 1
+)
+
+echo.
+echo [5/6] Build va dong goi installer...
 echo Qua trinh nay co the mat vai phut lan dau tien.
 echo Neu thay nhieu dong WARN thi chua chac la loi. Chi khi co dong [LOI] moi la build fail.
 set CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -77,13 +88,13 @@ if errorlevel 1 (
   echo.
   echo [LOI] Build installer that bai.
   echo Hay chup man hinh tu dong loi dau tien den dong nay gui cho ChatGPT.
-  echo Thuong gap: script check, thieu file icon, hoac Electron Builder tai goi bi loi mang.
+  echo Thuong gap: script check, icon Windows, hoac Electron Builder tai goi bi loi mang.
   pause
   exit /b 1
 )
 
 echo.
-echo [5/5] Kiem tra file .exe da tao...
+echo [6/6] Kiem tra file .exe da tao...
 if not exist release (
   echo [LOI] Build bao thanh cong nhung khong thay thu muc release.
   pause
