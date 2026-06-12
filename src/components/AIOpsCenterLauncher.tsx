@@ -8,6 +8,7 @@ import ApprovalReviewDeskBridge from './ApprovalReviewDeskBridge';
 import SandboxApprovalBridge from './SandboxApprovalBridge';
 import ApprovalGatePanel from './ApprovalGatePanel';
 import SandboxPatchWorkspace from './SandboxPatchWorkspace';
+import ConnectorSdkRegistry from './ConnectorSdkRegistry';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
 import ToolPolicyRegistry from './ToolPolicyRegistry';
@@ -18,7 +19,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'approval' | 'sandbox' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<'sessions' | 'approval' | 'sandbox' | 'connectors' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -58,7 +59,7 @@ export default function AIOpsCenterLauncher() {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-950 p-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-300">AI Operations Center</p>
-                <h2 className="mt-1 text-xl font-black text-white">Agent Sessions, Approval, Sandbox, Policy, Recovery & Build Monitor</h2>
+                <h2 className="mt-1 text-xl font-black text-white">Agent Sessions, Approval, Sandbox, Connectors, Policy, Recovery & Build Monitor</h2>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Điều phối AI agent theo kiểu OpenClaw nhưng sandbox-first, approval-first, audit-first.</p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -79,6 +80,12 @@ export default function AIOpsCenterLauncher() {
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'sandbox' ? 'border-teal-300 bg-teal-400/10 text-teal-100' : 'border-slate-700 text-slate-300 hover:border-teal-300'}`}
                 >
                   Sandbox
+                </button>
+                <button
+                  onClick={() => setView('connectors')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'connectors' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}
+                >
+                  Connectors
                 </button>
                 <button
                   onClick={() => setView('workboard')}
@@ -121,6 +128,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'sessions' && <AgentSessionQueue />}
             {view === 'approval' && <ApprovalGatePanel />}
             {view === 'sandbox' && <SandboxPatchWorkspace />}
+            {view === 'connectors' && <ConnectorSdkRegistry />}
             {view === 'workboard' && <AIOpsWorkboard />}
             {view === 'policy' && <ToolPolicyRegistry />}
             {view === 'recovery' && <CIRecoveryQueue />}
