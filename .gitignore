@@ -7,4 +7,5 @@ coverage/
 .env*
 !.env.example
 ai_keys.vault.json
+ai_usage.log.json
 .ledgerflow_secret
