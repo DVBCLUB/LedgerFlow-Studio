@@ -5,6 +5,7 @@ import AgentSkillRegistry from './AgentSkillRegistry';
 import AgentRuntimeOrchestratorPanel from './AgentRuntimeOrchestratorPanel';
 import BrowserSimulationPlanner from './BrowserSimulationPlanner';
 import ProjectMemoryDecisionLog from './ProjectMemoryDecisionLog';
+import ConfigHealthMonitor from './ConfigHealthMonitor';
 import SecurityControlCenter from './SecurityControlCenter';
 import ToolExecutionLayerPanel from './ToolExecutionLayerPanel';
 import RuntimeToolBridge from './RuntimeToolBridge';
@@ -39,7 +40,7 @@ function isAIOpsRoute() {
   return window.location.hash === '#/ai_ops' || window.location.hash === '#/ai-ops' || window.location.hash === '#/ai_nhan_su';
 }
 
-type AIOpsView = 'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'pr' | 'readiness' | 'memory' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy';
+type AIOpsView = 'sessions' | 'skills' | 'runtime' | 'tools' | 'local' | 'pr' | 'readiness' | 'memory' | 'config' | 'security' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'connectors' | 'audit' | 'ci' | 'workboard' | 'recovery' | 'build' | 'policy';
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
@@ -101,6 +102,7 @@ export default function AIOpsCenterLauncher() {
                 <button onClick={() => setView('readiness')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'readiness' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Readiness</button>
                 <button onClick={() => setView('skills')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'skills' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}>Skills</button>
                 <button onClick={() => setView('memory')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'memory' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Memory</button>
+                <button onClick={() => setView('config')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'config' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Config</button>
                 <button onClick={() => setView('security')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'security' ? 'border-rose-300 bg-rose-400/10 text-rose-100' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}>Security</button>
                 <button onClick={() => setView('browser')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'browser' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}>Browser Plan</button>
                 <button onClick={() => setView('approval')} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'approval' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>Approval</button>
@@ -128,6 +130,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'readiness' && <MergeReadinessCenter />}
             {view === 'skills' && <AgentSkillRegistry />}
             {view === 'memory' && <ProjectMemoryDecisionLog />}
+            {view === 'config' && <ConfigHealthMonitor />}
             {view === 'security' && <SecurityControlCenter />}
             {view === 'browser' && <BrowserSimulationPlanner />}
             {view === 'approval' && <ApprovalGatePanel />}
