@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AIOpsWorkboard from './AIOpsWorkboard';
 import AgentSessionQueue from './AgentSessionQueue';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
+import SessionResultBridge from './SessionResultBridge';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
 import ToolPolicyRegistry from './ToolPolicyRegistry';
@@ -33,6 +34,7 @@ export default function AIOpsCenterLauncher() {
   return (
     <>
       {open && <SessionWorkboardBridge />}
+      {open && <SessionResultBridge />}
       <button
         onClick={openPanel}
         className="fixed bottom-56 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80"
