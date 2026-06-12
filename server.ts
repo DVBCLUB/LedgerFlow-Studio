@@ -42,6 +42,7 @@ async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT ?? 3000);
   app.set("trust proxy", 1);
+  app.use((req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Referrer-Policy", "no-referrer"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), clipboard-read=(), clipboard-write=(self)"); res.setHeader("Cross-Origin-Opener-Policy", "same-origin"); res.setHeader("Cross-Origin-Resource-Policy", "same-origin"); if (req.path.startsWith("/api/")) res.setHeader("Cache-Control", "no-store"); next(); });
   app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
   app.use((req, res, next) => { const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"]; const origin = req.headers.origin; if (origin) { const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".run.app") || /https:\/\/ais-.*\.run\.app/.test(origin); if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin); } res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS"); res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization"); if (req.method === "OPTIONS") res.sendStatus(204); else next(); });
