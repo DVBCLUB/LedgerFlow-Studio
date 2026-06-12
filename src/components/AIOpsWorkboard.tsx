@@ -77,6 +77,16 @@ function riskFor(kind: WorkKind): RiskLevel {
   return 'LOW';
 }
 
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 48) || 'reviewed-change';
+}
+
 function readLocal<T>(key: string, fallback: T): T {
   try {
     const raw = localStorage.getItem(key);
@@ -144,7 +154,48 @@ export default function AIOpsWorkboard() {
   };
 
   const openReviewDesk = () => {
-    if (selected) pushAudit('OPEN_REVIEW_DESK', selected.id, 'Chuyển sang Review Desk để chuẩn bị branch/PR sau khi duyệt.');
+    if (!selected) return;
+    const slug = slugify(selected.title);
+    const prepared = {
+      title: `AI update: ${selected.title}`,
+      branchName: `ai/${slug}`,
+      summary: [
+        `Prepared from AI Ops Workboard card ${selected.id}.`,
+        '',
+        `Kind: ${selected.kind}`,
+        `Owner: ${selected.owner}`,
+        `Risk: ${selected.risk}`,
+        '',
+        'Founder request:',
+        selected.request,
+        '',
+        'Plan:',
+        ...selected.plan.map((item) => `- ${item}`)
+      ].join('\n'),
+      filePath: `docs/ai-reviewed/${slug}.md`,
+      fileContent: [
+        `# ${selected.title}`,
+        '',
+        `Work card: ${selected.id}`,
+        `Kind: ${selected.kind}`,
+        `Owner: ${selected.owner}`,
+        `Risk: ${selected.risk}`,
+        '',
+        '## Request',
+        selected.request,
+        '',
+        '## Plan',
+        ...selected.plan.map((item) => `- ${item}`),
+        '',
+        '## Approval note',
+        selected.approval,
+        '',
+        '## Tool cards',
+        ...selected.tools.map((tool) => `- ${tool}`)
+      ].join('\n')
+    };
+    localStorage.setItem('ledgerflow_review_desk_prefill_v1', JSON.stringify(prepared));
+    pushAudit('OPEN_REVIEW_DESK', selected.id, 'Chuẩn bị dữ liệu cho Review Desk từ work card hiện tại.');
     window.location.hash = '#/review_desk';
   };
 
