@@ -25,6 +25,19 @@ type AuditEntry = {
   detail: string;
 };
 
+type ReviewDeskResultEvent = {
+  sourceCardId?: string;
+  at?: string;
+  result?: {
+    repo?: string;
+    branchName?: string;
+    commitSha?: string;
+    pullRequestNumber?: number;
+    pullRequestUrl?: string;
+    changedFiles?: string[];
+  };
+};
+
 const initialCards: WorkCard[] = [
   {
     id: 'wb-001',
@@ -126,6 +139,25 @@ export default function AIOpsWorkboard() {
     setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 80));
   };
 
+  useEffect(() => {
+    const handleReviewResult = (event: Event) => {
+      const detail = (event as CustomEvent<ReviewDeskResultEvent>).detail;
+      const cardId = detail?.sourceCardId;
+      if (!cardId || !detail?.result) return;
+      const pr = detail.result;
+      setCards((current) => current.map((card) => card.id === cardId ? { ...card, status: 'Done' } : card));
+      setAudit((current) => [{
+        id: `audit-${Date.now()}`,
+        at: detail.at || new Date().toLocaleString('vi-VN'),
+        action: 'DRAFT_PR_CREATED',
+        cardId,
+        detail: `Draft PR #${pr.pullRequestNumber || '?'} created on ${pr.branchName || 'ai/*'}: ${pr.pullRequestUrl || 'no url'}`
+      }, ...current].slice(0, 80));
+    };
+    window.addEventListener('ledgerflow-review-desk-result', handleReviewResult);
+    return () => window.removeEventListener('ledgerflow-review-desk-result', handleReviewResult);
+  }, []);
+
   const addCard = () => {
     if (!draft.title.trim() || !draft.request.trim()) return;
     const risk = riskFor(draft.kind);
@@ -157,6 +189,7 @@ export default function AIOpsWorkboard() {
     if (!selected) return;
     const slug = slugify(selected.title);
     const prepared = {
+      sourceCardId: selected.id,
       title: `AI update: ${selected.title}`,
       branchName: `ai/${slug}`,
       summary: [
