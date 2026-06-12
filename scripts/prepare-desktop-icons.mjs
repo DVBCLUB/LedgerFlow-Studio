@@ -116,5 +116,5 @@ function createIco(sizes) {
 }
 
 fs.mkdirSync(outDir, { recursive: true });
-fs.writeFileSync(outFile, createIco([16, 32, 48, 64]));
-console.log(`[icons] Wrote valid Windows desktop icon: ${outFile}`);
+fs.writeFileSync(outFile, createIco([16, 32, 48, 64, 128, 256]));
+console.log(`[icons] Wrote valid Windows desktop icon with 256px entry: ${outFile}`);
