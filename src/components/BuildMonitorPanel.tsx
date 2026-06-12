@@ -12,6 +12,15 @@ type BuildRecord = {
   artifactName?: string | null;
 };
 
+type ReviewBuildEvent = Partial<BuildRecord> & {
+  branchName?: string;
+  prNumber?: number | null;
+  pullRequestNumber?: number | null;
+  pullRequestUrl?: string | null;
+  prUrl?: string | null;
+  workflowRunUrl?: string | null;
+};
+
 const defaultRecords: BuildRecord[] = [
   {
     id: 'build-default',
@@ -34,6 +43,15 @@ function readRecords(): BuildRecord[] {
   }
 }
 
+function readReviewBuildPayload(): ReviewBuildEvent | null {
+  try {
+    const raw = localStorage.getItem('ledgerflow_review_desk_build_monitor_v1');
+    return raw ? JSON.parse(raw) as ReviewBuildEvent : null;
+  } catch {
+    return null;
+  }
+}
+
 function exportJson(filename: string, payload: unknown) {
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -52,6 +70,26 @@ function statusClass(status: BuildRecord['status']) {
   return 'border-slate-700 bg-slate-950 text-slate-300';
 }
 
+function normaliseReviewPayload(payload: ReviewBuildEvent): BuildRecord | null {
+  const branch = payload.branch || payload.branchName;
+  if (!branch) return null;
+  const prNumber = payload.prNumber ?? payload.pullRequestNumber ?? null;
+  const prUrl = payload.prUrl ?? payload.pullRequestUrl ?? null;
+  const runUrl = payload.runUrl ?? payload.workflowRunUrl ?? null;
+  const status = payload.status ?? 'Queued';
+  return {
+    id: `review-build-${branch}-${prNumber ?? 'draft'}`,
+    at: new Date().toLocaleString('vi-VN'),
+    repo: payload.repo || 'DVBCLUB/LedgerFlow-Studio',
+    branch,
+    source: 'Review Desk',
+    status,
+    notes: payload.notes || `Review Desk sync${prNumber ? ` · PR #${prNumber}` : ''}${prUrl ? ` · ${prUrl}` : ''}`,
+    runUrl,
+    artifactName: payload.artifactName || 'LedgerFlow-Hub-Windows-Download'
+  };
+}
+
 export default function BuildMonitorPanel() {
   const [records, setRecords] = useState<BuildRecord[]>(() => readRecords());
   const [draft, setDraft] = useState({ repo: 'DVBCLUB/LedgerFlow-Studio', branch: 'main', status: 'Unknown' as BuildRecord['status'], notes: '', runUrl: '', artifactName: 'LedgerFlow-Hub-Windows-Download' });
@@ -61,7 +99,37 @@ export default function BuildMonitorPanel() {
     localStorage.setItem('ledgerflow_build_monitor_v1', JSON.stringify(records));
   }, [records]);
 
+  useEffect(() => {
+    const syncFromEvent = (event: Event) => {
+      const payload = (event as CustomEvent<ReviewBuildEvent>).detail;
+      if (!payload) return;
+      upsertReviewRecord(payload);
+    };
+    window.addEventListener('ledgerflow-build-monitor-sync', syncFromEvent);
+    return () => window.removeEventListener('ledgerflow-build-monitor-sync', syncFromEvent);
+  }, []);
+
   const selected = records.find((record) => record.id === selectedId) ?? records[0];
+
+  const upsertRecord = (record: BuildRecord) => {
+    setRecords((current) => {
+      const exists = current.some((item) => item.id === record.id || (item.source === 'Review Desk' && item.branch === record.branch));
+      return exists
+        ? current.map((item) => item.id === record.id || (item.source === 'Review Desk' && item.branch === record.branch) ? { ...item, ...record } : item)
+        : [record, ...current];
+    });
+    setSelectedId(record.id);
+  };
+
+  const upsertReviewRecord = (payload: ReviewBuildEvent) => {
+    const record = normaliseReviewPayload(payload);
+    if (record) upsertRecord(record);
+  };
+
+  const syncLatestReviewDesk = () => {
+    const payload = readReviewBuildPayload();
+    if (payload) upsertReviewRecord(payload);
+  };
 
   const addRecord = () => {
     const record: BuildRecord = {
@@ -82,7 +150,7 @@ export default function BuildMonitorPanel() {
 
   const updateSelected = (status: BuildRecord['status']) => {
     if (!selected) return;
-    setRecords((current) => current.map((record) => record.id === selected.id ? { ...record, status } : record));
+    setRecords((current) => current.map((record) => record.id === selected.id ? { ...record, status, at: new Date().toLocaleString('vi-VN') } : record));
   };
 
   const removeSelected = () => {
@@ -90,6 +158,8 @@ export default function BuildMonitorPanel() {
     setRecords((current) => current.filter((record) => record.id !== selected.id));
     setSelectedId('');
   };
+
+  const openCiRecovery = () => { window.location.hash = '#/ai_ops'; };
 
   return (
     <section className="rounded-3xl border border-cyan-400/35 bg-cyan-400/10 p-4 text-slate-100">
@@ -99,7 +169,10 @@ export default function BuildMonitorPanel() {
           <h3 className="mt-1 text-xl font-black text-white">Theo dõi build & artifact</h3>
           <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Nơi ghi lại trạng thái build sau khi AI push branch/PR hoặc cập nhật main. Mục tiêu là không quên bước tải artifact và test app desktop.</p>
         </div>
-        <button onClick={() => exportJson('ledgerflow-build-monitor.json', records)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300">Xuất build log</button>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={syncLatestReviewDesk} className="rounded-2xl border border-emerald-400/40 px-4 py-2 text-xs font-black text-emerald-200 hover:bg-emerald-400/10">Đồng bộ Review Desk</button>
+          <button onClick={() => exportJson('ledgerflow-build-monitor.json', records)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300">Xuất build log</button>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
@@ -123,7 +196,7 @@ export default function BuildMonitorPanel() {
                 <p className="text-sm font-black text-white">{record.branch}</p>
                 <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${statusClass(record.status)}`}>{record.status}</span>
               </div>
-              <p className="mt-1 text-[11px] font-bold text-slate-400">{record.repo} · {record.at}</p>
+              <p className="mt-1 text-[11px] font-bold text-slate-400">{record.repo} · {record.source} · {record.at}</p>
             </button>)}
           </div>
         </div>
@@ -146,6 +219,7 @@ export default function BuildMonitorPanel() {
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {selected.runUrl && <a className="rounded-2xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300 hover:border-cyan-300" href={selected.runUrl} target="_blank" rel="noreferrer">Mở workflow run</a>}
             {selected.artifactName && <div className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-semibold text-slate-300">Artifact: <span className="font-black text-cyan-200">{selected.artifactName}</span></div>}
+            {selected.status === 'Failed' && <button onClick={openCiRecovery} className="rounded-2xl border border-amber-400/40 px-3 py-2 text-xs font-black text-amber-200 hover:bg-amber-400/10">Mở CI Recovery</button>}
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
