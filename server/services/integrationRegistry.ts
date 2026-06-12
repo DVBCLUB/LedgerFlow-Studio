@@ -43,11 +43,10 @@ const defaultConnectors: IntegrationConnector[] = [
     status: "connected",
     priority: "P0",
     enabled: true,
-    hash: undefined,
     notes: "Lớp AI trung tâm để các connector khác dùng chung, không hard-code một API cố định.",
     capabilities: ["Gemini / Groq / OpenRouter / Claude / Ollama", "Fallback nhiều key", "Vault, backup, auto-lock", "Usage log và preflight"],
     quickActions: [{ label: "Mở AI Gateway", hash: "/ai_settings" }],
-  } as IntegrationConnector,
+  },
   {
     id: "github",
     title: "GitHub",
@@ -213,11 +212,9 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
     message = "Connector is in roadmap mode; configure credentials/workflow before enabling real sync.";
   }
 
-  const updated = await updateIntegrationConnector(id, { status, notes: connector.notes });
-  updated.lastCheckedAt = nowIso();
-  updated.lastMessage = message;
   const all = await listIntegrationConnectors();
   const idx = all.findIndex((item) => item.id === id);
+  const updated: IntegrationConnector = { ...connector, status, lastCheckedAt: nowIso(), lastMessage: message };
   if (idx >= 0) {
     all[idx] = updated;
     await writeJsonFile(REGISTRY_FILE, all);
