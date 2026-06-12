@@ -1,5 +1,6 @@
 import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type DecryptedAIKeyEntry } from "./aiKeyVault";
 import type { CallAIOptions, CallAIResult, ChatMessage } from "./aiClient";
+import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog";
 
 interface ProviderCallResult { content: string; modelUsed?: string; raw: unknown }
 export interface AIRouterDiagnosticItem { provider: AIProviderName | "litellm-proxy"; label: string; model?: string; status: "ok" | "quota" | "error" | "skipped"; latencyMs?: number; message?: string }
@@ -15,44 +16,83 @@ const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "sk-ledgerflow-local-2026"
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
   const entries = await getEnabledAIKeyEntries();
   const errors: string[] = [];
+  const promptChars = countPromptChars(messages);
+
   for (const entry of entries) {
+    const started = Date.now();
     try {
       const result = await callProvider(entry, messages, options);
       await setAIKeyStatus(entry.id, "ok");
+      await logEntry(entry, "call", "ok", started, result.modelUsed || entry.model, promptChars, result.content.length);
       return { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw };
     } catch (err: any) {
       const isQuota = isQuotaLikeError(err);
       await setAIKeyStatus(entry.id, isQuota ? "quota" : "error", err.message || String(err));
+      await logEntry(entry, "call", isQuota ? "quota" : "error", started, entry.model, promptChars, 0, err.message || String(err));
       errors.push(`${entry.provider}:${entry.label} -> ${err.message || err}`);
     }
   }
+
   if (entries.length === 0) {
-    try { return await callLiteLLMProxy(messages, options); }
-    catch (err: any) { errors.push(`litellm-proxy -> ${err.message || err}`); }
+    const started = Date.now();
+    try {
+      const result = await callLiteLLMProxy(messages, options);
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: result.modelUsed, mode: "call", status: "ok", latencyMs: Date.now() - started, promptChars, outputChars: result.content.length });
+      return result;
+    } catch (err: any) {
+      const isQuota = isQuotaLikeError(err);
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: options.model, mode: "call", status: isQuota ? "quota" : "error", latencyMs: Date.now() - started, promptChars, outputChars: 0, error: err.message || String(err) });
+      errors.push(`litellm-proxy -> ${err.message || err}`);
+    }
   }
+
   throw new ProviderError(`Không còn provider/key AI khả dụng. Chi tiết: ${errors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors });
 }
 
 export async function* streamAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): AsyncGenerator<string, void, unknown> {
   const entries = await getEnabledAIKeyEntries();
   const errors: string[] = [];
+  const promptChars = countPromptChars(messages);
+
   for (const entry of entries) {
     let yielded = false;
+    let outputChars = 0;
+    const started = Date.now();
     try {
-      for await (const chunk of streamProvider(entry, messages, options)) { yielded = true; yield chunk; }
+      for await (const chunk of streamProvider(entry, messages, options)) {
+        yielded = true;
+        outputChars += chunk.length;
+        yield chunk;
+      }
       await setAIKeyStatus(entry.id, "ok");
+      await logEntry(entry, "stream", "ok", started, entry.model, promptChars, outputChars);
       return;
     } catch (err: any) {
       const isQuota = isQuotaLikeError(err);
       await setAIKeyStatus(entry.id, isQuota ? "quota" : "error", err.message || String(err));
+      await logEntry(entry, "stream", isQuota ? "quota" : "error", started, entry.model, promptChars, outputChars, err.message || String(err));
       errors.push(`${entry.provider}:${entry.label} -> ${err.message || err}`);
       if (yielded) throw err;
     }
   }
+
   if (entries.length === 0) {
-    try { yield* streamLiteLLMProxy(messages, options); return; }
-    catch (err: any) { errors.push(`litellm-proxy -> ${err.message || err}`); }
+    let outputChars = 0;
+    const started = Date.now();
+    try {
+      for await (const chunk of streamLiteLLMProxy(messages, options)) {
+        outputChars += chunk.length;
+        yield chunk;
+      }
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: options.model, mode: "stream", status: "ok", latencyMs: Date.now() - started, promptChars, outputChars });
+      return;
+    } catch (err: any) {
+      const isQuota = isQuotaLikeError(err);
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: options.model, mode: "stream", status: isQuota ? "quota" : "error", latencyMs: Date.now() - started, promptChars, outputChars, error: err.message || String(err) });
+      errors.push(`litellm-proxy -> ${err.message || err}`);
+    }
   }
+
   throw new ProviderError(`Không còn provider/key AI stream khả dụng. Chi tiết: ${errors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors });
 }
 
@@ -70,10 +110,12 @@ export async function diagnoseAIRouter(): Promise<AIRouterDiagnostics> {
     try {
       const result = await callProvider(entry, [{ role: "user", content: "Trả lời đúng một từ: OK" }], { temperature: 0.1, maxTokens: 16 });
       await setAIKeyStatus(entry.id, "ok");
+      await logEntry(entry, "diagnostic", "ok", started, result.modelUsed || entry.model, 24, result.content?.length || 0);
       results.push({ provider: entry.provider, label: entry.label, model: result.modelUsed || entry.model, status: "ok", latencyMs: Date.now() - started, message: result.content?.slice(0, 80) || "OK" });
     } catch (err: any) {
       const status = isQuotaLikeError(err) ? "quota" : "error";
       await setAIKeyStatus(entry.id, status, err.message || String(err));
+      await logEntry(entry, "diagnostic", status, started, entry.model, 24, 0, err.message || String(err));
       results.push({ provider: entry.provider, label: entry.label, model: entry.model, status, latencyMs: Date.now() - started, message: err.message || String(err) });
     }
   }
@@ -81,16 +123,30 @@ export async function diagnoseAIRouter(): Promise<AIRouterDiagnostics> {
     const started = Date.now();
     try {
       const r = await fetch(`${DEFAULT_PROXY_URL}/health`, { headers: { Authorization: `Bearer ${DEFAULT_PROXY_KEY}` } });
-      results.push({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, status: r.ok ? "ok" : "error", latencyMs: Date.now() - started, message: r.ok ? "LiteLLM proxy reachable" : `HTTP ${r.status}` });
-    } catch (err: any) { results.push({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, status: "error", latencyMs: Date.now() - started, message: err.message || String(err) }); }
+      const status = r.ok ? "ok" : "error";
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, mode: "diagnostic", status, latencyMs: Date.now() - started, promptChars: 0, outputChars: 0, error: r.ok ? undefined : `HTTP ${r.status}` });
+      results.push({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, status, latencyMs: Date.now() - started, message: r.ok ? "LiteLLM proxy reachable" : `HTTP ${r.status}` });
+    } catch (err: any) {
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, mode: "diagnostic", status: "error", latencyMs: Date.now() - started, promptChars: 0, outputChars: 0, error: err.message || String(err) });
+      results.push({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, status: "error", latencyMs: Date.now() - started, message: err.message || String(err) });
+    }
   }
   return { ok: results.some(r => r.status === "ok"), checkedAt: new Date().toISOString(), totalEnabledKeys: entries.length, results };
 }
 
 export async function testAIKey(input: { provider: AIProviderName; apiKey?: string; model?: string; baseUrl?: string }): Promise<{ success: boolean; content?: string; modelUsed?: string; error?: string }> {
   const temp: DecryptedAIKeyEntry = { id: "test", provider: input.provider, label: "Test key", apiKey: input.apiKey?.trim() || "", model: input.model, baseUrl: input.baseUrl, enabled: true, priority: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
-  try { const result = await callProvider(temp, [{ role: "user", content: "Trả lời ngắn gọn: OK" }], { temperature: 0.1, maxTokens: 32 }); return { success: true, content: result.content, modelUsed: result.modelUsed }; }
-  catch (err: any) { return { success: false, error: err.message || String(err) }; }
+  const started = Date.now();
+  try {
+    const result = await callProvider(temp, [{ role: "user", content: "Trả lời ngắn gọn: OK" }], { temperature: 0.1, maxTokens: 32 });
+    await appendAIUsageLog({ provider: input.provider, label: "Test key", model: result.modelUsed || input.model, mode: "test", status: "ok", latencyMs: Date.now() - started, promptChars: 21, outputChars: result.content.length });
+    return { success: true, content: result.content, modelUsed: result.modelUsed };
+  }
+  catch (err: any) {
+    const isQuota = isQuotaLikeError(err);
+    await appendAIUsageLog({ provider: input.provider, label: "Test key", model: input.model, mode: "test", status: isQuota ? "quota" : "error", latencyMs: Date.now() - started, promptChars: 21, outputChars: 0, error: err.message || String(err) });
+    return { success: false, error: err.message || String(err) };
+  }
 }
 
 async function callProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): Promise<ProviderCallResult> {
@@ -202,6 +258,10 @@ async function* parseNDJSON(response: Response): AsyncGenerator<any, void, unkno
   try { while (true) { const { done, value } = await reader.read(); if (done) break; buffer += decoder.decode(value, { stream: true }); const lines = buffer.split("\n"); buffer = lines.pop() ?? ""; for (const line of lines) { const trimmed = line.trim(); if (!trimmed) continue; try { yield JSON.parse(trimmed); } catch {} } } const last = buffer.trim(); if (last) { try { yield JSON.parse(last); } catch {} } } finally { reader.releaseLock(); }
 }
 
+async function logEntry(entry: DecryptedAIKeyEntry, mode: AIUsageMode, status: "ok" | "quota" | "error", started: number, model?: string, promptChars = 0, outputChars = 0, error?: string): Promise<void> {
+  await appendAIUsageLog({ provider: entry.provider, keyId: entry.id, label: entry.label, model, mode, status, latencyMs: Date.now() - started, promptChars, outputChars, error });
+}
+function countPromptChars(messages: ChatMessage[]): number { return messages.reduce((sum, msg) => sum + msg.content.length, 0); }
 function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions["model"]): string { const pro = requested === "ai-assistant-pro"; if (provider === "gemini") return pro ? "gemini-2.0-flash" : "gemini-2.0-flash"; if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant"; if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free"; if (provider === "anthropic") return pro ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest"; return "qwen2.5:7b"; }
 function isQuotaLikeError(err: any): boolean { const text = `${err?.status || ""} ${err?.message || ""} ${JSON.stringify(err?.body || {})}`.toLowerCase(); return text.includes("429") || text.includes("quota") || text.includes("rate limit") || text.includes("too many requests") || text.includes("resource_exhausted"); }
 function providerHttpError(provider: AIProviderName | "litellm-proxy", status: number, body: unknown): ProviderError { return new ProviderError(extractErrorMessage(body) || `${provider} returned HTTP ${status}`, status, body, provider); }
