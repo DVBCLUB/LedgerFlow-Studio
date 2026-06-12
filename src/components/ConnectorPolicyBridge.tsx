@@ -59,6 +59,7 @@ const CONNECTORS_KEY = 'ledgerflow_connector_sdk_registry_v1';
 const POLICY_SUMMARY_KEY = 'ledgerflow_connector_policy_summary_v1';
 const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const APPROVAL_EVENTS_KEY = 'ledgerflow_approval_gate_events_v1';
+const LAST_CONNECTOR_SNAPSHOT_KEY = 'ledgerflow_connector_policy_last_snapshot_v1';
 
 function readLocal<T>(key: string, fallback: T): T {
   try {
@@ -83,11 +84,48 @@ function asApprovalRisk(risk: ConnectorRisk): ApprovalRequest['risk'] {
   return 'HIGH';
 }
 
+function connectorPolicyFingerprint(connector: ConnectorDefinition) {
+  return JSON.stringify({
+    id: connector.id,
+    mode: connector.mode,
+    risk: connector.risk,
+    status: connector.status,
+    approvalRequired: connector.approvalRequired,
+    auditRequired: connector.auditRequired,
+    allowedActions: connector.allowedActions,
+    blockedActions: connector.blockedActions,
+    inputSchema: connector.inputSchema,
+    outputSchema: connector.outputSchema
+  });
+}
+
+function registryFingerprint(connectors: ConnectorDefinition[]) {
+  return JSON.stringify(connectors.map((connector) => connectorPolicyFingerprint(connector)).sort());
+}
+
 function upsertPolicySummaries(connectors: ConnectorDefinition[]) {
   const current = readLocal<ConnectorPolicySummary[]>(POLICY_SUMMARY_KEY, []);
   const now = new Date().toLocaleString('vi-VN');
   const next = connectors.map((connector) => {
     const old = current.find((item) => item.connectorId === connector.id);
+    const oldFingerprint = old ? JSON.stringify({
+      mode: old.mode,
+      risk: old.risk,
+      mustApprove: old.mustApprove,
+      mustAudit: old.mustAudit,
+      status: old.status,
+      allowedActions: old.allowedActions,
+      blockedActions: old.blockedActions
+    }) : '';
+    const nextFingerprint = JSON.stringify({
+      mode: connector.mode,
+      risk: connector.risk,
+      mustApprove: connectorNeedsApproval(connector),
+      mustAudit: connector.auditRequired,
+      status: connector.status,
+      allowedActions: connector.allowedActions,
+      blockedActions: connector.blockedActions
+    });
     return {
       connectorId: connector.id,
       name: connector.name,
@@ -96,7 +134,7 @@ function upsertPolicySummaries(connectors: ConnectorDefinition[]) {
       mustApprove: connectorNeedsApproval(connector),
       mustAudit: connector.auditRequired,
       status: connector.status,
-      updatedAt: old?.updatedAt ?? now,
+      updatedAt: oldFingerprint === nextFingerprint ? old?.updatedAt ?? now : now,
       allowedActions: connector.allowedActions,
       blockedActions: connector.blockedActions
     };
@@ -114,7 +152,13 @@ function upsertConnectorApprovals(connectors: ConnectorDefinition[]) {
   const nextEvents = [...events];
 
   connectors.filter(connectorNeedsApproval).forEach((connector) => {
-    const existing = nextApprovals.find((approval) => approval.source === 'Connector' && approval.sourceId === connector.id && approval.status === 'Pending');
+    const policyKey = connectorPolicyFingerprint(connector);
+    const existing = nextApprovals.find((approval) =>
+      approval.source === 'Connector' &&
+      approval.sourceId === connector.id &&
+      approval.conditions.includes(`Policy key: ${policyKey}`) &&
+      (approval.status === 'Pending' || approval.status === 'Approved')
+    );
     if (existing) return;
     const id = `approval-connector-${connector.id}-${Date.now()}`;
     const approval: ApprovalRequest = {
@@ -132,6 +176,7 @@ function upsertConnectorApprovals(connectors: ConnectorDefinition[]) {
         `Status: ${connector.status}`,
         `Allowed: ${connector.allowedActions.join('; ')}`,
         `Blocked: ${connector.blockedActions.join('; ')}`,
+        `Policy key: ${policyKey}`,
         'Connector chỉ được chạy theo input/output schema đã khai báo.',
         'Mọi thao tác ghi hoặc rủi ro cao phải đi qua audit và Review Desk.'
       ].join('\n'),
@@ -160,13 +205,20 @@ export default function ConnectorPolicyBridge() {
     const sync = () => {
       const connectors = readLocal<ConnectorDefinition[]>(CONNECTORS_KEY, []);
       if (!connectors.length) return;
+      const fingerprint = registryFingerprint(connectors);
+      const previous = localStorage.getItem(LAST_CONNECTOR_SNAPSHOT_KEY);
+      if (fingerprint === previous) return;
+      localStorage.setItem(LAST_CONNECTOR_SNAPSHOT_KEY, fingerprint);
       upsertPolicySummaries(connectors);
       upsertConnectorApprovals(connectors);
+      window.dispatchEvent(new CustomEvent('ledgerflow-connector-policy-synced'));
     };
     sync();
+    const timer = window.setInterval(sync, 1500);
     window.addEventListener('ledgerflow-connector-sdk-updated', sync);
     window.addEventListener('storage', sync);
     return () => {
+      window.clearInterval(timer);
       window.removeEventListener('ledgerflow-connector-sdk-updated', sync);
       window.removeEventListener('storage', sync);
     };
