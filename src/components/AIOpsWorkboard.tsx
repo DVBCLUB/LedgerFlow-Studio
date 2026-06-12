@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 type WorkStatus = 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
 type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -15,6 +15,14 @@ type WorkCard = {
   plan: string[];
   tools: string[];
   approval: string;
+};
+
+type AuditEntry = {
+  id: string;
+  at: string;
+  action: string;
+  cardId: string;
+  detail: string;
 };
 
 const initialCards: WorkCard[] = [
@@ -44,6 +52,16 @@ const initialCards: WorkCard[] = [
   }
 ];
 
+const initialAudit: AuditEntry[] = [
+  {
+    id: 'audit-001',
+    at: 'Mặc định',
+    action: 'SYSTEM_BOOTSTRAP',
+    cardId: 'wb-002',
+    detail: 'Khởi tạo AI Ops Workboard theo hướng OpenClaw-inspired nhưng sandbox-first.'
+  }
+];
+
 const statusOrder: WorkStatus[] = ['Inbox', 'Planning', 'Waiting Approval', 'Ready', 'Done'];
 const kindOptions: WorkKind[] = ['Q&A', 'Code', 'Design', 'Data', 'Marketing', 'Integration'];
 
@@ -59,12 +77,44 @@ function riskFor(kind: WorkKind): RiskLevel {
   return 'LOW';
 }
 
+function readLocal<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) as T : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function exportJson(filename: string, payload: unknown) {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export default function AIOpsWorkboard() {
-  const [cards, setCards] = useState<WorkCard[]>(initialCards);
+  const [cards, setCards] = useState<WorkCard[]>(() => readLocal('ledgerflow_aiops_cards_v1', initialCards));
+  const [audit, setAudit] = useState<AuditEntry[]>(() => readLocal('ledgerflow_aiops_audit_v1', initialAudit));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
-  const [selectedId, setSelectedId] = useState(initialCards[0].id);
+  const [selectedId, setSelectedId] = useState(cards[0]?.id ?? initialCards[0].id);
+
+  useEffect(() => {
+    localStorage.setItem('ledgerflow_aiops_cards_v1', JSON.stringify(cards));
+  }, [cards]);
+
+  useEffect(() => {
+    localStorage.setItem('ledgerflow_aiops_audit_v1', JSON.stringify(audit));
+  }, [audit]);
 
   const selected = useMemo(() => cards.find((card) => card.id === selectedId) ?? cards[0], [cards, selectedId]);
+
+  const pushAudit = (action: string, cardId: string, detail: string) => {
+    setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 80));
+  };
 
   const addCard = () => {
     if (!draft.title.trim() || !draft.request.trim()) return;
@@ -78,16 +128,24 @@ export default function AIOpsWorkboard() {
       risk,
       request: draft.request.trim(),
       plan: ['Đọc Thư viện tri thức', 'Lập kế hoạch nhỏ', 'Tạo tool card', 'Chờ founder duyệt nếu có rủi ro'],
-      tools: draft.kind === 'Code' ? ['Knowledge Library', 'Dev Handoff', 'CI Doctor'] : draft.kind === 'Integration' ? ['Integration Hub', 'Connector Policy'] : ['Knowledge Library', 'Sandbox'],
+      tools: draft.kind === 'Code' ? ['Knowledge Library', 'Dev Handoff', 'CI Doctor', 'Review Desk'] : draft.kind === 'Integration' ? ['Integration Hub', 'Connector Policy', 'Review Desk'] : ['Knowledge Library', 'Sandbox'],
       approval: risk === 'LOW' ? 'Có thể xử lý trong sandbox.' : 'Cần founder review trước khi hành động ngoài sandbox.'
     };
     setCards((current) => [card, ...current]);
     setSelectedId(card.id);
+    pushAudit('CARD_CREATED', card.id, `Tạo work card ${card.kind} với risk ${card.risk}.`);
     setDraft({ title: '', kind: draft.kind, request: '' });
   };
 
   const moveSelected = (status: WorkStatus) => {
+    if (!selected) return;
     setCards((current) => current.map((card) => card.id === selected.id ? { ...card, status } : card));
+    pushAudit('STATUS_CHANGED', selected.id, `Đổi trạng thái từ ${selected.status} sang ${status}.`);
+  };
+
+  const openReviewDesk = () => {
+    if (selected) pushAudit('OPEN_REVIEW_DESK', selected.id, 'Chuyển sang Review Desk để chuẩn bị branch/PR sau khi duyệt.');
+    window.location.hash = '#/review_desk';
   };
 
   return (
@@ -96,9 +154,12 @@ export default function AIOpsWorkboard() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">OpenClaw-inspired control board</p>
           <h3 className="mt-1 text-xl font-black text-white">AI Ops Workboard</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Inbox, tool cards, risk, approval và audit workflow cho AI agent. P0 chỉ điều phối và giả lập an toàn.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Inbox, tool cards, risk, approval và audit workflow cho AI agent. P0 điều phối an toàn, action có rủi ro phải đi qua review.</p>
         </div>
-        <span className="rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200">Sandbox-first</span>
+        <div className="flex flex-wrap gap-2">
+          <button onClick={() => exportJson('ledgerflow-aiops-audit.json', audit)} className="rounded-full border border-slate-700 px-3 py-1 text-xs font-black text-slate-300 hover:border-violet-300">Xuất audit</button>
+          <span className="rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200">Sandbox-first</span>
+        </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.95fr_1.25fr]">
@@ -153,6 +214,22 @@ export default function AIOpsWorkboard() {
 
           <div className="mt-4 flex flex-wrap gap-2">
             {statusOrder.map((status) => <button key={status} onClick={() => moveSelected(status)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${selected.status === status ? 'border-emerald-300 bg-emerald-300 text-slate-950' : 'border-slate-700 text-slate-300 hover:border-emerald-400'}`}>{status}</button>)}
+            {(selected.kind === 'Code' || selected.kind === 'Integration') && <button onClick={openReviewDesk} className="rounded-full border border-emerald-400/50 px-3 py-2 text-[11px] font-black text-emerald-200 hover:bg-emerald-400/10">Review Desk</button>}
+          </div>
+
+          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Audit log</p>
+              <span className="text-[10px] font-bold text-slate-500">{audit.length} events</span>
+            </div>
+            <div className="mt-2 max-h-40 space-y-2 overflow-y-auto">
+              {audit.filter((entry) => entry.cardId === selected.id).map((entry) => <div key={entry.id} className="rounded-xl border border-slate-800 bg-slate-950 p-2">
+                <p className="text-[10px] font-black text-violet-200">{entry.action}</p>
+                <p className="mt-1 text-[11px] font-semibold text-slate-400">{entry.detail}</p>
+                <p className="mt-1 text-[10px] font-bold text-slate-600">{entry.at}</p>
+              </div>)}
+              {audit.filter((entry) => entry.cardId === selected.id).length === 0 && <p className="text-xs font-semibold text-slate-500">Chưa có audit riêng cho card này.</p>}
+            </div>
           </div>
         </div>}
       </div>
