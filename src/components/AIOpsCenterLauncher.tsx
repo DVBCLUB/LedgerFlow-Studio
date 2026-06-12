@@ -9,6 +9,7 @@ import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
 import ApprovalSessionBridge from './ApprovalSessionBridge';
 import ApprovalReviewDeskBridge from './ApprovalReviewDeskBridge';
+import FastReviewRoutingBridge from './FastReviewRoutingBridge';
 import SandboxApprovalBridge from './SandboxApprovalBridge';
 import ConnectorPolicyBridge from './ConnectorPolicyBridge';
 import ApprovalGatePanel from './ApprovalGatePanel';
@@ -53,6 +54,7 @@ export default function AIOpsCenterLauncher() {
       {open && <SessionResultBridge />}
       {open && <ApprovalSessionBridge />}
       {open && <ApprovalReviewDeskBridge />}
+      {open && <FastReviewRoutingBridge />}
       {open && <SandboxApprovalBridge />}
       {open && <ConnectorPolicyBridge />}
       <button
