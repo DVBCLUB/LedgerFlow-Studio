@@ -132,17 +132,17 @@ Do not copy OpenClaw behavior that grants broad host control by default:
 - Backend approved GitHub change request route.
 - Draft PR service using backend-only token.
 - Approved PR panel component.
-- AI Ops Workboard component.
+- Workboard, Tool Cards, Approval Gate, Connector policy, Review Mode and AI Staff views have been consolidated into `src/components/agent-ops/AgentOpsHub.tsx`.
+- Shared AI Ops types now live in `src/types/agentOps.ts`.
 - Knowledge Library in CompanyOS.
 - AI Operations Center framing.
 
 ## Remaining P0 pieces
 
-1. Mount AI Ops Workboard visibly in the app shell.
-2. Mount Review Desk visibly without triggering safety filters in the write tool.
-3. Add audit log persistence for Workboard cards.
-4. Connect Workboard card -> Review Desk draft.
-5. Show created PR link inside Workboard card.
+1. Complete manual browser verification for `#/ai_ops` and legacy route aliases after consolidation.
+2. Add richer audit log persistence for Workboard cards.
+3. Connect Workboard card -> Review Desk draft.
+4. Show created PR link inside Workboard card.
 
 ## P1 pieces
 
