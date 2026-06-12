@@ -61,6 +61,36 @@ export interface GitHubPullRequestSummary {
   draft: boolean;
 }
 
+export interface GitHubPullRequestFileSummary {
+  filename: string;
+  status: string;
+  additions: number;
+  deletions: number;
+  changes: number;
+  patchPreview: string | null;
+}
+
+export interface GitHubPullRequestDigest {
+  repo: string;
+  pullRequest: GitHubPullRequestSummary & {
+    mergeable: boolean | null;
+    mergeableState: string | null;
+    changedFiles: number;
+    additions: number;
+    deletions: number;
+    commits: number;
+    headSha: string;
+  };
+  files: GitHubPullRequestFileSummary[];
+  safety: {
+    touchesBlockedPath: boolean;
+    largeChange: boolean;
+    hasDeletes: boolean;
+    reviewNotes: string[];
+  };
+  lastCheckedAt: string;
+}
+
 export interface GitHubRepositorySummary {
   fullName: string;
   private: boolean;
@@ -252,6 +282,18 @@ function mapPullRequest(pr: any): GitHubPullRequestSummary {
   };
 }
 
+function mapPrFile(file: any): GitHubPullRequestFileSummary {
+  const patch = typeof file.patch === "string" ? file.patch : null;
+  return {
+    filename: String(file.filename || ""),
+    status: String(file.status || "modified"),
+    additions: Number(file.additions || 0),
+    deletions: Number(file.deletions || 0),
+    changes: Number(file.changes || 0),
+    patchPreview: patch ? patch.slice(0, 4000) : null,
+  };
+}
+
 function encodeRepo(repo: string): string {
   return repo.split("/").map(encodeURIComponent).join("/");
 }
@@ -271,7 +313,7 @@ function sanitizeBranchName(input?: string): string {
 }
 
 function looksLikeLongCredentialValue(value: string): boolean {
-  const trimmed = value.trim().replace(/^['\"]|['\"];?$/g, "");
+  const trimmed = value.trim().replace(/^[']|['"];?$/g, "");
   if (trimmed.length < 24) return false;
   if (/\s/.test(trimmed)) return false;
   const unique = new Set(trimmed.split("")).size;
@@ -398,6 +440,42 @@ export async function getGitHubWorkflowRunJobs(inputRepo: string | undefined, ru
     jobs,
     failedJobs,
     hasFailures: failedJobs.length > 0,
+    lastCheckedAt: new Date().toISOString(),
+  };
+}
+
+export async function getGitHubPullRequestDigest(inputRepo: string | undefined, pullNumber: number): Promise<GitHubPullRequestDigest> {
+  if (!Number.isFinite(pullNumber) || pullNumber <= 0) throw new Error("Pull request number không hợp lệ.");
+  const repo = normalizeGitHubRepo(inputRepo);
+  const encodedRepo = encodeRepo(repo);
+  const [pr, filesResponse] = await Promise.all([
+    githubFetch<any>(`/repos/${encodedRepo}/pulls/${encodeURIComponent(String(pullNumber))}`, {}, true),
+    githubFetch<any[]>(`/repos/${encodedRepo}/pulls/${encodeURIComponent(String(pullNumber))}/files?per_page=100`, {}, true).catch(() => []),
+  ]);
+  const files = (Array.isArray(filesResponse) ? filesResponse : []).map(mapPrFile);
+  const touchesBlockedPath = files.some((file) => BLOCKED_PATH_PATTERNS.some((pattern) => pattern.test(file.filename)));
+  const largeChange = files.reduce((sum, file) => sum + file.changes, 0) > 800 || files.length > 12;
+  const hasDeletes = files.some((file) => file.status === "removed" || file.deletions > file.additions * 3);
+  const reviewNotes = [
+    touchesBlockedPath ? "PR chạm path bị chặn/rủi ro, cần kiểm tra kỹ trước merge." : "Không thấy path bị chặn trong danh sách file.",
+    largeChange ? "PR có thay đổi lớn, nên chia nhỏ hoặc review kỹ." : "Quy mô thay đổi nằm trong ngưỡng dễ review.",
+    hasDeletes ? "PR có xóa nhiều dòng/file, cần kiểm tra rollback plan." : "Không thấy dấu hiệu xóa lớn.",
+    pr.draft ? "PR đang là Draft, phù hợp Fast Secure." : "PR không còn Draft, cần đảm bảo đã review xong.",
+  ];
+  return {
+    repo,
+    pullRequest: {
+      ...mapPullRequest(pr),
+      mergeable: pr.mergeable ?? null,
+      mergeableState: pr.mergeable_state ?? null,
+      changedFiles: Number(pr.changed_files || files.length),
+      additions: Number(pr.additions || 0),
+      deletions: Number(pr.deletions || 0),
+      commits: Number(pr.commits || 0),
+      headSha: String(pr.head?.sha || ""),
+    },
+    files,
+    safety: { touchesBlockedPath, largeChange, hasDeletes, reviewNotes },
     lastCheckedAt: new Date().toISOString(),
   };
 }
