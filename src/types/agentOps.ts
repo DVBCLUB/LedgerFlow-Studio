@@ -1,6 +1,12 @@
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
+export type ApprovalRisk = RiskLevel;
+export type ConnectorRisk = 'LOW' | 'MEDIUM' | 'HIGH' | 'BLOCKED';
+export type ConnectorMode = 'Read Only' | 'Draft Write' | 'Approval Required' | 'Blocked';
+export type ConnectorStatus = 'Planned' | 'Prototype' | 'Active' | 'Disabled';
+export type ConnectorCategory = 'Code' | 'Data' | 'Docs' | 'Finance' | 'Communication' | 'Deployment' | 'Local';
 export type WorkStatus = 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-export type WorkKind = 'Q&A' | 'Code' | 'Design' | 'Data' | 'Marketing' | 'Integration' | 'CI Fix';
+export type SessionStatus = 'Draft' | 'Queued' | 'Running' | 'Waiting Approval' | 'Blocked' | 'Done';
+export type WorkKind = 'Q&A' | 'Code' | 'Design' | 'Data' | 'Marketing' | 'Integration' | 'CI Fix' | 'Audit' | 'Product' | 'Ops';
 export type StepStatus = 'Todo' | 'Running' | 'Waiting Approval' | 'Done' | 'Blocked';
 
 export type SessionStep = {
@@ -26,6 +32,10 @@ export type WorkCard = {
   steps?: SessionStep[];
   sourceSessionId?: string;
   aiStaff?: string;
+  role?: string;
+  task?: string;
+  input?: string;
+  expectedOutput?: string;
   acceptanceCriteria?: string;
   founderReview?: string;
   deadline?: string;
@@ -34,9 +44,9 @@ export type WorkCard = {
 export type AgentSkill = {
   id: string;
   name: string;
-  category: string;
+  category: WorkKind | string;
   owner: string;
-  status: string;
+  status: 'Draft' | 'Active' | 'Deprecated' | string;
   risk: RiskLevel;
   purpose: string;
   systemPrompt: string;
@@ -52,23 +62,28 @@ export type ApprovalRequest = {
   id: string;
   title: string;
   source: string;
-  risk: RiskLevel;
+  sourceId?: string;
+  sourceSessionId?: string;
+  risk: ApprovalRisk;
   action: string;
   details: string;
+  conditions?: string;
+  approvalPhrase?: string;
   createdAt: string;
   expiresAt: string;
   status: ApprovalStatus;
   approvedBy?: string;
+  approvedAt?: string;
   decidedAt?: string;
 };
 
 export type ConnectorDefinition = {
   id: string;
   name: string;
-  category: string;
-  status: string;
-  mode: string;
-  risk: string;
+  category: ConnectorCategory | string;
+  status: ConnectorStatus | string;
+  mode: ConnectorMode | string;
+  risk: ConnectorRisk | string;
   purpose: string;
   allowedActions: string[];
   blockedActions: string[];
@@ -81,16 +96,20 @@ export type ConnectorDefinition = {
 export type PatchItem = {
   id: string;
   title: string;
+  repo?: string;
+  branchName?: string;
   path?: string;
   filePath?: string;
+  fileContent?: string;
   summary?: string;
   status?: string;
   risk?: string;
   route?: string;
+  findings?: string[];
 };
 
 export type ReviewMode = {
-  mode: 'Fast' | 'Strict';
+  mode: 'Fast' | 'Strict' | 'fast_secure' | 'strict_review';
   singleReviewDeskApproval: boolean;
   note: string;
 };
