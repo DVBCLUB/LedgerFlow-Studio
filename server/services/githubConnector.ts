@@ -21,6 +21,16 @@ export interface GitHubIssueSummary {
   isPullRequest: boolean;
 }
 
+export interface GitHubPullRequestSummary {
+  number: number;
+  title: string;
+  state: string;
+  htmlUrl: string;
+  branch: string;
+  base: string;
+  draft: boolean;
+}
+
 export interface GitHubRepositorySummary {
   fullName: string;
   private: boolean;
@@ -52,8 +62,50 @@ export interface CreateGitHubIssueInput {
   labels?: string[];
 }
 
+export interface ApprovedChangeFile {
+  path: string;
+  content: string;
+}
+
+export interface ApprovedChangeRequestInput {
+  repo?: string;
+  title: string;
+  summary: string;
+  files: ApprovedChangeFile[];
+  approvalPhrase: string;
+  baseBranch?: string;
+  branchName?: string;
+  draft?: boolean;
+}
+
+export interface ApprovedChangeRequestResult {
+  repo: string;
+  branch: string;
+  base: string;
+  commitMessages: string[];
+  pullRequest: GitHubPullRequestSummary;
+}
+
 const DEFAULT_REPO = process.env.GITHUB_REPOSITORY || "DVBCLUB/LedgerFlow-Studio";
 const GITHUB_API_BASE = "https://api.github.com";
+const APPROVAL_PHRASE = "APPROVE AI GITHUB PUSH";
+const MAX_FILES_PER_REQUEST = 10;
+const MAX_FILE_CHARS = 250_000;
+const BLOCKED_PATH_PATTERNS = [
+  /^\.env(\.|$)?/i,
+  /^\.ledgerflow_secret$/i,
+  /^ai_keys\.vault\.json$/i,
+  /^ai_usage\.log\.json$/i,
+  /^integration_events\.log\.json$/i,
+  /^integration_registry\.json$/i,
+  /^\.ai_vault_session\.json$/i,
+  /(^|\/)\.git(\/|$)/i,
+  /(^|\/)node_modules(\/|$)/i,
+  /(^|\/)dist(\/|$)/i,
+  /(^|\/)release(\/|$)/i,
+  /(^|\/)\.DS_Store$/i,
+  /(^|\/)(id_rsa|id_ed25519|.*\.pem|.*\.p12|.*\.key)$/i,
+];
 
 function getGitHubToken(): string | undefined {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -131,9 +183,86 @@ function mapIssue(issue: any): GitHubIssueSummary {
   };
 }
 
+function mapPullRequest(pr: any): GitHubPullRequestSummary {
+  return {
+    number: Number(pr.number),
+    title: String(pr.title || ""),
+    state: String(pr.state || "open"),
+    htmlUrl: String(pr.html_url || ""),
+    branch: String(pr.head?.ref || ""),
+    base: String(pr.base?.ref || ""),
+    draft: Boolean(pr.draft),
+  };
+}
+
+function encodeRepo(repo: string): string {
+  return repo.split("/").map(encodeURIComponent).join("/");
+}
+
+function sanitizeBranchName(input?: string): string {
+  const suffix = new Date().toISOString().replace(/[-:.TZ]/g, "").slice(0, 14);
+  const raw = (input || `ai/approved-change-${suffix}`).trim().toLowerCase();
+  const safe = raw
+    .replace(/^refs\/heads\//, "")
+    .replace(/[^a-z0-9/_-]+/g, "-")
+    .replace(/\.{2,}/g, "-")
+    .replace(/^\/+|\/+$/g, "")
+    .slice(0, 90);
+  if (!safe || ["main", "master", "develop", "production"].includes(safe)) return `ai/approved-change-${suffix}`;
+  if (!safe.startsWith("ai/")) return `ai/${safe}`;
+  return safe;
+}
+
+function validateChangeRequest(input: ApprovedChangeRequestInput): void {
+  if (input.approvalPhrase !== APPROVAL_PHRASE) {
+    throw new Error(`Founder approval phrase không đúng. Gõ chính xác: ${APPROVAL_PHRASE}`);
+  }
+  if (!input.title.trim() || !input.summary.trim()) throw new Error("Thiếu title hoặc summary cho change request.");
+  if (!Array.isArray(input.files) || input.files.length === 0) throw new Error("Change request phải có ít nhất 1 file.");
+  if (input.files.length > MAX_FILES_PER_REQUEST) throw new Error(`Mỗi lần AI push tối đa ${MAX_FILES_PER_REQUEST} file để dễ review.`);
+
+  for (const file of input.files) {
+    const normalized = file.path.replace(/\\/g, "/").replace(/^\/+/, "");
+    if (normalized !== file.path) file.path = normalized;
+    if (!normalized || normalized.includes("..")) throw new Error(`Đường dẫn file không hợp lệ: ${file.path}`);
+    if (BLOCKED_PATH_PATTERNS.some((pattern) => pattern.test(normalized))) throw new Error(`File bị chặn vì rủi ro bảo mật: ${normalized}`);
+    if (file.content.length > MAX_FILE_CHARS) throw new Error(`File quá lớn để AI tự push an toàn: ${normalized}`);
+  }
+}
+
+async function getDefaultBranchHeadSha(encodedRepo: string, branch: string): Promise<string> {
+  const ref = await githubFetch<any>(`/repos/${encodedRepo}/git/ref/heads/${encodeURIComponent(branch)}`, {}, true);
+  const sha = String(ref.object?.sha || "");
+  if (!sha) throw new Error(`Không đọc được HEAD của branch ${branch}.`);
+  return sha;
+}
+
+async function createBranch(encodedRepo: string, branch: string, sha: string): Promise<void> {
+  await githubFetch<any>(
+    `/repos/${encodedRepo}/git/refs`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ref: `refs/heads/${branch}`, sha }),
+    },
+    true,
+  );
+}
+
+async function getExistingFileSha(encodedRepo: string, filePath: string, branch: string): Promise<string | undefined> {
+  const query = new URLSearchParams({ ref: branch }).toString();
+  try {
+    const existing = await githubFetch<any>(`/repos/${encodedRepo}/contents/${filePath.split("/").map(encodeURIComponent).join("/")}?${query}`, {}, true);
+    return typeof existing.sha === "string" ? existing.sha : undefined;
+  } catch (err: any) {
+    if (String(err?.message || "").toLowerCase().includes("not found")) return undefined;
+    throw err;
+  }
+}
+
 export async function getGitHubSummary(inputRepo?: string): Promise<GitHubConnectorSummary> {
   const repo = normalizeGitHubRepo(inputRepo);
-  const encodedRepo = repo.split("/").map(encodeURIComponent).join("/");
+  const encodedRepo = encodeRepo(repo);
 
   const [repository, runsResponse, issuesResponse, pullsResponse] = await Promise.all([
     githubFetch<any>(`/repos/${encodedRepo}`),
@@ -170,7 +299,7 @@ export async function getGitHubSummary(inputRepo?: string): Promise<GitHubConnec
 
 export async function createGitHubIssue(input: CreateGitHubIssueInput): Promise<GitHubIssueSummary> {
   const repo = normalizeGitHubRepo(input.repo);
-  const encodedRepo = repo.split("/").map(encodeURIComponent).join("/");
+  const encodedRepo = encodeRepo(repo);
   const payload = {
     title: input.title,
     body: input.body || "",
@@ -186,4 +315,70 @@ export async function createGitHubIssue(input: CreateGitHubIssueInput): Promise<
     true,
   );
   return mapIssue(issue);
+}
+
+export async function createApprovedGitHubChangeRequest(input: ApprovedChangeRequestInput): Promise<ApprovedChangeRequestResult> {
+  validateChangeRequest(input);
+
+  const repo = normalizeGitHubRepo(input.repo);
+  const encodedRepo = encodeRepo(repo);
+  const summary = await getGitHubSummary(repo);
+  const base = input.baseBranch?.trim() || summary.repository?.defaultBranch || "main";
+  if (["ai", "refs/heads/main"].includes(base) || base.startsWith("ai/")) throw new Error("Base branch không hợp lệ cho auto-push.");
+
+  const branch = sanitizeBranchName(input.branchName);
+  const baseSha = await getDefaultBranchHeadSha(encodedRepo, base);
+  await createBranch(encodedRepo, branch, baseSha);
+
+  const commitMessages: string[] = [];
+  for (const file of input.files) {
+    const sha = await getExistingFileSha(encodedRepo, file.path, branch);
+    const message = `AI approved change: ${file.path}`;
+    await githubFetch<any>(
+      `/repos/${encodedRepo}/contents/${file.path.split("/").map(encodeURIComponent).join("/")}`,
+      {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message,
+          content: Buffer.from(file.content, "utf-8").toString("base64"),
+          branch,
+          sha,
+        }),
+      },
+      true,
+    );
+    commitMessages.push(message);
+  }
+
+  const pr = await githubFetch<any>(
+    `/repos/${encodedRepo}/pulls`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: input.title,
+        head: branch,
+        base,
+        draft: input.draft ?? true,
+        body: [
+          "## AI approved change request",
+          "",
+          input.summary,
+          "",
+          "## Safety gates",
+          "- Founder approval phrase was required before push.",
+          "- Changes were pushed to an `ai/*` branch, not directly to main.",
+          "- Secret/runtime paths are blocked by backend validation.",
+          "- CI must pass before merge.",
+          "",
+          "## Files",
+          ...input.files.map((file) => `- \`${file.path}\``),
+        ].join("\n"),
+      }),
+    },
+    true,
+  );
+
+  return { repo, branch, base, commitMessages, pullRequest: mapPullRequest(pr) };
 }
