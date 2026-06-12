@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { getGitHubSummary } from "./githubConnector";
 
 export type IntegrationStatus = "connected" | "local" | "manual" | "planned" | "error";
 export type IntegrationCategory = "ai" | "devops" | "workspace" | "accounting" | "documents" | "automation" | "data";
@@ -56,8 +57,8 @@ const defaultConnectors: IntegrationConnector[] = [
     priority: "P0",
     enabled: true,
     url: "https://github.com/DVBCLUB/LedgerFlow-Studio",
-    notes: "V1 mở nhanh/handoff. V2 đọc workflow run, issue, PR và dùng AI Gateway phân tích lỗi CI.",
-    capabilities: ["Mở repo nhanh", "Theo dõi CI xanh/đỏ", "Quản lý issue/task", "Chuẩn bị PR/release checklist"],
+    notes: "V2 đọc workflow run, issue, PR. Tạo issue cần GITHUB_TOKEN/GH_TOKEN trong môi trường local.",
+    capabilities: ["Đọc repo và Actions", "Theo dõi CI xanh/đỏ", "Xem issue/PR mở", "Tạo issue phát triển nếu có token"],
     quickActions: [
       { label: "Mở repo", href: "https://github.com/DVBCLUB/LedgerFlow-Studio" },
       { label: "Mở Actions", href: "https://github.com/DVBCLUB/LedgerFlow-Studio/actions" },
@@ -199,8 +200,14 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
     status = "connected";
     message = "AI Gateway connector is available through the local backend.";
   } else if (connector.id === "github" && connector.url) {
-    status = "manual";
-    message = "GitHub quick links are ready. Deep API sync will be added in the next connector layer.";
+    try {
+      const summary = await getGitHubSummary(connector.url);
+      status = "connected";
+      message = `GitHub connected: ${summary.repo}, ${summary.latestRuns.length} workflow runs, ${summary.openIssues.length} issues, ${summary.openPullRequests.length} PRs.`;
+    } catch (err: any) {
+      status = "error";
+      message = err.message || "GitHub connector test failed.";
+    }
   } else if (connector.id === "vscode-cursor") {
     status = "manual";
     message = connector.localCommand ? `IDE handoff command configured: ${connector.localCommand}` : "IDE handoff is manual until a local command is configured.";
