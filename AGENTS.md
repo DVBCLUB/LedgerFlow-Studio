@@ -1,6 +1,6 @@
 # LedgerFlow Studio — AI Agent Guide
 
-This repository is being evolved into a lightweight company operating system: accounting workflows, AI Gateway, Integration Hub, DevOps handoff, desktop packaging, and local business automation.
+This repository is being evolved into a lightweight **company operating system**: accounting workflows, project portfolio, AI Gateway, Integration Hub, DevOps handoff, desktop packaging, simulation labs, and local business automation.
 
 Use this file as the first stop for ChatGPT, Claude, Gemini, Copilot, Cursor, or any future AI coding agent.
 
@@ -8,20 +8,36 @@ Use this file as the first stop for ChatGPT, Claude, Gemini, Copilot, Cursor, or
 
 Do not rebuild the project from scratch. Make small, reviewable changes on top of the current codebase.
 
+## Product direction rule
+
+LedgerFlow is **not only construction accounting**.
+
+Construction/project accounting is only one industry template inside the larger company OS.
+
+Before changing product modules, read:
+
+- `docs/PRODUCT_REFORM_AUDIT.md`
+- `docs/COMPANY_OS_TARGET_ARCHITECTURE.md`
+- `docs/COMPANY_OS_REFORM_BACKLOG.md`
+- `docs/PROJECT_STRUCTURE.md`
+- `docs/AI_AGENT_PLAYBOOK.md`
+
+Do not hard-code global app language around `công trình`. Use `dự án` or `hồ sơ` generically. Use `công trình` only inside construction-specific templates.
+
 ## Project map
 
 | Area | Location | Purpose |
 |---|---|---|
-| React app | `src/` | Main UI, dashboards, overlays, accounting modules |
+| React app | `src/` | Main UI, dashboards, overlays, company OS workspaces |
 | Express backend | `server.ts` | API routes, Vite middleware, production server |
 | Backend services | `server/services/` | AI Gateway, vault, integration registry, connectors |
 | Desktop shell | `desktop/` | Electron entrypoint and desktop wrapper |
 | Build/check scripts | `scripts/` | CI guards, icon generation, doctors, release checks |
 | Public static pages | `public/` | Standalone HTML tools and static assets |
-| Docs | `docs/` | Architecture, usage, connector design, handoff docs |
+| Docs | `docs/` | Architecture, usage, connector design, product reform, handoff docs |
 | CI workflows | `.github/workflows/` | Web/type-check and Windows desktop build |
 | Build resources | `build/` | Desktop icons/resources generated before packaging |
-| Tooling | `tools/` | Helper tools and future local utilities |
+| Tooling | `tools/` | Helper tools, including Windows build helpers |
 
 ## Important runtime files that must never be committed
 
@@ -39,6 +55,23 @@ These are local machine files and are intentionally ignored:
 Never expose API keys or secrets in source, docs, logs, screenshots, or generated examples.
 
 ## Main modules
+
+### Company OS reform
+
+Files/docs:
+
+- `docs/PRODUCT_REFORM_AUDIT.md`
+- `docs/COMPANY_OS_TARGET_ARCHITECTURE.md`
+- `docs/COMPANY_OS_REFORM_BACKLOG.md`
+- `src/components/CompanyOS.tsx`
+- Future target: `src/app/` and `src/modules/`
+
+Rules:
+
+- Home screen should behave like a company command center.
+- Navigation should be organized by departments/workspaces, not course stages.
+- Simulation, charts, model labs, and sandbox tools are core modules.
+- Technical panels belong in System Settings / Dev Tools, not the first user screen.
 
 ### AI Gateway
 
@@ -103,7 +136,7 @@ Files:
 - `package.json` build config
 - `scripts/prepare-desktop-icons.mjs`
 - `scripts/check-desktop-package.mjs`
-- `BUILD_WINDOWS_INSTALLER.bat`
+- `tools/windows/BUILD_WINDOWS_INSTALLER.bat`
 - `.github/workflows/build-windows.yml`
 
 Rules:
@@ -111,6 +144,7 @@ Rules:
 - Always run `npm run prepare:icons` before desktop packaging.
 - Windows icon path must remain `build/icon.ico`.
 - Keep `build.win.icon`, `build.nsis.installerIcon`, and `build.nsis.uninstallerIcon` aligned.
+- User-facing Windows app downloads should come from GitHub Actions artifact `LedgerFlow-Hub-Windows-Download`, not source code zip.
 
 ## Recommended commands
 
@@ -165,3 +199,5 @@ When adding or editing features:
 - Do not create unrestricted terminal execution.
 - Do not remove legacy fallbacks unless the replacement is tested.
 - Do not hide errors; surface them through diagnostics/log panels.
+- Do not make construction accounting the global product identity.
+- Do not bury simulation/model/sandbox/chart features behind unrelated labels.
