@@ -103,16 +103,29 @@ Khi vault ở chế độ mật khẩu chủ:
 
 ```text
 Đang khóa  → app không giải mã key và không gọi AI được bằng key local
-Mở khóa    → app dùng key bình thường cho tới khi khóa lại hoặc restart server
+Mở khóa    → app dùng key bình thường cho tới khi khóa lại, restart server, hoặc auto-lock hết giờ
 ```
+
+### Auto-lock AI Vault
+
+Khi đã bật mật khẩu chủ, AI Gateway có thể tự khóa vault sau một thời gian không dùng. Trong khối **Bảo mật AI Vault**, chỉnh mục **Tự khóa vault**:
+
+```text
+Số phút không dùng: 30
+Bật / lưu auto-lock
+```
+
+Mỗi lần gọi AI, diagnostics, thêm/sửa key, export/import backup, bộ đếm sẽ được gia hạn. Hết thời gian không hoạt động, backend tự gọi khóa vault để không giữ mật khẩu trong RAM quá lâu.
 
 Endpoint kỹ thuật:
 
 ```text
-GET  /api/ai/vault/status
-POST /api/ai/vault/passphrase
-POST /api/ai/vault/unlock
-POST /api/ai/vault/lock
+GET   /api/ai/vault/status
+POST  /api/ai/vault/passphrase
+POST  /api/ai/vault/unlock
+POST  /api/ai/vault/lock
+GET   /api/ai/vault/auto-lock
+PATCH /api/ai/vault/auto-lock
 ```
 
 Lưu ý: nếu quên mật khẩu chủ thì không thể mở lại key trong vault. Khi đó dùng file backup mã hóa đã export trước đó, hoặc nhập key lại từ đầu.
@@ -192,6 +205,7 @@ Các file nhạy cảm local:
 ```text
 ai_keys.vault.json
 .ledgerflow_secret
+.ai_vault_session.json
 ai_usage.log.json
 ```
 
