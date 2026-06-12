@@ -25,6 +25,7 @@ import {
   XCircle,
   Zap,
 } from 'lucide-react';
+import GitHubConnectorPanel from './GitHubConnectorPanel';
 import {
   fetchIntegrations,
   testIntegrationConnector,
@@ -82,7 +83,7 @@ const fallbackIconByCategory: Record<HubCategory, ConnectorIcon> = {
 const roadmap = [
   'V1: màn hình trung tâm kết nối, link nhanh, trạng thái, checklist, handoff prompt.',
   'V2: registry API lưu trạng thái thật, test connector, event log local.',
-  'V3: GitHub connector đọc Actions/Issues/PR và phân tích lỗi CI bằng AI Gateway.',
+  'V3: GitHub connector đọc Actions/Issues/PR và tạo issue phát triển.',
   'V4: Google Workspace connector cho Sheets/Drive/Gmail/Calendar.',
   'V5: Automation Hub với webhook/n8n/Make/Zapier, có duyệt trước khi chạy.',
 ];
@@ -146,6 +147,8 @@ export default function IntegrationHub() {
       { connected: 0, local: 0, manual: 0, planned: 0, error: 0 } as Record<IntegrationStatus, number>,
     );
   }, [connectors]);
+
+  const githubConnector = connectors.find((item) => item.id === 'github');
 
   async function handleTest(id: string) {
     setBusyId(id);
@@ -215,13 +218,15 @@ export default function IntegrationHub() {
             </div>
             <ul className="mt-4 space-y-3 text-xs font-semibold leading-6 text-slate-300">
               <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Trạng thái connector được lưu local qua backend, không còn là card tĩnh.</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Mỗi connector có test kết nối, bật/tắt và event log.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> GitHub connector đã đọc được repo, Actions, Issues, PR và có thể tạo issue nếu có token.</li>
               <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Hành động sâu như push code/gửi mail/đồng bộ dữ liệu sẽ thêm lớp duyệt ở các connector sau.</li>
             </ul>
             {error && <div className="mt-4 rounded-2xl border border-rose-500/40 bg-rose-950/30 p-3 text-xs font-bold text-rose-100">{error}</div>}
           </div>
         </div>
       </section>
+
+      {githubConnector?.enabled && <GitHubConnectorPanel repoUrl={githubConnector.url} onChanged={() => void loadHub()} />}
 
       <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
         <aside className="rounded-3xl border border-slate-800 bg-slate-950/80 p-4">
