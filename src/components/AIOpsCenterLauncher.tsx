@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import AIOpsWorkboard from './AIOpsWorkboard';
 import AgentSessionQueue from './AgentSessionQueue';
 import AgentSkillRegistry from './AgentSkillRegistry';
+import BrowserSimulationPlanner from './BrowserSimulationPlanner';
 import ProjectMemoryDecisionLog from './ProjectMemoryDecisionLog';
 import SessionWorkboardBridge from './SessionWorkboardBridge';
 import SessionResultBridge from './SessionResultBridge';
@@ -27,7 +28,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'sessions' | 'skills' | 'memory' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
+  const [view, setView] = useState<'sessions' | 'skills' | 'memory' | 'browser' | 'approval' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'connectors' | 'audit' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -89,6 +90,12 @@ export default function AIOpsCenterLauncher() {
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'memory' ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}
                 >
                   Memory
+                </button>
+                <button
+                  onClick={() => setView('browser')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'browser' ? 'border-indigo-300 bg-indigo-400/10 text-indigo-100' : 'border-slate-700 text-slate-300 hover:border-indigo-300'}`}
+                >
+                  Browser Plan
                 </button>
                 <button
                   onClick={() => setView('approval')}
@@ -179,6 +186,7 @@ export default function AIOpsCenterLauncher() {
             {view === 'sessions' && <AgentSessionQueue />}
             {view === 'skills' && <AgentSkillRegistry />}
             {view === 'memory' && <ProjectMemoryDecisionLog />}
+            {view === 'browser' && <BrowserSimulationPlanner />}
             {view === 'approval' && <ApprovalGatePanel />}
             {view === 'sandbox' && <SandboxPatchWorkspace />}
             {view === 'diff' && <PatchDiffReviewCenter />}
