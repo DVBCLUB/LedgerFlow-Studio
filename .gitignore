@@ -10,3 +10,5 @@ ai_keys.vault.json
 ai_usage.log.json
 .ai_vault_session.json
 .ledgerflow_secret
+integration_registry.json
+integration_events.log.json
