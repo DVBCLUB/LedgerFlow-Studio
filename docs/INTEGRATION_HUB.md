@@ -96,6 +96,36 @@ GH_TOKEN=...
 
 Không lưu GitHub token trong frontend. Token chỉ đọc từ môi trường backend local. Nếu không có token, đọc repo public vẫn hoạt động, nhưng tạo issue sẽ báo cần token.
 
+### Dev Handoff Center v1 đã có
+
+Mục tiêu: kết nối LedgerFlow với VS Code / Cursor / Copilot theo kiểu **handoff nhẹ**, không clone IDE.
+
+File chính:
+
+```text
+src/components/DevHandoffCenter.tsx
+src/components/DevHandoffLauncher.tsx
+```
+
+Mở nhanh:
+
+```text
+Nút nổi: Dev Handoff
+Hash: #/dev_handoff hoặc #/dev-handoff hoặc #/handoff
+```
+
+Khả năng:
+
+- Nhập yêu cầu phát triển trong LedgerFlow.
+- Sinh prompt chuẩn cho VS Code / Cursor / Copilot.
+- Sinh branch name đề xuất dạng `feature/...`.
+- Copy prompt vào clipboard.
+- Export task thành file Markdown.
+- Mở GitHub repo, GitHub Actions, GitHub issue draft.
+- Ghi event log qua connector `vscode-cursor`.
+
+Nguyên tắc: LedgerFlow là **bộ não điều phối**, còn VS Code/Cursor là **xưởng code thật**.
+
 ---
 
 ## 1. Nguyên tắc kiến trúc
@@ -217,56 +247,3 @@ LedgerFlow làm:
 - Tạo release checklist.
 
 Không cần clone VS Code trong app ở v1.
-
-### 2.3. Google Workspace Hub
-
-Kết nối:
-
-- Google Sheets
-- Google Drive
-- Gmail
-- Google Calendar
-- Google Contacts
-
-Ứng dụng:
-
-- Đồng bộ file chi phí công trường.
-- Kéo chứng từ từ Drive.
-- Tạo báo cáo sếp từ Google Sheets.
-- Gửi email draft, không gửi tự động nếu chưa duyệt.
-- Lịch nhắc hạn thanh toán, hạn hoàn ứng, hạn hợp đồng.
-
-### 2.4. Accounting / ERP Legacy Hub
-
-Kết nối hoặc bán tự động với:
-
-- MISA
-- SmartPro
-- Fast Accounting
-- Excel import/export
-- XML hóa đơn điện tử
-- CSV ngân hàng
-- PDF chứng từ
-
-Thực tế với phần mềm cũ như SmartPro:
-
-- Nếu có database/API: làm connector trực tiếp.
-- Nếu không có API: làm bridge bằng Excel/CSV/import template.
-- Nếu bắt ghi tay: dùng OCR/nhập nhanh/soát lỗi để hỗ trợ, không thay thế quy trình bắt buộc.
-
-### 2.5. Document / Evidence Hub
-
-Kết nối:
-
-- Folder local
-- Google Drive
-- OneDrive nếu cần
-- PDF invoice
-- XML invoice
-- Ảnh phiếu nhập kho
-- Hợp đồng / đề nghị thanh toán / bảng kê
-
-LedgerFlow làm:
-
-- Quản lý hồ sơ chứng từ.
-- Gắn chứng từ vào khoản chi.
