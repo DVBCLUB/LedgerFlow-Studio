@@ -38,6 +38,21 @@ type ReviewDeskResultEvent = {
   };
 };
 
+type CiFixPackage = {
+  id: string;
+  sourceCardId?: string;
+  repo: string;
+  branchName: string;
+  pullRequestNumber: number;
+  pullRequestUrl: string;
+  workflowRunUrl: string;
+  workflowName: string;
+  status: string;
+  conclusion: string | null;
+  createdAt: string;
+  prompt: string;
+};
+
 const initialCards: WorkCard[] = [
   {
     id: 'wb-001',
@@ -136,7 +151,7 @@ export default function AIOpsWorkboard() {
   const selected = useMemo(() => cards.find((card) => card.id === selectedId) ?? cards[0], [cards, selectedId]);
 
   const pushAudit = (action: string, cardId: string, detail: string) => {
-    setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 80));
+    setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
   };
 
   useEffect(() => {
@@ -152,10 +167,50 @@ export default function AIOpsWorkboard() {
         action: 'DRAFT_PR_CREATED',
         cardId,
         detail: `Draft PR #${pr.pullRequestNumber || '?'} created on ${pr.branchName || 'ai/*'}: ${pr.pullRequestUrl || 'no url'}`
-      }, ...current].slice(0, 80));
+      }, ...current].slice(0, 120));
     };
     window.addEventListener('ledgerflow-review-desk-result', handleReviewResult);
     return () => window.removeEventListener('ledgerflow-review-desk-result', handleReviewResult);
+  }, []);
+
+  useEffect(() => {
+    const handleCiFixPackage = (event: Event) => {
+      const pack = (event as CustomEvent<CiFixPackage>).detail;
+      if (!pack?.id) return;
+      const cardId = `wb-ci-${Date.now()}`;
+      const card: WorkCard = {
+        id: cardId,
+        title: `Fix CI failure for PR #${pack.pullRequestNumber}`,
+        kind: 'Code',
+        owner: 'AI Code / Dev Agent',
+        status: 'Waiting Approval',
+        risk: 'HIGH',
+        request: pack.prompt,
+        plan: ['Mở CI Doctor', 'Đọc workflow run', 'Xác định lỗi build/test', 'Tạo patch nhỏ', 'Đưa qua Review Desk nếu cần push tiếp'],
+        tools: ['CI Doctor', 'GitHub Actions', 'Review Desk', 'Knowledge Library'],
+        approval: 'Founder duyệt trước khi tạo patch sửa lỗi CI.'
+      };
+      setCards((current) => [card, ...current]);
+      setSelectedId(cardId);
+      setAudit((current) => [{
+        id: `audit-${Date.now()}`,
+        at: pack.createdAt || new Date().toLocaleString('vi-VN'),
+        action: 'CI_FIX_CARD_CREATED',
+        cardId,
+        detail: `Created from failed workflow ${pack.workflowName} (${pack.conclusion || pack.status}) on ${pack.branchName}.`
+      }, ...current].slice(0, 120));
+      if (pack.sourceCardId) {
+        setAudit((current) => [{
+          id: `audit-${Date.now() + 1}`,
+          at: pack.createdAt || new Date().toLocaleString('vi-VN'),
+          action: 'CI_FAILURE_DETECTED',
+          cardId: pack.sourceCardId || '',
+          detail: `PR #${pack.pullRequestNumber} workflow failed. Created follow-up card ${cardId}.`
+        }, ...current].slice(0, 120));
+      }
+    };
+    window.addEventListener('ledgerflow-ci-fix-package', handleCiFixPackage);
+    return () => window.removeEventListener('ledgerflow-ci-fix-package', handleCiFixPackage);
   }, []);
 
   const addCard = () => {
@@ -232,6 +287,11 @@ export default function AIOpsWorkboard() {
     window.location.hash = '#/review_desk';
   };
 
+  const openCiDoctor = () => {
+    if (selected) pushAudit('OPEN_CI_DOCTOR', selected.id, 'Mở CI Doctor để phân tích lỗi workflow.');
+    window.location.hash = '#/ci_doctor';
+  };
+
   return (
     <section className="rounded-3xl border border-violet-400/35 bg-violet-400/10 p-4 text-slate-100">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -299,6 +359,7 @@ export default function AIOpsWorkboard() {
           <div className="mt-4 flex flex-wrap gap-2">
             {statusOrder.map((status) => <button key={status} onClick={() => moveSelected(status)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${selected.status === status ? 'border-emerald-300 bg-emerald-300 text-slate-950' : 'border-slate-700 text-slate-300 hover:border-emerald-400'}`}>{status}</button>)}
             {(selected.kind === 'Code' || selected.kind === 'Integration') && <button onClick={openReviewDesk} className="rounded-full border border-emerald-400/50 px-3 py-2 text-[11px] font-black text-emerald-200 hover:bg-emerald-400/10">Review Desk</button>}
+            {selected.title.startsWith('Fix CI failure') && <button onClick={openCiDoctor} className="rounded-full border border-orange-400/50 px-3 py-2 text-[11px] font-black text-orange-200 hover:bg-orange-400/10">CI Doctor</button>}
           </div>
 
           <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
