@@ -35,6 +35,19 @@ export interface AIKeyPayload {
   enabled?: boolean;
 }
 
+export interface AIVaultSecurityStatus {
+  exists: boolean;
+  mode: "local" | "passphrase";
+  hasPassphrase: boolean;
+  isLocked: boolean;
+  canDecrypt: boolean;
+  totalKeys: number;
+  enabledKeys: number;
+  secretFileExists: boolean;
+  updatedAt?: string;
+  message: string;
+}
+
 export interface AIUsageLogEntry {
   id: string;
   timestamp: string;
@@ -102,6 +115,34 @@ async function readJson<T>(response: Response): Promise<T> {
 export async function fetchAIProviders(): Promise<AIProviderDefinition[]> {
   const data = await readJson<{ providers: AIProviderDefinition[] }>(await fetch("/api/ai/providers"));
   return data.providers;
+}
+
+export async function fetchAIVaultStatus(): Promise<AIVaultSecurityStatus> {
+  const data = await readJson<{ vault: AIVaultSecurityStatus }>(await fetch("/api/ai/vault/status"));
+  return data.vault;
+}
+
+export async function setAIVaultPassphrase(passphrase: string): Promise<AIVaultSecurityStatus> {
+  const data = await readJson<{ vault: AIVaultSecurityStatus }>(await fetch("/api/ai/vault/passphrase", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ passphrase }),
+  }));
+  return data.vault;
+}
+
+export async function unlockAIVault(passphrase: string): Promise<AIVaultSecurityStatus> {
+  const data = await readJson<{ vault: AIVaultSecurityStatus }>(await fetch("/api/ai/vault/unlock", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ passphrase }),
+  }));
+  return data.vault;
+}
+
+export async function lockAIVault(): Promise<AIVaultSecurityStatus> {
+  const data = await readJson<{ vault: AIVaultSecurityStatus }>(await fetch("/api/ai/vault/lock", { method: "POST" }));
+  return data.vault;
 }
 
 export async function fetchAIKeys(): Promise<AIKeySummary[]> {
