@@ -72,9 +72,41 @@ export interface AIKeyBackupFile {
   note: string;
 }
 
+export interface AIVaultSecurityStatus {
+  exists: boolean;
+  mode: "local" | "passphrase";
+  hasPassphrase: boolean;
+  isLocked: boolean;
+  canDecrypt: boolean;
+  totalKeys: number;
+  enabledKeys: number;
+  secretFileExists: boolean;
+  updatedAt?: string;
+  message: string;
+}
+
+interface VaultSecurityLocal {
+  mode: "local";
+  updatedAt?: string;
+}
+
+interface VaultSecurityPassphrase {
+  mode: "passphrase";
+  kdf: "scrypt";
+  cipher: "aes-256-gcm";
+  salt: string;
+  verifierIv: string;
+  verifierTag: string;
+  verifierPayload: string;
+  updatedAt: string;
+}
+
+type VaultSecurity = VaultSecurityLocal | VaultSecurityPassphrase;
+
 interface VaultFile {
   version: 1;
   entries: AIKeyRecord[];
+  security?: VaultSecurity;
 }
 
 interface BackupPayload {
@@ -127,9 +159,69 @@ const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
 
 const VAULT_FILE = path.join(process.cwd(), "ai_keys.vault.json");
 const SECRET_FILE = path.join(process.cwd(), ".ledgerflow_secret");
+const VAULT_VERIFIER_TEXT = "ledgerflow-ai-vault-passphrase-v1";
+
+let unlockedVaultPassphrase: string | null = null;
 
 export function getSupportedAIProviders(): AIProviderDefinition[] {
   return SUPPORTED_PROVIDERS;
+}
+
+export async function getAIVaultSecurityStatus(): Promise<AIVaultSecurityStatus> {
+  const vault = await readVault();
+  const security = normalizeSecurity(vault.security);
+  const hasPassphrase = security.mode === "passphrase";
+  const isLocked = hasPassphrase && !unlockedVaultPassphrase;
+  return {
+    exists: fs.existsSync(VAULT_FILE),
+    mode: security.mode,
+    hasPassphrase,
+    isLocked,
+    canDecrypt: !isLocked,
+    totalKeys: vault.entries.length,
+    enabledKeys: vault.entries.filter((entry) => entry.enabled).length,
+    secretFileExists: fs.existsSync(SECRET_FILE),
+    updatedAt: security.updatedAt,
+    message: hasPassphrase
+      ? isLocked
+        ? "AI Vault đang khóa. Hãy nhập mật khẩu chủ để mở khóa trước khi gọi AI."
+        : "AI Vault đã mở khóa bằng mật khẩu chủ."
+      : "AI Vault đang dùng mã hóa local tự động. Có thể bật mật khẩu chủ để bảo vệ tốt hơn.",
+  };
+}
+
+export async function setupAIVaultPassphrase(passphrase: string): Promise<AIVaultSecurityStatus> {
+  assertStrongPassphrase(passphrase, "Mật khẩu chủ AI Vault phải có ít nhất 8 ký tự.");
+  const vault = await readVault();
+  const currentEntries = decryptAllEntries(vault);
+  const { security, key } = createPassphraseSecurity(passphrase);
+  const nextVault: VaultFile = {
+    version: 1,
+    security,
+    entries: currentEntries.map((entry) => ({
+      ...entry,
+      encryptedKey: encryptWithKey(entry.apiKey, key),
+    })),
+  };
+  await writeVault(nextVault);
+  unlockedVaultPassphrase = passphrase;
+  return getAIVaultSecurityStatus();
+}
+
+export async function unlockAIVault(passphrase: string): Promise<AIVaultSecurityStatus> {
+  const vault = await readVault();
+  const security = normalizeSecurity(vault.security);
+  if (security.mode === "local") {
+    return getAIVaultSecurityStatus();
+  }
+  verifyPassphraseSecurity(security, passphrase);
+  unlockedVaultPassphrase = passphrase;
+  return getAIVaultSecurityStatus();
+}
+
+export async function lockAIVault(): Promise<AIVaultSecurityStatus> {
+  unlockedVaultPassphrase = null;
+  return getAIVaultSecurityStatus();
 }
 
 export async function listAIKeys(): Promise<AIKeySummary[]> {
@@ -137,7 +229,7 @@ export async function listAIKeys(): Promise<AIKeySummary[]> {
   return vault.entries
     .slice()
     .sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt))
-    .map(toSummary);
+    .map((entry) => toSummary(entry, vault));
 }
 
 export async function createAIKey(input: AIKeyInput): Promise<AIKeySummary> {
@@ -149,10 +241,10 @@ export async function createAIKey(input: AIKeyInput): Promise<AIKeySummary> {
 
   const now = new Date().toISOString();
   const vault = await readVault();
-  const record = buildRecord(input, vault.entries.length + 1, now);
+  const record = buildRecord(input, vault.entries.length + 1, now, vault);
   vault.entries.push(record);
   await writeVault(vault);
-  return toSummary(record);
+  return toSummary(record, vault);
 }
 
 export async function updateAIKey(id: string, patch: Partial<AIKeyInput> & { lastStatus?: AIKeyRecord["lastStatus"]; lastError?: string }): Promise<AIKeySummary> {
@@ -173,7 +265,7 @@ export async function updateAIKey(id: string, patch: Partial<AIKeyInput> & { las
   if (patch.apiKey !== undefined) {
     const apiKey = patch.apiKey.trim();
     if (provider.requiresApiKey && !apiKey) throw new Error(`API key is required for ${provider.label}.`);
-    next.encryptedKey = encrypt(apiKey);
+    next.encryptedKey = encryptForVault(apiKey, vault);
     next.lastStatus = "untested";
     next.lastError = undefined;
   }
@@ -182,7 +274,7 @@ export async function updateAIKey(id: string, patch: Partial<AIKeyInput> & { las
 
   vault.entries[idx] = next;
   await writeVault(vault);
-  return toSummary(next);
+  return toSummary(next, vault);
 }
 
 export async function deleteAIKey(id: string): Promise<boolean> {
@@ -198,7 +290,7 @@ export async function getEnabledAIKeyEntries(): Promise<DecryptedAIKeyEntry[]> {
   return vault.entries
     .filter(e => e.enabled)
     .sort((a, b) => a.priority - b.priority || a.createdAt.localeCompare(b.createdAt))
-    .map(e => ({ ...e, apiKey: decrypt(e.encryptedKey) }));
+    .map(e => ({ ...e, apiKey: decryptForVault(e.encryptedKey, vault) }));
 }
 
 export async function setAIKeyStatus(id: string, status: AIKeyRecord["lastStatus"], error?: string): Promise<void> {
@@ -210,7 +302,7 @@ export async function setAIKeyStatus(id: string, status: AIKeyRecord["lastStatus
 }
 
 export async function exportAIKeyBackup(passphrase: string): Promise<AIKeyBackupFile> {
-  assertStrongPassphrase(passphrase);
+  assertStrongPassphrase(passphrase, "Mật khẩu backup phải có ít nhất 8 ký tự.");
   const vault = await readVault();
 
   const payload: BackupPayload = {
@@ -223,7 +315,7 @@ export async function exportAIKeyBackup(passphrase: string): Promise<AIKeyBackup
         label: entry.label,
         model: entry.model,
         baseUrl: entry.baseUrl,
-        apiKey: decrypt(entry.encryptedKey),
+        apiKey: decryptForVault(entry.encryptedKey, vault),
         enabled: entry.enabled,
         priority: entry.priority,
       })),
@@ -258,7 +350,7 @@ export async function importAIKeyBackup(
   passphrase: string,
   mode: "merge" | "replace" = "merge"
 ): Promise<{ imported: number; total: number; keys: AIKeySummary[] }> {
-  assertStrongPassphrase(passphrase);
+  assertStrongPassphrase(passphrase, "Mật khẩu backup phải có ít nhất 8 ký tự.");
   const payload = decryptBackupPayload(backup, passphrase);
   const vault = await readVault();
   const now = new Date().toISOString();
@@ -273,7 +365,7 @@ export async function importAIKeyBackup(
 
     const duplicate = nextEntries.find((entry) => {
       try {
-        return entry.provider === item.provider && decrypt(entry.encryptedKey) === apiKey && (entry.model || provider.defaultModel) === (item.model || provider.defaultModel);
+        return entry.provider === item.provider && decryptForVault(entry.encryptedKey, vault) === apiKey && (entry.model || provider.defaultModel) === (item.model || provider.defaultModel);
       } catch {
         return false;
       }
@@ -300,11 +392,11 @@ export async function importAIKeyBackup(
       baseUrl: item.baseUrl,
       priority: Number.isFinite(item.priority) ? Number(item.priority) : nextEntries.length + 1,
       enabled: item.enabled,
-    }, nextEntries.length + 1, now));
+    }, nextEntries.length + 1, now, vault));
     imported += 1;
   }
 
-  const newVault: VaultFile = { version: 1, entries: nextEntries };
+  const newVault: VaultFile = { ...vault, version: 1, entries: nextEntries };
   await writeVault(newVault);
   const keys = await listAIKeys();
   return { imported, total: payload.entries.length, keys };
@@ -337,7 +429,7 @@ function decryptBackupPayload(backup: AIKeyBackupFile, passphrase: string): Back
   }
 }
 
-function buildRecord(input: AIKeyInput, fallbackPriority: number, now: string): AIKeyRecord {
+function buildRecord(input: AIKeyInput, fallbackPriority: number, now: string, vault: VaultFile): AIKeyRecord {
   const provider = getProvider(input.provider);
   const apiKey = (input.apiKey ?? "").trim();
   if (provider.requiresApiKey && !apiKey) {
@@ -350,7 +442,7 @@ function buildRecord(input: AIKeyInput, fallbackPriority: number, now: string): 
     label: (input.label?.trim() || `${provider.label} key`).slice(0, 80),
     model: (input.model?.trim() || provider.defaultModel).slice(0, 120),
     baseUrl: input.baseUrl?.trim() || undefined,
-    encryptedKey: encrypt(apiKey),
+    encryptedKey: encryptForVault(apiKey, vault),
     enabled: input.enabled ?? true,
     priority: Number.isFinite(input.priority) ? Number(input.priority) : fallbackPriority,
     createdAt: now,
@@ -359,9 +451,9 @@ function buildRecord(input: AIKeyInput, fallbackPriority: number, now: string): 
   };
 }
 
-function assertStrongPassphrase(passphrase: string): void {
+function assertStrongPassphrase(passphrase: string, message: string): void {
   if (!passphrase || passphrase.length < 8) {
-    throw new Error("Mật khẩu backup phải có ít nhất 8 ký tự.");
+    throw new Error(message);
   }
 }
 
@@ -369,13 +461,15 @@ function deriveBackupKey(passphrase: string, salt: Buffer): Buffer {
   return crypto.scryptSync(passphrase, salt, 32, { N: 16384, r: 8, p: 1 });
 }
 
-function toSummary(record: AIKeyRecord): AIKeySummary {
+function toSummary(record: AIKeyRecord, vault: VaultFile): AIKeySummary {
   const provider = getProvider(record.provider);
   let masked = "local";
   try {
-    masked = provider.requiresApiKey ? maskKey(decrypt(record.encryptedKey)) : "Không cần key";
-  } catch {
-    masked = "Không giải mã được";
+    masked = provider.requiresApiKey ? maskKey(decryptForVault(record.encryptedKey, vault)) : "Không cần key";
+  } catch (err: any) {
+    masked = normalizeSecurity(vault.security).mode === "passphrase" && !unlockedVaultPassphrase
+      ? "Vault đang khóa"
+      : "Không giải mã được";
   }
   return {
     id: record.id,
@@ -408,11 +502,11 @@ function maskKey(key: string): string {
 
 async function readVault(): Promise<VaultFile> {
   try {
-    if (!fs.existsSync(VAULT_FILE)) return { version: 1, entries: [] };
+    if (!fs.existsSync(VAULT_FILE)) return { version: 1, entries: [], security: { mode: "local" } };
     const raw = await fs.promises.readFile(VAULT_FILE, "utf-8");
     const parsed = JSON.parse(raw) as VaultFile;
-    if (parsed.version !== 1 || !Array.isArray(parsed.entries)) return { version: 1, entries: [] };
-    return parsed;
+    if (parsed.version !== 1 || !Array.isArray(parsed.entries)) return { version: 1, entries: [], security: { mode: "local" } };
+    return { ...parsed, security: normalizeSecurity(parsed.security) };
   } catch (err: any) {
     throw new Error(`Không đọc được AI key vault: ${err.message || err}`);
   }
@@ -422,8 +516,78 @@ async function writeVault(vault: VaultFile): Promise<void> {
   await fs.promises.writeFile(VAULT_FILE, JSON.stringify(vault, null, 2), { encoding: "utf-8", mode: 0o600 });
 }
 
-function encrypt(plainText: string): string {
-  const key = getVaultKey();
+function normalizeSecurity(security?: VaultSecurity): VaultSecurity {
+  if (security?.mode === "passphrase") return security;
+  return { mode: "local", updatedAt: security?.updatedAt };
+}
+
+function decryptAllEntries(vault: VaultFile): DecryptedAIKeyEntry[] {
+  return vault.entries.map((entry) => ({
+    ...entry,
+    apiKey: decryptForVault(entry.encryptedKey, vault),
+  }));
+}
+
+function encryptForVault(plainText: string, vault: VaultFile): string {
+  return encryptWithKey(plainText, getVaultKeyForReadWrite(vault));
+}
+
+function decryptForVault(payload: string, vault: VaultFile): string {
+  return decryptWithKey(payload, getVaultKeyForReadWrite(vault));
+}
+
+function getVaultKeyForReadWrite(vault: VaultFile): Buffer {
+  const security = normalizeSecurity(vault.security);
+  if (security.mode === "passphrase") {
+    if (!unlockedVaultPassphrase) {
+      throw new Error("AI Vault đang khóa. Mở khóa bằng mật khẩu chủ trước khi dùng key.");
+    }
+    return getPassphraseKey(security, unlockedVaultPassphrase);
+  }
+  return getLocalVaultKey();
+}
+
+function createPassphraseSecurity(passphrase: string): { security: VaultSecurityPassphrase; key: Buffer } {
+  const salt = crypto.randomBytes(16);
+  const key = deriveBackupKey(passphrase, salt);
+  const verifier = encryptWithKey(VAULT_VERIFIER_TEXT, key);
+  const raw = Buffer.from(verifier, "base64");
+  return {
+    key,
+    security: {
+      mode: "passphrase",
+      kdf: "scrypt",
+      cipher: "aes-256-gcm",
+      salt: salt.toString("base64"),
+      verifierIv: raw.subarray(0, 12).toString("base64"),
+      verifierTag: raw.subarray(12, 28).toString("base64"),
+      verifierPayload: raw.subarray(28).toString("base64"),
+      updatedAt: new Date().toISOString(),
+    },
+  };
+}
+
+function verifyPassphraseSecurity(security: VaultSecurityPassphrase, passphrase: string): void {
+  const key = getPassphraseKey(security, passphrase);
+  const payload = Buffer.concat([
+    Buffer.from(security.verifierIv, "base64"),
+    Buffer.from(security.verifierTag, "base64"),
+    Buffer.from(security.verifierPayload, "base64"),
+  ]).toString("base64");
+  const decoded = decryptWithKey(payload, key);
+  if (decoded !== VAULT_VERIFIER_TEXT) {
+    throw new Error("Mật khẩu AI Vault không đúng.");
+  }
+}
+
+function getPassphraseKey(security: VaultSecurityPassphrase, passphrase: string): Buffer {
+  if (security.kdf !== "scrypt" || security.cipher !== "aes-256-gcm") {
+    throw new Error("AI Vault dùng thuật toán bảo mật không được hỗ trợ.");
+  }
+  return deriveBackupKey(passphrase, Buffer.from(security.salt, "base64"));
+}
+
+function encryptWithKey(plainText: string, key: Buffer): string {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(plainText, "utf8"), cipher.final()]);
@@ -431,18 +595,18 @@ function encrypt(plainText: string): string {
   return Buffer.concat([iv, tag, encrypted]).toString("base64");
 }
 
-function decrypt(payload: string): string {
+function decryptWithKey(payload: string, key: Buffer): string {
   if (!payload) return "";
   const raw = Buffer.from(payload, "base64");
   const iv = raw.subarray(0, 12);
   const tag = raw.subarray(12, 28);
   const encrypted = raw.subarray(28);
-  const decipher = crypto.createDecipheriv("aes-256-gcm", getVaultKey(), iv);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
   decipher.setAuthTag(tag);
   return Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8");
 }
 
-function getVaultKey(): Buffer {
+function getLocalVaultKey(): Buffer {
   const explicitSecret = process.env.AI_VAULT_SECRET?.trim();
   const secret = explicitSecret || getOrCreateLocalSecret();
   return crypto.createHash("sha256").update(secret, "utf8").digest();
