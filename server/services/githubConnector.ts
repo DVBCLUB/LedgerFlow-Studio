@@ -106,6 +106,7 @@ const BLOCKED_PATH_PATTERNS = [
   /(^|\/)\.DS_Store$/i,
   /(^|\/)(id_rsa|id_ed25519|.*\.pem|.*\.p12|.*\.key)$/i,
 ];
+const SENSITIVE_ASSIGNMENT_NAMES = ["token", "secret", "password", "passphrase", "credential", "private_key", "client_secret"];
 
 function getGitHubToken(): string | undefined {
   return process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
@@ -213,6 +214,33 @@ function sanitizeBranchName(input?: string): string {
   return safe;
 }
 
+function looksLikeLongCredentialValue(value: string): boolean {
+  const trimmed = value.trim().replace(/^['\"]|['\"];?$/g, "");
+  if (trimmed.length < 24) return false;
+  if (/\s/.test(trimmed)) return false;
+  const unique = new Set(trimmed.split("")).size;
+  const hasMixed = /[a-z]/.test(trimmed) && /[A-Z]/.test(trimmed) && /\d/.test(trimmed);
+  return unique >= 12 && hasMixed;
+}
+
+function assertNoHighRiskContent(file: ApprovedChangeFile): void {
+  const lower = file.content.toLowerCase();
+  if (lower.includes("-----begin ") && lower.includes("private") && lower.includes("-----end ")) {
+    throw new Error(`Nội dung file có vật liệu khóa riêng tư, backend chặn push: ${file.path}`);
+  }
+
+  const lines = file.content.split(/\r?\n/).slice(0, 5000);
+  for (const line of lines) {
+    const match = line.match(/^\s*([A-Za-z0-9_.-]{3,60})\s*[:=]\s*(.+?)\s*$/);
+    if (!match) continue;
+    const name = match[1].toLowerCase();
+    const value = match[2];
+    if (SENSITIVE_ASSIGNMENT_NAMES.some((word) => name.includes(word)) && looksLikeLongCredentialValue(value)) {
+      throw new Error(`Nội dung file có giá trị nhạy cảm dạng cấu hình, backend chặn push: ${file.path}`);
+    }
+  }
+}
+
 function validateChangeRequest(input: ApprovedChangeRequestInput): void {
   if (input.approvalPhrase !== APPROVAL_PHRASE) {
     throw new Error(`Founder approval phrase không đúng. Gõ chính xác: ${APPROVAL_PHRASE}`);
@@ -227,6 +255,7 @@ function validateChangeRequest(input: ApprovedChangeRequestInput): void {
     if (!normalized || normalized.includes("..")) throw new Error(`Đường dẫn file không hợp lệ: ${file.path}`);
     if (BLOCKED_PATH_PATTERNS.some((pattern) => pattern.test(normalized))) throw new Error(`File bị chặn vì rủi ro bảo mật: ${normalized}`);
     if (file.content.length > MAX_FILE_CHARS) throw new Error(`File quá lớn để AI tự push an toàn: ${normalized}`);
+    assertNoHighRiskContent(file);
   }
 }
 
