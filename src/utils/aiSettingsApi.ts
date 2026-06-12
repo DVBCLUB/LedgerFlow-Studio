@@ -38,7 +38,7 @@ export interface AIKeyPayload {
 export interface AIUsageLogEntry {
   id: string;
   timestamp: string;
-  provider?: AIProviderId;
+  provider?: AIProviderId | "litellm-proxy";
   keyId?: string;
   keyLabel?: string;
   model?: string;
@@ -51,14 +51,35 @@ export interface AIUsageLogEntry {
 }
 
 export interface AIDiagnosticResult {
-  keyId: string;
+  provider: AIProviderId | "litellm-proxy";
   label: string;
-  provider: AIProviderId;
-  providerLabel: string;
   model?: string;
-  status: "ok" | "quota" | "error";
+  status: "ok" | "quota" | "error" | "skipped";
   latencyMs?: number;
-  error?: string;
+  message?: string;
+}
+
+export interface AIPreflightCheck {
+  id: string;
+  label: string;
+  severity: "ok" | "warn" | "error";
+  message: string;
+  action?: string;
+}
+
+export interface AIPreflightReport {
+  ok: boolean;
+  checkedAt: string;
+  summary: string;
+  checks: AIPreflightCheck[];
+  stats: {
+    totalKeys: number;
+    enabledKeys: number;
+    okKeys: number;
+    quotaKeys: number;
+    errorKeys: number;
+    recentErrors: number;
+  };
 }
 
 export interface AIChatResponse {
@@ -121,6 +142,11 @@ export async function testAIKey(payload: AIKeyPayload): Promise<{ ok: boolean; s
 export async function runAIDiagnostics(): Promise<AIDiagnosticResult[]> {
   const data = await readJson<{ results: AIDiagnosticResult[] }>(await fetch("/api/ai/diagnostics"));
   return data.results;
+}
+
+export async function runAIPreflight(): Promise<AIPreflightReport> {
+  const data = await readJson<{ report: AIPreflightReport }>(await fetch("/api/ai/preflight"));
+  return data.report;
 }
 
 export async function fetchAIUsageLogs(): Promise<AIUsageLogEntry[]> {
