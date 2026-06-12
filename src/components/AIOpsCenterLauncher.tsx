@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import AIOpsWorkboard from './AIOpsWorkboard';
+import AgentSessionQueue from './AgentSessionQueue';
 import CIRecoveryQueue from './CIRecoveryQueue';
 import BuildMonitorPanel from './BuildMonitorPanel';
 import ToolPolicyRegistry from './ToolPolicyRegistry';
@@ -10,7 +11,7 @@ function isAIOpsRoute() {
 
 export default function AIOpsCenterLauncher() {
   const [open, setOpen] = useState(() => isAIOpsRoute());
-  const [view, setView] = useState<'workboard' | 'recovery' | 'build' | 'policy'>('workboard');
+  const [view, setView] = useState<'sessions' | 'workboard' | 'recovery' | 'build' | 'policy'>('sessions');
 
   useEffect(() => {
     const onHashChange = () => setOpen(isAIOpsRoute());
@@ -36,7 +37,7 @@ export default function AIOpsCenterLauncher() {
         title="Open AI Operations Center"
       >
         <span className="block text-[10px] uppercase tracking-[0.18em] text-violet-300">AI Ops</span>
-        <span className="block">Workboard</span>
+        <span className="block">Sessions</span>
       </button>
 
       {open && (
@@ -45,10 +46,16 @@ export default function AIOpsCenterLauncher() {
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-slate-800 bg-slate-950 p-4">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-violet-300">AI Operations Center</p>
-                <h2 className="mt-1 text-xl font-black text-white">Agent Workboard, Policy, Recovery & Build Monitor</h2>
+                <h2 className="mt-1 text-xl font-black text-white">Agent Sessions, Workboard, Policy, Recovery & Build Monitor</h2>
                 <p className="mt-1 text-xs font-semibold text-slate-400">Điều phối AI agent theo kiểu OpenClaw nhưng sandbox-first, approval-first, audit-first.</p>
               </div>
               <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={() => setView('sessions')}
+                  className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'sessions' ? 'border-blue-300 bg-blue-400/10 text-blue-100' : 'border-slate-700 text-slate-300 hover:border-blue-300'}`}
+                >
+                  Sessions
+                </button>
                 <button
                   onClick={() => setView('workboard')}
                   className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === 'workboard' ? 'border-violet-300 bg-violet-400/10 text-violet-100' : 'border-slate-700 text-slate-300 hover:border-violet-300'}`}
@@ -87,6 +94,7 @@ export default function AIOpsCenterLauncher() {
                 </button>
               </div>
             </div>
+            {view === 'sessions' && <AgentSessionQueue />}
             {view === 'workboard' && <AIOpsWorkboard />}
             {view === 'policy' && <ToolPolicyRegistry />}
             {view === 'recovery' && <CIRecoveryQueue />}
