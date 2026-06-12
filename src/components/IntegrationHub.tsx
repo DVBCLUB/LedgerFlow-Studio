@@ -26,6 +26,7 @@ import {
   Zap,
 } from 'lucide-react';
 import GitHubConnectorPanel from './GitHubConnectorPanel';
+import LocalToolsPanel from './LocalToolsPanel';
 import {
   fetchIntegrations,
   testIntegrationConnector,
@@ -84,8 +85,8 @@ const roadmap = [
   'V1: màn hình trung tâm kết nối, link nhanh, trạng thái, checklist, handoff prompt.',
   'V2: registry API lưu trạng thái thật, test connector, event log local.',
   'V3: GitHub connector đọc Actions/Issues/PR và tạo issue phát triển.',
-  'V4: Google Workspace connector cho Sheets/Drive/Gmail/Calendar.',
-  'V5: Automation Hub với webhook/n8n/Make/Zapier, có duyệt trước khi chạy.',
+  'V4: Local Tools connector mở VS Code/Cursor/GitHub và sinh lệnh an toàn.',
+  'V5: Google Workspace connector cho Sheets/Drive/Gmail/Calendar.',
 ];
 
 function openQuickAction(action: { href?: string; hash?: string }) {
@@ -149,6 +150,7 @@ export default function IntegrationHub() {
   }, [connectors]);
 
   const githubConnector = connectors.find((item) => item.id === 'github');
+  const localToolsConnector = connectors.find((item) => item.id === 'vscode-cursor');
 
   async function handleTest(id: string) {
     setBusyId(id);
@@ -219,7 +221,7 @@ export default function IntegrationHub() {
             <ul className="mt-4 space-y-3 text-xs font-semibold leading-6 text-slate-300">
               <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Trạng thái connector được lưu local qua backend, không còn là card tĩnh.</li>
               <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> GitHub connector đã đọc được repo, Actions, Issues, PR và có thể tạo issue nếu có token.</li>
-              <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Hành động sâu như push code/gửi mail/đồng bộ dữ liệu sẽ thêm lớp duyệt ở các connector sau.</li>
+              <li className="flex gap-2"><CheckCircle2 className="mt-1 h-4 w-4 shrink-0 text-emerald-300" /> Local Tools connector có thể mở VS Code/Cursor/GitHub và sinh lệnh terminal an toàn.</li>
             </ul>
             {error && <div className="mt-4 rounded-2xl border border-rose-500/40 bg-rose-950/30 p-3 text-xs font-bold text-rose-100">{error}</div>}
           </div>
@@ -227,6 +229,7 @@ export default function IntegrationHub() {
       </section>
 
       {githubConnector?.enabled && <GitHubConnectorPanel repoUrl={githubConnector.url} onChanged={() => void loadHub()} />}
+      {localToolsConnector?.enabled && <LocalToolsPanel onChanged={() => void loadHub()} />}
 
       <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
         <aside className="rounded-3xl border border-slate-800 bg-slate-950/80 p-4">
