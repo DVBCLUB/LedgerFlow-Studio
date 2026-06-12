@@ -1,6 +1,6 @@
 # LedgerFlow Studio — AI Agent Guide
 
-This repository is being evolved into a lightweight **company operating system**: accounting workflows, project portfolio, AI Gateway, Integration Hub, DevOps handoff, desktop packaging, simulation labs, and local business automation.
+This repository is being evolved into a lightweight **software company operating system**: product studio, marketing, sales/CRM, finance/accounting, project delivery, AI staff, Integration Hub, DevOps handoff, desktop packaging, simulation labs, and local business automation.
 
 Use this file as the first stop for ChatGPT, Claude, Gemini, Copilot, Cursor, or any future AI coding agent.
 
@@ -10,9 +10,16 @@ Do not rebuild the project from scratch. Make small, reviewable changes on top o
 
 ## Product direction rule
 
-LedgerFlow is **not only construction accounting**.
+LedgerFlow is **not a construction-company ERP** and is **not only construction accounting**.
 
-Construction/project accounting is only one industry template inside the larger company OS.
+The correct context is a software/product company that may build:
+
+- Accounting software for construction, service, trading, and manufacturing businesses.
+- Internal company OS tools.
+- AI/data products.
+- Games and interactive learning products.
+
+Construction accounting is only one industry template inside the accounting product line. It must not dominate global product language.
 
 Before changing product modules, read:
 
@@ -22,7 +29,17 @@ Before changing product modules, read:
 - `docs/PROJECT_STRUCTURE.md`
 - `docs/AI_AGENT_PLAYBOOK.md`
 
-Do not hard-code global app language around `công trình`. Use `dự án` or `hồ sơ` generically. Use `công trình` only inside construction-specific templates.
+Do not hard-code global app language around `công trình`, `kho dầu`, or construction-only workflows. Use `dự án`, `sản phẩm`, `khách hàng`, `chi phí`, or `hồ sơ` generically. Use `công trình` only inside construction-specific templates.
+
+Mandatory top-level product concepts:
+
+- Product Studio for software products, accounting templates, AI products, and games.
+- Marketing & Growth for positioning, campaigns, content, surveys, and lead generation.
+- Sales & CRM for leads, customers, demos, proposals, and follow-up.
+- AI Nhân sự as the merged workspace for human roles, AI staff, internal admin, prompts, and task assignment.
+- Analytics, Models & Sandbox for charts, simulations, SQL/Python sandbox, forecasting, and game/ML experiments.
+
+Do not keep `Mua hàng - Kho - Dầu` as a universal top-level module. Inventory/fuel belongs only to optional industry templates such as construction, trading, or manufacturing.
 
 ## Project map
 
@@ -68,8 +85,9 @@ Files/docs:
 
 Rules:
 
-- Home screen should behave like a company command center.
-- Navigation should be organized by departments/workspaces, not course stages.
+- Home screen should behave like a software company command center.
+- Navigation should be organized by company workspaces, not course stages.
+- Product Studio, Marketing, Sales/CRM, AI Nhân sự, and Sandbox must be visible.
 - Simulation, charts, model labs, and sandbox tools are core modules.
 - Technical panels belong in System Settings / Dev Tools, not the first user screen.
 
@@ -200,4 +218,6 @@ When adding or editing features:
 - Do not remove legacy fallbacks unless the replacement is tested.
 - Do not hide errors; surface them through diagnostics/log panels.
 - Do not make construction accounting the global product identity.
+- Do not make warehouse/fuel a global product identity.
+- Do not omit Product Studio, Marketing & Growth, Sales & CRM, AI Nhân sự, or Sandbox from the company OS.
 - Do not bury simulation/model/sandbox/chart features behind unrelated labels.
