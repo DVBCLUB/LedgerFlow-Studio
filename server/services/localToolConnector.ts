@@ -26,6 +26,12 @@ export interface LocalToolSummary {
   checkedAt: string;
 }
 
+export interface OpenLocalToolResult {
+  opened: boolean;
+  success: boolean;
+  message: string;
+}
+
 function normalizeRepo(value = DEFAULT_REPO): string {
   return value.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$/, "").replace(/\/$/, "");
 }
@@ -138,7 +144,7 @@ export function getSafeLocalCommands(): Array<{ label: string; command: string; 
   ];
 }
 
-export async function openLocalTool(tool: Exclude<LocalToolId, "terminal">): Promise<{ opened: boolean; message: string }> {
+export async function openLocalTool(tool: Exclude<LocalToolId, "terminal">): Promise<OpenLocalToolResult> {
   const summary = await getLocalToolSummary();
   const target = summary.tools.find((entry) => entry.id === tool);
   if (!target) throw new Error("Local tool không hợp lệ.");
@@ -146,19 +152,19 @@ export async function openLocalTool(tool: Exclude<LocalToolId, "terminal">): Pro
 
   if (tool === "github") {
     await openUrl(summary.repoUrl);
-    return { opened: true, message: "Đã mở GitHub repo." };
+    return { opened: true, success: true, message: "Đã mở GitHub repo." };
   }
 
   if (tool === "actions") {
     await openUrl(summary.actionsUrl);
-    return { opened: true, message: "Đã mở GitHub Actions." };
+    return { opened: true, success: true, message: "Đã mở GitHub Actions." };
   }
 
   if (tool === "vscode" || tool === "cursor") {
     if (!target.command) throw new Error(target.message);
     await openEditor(target.command);
-    return { opened: true, message: `Đã yêu cầu mở ${target.label} tại ${path.basename(PROJECT_ROOT)}.` };
+    return { opened: true, success: true, message: `Đã yêu cầu mở ${target.label} tại ${path.basename(PROJECT_ROOT)}.` };
   }
 
-  throw new Error("Tool này chỉ hỗ trợ sinh lệnh thủ công, không tự mở.");
+  return { opened: false, success: false, message: "Tool này chưa hỗ trợ mở tự động." };
 }
