@@ -71,7 +71,7 @@ export function appendAgentOpsAudit(action: string, cardId: string, detail: stri
 }
 
 export function useLocalStorageVersion(events: string[] = []) {
-  const [, setVersion] = useState(0);
+  const [version, setVersion] = useState(0);
   const eventKey = events.join('|');
 
   useEffect(() => {
@@ -86,4 +86,6 @@ export function useLocalStorageVersion(events: string[] = []) {
       eventNames.forEach((eventName) => window.removeEventListener(eventName, bump));
     };
   }, [eventKey]);
+
+  return version;
 }
