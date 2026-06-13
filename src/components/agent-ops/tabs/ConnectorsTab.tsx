@@ -1,5 +1,6 @@
 import type { ConnectorDefinition } from '../../../types/agentOps';
 import { readLocalStorageArray } from '../storage';
+import { useConnectorPolicySync } from '../useConnectorPolicySync';
 
 const CONNECTOR_KEYS = ['ledgerflow_connector_sdk_registry_v1', 'ledgerflow-connector-sdk-registry-v1'];
 
@@ -8,6 +9,7 @@ function readConnectors(): ConnectorDefinition[] {
 }
 
 export default function ConnectorsTab() {
+  useConnectorPolicySync();
   const connectors = readConnectors();
   return (
     <section className="rounded-3xl border border-cyan-400/35 bg-cyan-400/10 p-4 text-slate-100">
