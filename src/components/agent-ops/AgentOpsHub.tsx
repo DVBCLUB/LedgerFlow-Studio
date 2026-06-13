@@ -6,6 +6,7 @@ import CompanyMemoryTab from './tabs/CompanyMemoryTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
 import DailyStandupTab from './tabs/DailyStandupTab';
+import ToolCardsTab from './tabs/ToolCardsTab';
 import RunTab from './tabs/RunTab';
 import SkillsTab from './tabs/SkillsTab';
 import PeopleTab from './tabs/PeopleTab';
@@ -13,12 +14,13 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'workboard' | 'factory' | 'prompts' | 'memory' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'workboard' | 'factory' | 'tools' | 'prompts' | 'memory' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
   { id: 'workboard', label: 'Workboard' },
   { id: 'factory', label: 'Product Factory' },
+  { id: 'tools', label: 'Tool Cards' },
   { id: 'prompts', label: 'Prompt Pack' },
   { id: 'memory', label: 'Company Memory' },
   { id: 'costs', label: 'AI Cost' },
@@ -59,6 +61,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         {tab === 'standup' && <DailyStandupTab />}
         {tab === 'workboard' && <WorkboardTab />}
         {tab === 'factory' && <ProductFactoryTab />}
+        {tab === 'tools' && <ToolCardsTab />}
         {tab === 'prompts' && <PromptPackTab />}
         {tab === 'memory' && <CompanyMemoryTab />}
         {tab === 'costs' && <AICostTrackerTab />}
