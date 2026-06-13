@@ -12,6 +12,7 @@ const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 
 type FactoryStatus = 'Idea' | 'Work Order' | 'Code Plan' | 'Waiting Approval' | 'CI / PR' | 'Release Audit';
+type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 type FactoryState = Record<string, FactoryStatus>;
 type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
 
@@ -20,7 +21,7 @@ type ApprovalRequest = {
   title: string;
   source: string;
   sourceId?: string;
-  risk: 'LOW' | 'MEDIUM' | 'HIGH';
+  risk: RiskLevel;
   action: string;
   details: string;
   conditions?: string;
@@ -35,7 +36,7 @@ type WorkCard = {
   kind: 'Product' | 'Code';
   owner: string;
   status: 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-  risk: 'LOW' | 'MEDIUM' | 'HIGH';
+  risk: RiskLevel;
   request: string;
   plan: string[];
   tools: string[];
@@ -67,7 +68,7 @@ function verdict(score: number) {
   return 'NO-GO';
 }
 
-function riskForIdea(idea: { technicalRisk: number }) {
+function riskForIdea(idea: { technicalRisk: number }): RiskLevel {
   if (idea.technicalRisk >= 7) return 'HIGH';
   if (idea.technicalRisk >= 4) return 'MEDIUM';
   return 'LOW';
@@ -82,7 +83,9 @@ export default function ProductFactoryTab() {
 
   const ideas = useMemo(() => PRODUCT_IDEA_PORTFOLIO.map((idea) => {
     const score = scoreIdea(idea);
-    return { ...idea, score, verdict: verdict(score), status: state[idea.idea] ?? 'Idea' as FactoryStatus, risk: riskForIdea(idea) };
+    const status: FactoryStatus = state[idea.idea] ?? 'Idea';
+    const risk: RiskLevel = riskForIdea(idea);
+    return { ...idea, score, verdict: verdict(score), status, risk };
   }), [state]);
 
   const selected = ideas.find((idea) => idea.idea === selectedIdea) ?? ideas[0];
@@ -100,32 +103,34 @@ export default function ProductFactoryTab() {
 
   const createWorkCard = () => {
     if (!selected) return;
+    const selectedRisk: RiskLevel = selected.risk;
     const current = readLocal<WorkCard[]>(CARD_KEY, []);
     const card: WorkCard = {
       id: `pf-${Date.now()}`,
       title: `Product Factory: ${selected.idea}`,
       kind: selected.status === 'Idea' ? 'Product' : 'Code',
       owner: selected.status === 'Code Plan' ? 'AI Dev' : 'AI Chief of Staff',
-      status: selected.risk === 'LOW' ? 'Planning' : 'Waiting Approval',
-      risk: selected.risk,
+      status: selectedRisk === 'LOW' ? 'Planning' : 'Waiting Approval',
+      risk: selectedRisk,
       request: `Biến ý tưởng "${selected.idea}" thành MVP nhỏ. User: ${selected.targetUser}. First MVP: ${selected.firstMvp}.`,
       plan: ['Confirm GO/HOLD/NO-GO', 'Create PRD/work order', 'Generate code plan only', 'Founder approves risky action', 'Run CI/PR/release audit'],
       tools: ['Idea Portfolio', 'AI Work Orders', 'Approval Gate', 'CI Doctor', 'Risk & Release Audit'],
-      approval: selected.risk === 'LOW' ? 'Sandbox-first, audit required.' : 'Founder must approve before GitHub branch/commit/PR.'
+      approval: selectedRisk === 'LOW' ? 'Sandbox-first, audit required.' : 'Founder must approve before GitHub branch/commit/PR.'
     };
     writeLocal(CARD_KEY, [card, ...current]);
-    move(selected.idea, selected.risk === 'LOW' ? 'Work Order' : 'Waiting Approval');
+    move(selected.idea, selectedRisk === 'LOW' ? 'Work Order' : 'Waiting Approval');
   };
 
   const requestApproval = () => {
     if (!selected) return;
+    const selectedRisk: RiskLevel = selected.risk;
     const current = readLocal<ApprovalRequest[]>(APPROVAL_KEY, []);
     const approval: ApprovalRequest = {
       id: `appr-pf-${Date.now()}`,
       title: `Approve Product Factory action: ${selected.idea}`,
       source: 'ProductFactoryTab',
       sourceId: selected.idea,
-      risk: selected.risk === 'LOW' ? 'MEDIUM' : selected.risk,
+      risk: selectedRisk === 'LOW' ? 'MEDIUM' : selectedRisk,
       action: 'Allow AI Dev to prepare branch/commit/PR plan in sandbox-first mode',
       details: `Idea score ${selected.score} (${selected.verdict}). MVP: ${selected.firstMvp}. Monetization: ${selected.monetization}.`,
       conditions: 'No hardcoded API key. No direct external write before founder approval. CI and release audit required.',
