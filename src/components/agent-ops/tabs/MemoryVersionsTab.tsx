@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { appendAgentOpsAudit, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const MEMORY_VERSIONS_KEY = 'ledgerflow_company_memory_versions_v1';
-const KNOWLEDGE_KEY = 'ledgerflow_knowledge_base_v1';
-const SNAPSHOT_KEY = 'ledgerflow_daily_standup_snapshots_v1';
+const KNOWLEDGE_KEY = 'ledgerflow_company_knowledge_v1';
+const SNAPSHOT_KEY = 'ledgerflow_daily_standup_v1';
 
 type MemoryStatus = 'Draft' | 'Needs Review' | 'Approved' | 'Archived';
 
@@ -20,6 +20,9 @@ type MemoryVersion = {
   rollbackNote: string;
 };
 
+type KnowledgeSeed = { title?: string; body?: string; trust?: string };
+type StandupSeed = { report?: string; at?: string };
+
 function nextVersion(items: MemoryVersion[]) {
   return `v${items.length + 1}.${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`;
 }
@@ -32,23 +35,23 @@ function statusTone(status: MemoryStatus) {
 }
 
 function buildSeedContext() {
-  const knowledge = readLocalStorageValue<Array<{ title?: string; body?: string; status?: string }>>(KNOWLEDGE_KEY, []);
-  const snapshots = readLocalStorageValue<Array<{ markdown?: string; createdAt?: string }>>(SNAPSHOT_KEY, []);
+  const knowledge = readLocalStorageValue<KnowledgeSeed[]>(KNOWLEDGE_KEY, []);
+  const snapshots = readLocalStorageValue<StandupSeed[]>(SNAPSHOT_KEY, []);
   const approvedKnowledge = knowledge
-    .filter((item) => item.status === 'Approved')
+    .filter((item) => item.trust === 'Approved')
     .slice(0, 8)
     .map((item) => `- ${item.title || 'Knowledge'}: ${item.body || ''}`)
     .join('\n');
-  const latestStandup = snapshots[0]?.markdown || '';
+  const latestStandup = snapshots[0]?.report || '';
 
   return [
     '# LedgerFlow Company Memory Seed',
     '',
     '## Approved Knowledge',
-    approvedKnowledge || '- Chưa có knowledge note Approved.',
+    approvedKnowledge || '- No approved knowledge note yet.',
     '',
     '## Latest Daily Standup Snapshot',
-    latestStandup || '- Chưa có standup snapshot.'
+    latestStandup || '- No standup snapshot yet.'
   ].join('\n');
 }
 
@@ -57,9 +60,9 @@ export default function MemoryVersionsTab() {
   const [versions, setVersions] = useState(() => readLocalStorageValue<MemoryVersion[]>(MEMORY_VERSIONS_KEY, []));
   const [title, setTitle] = useState('Company Memory Snapshot');
   const [scope, setScope] = useState('Founder OS + AgentOps + Product Factory');
-  const [summary, setSummary] = useState('Tóm tắt trạng thái công ty, sản phẩm, AI staff, quy trình và quyết định quan trọng.');
+  const [summary, setSummary] = useState('Company, product, AI staff, workflow and key decisions snapshot.');
   const [context, setContext] = useState(buildSeedContext());
-  const [rollbackNote, setRollbackNote] = useState('Nếu snapshot sai, quay lại version Approved liền trước và đánh dấu version này là Archived.');
+  const [rollbackNote, setRollbackNote] = useState('If this snapshot is wrong, archive it and use the previous Approved version.');
 
   const persist = (next: MemoryVersion[]) => {
     setVersions(next);
@@ -73,7 +76,7 @@ export default function MemoryVersionsTab() {
       title: title.trim() || 'Company Memory Snapshot',
       status: 'Needs Review',
       createdAt: new Date().toLocaleString('vi-VN'),
-      owner: 'Founder / Quốc Bảo',
+      owner: 'Founder',
       scope,
       summary,
       context,
@@ -114,7 +117,7 @@ export default function MemoryVersionsTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-200">Versioned company memory</p>
           <h3 className="mt-1 text-xl font-black text-white">Memory Versions</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Đóng băng tri thức công ty thành version có review, rollback note và context copy cho AI. Local-only, không gọi API.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Create reviewed memory snapshots with rollback notes and AI context export.</p>
         </div>
         <span className="rounded-full border border-indigo-300/35 px-3 py-1 text-xs font-black text-indigo-100">{versions.length} versions</span>
       </div>
@@ -153,7 +156,7 @@ export default function MemoryVersionsTab() {
               </div>
             </article>
           ))}
-          {versions.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm font-semibold text-slate-400">Chưa có memory version. Bấm Create version để đóng băng snapshot đầu tiên.</p>}
+          {versions.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm font-semibold text-slate-400">No memory version yet. Create the first reviewed snapshot.</p>}
         </div>
       </div>
     </section>
