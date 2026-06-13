@@ -1,5 +1,5 @@
 import type { ApprovalRequest } from '../../../types/agentOps';
-import { readLocalStorageArray } from '../storage';
+import { readLocalStorageArray, useLocalStorageVersion } from '../storage';
 import { useApprovalGateSync } from '../useApprovalGateSync';
 
 const APPROVAL_KEYS = ['ledgerflow_approval_gate_requests_v1', 'ledgerflow-approval-gate-v1'];
@@ -10,6 +10,7 @@ function readRequests(): ApprovalRequest[] {
 
 export default function GateTab() {
   useApprovalGateSync();
+  useLocalStorageVersion(['ledgerflow-approval-session-sync', 'ledgerflow-approval-gate-changed', 'ledgerflow-review-desk-prefill']);
   const requests = readRequests();
   return (
     <section className="rounded-3xl border border-emerald-400/35 bg-emerald-400/10 p-4 text-slate-100">
