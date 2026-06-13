@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+
 export function readLocalStorageArray<T>(keys: string[]): T[] {
   const merged: T[] = [];
   const seen = new Set<string>();
@@ -21,4 +23,17 @@ export function readLocalStorageArray<T>(keys: string[]): T[] {
   }
 
   return merged;
+}
+
+export function useLocalStorageVersion(events: string[] = []) {
+  const [, setVersion] = useState(0);
+  useEffect(() => {
+    const bump = () => setVersion((value) => value + 1);
+    window.addEventListener('storage', bump);
+    events.forEach((eventName) => window.addEventListener(eventName, bump));
+    return () => {
+      window.removeEventListener('storage', bump);
+      events.forEach((eventName) => window.removeEventListener(eventName, bump));
+    };
+  }, [events.join('|')]);
 }
