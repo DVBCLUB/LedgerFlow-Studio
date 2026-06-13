@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
+import type { ApprovalRequest, RiskLevel } from '../../../types/agentOps';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const TOOL_CARD_KEY = 'ledgerflow_tool_cards_v1';
-const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
+const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 
-type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 type ToolCard = {
   id: string;
   name: string;
@@ -18,20 +18,6 @@ type ToolCard = {
   createdAt: string;
 };
 
-type ApprovalRequest = {
-  id: string;
-  title: string;
-  source: string;
-  sourceId?: string;
-  risk: RiskLevel;
-  action: string;
-  details: string;
-  conditions?: string;
-  createdAt: string;
-  expiresAt: string;
-  status: 'Pending';
-};
-
 const seedCards: ToolCard[] = [
   { id: 'tool-github-draft-pr', name: 'GitHub Draft PR Launcher', owner: 'AI Dev', connector: 'GitHub Connector', risk: 'HIGH', intent: 'Create branch, commit file changes and open Draft PR only after founder approval.', sandboxRule: 'Dry-run patch summary first.', approvalRule: 'Founder approval phrase required.', blockedActions: ['Push directly to main', 'Commit secrets', 'Merge automatically'], createdAt: 'seed' },
   { id: 'tool-code-plan', name: 'AI Code Plan', owner: 'AI Dev', connector: 'AI Gateway', risk: 'MEDIUM', intent: 'Turn WorkCard into file-by-file code plan.', sandboxRule: 'Text plan only.', approvalRule: 'Founder approves before code edit.', blockedActions: ['Edit files without approval', 'Hardcode API keys'], createdAt: 'seed' },
@@ -40,6 +26,12 @@ const seedCards: ToolCard[] = [
 
 function approvalRiskFor(card: ToolCard): RiskLevel {
   return card.risk === 'LOW' ? 'MEDIUM' : card.risk;
+}
+
+function approvalExpiryIso(days = 7) {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt.toISOString();
 }
 
 export default function ToolCardsTab() {
@@ -68,7 +60,7 @@ export default function ToolCardsTab() {
       sandboxRule: draft.risk === 'LOW' ? 'Read-only sandbox execution allowed.' : 'Dry-run only until founder approval.',
       approvalRule: draft.risk === 'LOW' ? 'Audit required.' : 'Founder Approval Gate required.',
       blockedActions: draft.blockedActions.split('\n').map((x) => x.trim()).filter(Boolean),
-      createdAt: new Date().toLocaleString('vi-VN')
+      createdAt: new Date().toISOString()
     };
     saveCards([card, ...customCards]);
     appendAgentOpsAudit('TOOL_CARD_CREATED', card.id, `${card.name} (${card.risk}) created.`);
@@ -85,12 +77,13 @@ export default function ToolCardsTab() {
       action: `Allow ${card.owner} to use ${card.connector}`,
       details: card.intent,
       conditions: `${card.approvalRule} Blocked: ${card.blockedActions.join('; ') || 'none listed'}.`,
-      createdAt: new Date().toLocaleString('vi-VN'),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString('vi-VN'),
+      createdAt: new Date().toISOString(),
+      expiresAt: approvalExpiryIso(),
       status: 'Pending'
     };
     appendLocalStorageArrayItem<ApprovalRequest>(APPROVAL_KEY, request, 120);
     appendAgentOpsAudit('TOOL_CARD_APPROVAL_REQUESTED', card.id, `Approval requested for ${card.name}.`);
+    window.dispatchEvent(new CustomEvent('ledgerflow-approval-gate-changed'));
   };
 
   const copyRunbook = async (card: ToolCard) => {
