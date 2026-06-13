@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
+import { appendAgentOpsAudit, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const MANUAL_USAGE_KEY = 'ledgerflow_ai_manual_usage_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 
 type UsageRow = {
   id: string;
@@ -13,32 +13,12 @@ type UsageRow = {
   status: 'ok' | 'quota' | 'error';
 };
 
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
 function tokens(chars: number) {
   return Math.ceil(Math.max(0, chars) / 4);
 }
 
-function pushAudit(detail: string) {
-  const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-  writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action: 'AI_COST_TRACKER', cardId: 'ai-cost', detail }, ...current].slice(0, 120));
-}
-
 export default function AICostTrackerTab() {
-  const [rows, setRows] = useState<UsageRow[]>(() => readLocal(MANUAL_USAGE_KEY, []));
+  const [rows, setRows] = useState<UsageRow[]>(() => readLocalStorageValue(MANUAL_USAGE_KEY, []));
   const [form, setForm] = useState({ provider: 'gemini', model: 'manual', promptChars: 4000, outputChars: 1200, status: 'ok' as UsageRow['status'] });
   const [message, setMessage] = useState('');
 
@@ -54,14 +34,14 @@ export default function AICostTrackerTab() {
     const row: UsageRow = { id: `usage-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), ...form };
     const next = [row, ...rows];
     setRows(next);
-    writeLocal(MANUAL_USAGE_KEY, next);
-    pushAudit(`Added manual usage ${row.provider}/${row.model}.`);
+    writeLocalStorageValue(MANUAL_USAGE_KEY, next);
+    appendAgentOpsAudit('AI_COST_TRACKER', 'ai-cost', `Added manual usage ${row.provider}/${row.model}.`);
   };
 
   const copyJson = async () => {
     await navigator.clipboard.writeText(JSON.stringify({ rows, summary }, null, 2));
     setMessage('Đã copy AI cost JSON.');
-    pushAudit(`Exported ${rows.length} AI usage rows.`);
+    appendAgentOpsAudit('AI_COST_TRACKER', 'ai-cost', `Exported ${rows.length} AI usage rows.`);
   };
 
   return (
