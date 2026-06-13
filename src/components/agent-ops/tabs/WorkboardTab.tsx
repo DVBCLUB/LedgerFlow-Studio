@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SessionStep, WorkCard, WorkKind, WorkStatus } from '../../../types/agentOps';
-import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
+import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue, type AgentOpsAuditEntry } from '../storage';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const SESSION_KEYS = ['ledgerflow_agent_sessions_v1', 'ledgerflow-agent-session-queue-v1'];
@@ -76,7 +76,7 @@ export default function WorkboardTab() {
   const [cards, setCards] = useState<WorkCard[]>(() => readLocalStorageValue(CARD_KEY, []));
   const [sessions] = useState<StoredSession[]>(() => readLocalStorageArray<StoredSession>(SESSION_KEYS));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
-  const audit = readLocalStorageValue(AGENT_OPS_AUDIT_KEY, []);
+  const audit = readLocalStorageValue<AgentOpsAuditEntry[]>(AGENT_OPS_AUDIT_KEY, []);
   const sessionCards = useMemo(() => sessions.map(sessionToCard), [sessions]);
   const allCards = useMemo(() => [...cards, ...sessionCards], [cards, sessionCards]);
 
