@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
+import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const TOOL_CARD_KEY = 'ledgerflow_tool_cards_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
 
 type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -17,8 +17,20 @@ type ToolCard = {
   blockedActions: string[];
   createdAt: string;
 };
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
-type ApprovalRequest = { id: string; title: string; source: string; sourceId?: string; risk: RiskLevel; action: string; details: string; conditions?: string; createdAt: string; expiresAt: string; status: 'Pending' };
+
+type ApprovalRequest = {
+  id: string;
+  title: string;
+  source: string;
+  sourceId?: string;
+  risk: RiskLevel;
+  action: string;
+  details: string;
+  conditions?: string;
+  createdAt: string;
+  expiresAt: string;
+  status: 'Pending';
+};
 
 const seedCards: ToolCard[] = [
   { id: 'tool-github-draft-pr', name: 'GitHub Draft PR Launcher', owner: 'AI Dev', connector: 'GitHub Connector', risk: 'HIGH', intent: 'Create branch, commit file changes and open Draft PR only after founder approval.', sandboxRule: 'Dry-run patch summary first.', approvalRule: 'Founder approval phrase required.', blockedActions: ['Push directly to main', 'Commit secrets', 'Merge automatically'], createdAt: 'seed' },
@@ -26,26 +38,12 @@ const seedCards: ToolCard[] = [
   { id: 'tool-connector-test', name: 'Connector Health Test', owner: 'AI Integration Agent', connector: 'Integration Hub', risk: 'LOW', intent: 'Read-only connector health test.', sandboxRule: 'Read-only test allowed.', approvalRule: 'Audit required.', blockedActions: ['Write external data', 'Delete connector'], createdAt: 'seed' }
 ];
 
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function pushAudit(action: string, cardId: string, detail: string) {
-  const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-  writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
+function approvalRiskFor(card: ToolCard): RiskLevel {
+  return card.risk === 'LOW' ? 'MEDIUM' : card.risk;
 }
 
 export default function ToolCardsTab() {
-  const [customCards, setCustomCards] = useState<ToolCard[]>(() => readLocal(TOOL_CARD_KEY, []));
+  const [customCards, setCustomCards] = useState<ToolCard[]>(() => readLocalStorageValue(TOOL_CARD_KEY, []));
   const [filter, setFilter] = useState<'All' | RiskLevel>('All');
   const [copied, setCopied] = useState<string | null>(null);
   const [draft, setDraft] = useState({ name: '', owner: 'AI Dev', connector: 'AI Gateway', risk: 'MEDIUM' as RiskLevel, intent: '', blockedActions: '' });
@@ -55,7 +53,7 @@ export default function ToolCardsTab() {
 
   const saveCards = (next: ToolCard[]) => {
     setCustomCards(next);
-    writeLocal(TOOL_CARD_KEY, next);
+    writeLocalStorageValue(TOOL_CARD_KEY, next);
   };
 
   const addCard = () => {
@@ -73,18 +71,17 @@ export default function ToolCardsTab() {
       createdAt: new Date().toLocaleString('vi-VN')
     };
     saveCards([card, ...customCards]);
-    pushAudit('TOOL_CARD_CREATED', card.id, `${card.name} (${card.risk}) created.`);
+    appendAgentOpsAudit('TOOL_CARD_CREATED', card.id, `${card.name} (${card.risk}) created.`);
     setDraft({ ...draft, name: '', intent: '', blockedActions: '' });
   };
 
   const requestApproval = (card: ToolCard) => {
-    const current = readLocal<ApprovalRequest[]>(APPROVAL_KEY, []);
     const request: ApprovalRequest = {
       id: `appr-tool-${Date.now()}`,
       title: `Approve tool card: ${card.name}`,
       source: 'ToolCardsTab',
       sourceId: card.id,
-      risk: card.risk === 'LOW' ? 'MEDIUM' : card.risk,
+      risk: approvalRiskFor(card),
       action: `Allow ${card.owner} to use ${card.connector}`,
       details: card.intent,
       conditions: `${card.approvalRule} Blocked: ${card.blockedActions.join('; ') || 'none listed'}.`,
@@ -92,15 +89,15 @@ export default function ToolCardsTab() {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString('vi-VN'),
       status: 'Pending'
     };
-    writeLocal(APPROVAL_KEY, [request, ...current]);
-    pushAudit('TOOL_CARD_APPROVAL_REQUESTED', card.id, `Approval requested for ${card.name}.`);
+    appendLocalStorageArrayItem<ApprovalRequest>(APPROVAL_KEY, request, 120);
+    appendAgentOpsAudit('TOOL_CARD_APPROVAL_REQUESTED', card.id, `Approval requested for ${card.name}.`);
   };
 
   const copyRunbook = async (card: ToolCard) => {
     const text = `# Tool Card\n\nTool: ${card.name}\nOwner: ${card.owner}\nConnector: ${card.connector}\nRisk: ${card.risk}\n\nIntent: ${card.intent}\nSandbox: ${card.sandboxRule}\nApproval: ${card.approvalRule}\nBlocked:\n${card.blockedActions.map((item) => `- ${item}`).join('\n') || '- None'}`;
     await navigator.clipboard.writeText(text);
     setCopied(card.id);
-    pushAudit('TOOL_CARD_RUNBOOK_COPIED', card.id, `${card.name} runbook copied.`);
+    appendAgentOpsAudit('TOOL_CARD_RUNBOOK_COPIED', card.id, `${card.name} runbook copied.`);
     setTimeout(() => setCopied(null), 1200);
   };
 
