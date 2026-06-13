@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { ApprovalRequest } from '../../../types/agentOps';
+import type { ApprovalRequest, WorkCard } from '../../../types/agentOps';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const TASK_QUEUE_KEY = 'ledgerflow_ai_task_queue_v1';
@@ -19,19 +19,6 @@ type AITask = {
   expectedOutput: string;
   context: string;
   founderDecision: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-type WorkCard = {
-  id: string;
-  title: string;
-  status: 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-  owner: string;
-  risk: TaskRisk;
-  source: string;
-  expectedOutput: string;
-  context: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -117,6 +104,26 @@ function createMarkdown(task: AITask) {
   ].join('\n');
 }
 
+function workCardFromTask(task: AITask): WorkCard {
+  return {
+    id: `workcard-${task.id}`,
+    title: task.title,
+    kind: 'Ops',
+    owner: task.agent,
+    status: workboardStatusFor(task.status),
+    risk: task.risk,
+    request: task.context,
+    plan: ['Read task context', 'Prepare sandbox plan', task.risk === 'LOW' ? 'Run dry-run output' : 'Request founder approval', 'Return evidence and rollback note'],
+    tools: ['Task Queue', 'Workboard', 'Approval Gate'],
+    approval: task.risk === 'LOW' ? 'Sandbox/dry-run only. External action still needs separate approval.' : 'Founder approval required before execution.',
+    aiStaff: task.agent,
+    task: task.title,
+    input: task.context,
+    expectedOutput: task.expectedOutput,
+    founderReview: task.founderDecision,
+  };
+}
+
 export default function TaskQueueTab() {
   useLocalStorageVersion();
   const [title, setTitle] = useState('');
@@ -162,19 +169,7 @@ export default function TaskQueueTab() {
   };
 
   const pushToWorkboard = (task: AITask) => {
-    const card: WorkCard = {
-      id: `workcard-${task.id}`,
-      title: task.title,
-      status: workboardStatusFor(task.status),
-      owner: task.agent,
-      risk: task.risk,
-      source: 'AI Task Queue',
-      expectedOutput: task.expectedOutput,
-      context: task.context,
-      createdAt: task.createdAt,
-      updatedAt: new Date().toISOString(),
-    };
-    appendLocalStorageArrayItem(WORKBOARD_KEY, card, 200);
+    appendLocalStorageArrayItem<WorkCard>(WORKBOARD_KEY, workCardFromTask(task), 200);
     appendAgentOpsAudit('AI_TASK_TO_WORKBOARD', task.id, `Pushed to Workboard · ${task.title}`);
   };
 
@@ -191,7 +186,7 @@ export default function TaskQueueTab() {
       createdAt: new Date().toISOString(),
       expiresAt: approvalExpiryIso(),
     };
-    appendLocalStorageArrayItem(APPROVAL_KEY, request, 200);
+    appendLocalStorageArrayItem<ApprovalRequest>(APPROVAL_KEY, request, 200);
     updateStatus(task, 'Waiting Approval');
     appendAgentOpsAudit('AI_TASK_APPROVAL_REQUESTED', task.id, `${task.title} sent to Approval Gate`);
     window.dispatchEvent(new CustomEvent('ledgerflow-approval-gate-changed'));
