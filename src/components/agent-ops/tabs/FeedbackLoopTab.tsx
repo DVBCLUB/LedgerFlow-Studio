@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const FEEDBACK_KEY = 'ledgerflow_customer_feedback_v1';
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 
 type FeedbackType = 'Idea' | 'Bug' | 'Risk' | 'Question';
 type FeedbackSeverity = 'LOW' | 'MEDIUM' | 'HIGH';
@@ -32,21 +32,6 @@ type WorkCard = {
   approval: string;
 };
 
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
 function classify(text: string): Pick<FeedbackItem, 'type' | 'severity' | 'suggestedAction'> {
   const lower = text.toLowerCase();
   if (['lỗi', 'bug', 'crash', 'trắng màn', 'không chạy', 'sai'].some((x) => lower.includes(x))) {
@@ -75,14 +60,18 @@ function kindFor(type: FeedbackType): WorkCard['kind'] {
   return 'Q&A';
 }
 
+function statusFor(severity: FeedbackSeverity): WorkCard['status'] {
+  return severity === 'LOW' ? 'Inbox' : 'Waiting Approval';
+}
+
 export default function FeedbackLoopTab() {
-  const [items, setItems] = useState<FeedbackItem[]>(() => readLocal(FEEDBACK_KEY, []));
+  const [items, setItems] = useState<FeedbackItem[]>(() => readLocalStorageValue(FEEDBACK_KEY, []));
   const [source, setSource] = useState('Manual demo');
   const [persona, setPersona] = useState('Kế toán/solo founder dùng thử');
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<'All' | FeedbackType>('All');
 
-  useEffect(() => writeLocal(FEEDBACK_KEY, items), [items]);
+  useEffect(() => writeLocalStorageValue(FEEDBACK_KEY, items), [items]);
 
   const filtered = filter === 'All' ? items : items.filter((item) => item.type === filter);
   const counts = useMemo(() => ({
@@ -92,11 +81,6 @@ export default function FeedbackLoopTab() {
     risks: items.filter((item) => item.type === 'Risk').length,
     converted: items.filter((item) => item.status === 'Converted').length
   }), [items]);
-
-  const pushAudit = (action: string, cardId: string, detail: string) => {
-    const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-    writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
-  };
 
   const addFeedback = () => {
     if (!message.trim()) return;
@@ -113,33 +97,37 @@ export default function FeedbackLoopTab() {
       suggestedAction: result.suggestedAction
     };
     setItems((current) => [item, ...current]);
-    pushAudit('FEEDBACK_CAPTURED', item.id, `${item.type}/${item.severity}: ${item.message.slice(0, 90)}`);
+    appendAgentOpsAudit('FEEDBACK_CAPTURED', item.id, `${item.type}/${item.severity}: ${item.message.slice(0, 90)}`);
     setMessage('');
   };
 
   const convertToWorkCard = (item: FeedbackItem) => {
-    const current = readLocal<WorkCard[]>(CARD_KEY, []);
     const card: WorkCard = {
       id: `fb-card-${Date.now()}`,
       title: `${item.type}: ${item.message.slice(0, 64)}`,
       kind: kindFor(item.type),
       owner: ownerFor(item.type),
-      status: item.severity === 'LOW' ? 'Inbox' : 'Waiting Approval',
+      status: statusFor(item.severity),
       risk: item.severity,
       request: `Feedback từ ${item.source} / ${item.persona}: ${item.message}`,
       plan: ['Triage feedback', 'Find evidence', 'Propose small action', item.severity === 'LOW' ? 'Run sandbox response' : 'Request founder approval'],
       tools: item.type === 'Bug' ? ['Workboard', 'CI Doctor', 'Review Desk'] : item.type === 'Risk' ? ['Risk Register', 'Approval Gate', 'Release Audit'] : ['Idea Portfolio', 'Product Factory', 'Prompt Pack'],
       approval: item.severity === 'LOW' ? 'Low risk, sandbox response allowed.' : 'Founder review required before external/product change.'
     };
-    writeLocal(CARD_KEY, [card, ...current]);
+    appendLocalStorageArrayItem<WorkCard>(CARD_KEY, card);
     setItems((currentItems) => currentItems.map((fb) => fb.id === item.id ? { ...fb, status: 'Converted' } : fb));
-    pushAudit('FEEDBACK_CONVERTED_TO_WORKCARD', item.id, `Created ${card.kind} WorkCard for ${item.type}.`);
+    appendAgentOpsAudit('FEEDBACK_CONVERTED_TO_WORKCARD', item.id, `Created ${card.kind} WorkCard for ${item.type}.`);
+  };
+
+  const archiveFeedback = (item: FeedbackItem) => {
+    setItems((current) => current.map((fb) => fb.id === item.id ? { ...fb, status: 'Archived' } : fb));
+    appendAgentOpsAudit('FEEDBACK_ARCHIVED', item.id, `${item.type}/${item.severity}: ${item.message.slice(0, 90)}`);
   };
 
   const copyReport = async () => {
     const report = `# Feedback Loop Report\n\nGenerated: ${new Date().toLocaleString('vi-VN')}\n\nTotal: ${counts.total}\nIdeas: ${counts.ideas}\nBugs: ${counts.bugs}\nRisks: ${counts.risks}\nConverted: ${counts.converted}\n\n${items.map((item) => `## ${item.type} / ${item.severity} / ${item.status}\nSource: ${item.source}\nPersona: ${item.persona}\nFeedback: ${item.message}\nSuggested action: ${item.suggestedAction}`).join('\n\n')}`;
     await navigator.clipboard.writeText(report);
-    pushAudit('FEEDBACK_REPORT_COPIED', 'feedback-loop', `Copied ${items.length} feedback items.`);
+    appendAgentOpsAudit('FEEDBACK_REPORT_COPIED', 'feedback-loop', `Copied ${items.length} feedback items.`);
   };
 
   return (
@@ -204,7 +192,7 @@ export default function FeedbackLoopTab() {
             <p className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-3 text-xs font-bold leading-5 text-amber-50">{item.suggestedAction}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <button onClick={() => convertToWorkCard(item)} className="rounded-xl border border-amber-300/40 px-3 py-2 text-[11px] font-black text-amber-100">Đẩy sang Workboard</button>
-              <button onClick={() => setItems((current) => current.map((fb) => fb.id === item.id ? { ...fb, status: 'Archived' } : fb))} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300">Archive</button>
+              <button onClick={() => archiveFeedback(item)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300">Archive</button>
             </div>
           </article>
         ))}
