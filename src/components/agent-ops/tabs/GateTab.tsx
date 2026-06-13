@@ -1,5 +1,5 @@
 import type { ApprovalRequest, ApprovalRisk, ApprovalStatus } from '../../../types/agentOps';
-import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
+import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue, type AgentOpsAuditEntry } from '../storage';
 import { useApprovalGateSync } from '../useApprovalGateSync';
 
 const APPROVAL_KEYS = ['ledgerflow_approval_gate_requests_v1', 'ledgerflow-approval-gate-v1'];
@@ -52,7 +52,7 @@ export default function GateTab() {
   useLocalStorageVersion(['ledgerflow-approval-session-sync', 'ledgerflow-approval-gate-changed', 'ledgerflow-review-desk-prefill']);
   const requests = readRequests();
   const pendingRequests = requests.filter((request) => !request.status || request.status === 'Pending');
-  const audit = readLocalStorageValue(AGENT_OPS_AUDIT_KEY, []);
+  const audit = readLocalStorageValue<AgentOpsAuditEntry[]>(AGENT_OPS_AUDIT_KEY, []);
 
   const decide = (request: ApprovalRequest, status: ApprovalStatus, detail: string) => {
     const now = new Date().toISOString();
