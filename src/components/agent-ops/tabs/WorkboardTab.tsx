@@ -1,9 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SessionStep, WorkCard, WorkKind, WorkStatus } from '../../../types/agentOps';
-import { readLocalStorageArray } from '../storage';
+import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const SESSION_KEYS = ['ledgerflow_agent_sessions_v1', 'ledgerflow-agent-session-queue-v1'];
 
 const kindOptions: WorkKind[] = ['Q&A', 'Code', 'Design', 'Data', 'Marketing', 'Integration', 'CI Fix', 'Audit', 'Product', 'Ops'];
@@ -18,22 +17,8 @@ const statusHelp: Record<WorkStatus, string> = {
 };
 
 type StoredSession = { id: string; title: string; kind?: WorkKind; status?: string; risk?: WorkCard['risk']; goal?: string; steps?: SessionStep[] };
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
 type ReviewDeskResultEvent = { sourceCardId?: string; at?: string; result?: { branchName?: string; pullRequestNumber?: number; pullRequestUrl?: string } };
 type CiFixPackage = { id: string; sourceCardId?: string; branchName: string; pullRequestNumber: number; workflowName: string; status: string; conclusion: string | null; createdAt: string; prompt: string };
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
 
 function riskFor(kind: WorkKind): WorkCard['risk'] {
   if (kind === 'Code' || kind === 'Integration' || kind === 'CI Fix') return 'HIGH';
@@ -87,19 +72,17 @@ function nextStatus(card: WorkCard): WorkStatus | null {
 }
 
 export default function WorkboardTab() {
-  const [cards, setCards] = useState<WorkCard[]>(() => readLocal(CARD_KEY, []));
-  const [audit, setAudit] = useState<AuditEntry[]>(() => readLocal(AUDIT_KEY, []));
+  useLocalStorageVersion(['ledgerflow-aiops-card-updated', 'ledgerflow-review-desk-result', 'ledgerflow-ci-fix-package']);
+  const [cards, setCards] = useState<WorkCard[]>(() => readLocalStorageValue(CARD_KEY, []));
   const [sessions] = useState<StoredSession[]>(() => readLocalStorageArray<StoredSession>(SESSION_KEYS));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
+  const audit = readLocalStorageValue(AGENT_OPS_AUDIT_KEY, []);
   const sessionCards = useMemo(() => sessions.map(sessionToCard), [sessions]);
   const allCards = useMemo(() => [...cards, ...sessionCards], [cards, sessionCards]);
 
-  useEffect(() => writeLocal(CARD_KEY, cards), [cards]);
-  useEffect(() => writeLocal(AUDIT_KEY, audit), [audit]);
+  useEffect(() => writeLocalStorageValue(CARD_KEY, cards), [cards]);
 
-  const pushAudit = (action: string, cardId: string, detail: string) => {
-    setAudit((current) => [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
-  };
+  const pushAudit = (action: string, cardId: string, detail: string) => appendAgentOpsAudit(action, cardId, detail);
 
   useEffect(() => {
     const handleReviewResult = (event: Event) => {
@@ -107,13 +90,7 @@ export default function WorkboardTab() {
       const cardId = detail?.sourceCardId;
       if (!cardId || !detail?.result) return;
       setCards((current) => current.map((card) => card.id === cardId ? { ...card, status: 'Done' } : card));
-      setAudit((current) => [{
-        id: `audit-${Date.now()}`,
-        at: detail.at || new Date().toLocaleString('vi-VN'),
-        action: 'DRAFT_PR_CREATED',
-        cardId,
-        detail: `Draft PR #${detail.result?.pullRequestNumber || '?'} created on ${detail.result?.branchName || 'ai/*'}: ${detail.result?.pullRequestUrl || 'no url'}`
-      }, ...current].slice(0, 120));
+      pushAudit('DRAFT_PR_CREATED', cardId, `Draft PR #${detail.result?.pullRequestNumber || '?'} created on ${detail.result?.branchName || 'ai/*'}: ${detail.result?.pullRequestUrl || 'no url'}`);
     };
 
     const handleCiFixPackage = (event: Event) => {
@@ -133,13 +110,7 @@ export default function WorkboardTab() {
         approval: 'Founder review required before risky patch execution.'
       };
       setCards((current) => [card, ...current]);
-      setAudit((current) => [{
-        id: `audit-${Date.now()}`,
-        at: pack.createdAt || new Date().toLocaleString('vi-VN'),
-        action: 'CI_FIX_CARD_CREATED',
-        cardId,
-        detail: `Created from failed workflow ${pack.workflowName} (${pack.conclusion || pack.status}) on ${pack.branchName}.`
-      }, ...current].slice(0, 120));
+      pushAudit('CI_FIX_CARD_CREATED', cardId, `Created from failed workflow ${pack.workflowName} (${pack.conclusion || pack.status}) on ${pack.branchName}.`);
     };
 
     window.addEventListener('ledgerflow-review-desk-result', handleReviewResult);
