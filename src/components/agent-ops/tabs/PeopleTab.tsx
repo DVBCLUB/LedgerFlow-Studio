@@ -6,6 +6,17 @@ const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const LEGACY_STAFF_KEY = 'ledgerflow-ai-staff-assignment-v1';
 const watchedEvents = ['ledgerflow-aiops-card-updated', 'ledgerflow-ai-staff-updated', 'storage'];
 
+const roleDirectory = [
+  { name: 'AI Chief of Staff', mission: 'Điều phối founder dashboard, daily standup, risk queue và ưu tiên công việc.', permission: 'MEDIUM', connectors: ['AI Gateway', 'Knowledge Library'], output: 'Daily brief, work order, risk summary' },
+  { name: 'AI Dev', mission: 'Lập plan code, sửa UI/module nhỏ, tạo handoff cho VS Code/Cursor và Draft PR.', permission: 'HIGH', connectors: ['GitHub', 'VS Code', 'CI Doctor'], output: 'Code plan, patch summary, PR checklist' },
+  { name: 'AI Designer', mission: 'Thiết kế giao diện Company OS, flow màn hình và component spec.', permission: 'MEDIUM', connectors: ['Knowledge Library'], output: 'Wireframe note, UI checklist' },
+  { name: 'AI Marketer', mission: 'Lập content calendar, SEO angle, A/B test landing page và feedback loop.', permission: 'LOW', connectors: ['Marketing workspace'], output: 'Campaign brief, copy draft' },
+  { name: 'AI Accountant', mission: 'Mô phỏng case kế toán Việt Nam, calculator và checklist chứng từ.', permission: 'MEDIUM', connectors: ['Finance & Accounting'], output: 'Simulation case, journal checklist' },
+  { name: 'AI Auditor', mission: 'Tìm red flag, Benford/Isolation Forest lab và checklist kiểm soát.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Audit finding, risk scoring' },
+  { name: 'AI Data Analyst', mission: 'Phân tích KPI, cashflow, anomaly và dashboard metric.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Insight card, model note' },
+  { name: 'AI QA', mission: 'Viết checklist test, release readiness, CI triage và regression note.', permission: 'HIGH', connectors: ['CI Doctor', 'Risk & Release Audit'], output: 'QA checklist, release gate result' },
+];
+
 type LegacyStaffTask = {
   id: string;
   aiStaff: string;
@@ -77,6 +88,17 @@ export default function PeopleTab() {
   const [draft, setDraft] = useState({ aiStaff: '', role: '', task: '', acceptanceCriteria: '' });
   const staffCards = readStaffCards();
 
+  const assignRole = (roleName: string) => {
+    const role = roleDirectory.find((item) => item.name === roleName);
+    if (!role) return;
+    setDraft({
+      aiStaff: role.name,
+      role: role.name,
+      task: `${role.name}: ${role.mission}`,
+      acceptanceCriteria: `Output bắt buộc: ${role.output}. Permission: ${role.permission}. Connector được dùng: ${role.connectors.join(', ')}. Hành động rủi ro phải đi qua Approval Gate.`,
+    });
+  };
+
   const addAssignment = () => {
     if (!draft.aiStaff.trim() || !draft.task.trim()) return;
     const cards = readLocal<WorkCard[]>(CARD_KEY, []);
@@ -86,11 +108,11 @@ export default function PeopleTab() {
       kind: 'Ops',
       owner: draft.role.trim() || draft.aiStaff.trim(),
       status: 'Inbox',
-      risk: 'MEDIUM',
+      risk: draft.acceptanceCriteria.includes('Permission: HIGH') ? 'HIGH' : 'MEDIUM',
       request: draft.task.trim(),
       plan: [draft.acceptanceCriteria.trim() || 'Founder review required'],
-      tools: ['AI Staff Assignment'],
-      approval: 'Founder review required before marking done.',
+      tools: ['AI Staff Assignment', 'Approval Gate', 'Workboard'],
+      approval: 'Founder review required before marking done or using external connector.',
       aiStaff: draft.aiStaff.trim(),
       role: draft.role.trim() || draft.aiStaff.trim(),
       task: draft.task.trim(),
@@ -105,7 +127,22 @@ export default function PeopleTab() {
     <section className="rounded-3xl border border-sky-400/35 bg-sky-400/10 p-4 text-slate-100">
       <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">AI Staff</p>
       <h3 className="mt-1 text-xl font-black text-white">AI Staff Assignment</h3>
-      <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">StaffTask đã được gộp vào WorkCard qua các field optional: aiStaff, acceptanceCriteria, founderReview, deadline. Dữ liệu cũ từ ledgerflow-ai-staff-assignment-v1 vẫn được hiển thị để không mất lịch sử.</p>
+      <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Định nghĩa rõ AI nhân sự như nhân viên công ty: nhiệm vụ, output, quyền hạn và connector được dùng. StaffTask vẫn gộp vào WorkCard để Workboard là nguồn vận hành chính.</p>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {roleDirectory.map((role) => (
+          <article key={role.name} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-sm font-black text-white">{role.name}</p>
+              <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300">{role.permission}</span>
+            </div>
+            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{role.mission}</p>
+            <p className="mt-2 text-[11px] font-bold text-sky-200">{role.connectors.join(' · ')}</p>
+            <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-400">Output: {role.output}</p>
+            <button onClick={() => assignRole(role.name)} className="mt-3 rounded-xl border border-sky-300/40 px-3 py-2 text-[11px] font-black text-sky-100 hover:bg-sky-400/10">Giao việc role này</button>
+          </article>
+        ))}
+      </div>
 
       <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
         <p className="text-sm font-black text-white">Tạo assignment mới</p>
