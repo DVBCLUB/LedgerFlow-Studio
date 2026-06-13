@@ -1,18 +1,9 @@
 import type { ApprovalRequest, ApprovalRisk, ApprovalStatus } from '../../../types/agentOps';
-import { readLocalStorageArray, useLocalStorageVersion } from '../storage';
+import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 import { useApprovalGateSync } from '../useApprovalGateSync';
 
 const APPROVAL_KEYS = ['ledgerflow_approval_gate_requests_v1', 'ledgerflow-approval-gate-v1'];
 const PRIMARY_APPROVAL_KEY = APPROVAL_KEYS[0];
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
-
-type GateAuditEntry = {
-  id: string;
-  at: string;
-  action: string;
-  cardId: string;
-  detail: string;
-};
 
 const riskPolicy: Record<ApprovalRisk, { label: string; rule: string; founderRequired: boolean; tone: string }> = {
   LOW: {
@@ -39,31 +30,14 @@ function readRequests(): ApprovalRequest[] {
   return readLocalStorageArray<ApprovalRequest>(APPROVAL_KEYS);
 }
 
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
 function writeRequests(requests: ApprovalRequest[]) {
-  localStorage.setItem(PRIMARY_APPROVAL_KEY, JSON.stringify(requests));
+  writeLocalStorageValue(PRIMARY_APPROVAL_KEY, requests);
   window.dispatchEvent(new CustomEvent('ledgerflow-approval-gate-changed'));
   window.dispatchEvent(new CustomEvent('ledgerflow-review-desk-prefill'));
 }
 
-function appendAudit(action: string, request: ApprovalRequest, detail: string) {
-  const current = readLocal<GateAuditEntry[]>(AUDIT_KEY, []);
-  const entry: GateAuditEntry = {
-    id: `gate-audit-${Date.now()}`,
-    at: new Date().toLocaleString('vi-VN'),
-    action,
-    cardId: request.sourceId || request.sourceSessionId || request.id,
-    detail,
-  };
-  localStorage.setItem(AUDIT_KEY, JSON.stringify([entry, ...current].slice(0, 160)));
+function appendGateAudit(action: string, request: ApprovalRequest, detail: string) {
+  appendAgentOpsAudit(action, request.sourceId || request.sourceSessionId || request.id, detail);
   window.dispatchEvent(new CustomEvent('ledgerflow-aiops-card-updated'));
 }
 
@@ -78,7 +52,7 @@ export default function GateTab() {
   useLocalStorageVersion(['ledgerflow-approval-session-sync', 'ledgerflow-approval-gate-changed', 'ledgerflow-review-desk-prefill']);
   const requests = readRequests();
   const pendingRequests = requests.filter((request) => !request.status || request.status === 'Pending');
-  const audit = readLocal<GateAuditEntry[]>(AUDIT_KEY, []);
+  const audit = readLocalStorageValue(AGENT_OPS_AUDIT_KEY, []);
 
   const decide = (request: ApprovalRequest, status: ApprovalStatus, detail: string) => {
     const now = new Date().toISOString();
@@ -91,7 +65,7 @@ export default function GateTab() {
       conditions: detail,
     } : item);
     writeRequests(next);
-    appendAudit(`APPROVAL_${status.toUpperCase()}`, request, detail);
+    appendGateAudit(`APPROVAL_${status.toUpperCase()}`, request, detail);
   };
 
   const approveSandbox = (request: ApprovalRequest) => decide(request, 'Approved', 'Approved for sandbox/dry-run only. External write actions remain blocked until a separate approval is created.');
