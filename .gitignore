@@ -12,3 +12,4 @@ ai_usage.log.json
 .ledgerflow_secret
 integration_registry.json
 integration_events.log.json
+ledgerflow_audit.log.json
