@@ -1,31 +1,17 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { FOUNDER_RISK_REGISTER, PRODUCT_IDEA_PORTFOLIO, RELEASE_READINESS_CHECKLIST } from '../../../data/founderCompanyEnhancements';
+import { appendAgentOpsAudit, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
 const FEEDBACK_KEY = 'ledgerflow_customer_feedback_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const STANDUP_KEY = 'ledgerflow_daily_standup_v1';
 
 type WorkCard = { id?: string; title?: string; status?: string; risk?: string; owner?: string };
 type ApprovalRequest = { id?: string; title?: string; status?: string; risk?: string };
 type FeedbackItem = { id?: string; type?: string; severity?: string; risk?: string; status?: string; message?: string };
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
 type StandupArchive = { id: string; at: string; report: string };
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
 
 function ideaScore(idea: { pain: number; mvpCheapness: number; distribution: number; technicalRisk: number }) {
   return Math.round(idea.pain * 3 + idea.mvpCheapness * 2 + idea.distribution * 1.5 - idea.technicalRisk * 1.5);
@@ -38,27 +24,24 @@ function riskOf(item: { risk?: string; severity?: string }) {
 export default function DailyStandupTab() {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
+  const storageVersion = useLocalStorageVersion();
 
   const data = useMemo(() => {
-    const cards = readLocal<WorkCard[]>(CARD_KEY, []);
-    const approvals = readLocal<ApprovalRequest[]>(APPROVAL_KEY, []);
-    const feedback = readLocal<FeedbackItem[]>(FEEDBACK_KEY, []);
-    const audit = readLocal<AuditEntry[]>(AUDIT_KEY, []);
+    const cards = readLocalStorageValue<WorkCard[]>(CARD_KEY, []);
+    const approvals = readLocalStorageValue<ApprovalRequest[]>(APPROVAL_KEY, []);
+    const feedback = readLocalStorageValue<FeedbackItem[]>(FEEDBACK_KEY, []);
     const openCards = cards.filter((card) => card.status !== 'Done');
     const pendingApprovals = approvals.filter((item) => item.status === 'Pending');
     const highRisk = cards.filter((card) => riskOf(card) === 'HIGH').length + pendingApprovals.filter((item) => riskOf(item) === 'HIGH').length + feedback.filter((item) => riskOf(item) === 'HIGH' && item.status !== 'Converted').length;
     const bugs = feedback.filter((item) => item.type === 'Bug' && item.status !== 'Converted');
     const topIdeas = PRODUCT_IDEA_PORTFOLIO.map((idea) => ({ ...idea, score: ideaScore(idea) })).sort((a, b) => b.score - a.score).slice(0, 3);
     const healthScore = Math.max(0, Math.min(100, 80 - openCards.length * 3 - pendingApprovals.length * 5 - highRisk * 4));
-    return { cards, approvals, feedback, audit, openCards, pendingApprovals, highRisk, bugs, topIdeas, healthScore };
-  }, []);
+    return { openCards, pendingApprovals, highRisk, bugs, topIdeas, healthScore };
+  }, [storageVersion]);
 
   const report = `# AI Daily Standup - LedgerFlow Studio\n\nNgày: ${new Date().toLocaleString('vi-VN')}\nFounder health score: ${data.healthScore}/100\n\n## Tình hình\n- WorkCards mở: ${data.openCards.length}\n- Approval pending: ${data.pendingApprovals.length}\n- High-risk signals: ${data.highRisk}\n- Bug feedback: ${data.bugs.length}\n\n## Founder cần duyệt\n${data.pendingApprovals.map((item, index) => `${index + 1}. ${item.title ?? item.id ?? 'Pending item'} [${riskOf(item)}]`).join('\n') || '- Không có mục pending.'}\n\n## Top ideas\n${data.topIdeas.map((idea, index) => `${index + 1}. ${idea.idea} — score ${idea.score}`).join('\n')}\n\n## Rủi ro cần nhớ\n${FOUNDER_RISK_REGISTER.slice(0, 4).map((risk) => `- [${risk.severity}] ${risk.risk}`).join('\n')}\n\n## Release checklist\n${RELEASE_READINESS_CHECKLIST.slice(0, 5).map((item) => `- [ ] ${item}`).join('\n')}\n\nGuardrail: không tự chạy external action; founder duyệt cuối.`;
 
-  const pushAudit = (detail: string) => {
-    const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-    writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action: 'DAILY_STANDUP', cardId: 'daily-standup', detail }, ...current].slice(0, 120));
-  };
+  const pushAudit = (detail: string) => appendAgentOpsAudit('DAILY_STANDUP', 'daily-standup', detail);
 
   const copyReport = async () => {
     await navigator.clipboard.writeText(report);
@@ -68,8 +51,8 @@ export default function DailyStandupTab() {
   };
 
   const saveSnapshot = () => {
-    const current = readLocal<StandupArchive[]>(STANDUP_KEY, []);
-    writeLocal(STANDUP_KEY, [{ id: `standup-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), report }, ...current].slice(0, 30));
+    const current = readLocalStorageValue<StandupArchive[]>(STANDUP_KEY, []);
+    writeLocalStorageValue(STANDUP_KEY, [{ id: `standup-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), report }, ...current].slice(0, 30));
     pushAudit('Saved AI Daily Standup snapshot to localStorage.');
     setSaved(true);
     setTimeout(() => setSaved(false), 1200);
