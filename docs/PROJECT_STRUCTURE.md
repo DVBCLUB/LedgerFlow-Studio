@@ -37,7 +37,7 @@ Root should stay lean. Keep only files that must be at the project root for Node
 ```text
 src/
 ├── components/              # Main React feature components and launchers
-│   └── agent-ops/           # AgentOpsHub shell, launcher, and tabs
+│   └── agent-ops/           # AgentOpsHub shell, launcher, hooks, helpers, and tabs
 ├── types/                   # Shared frontend TypeScript type sources
 │   └── agentOps.ts          # Single source for AgentOps records/status/risk types
 ├── utils/                   # Frontend API clients and shared helpers
@@ -59,6 +59,10 @@ src/components/agent-ops/
 ├── AgentOpsHub.tsx          # Agent / AI Ops / Approval hub shell with tab navigation
 ├── AgentOpsHubLauncher.tsx  # Hash-route launcher for old AgentOps routes
 ├── OpsToolsLauncher.tsx     # Auxiliary ops panels that are outside AgentOps consolidation scope
+├── storage.ts               # localStorage merge/read helpers and tab refresh hook
+├── useApprovalGateSync.ts   # Approval bridge logic formerly split across approval bridge components
+├── useConnectorPolicySync.ts# Connector policy bridge logic formerly split from connector registry
+├── useFastReviewRouting.ts  # Fast Review routing bridge logic as a hook
 └── tabs/
     ├── WorkboardTab.tsx
     ├── RunTab.tsx
@@ -70,6 +74,8 @@ src/components/agent-ops/
 ```
 
 `src/types/agentOps.ts` is the single source of truth for shared AgentOps entities such as `WorkCard`, `SessionStep`, `AgentSkill`, `ApprovalRequest`, `ConnectorDefinition`, and `PatchItem`. Do not redefine duplicate status/risk/session types inside future AgentOps UI components.
+
+Legacy bridge/component behavior should stay as hooks or utilities in `src/components/agent-ops/`, not as new floating overlay components. Before adding a new AgentOps file, check whether it belongs in a tab, a hook, or `src/types/agentOps.ts`.
 
 ## Backend organization
 
