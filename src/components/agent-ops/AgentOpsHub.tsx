@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import WorkboardTab from './tabs/WorkboardTab';
 import ProductFactoryTab from './tabs/ProductFactoryTab';
+import PromptPackTab from './tabs/PromptPackTab';
 import RunTab from './tabs/RunTab';
 import SkillsTab from './tabs/SkillsTab';
 import PeopleTab from './tabs/PeopleTab';
@@ -8,11 +9,12 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'workboard' | 'factory' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'workboard' | 'factory' | 'prompts' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'workboard', label: 'Workboard' },
   { id: 'factory', label: 'Product Factory' },
+  { id: 'prompts', label: 'Prompt Pack' },
   { id: 'runtime', label: 'Runtime' },
   { id: 'skills', label: 'Skills' },
   { id: 'staff', label: 'AI Staff' },
@@ -48,6 +50,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         </div>
         {tab === 'workboard' && <WorkboardTab />}
         {tab === 'factory' && <ProductFactoryTab />}
+        {tab === 'prompts' && <PromptPackTab />}
         {tab === 'runtime' && <RunTab />}
         {tab === 'skills' && <SkillsTab />}
         {tab === 'staff' && <PeopleTab />}
