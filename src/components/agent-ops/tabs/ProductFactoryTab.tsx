@@ -5,16 +5,20 @@ import {
   PRODUCT_IDEA_PORTFOLIO,
   RELEASE_READINESS_CHECKLIST
 } from '../../../data/founderCompanyEnhancements';
+import {
+  appendAgentOpsAudit,
+  appendLocalStorageArrayItem,
+  readLocalStorageValue,
+  writeLocalStorageValue
+} from '../storage';
 
 const FACTORY_STATE_KEY = 'ledgerflow_product_factory_state_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 
 type FactoryStatus = 'Idea' | 'Work Order' | 'Code Plan' | 'Waiting Approval' | 'CI / PR' | 'Release Audit';
 type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 type FactoryState = Record<string, FactoryStatus>;
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
 
 type ApprovalRequest = {
   id: string;
@@ -45,19 +49,6 @@ type WorkCard = {
 
 const pipeline: FactoryStatus[] = ['Idea', 'Work Order', 'Code Plan', 'Waiting Approval', 'CI / PR', 'Release Audit'];
 
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
 function scoreIdea(idea: { pain: number; mvpCheapness: number; distribution: number; technicalRisk: number }) {
   return Math.round(idea.pain * 3 + idea.mvpCheapness * 2 + idea.distribution * 1.5 - idea.technicalRisk * 1.5);
 }
@@ -75,11 +66,11 @@ function riskForIdea(idea: { technicalRisk: number }): RiskLevel {
 }
 
 export default function ProductFactoryTab() {
-  const [state, setState] = useState<FactoryState>(() => readLocal(FACTORY_STATE_KEY, {}));
+  const [state, setState] = useState<FactoryState>(() => readLocalStorageValue(FACTORY_STATE_KEY, {}));
   const [selectedIdea, setSelectedIdea] = useState(PRODUCT_IDEA_PORTFOLIO[0]?.idea ?? '');
   const [copied, setCopied] = useState<string | null>(null);
 
-  useEffect(() => writeLocal(FACTORY_STATE_KEY, state), [state]);
+  useEffect(() => writeLocalStorageValue(FACTORY_STATE_KEY, state), [state]);
 
   const ideas = useMemo(() => PRODUCT_IDEA_PORTFOLIO.map((idea) => {
     const score = scoreIdea(idea);
@@ -91,20 +82,14 @@ export default function ProductFactoryTab() {
   const selected = ideas.find((idea) => idea.idea === selectedIdea) ?? ideas[0];
   const matchedWorkOrder = AI_AGENT_WORK_ORDER_BOARD.find((order) => order.task.toLowerCase().includes('prd')) ?? AI_AGENT_WORK_ORDER_BOARD[0];
 
-  const pushAudit = (action: string, cardId: string, detail: string) => {
-    const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-    writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId, detail }, ...current].slice(0, 120));
-  };
-
   const move = (ideaName: string, status: FactoryStatus) => {
     setState((current) => ({ ...current, [ideaName]: status }));
-    pushAudit('PRODUCT_FACTORY_STATUS', ideaName, `Moved product idea to ${status}.`);
+    appendAgentOpsAudit('PRODUCT_FACTORY_STATUS', ideaName, `Moved product idea to ${status}.`);
   };
 
   const createWorkCard = () => {
     if (!selected) return;
     const selectedRisk: RiskLevel = selected.risk;
-    const current = readLocal<WorkCard[]>(CARD_KEY, []);
     const card: WorkCard = {
       id: `pf-${Date.now()}`,
       title: `Product Factory: ${selected.idea}`,
@@ -117,14 +102,13 @@ export default function ProductFactoryTab() {
       tools: ['Idea Portfolio', 'AI Work Orders', 'Approval Gate', 'CI Doctor', 'Risk & Release Audit'],
       approval: selectedRisk === 'LOW' ? 'Sandbox-first, audit required.' : 'Founder must approve before GitHub branch/commit/PR.'
     };
-    writeLocal(CARD_KEY, [card, ...current]);
+    appendLocalStorageArrayItem<WorkCard>(CARD_KEY, card);
     move(selected.idea, selectedRisk === 'LOW' ? 'Work Order' : 'Waiting Approval');
   };
 
   const requestApproval = () => {
     if (!selected) return;
     const selectedRisk: RiskLevel = selected.risk;
-    const current = readLocal<ApprovalRequest[]>(APPROVAL_KEY, []);
     const approval: ApprovalRequest = {
       id: `appr-pf-${Date.now()}`,
       title: `Approve Product Factory action: ${selected.idea}`,
@@ -138,7 +122,7 @@ export default function ProductFactoryTab() {
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString('vi-VN'),
       status: 'Pending'
     };
-    writeLocal(APPROVAL_KEY, [approval, ...current]);
+    appendLocalStorageArrayItem<ApprovalRequest>(APPROVAL_KEY, approval);
     move(selected.idea, 'Waiting Approval');
   };
 
@@ -146,6 +130,7 @@ export default function ProductFactoryTab() {
     if (!selected) return;
     const prompt = `Bạn là AI Dev trong LedgerFlow Studio Product Factory.\n\nÝ tưởng: ${selected.idea}\nNgười dùng mục tiêu: ${selected.targetUser}\nScore: ${selected.score} (${selected.verdict})\nMVP đầu tiên: ${selected.firstMvp}\nMonetization: ${selected.monetization}\n\nYêu cầu:\n1. Chỉ lập code plan, chưa commit/push nếu chưa qua Approval Gate.\n2. Giữ app là learning/R&D/simulation + Company OS, không định vị như ERP kế toán thật.\n3. Đề xuất file cần sửa tối thiểu, test tay, rủi ro, acceptance criteria.\n4. Không hardcode API key, không thêm CDN dependency, giữ offline-ready.`;
     await navigator.clipboard.writeText(prompt);
+    appendAgentOpsAudit('PRODUCT_FACTORY_PROMPT_COPIED', selected.idea, 'Copied Product Factory code-plan prompt.');
     setCopied('prompt');
     setTimeout(() => setCopied(null), 1200);
   };
