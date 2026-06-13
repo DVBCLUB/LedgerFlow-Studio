@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { ApprovalRequest, RiskLevel, WorkCard } from '../../../types/agentOps';
 import {
   AI_AGENT_WORK_ORDER_BOARD,
   FOUNDER_RISK_REGISTER,
@@ -13,39 +14,11 @@ import {
 } from '../storage';
 
 const FACTORY_STATE_KEY = 'ledgerflow_product_factory_state_v1';
-const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
+const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 
 type FactoryStatus = 'Idea' | 'Work Order' | 'Code Plan' | 'Waiting Approval' | 'CI / PR' | 'Release Audit';
-type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 type FactoryState = Record<string, FactoryStatus>;
-
-type ApprovalRequest = {
-  id: string;
-  title: string;
-  source: string;
-  sourceId?: string;
-  risk: RiskLevel;
-  action: string;
-  details: string;
-  conditions?: string;
-  createdAt: string;
-  expiresAt: string;
-  status: 'Pending' | 'Approved' | 'Rejected' | 'Expired';
-};
-
-type WorkCard = {
-  id: string;
-  title: string;
-  kind: 'Product' | 'Code';
-  owner: string;
-  status: 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-  risk: RiskLevel;
-  request: string;
-  plan: string[];
-  tools: string[];
-  approval: string;
-};
 
 const pipeline: FactoryStatus[] = ['Idea', 'Work Order', 'Code Plan', 'Waiting Approval', 'CI / PR', 'Release Audit'];
 
@@ -63,6 +36,16 @@ function riskForIdea(idea: { technicalRisk: number }): RiskLevel {
   if (idea.technicalRisk >= 7) return 'HIGH';
   if (idea.technicalRisk >= 4) return 'MEDIUM';
   return 'LOW';
+}
+
+function approvalRiskFor(risk: RiskLevel): ApprovalRequest['risk'] {
+  return risk === 'LOW' ? 'MEDIUM' : risk;
+}
+
+function approvalExpiryIso(days = 7) {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt.toISOString();
 }
 
 export default function ProductFactoryTab() {
@@ -114,16 +97,17 @@ export default function ProductFactoryTab() {
       title: `Approve Product Factory action: ${selected.idea}`,
       source: 'ProductFactoryTab',
       sourceId: selected.idea,
-      risk: selectedRisk === 'LOW' ? 'MEDIUM' : selectedRisk,
+      risk: approvalRiskFor(selectedRisk),
       action: 'Allow AI Dev to prepare branch/commit/PR plan in sandbox-first mode',
       details: `Idea score ${selected.score} (${selected.verdict}). MVP: ${selected.firstMvp}. Monetization: ${selected.monetization}.`,
       conditions: 'No hardcoded API key. No direct external write before founder approval. CI and release audit required.',
-      createdAt: new Date().toLocaleString('vi-VN'),
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleString('vi-VN'),
+      createdAt: new Date().toISOString(),
+      expiresAt: approvalExpiryIso(),
       status: 'Pending'
     };
     appendLocalStorageArrayItem<ApprovalRequest>(APPROVAL_KEY, approval);
     move(selected.idea, 'Waiting Approval');
+    window.dispatchEvent(new CustomEvent('ledgerflow-approval-gate-changed'));
   };
 
   const copyFactoryPrompt = async () => {
@@ -224,9 +208,9 @@ export default function ProductFactoryTab() {
 }
 
 function Metric({ label, value }: { label: string; value: number }) {
-  return <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center"><p className="text-[10px] font-black uppercase text-slate-500">{label}</p><p className="mt-1 text-xl font-black text-white">{value}</p></div>;
+  return <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><p className="text-[10px] font-black uppercase text-slate-500">{label}</p><p className="mt-1 text-xl font-black text-white">{value}/10</p></div>;
 }
 
 function InfoBox({ title, body }: { title: string; body: string }) {
-  return <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-[10px] font-black uppercase text-cyan-300">{title}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{body}</p></div>;
+  return <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3"><p className="text-[10px] font-black uppercase text-slate-500">{title}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{body}</p></div>;
 }
