@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import type { WorkCard, WorkKind } from '../../../types/agentOps';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const FEEDBACK_KEY = 'ledgerflow_customer_feedback_v1';
@@ -15,35 +16,16 @@ type FeedbackItem = {
   message: string;
   type: FeedbackType;
   severity: FeedbackSeverity;
-  status: 'New' | 'Triaged' | 'Converted' | 'Archived';
+  status: 'New' | 'Converted' | 'Archived';
   suggestedAction: string;
-};
-
-type WorkCard = {
-  id: string;
-  title: string;
-  kind: 'Product' | 'Audit' | 'CI Fix' | 'Q&A';
-  owner: string;
-  status: 'Inbox' | 'Planning' | 'Waiting Approval' | 'Ready' | 'Done';
-  risk: FeedbackSeverity;
-  request: string;
-  plan: string[];
-  tools: string[];
-  approval: string;
 };
 
 function classify(text: string): Pick<FeedbackItem, 'type' | 'severity' | 'suggestedAction'> {
   const lower = text.toLowerCase();
-  if (['lỗi', 'bug', 'crash', 'trắng màn', 'không chạy', 'sai'].some((x) => lower.includes(x))) {
-    return { type: 'Bug', severity: lower.includes('crash') || lower.includes('trắng màn') ? 'HIGH' : 'MEDIUM', suggestedAction: 'Giao AI QA tái hiện lỗi, tạo test case và đưa AI Dev sửa patch nhỏ.' };
-  }
-  if (['rủi ro', 'pháp lý', 'thuế', 'sai luật', 'bảo mật', 'secret', 'api key'].some((x) => lower.includes(x))) {
-    return { type: 'Risk', severity: 'HIGH', suggestedAction: 'Giao AI Auditor rà soát wording/guardrail, không release nếu gây hiểu nhầm tư vấn chính thức.' };
-  }
-  if (['ước gì', 'nên có', 'thêm', 'muốn', 'tính năng'].some((x) => lower.includes(x))) {
-    return { type: 'Idea', severity: 'MEDIUM', suggestedAction: 'Đưa vào Idea Portfolio/Product Factory, chấm GO/HOLD/NO-GO trước khi code.' };
-  }
-  return { type: 'Question', severity: 'LOW', suggestedAction: 'Giao AI Chief of Staff trả lời, nếu lặp lại nhiều lần thì biến thành FAQ/SOP.' };
+  if (['lỗi', 'bug', 'crash', 'không chạy', 'sai'].some((x) => lower.includes(x))) return { type: 'Bug', severity: 'MEDIUM', suggestedAction: 'Tạo card cho AI QA và AI Dev kiểm tra.' };
+  if (['rủi ro', 'pháp lý', 'thuế', 'bảo mật'].some((x) => lower.includes(x))) return { type: 'Risk', severity: 'HIGH', suggestedAction: 'Tạo card audit và yêu cầu founder review.' };
+  if (['thêm', 'muốn', 'tính năng', 'nên có'].some((x) => lower.includes(x))) return { type: 'Idea', severity: 'MEDIUM', suggestedAction: 'Đưa vào Product Factory để chấm điểm.' };
+  return { type: 'Question', severity: 'LOW', suggestedAction: 'Biến thành FAQ hoặc SOP nếu lặp lại.' };
 }
 
 function ownerFor(type: FeedbackType) {
@@ -53,7 +35,7 @@ function ownerFor(type: FeedbackType) {
   return 'AI Chief of Staff';
 }
 
-function kindFor(type: FeedbackType): WorkCard['kind'] {
+function kindFor(type: FeedbackType): WorkKind {
   if (type === 'Bug') return 'CI Fix';
   if (type === 'Risk') return 'Audit';
   if (type === 'Idea') return 'Product';
@@ -66,8 +48,8 @@ function statusFor(severity: FeedbackSeverity): WorkCard['status'] {
 
 export default function FeedbackLoopTab() {
   const [items, setItems] = useState<FeedbackItem[]>(() => readLocalStorageValue(FEEDBACK_KEY, []));
-  const [source, setSource] = useState('Manual demo');
-  const [persona, setPersona] = useState('Kế toán/solo founder dùng thử');
+  const [source, setSource] = useState('Manual');
+  const [persona, setPersona] = useState('User');
   const [message, setMessage] = useState('');
   const [filter, setFilter] = useState<'All' | FeedbackType>('All');
 
@@ -97,7 +79,7 @@ export default function FeedbackLoopTab() {
       suggestedAction: result.suggestedAction
     };
     setItems((current) => [item, ...current]);
-    appendAgentOpsAudit('FEEDBACK_CAPTURED', item.id, `${item.type}/${item.severity}: ${item.message.slice(0, 90)}`);
+    appendAgentOpsAudit('FEEDBACK_CAPTURED', item.id, `${item.type}/${item.severity}`);
     setMessage('');
   };
 
@@ -109,36 +91,39 @@ export default function FeedbackLoopTab() {
       owner: ownerFor(item.type),
       status: statusFor(item.severity),
       risk: item.severity,
-      request: `Feedback từ ${item.source} / ${item.persona}: ${item.message}`,
-      plan: ['Triage feedback', 'Find evidence', 'Propose small action', item.severity === 'LOW' ? 'Run sandbox response' : 'Request founder approval'],
-      tools: item.type === 'Bug' ? ['Workboard', 'CI Doctor', 'Review Desk'] : item.type === 'Risk' ? ['Risk Register', 'Approval Gate', 'Release Audit'] : ['Idea Portfolio', 'Product Factory', 'Prompt Pack'],
-      approval: item.severity === 'LOW' ? 'Low risk, sandbox response allowed.' : 'Founder review required before external/product change.'
+      request: `${item.source} / ${item.persona}: ${item.message}`,
+      plan: ['Triage feedback', 'Find evidence', 'Propose action', item.severity === 'LOW' ? 'Sandbox response' : 'Founder review'],
+      tools: item.type === 'Bug' ? ['Workboard', 'CI Doctor'] : item.type === 'Risk' ? ['Risk Register', 'Approval Gate'] : ['Product Factory', 'Prompt Pack'],
+      approval: item.severity === 'LOW' ? 'Sandbox allowed.' : 'Founder review required.',
+      sourceSessionId: item.id,
+      expectedOutput: item.suggestedAction,
+      founderReview: item.severity === 'LOW' ? 'Optional.' : 'Required.'
     };
     appendLocalStorageArrayItem<WorkCard>(CARD_KEY, card);
-    setItems((currentItems) => currentItems.map((fb) => fb.id === item.id ? { ...fb, status: 'Converted' } : fb));
-    appendAgentOpsAudit('FEEDBACK_CONVERTED_TO_WORKCARD', item.id, `Created ${card.kind} WorkCard for ${item.type}.`);
+    setItems((current) => current.map((fb) => fb.id === item.id ? { ...fb, status: 'Converted' } : fb));
+    appendAgentOpsAudit('FEEDBACK_CONVERTED_TO_WORKCARD', item.id, card.title);
   };
 
   const archiveFeedback = (item: FeedbackItem) => {
     setItems((current) => current.map((fb) => fb.id === item.id ? { ...fb, status: 'Archived' } : fb));
-    appendAgentOpsAudit('FEEDBACK_ARCHIVED', item.id, `${item.type}/${item.severity}: ${item.message.slice(0, 90)}`);
+    appendAgentOpsAudit('FEEDBACK_ARCHIVED', item.id, item.type);
   };
 
   const copyReport = async () => {
-    const report = `# Feedback Loop Report\n\nGenerated: ${new Date().toLocaleString('vi-VN')}\n\nTotal: ${counts.total}\nIdeas: ${counts.ideas}\nBugs: ${counts.bugs}\nRisks: ${counts.risks}\nConverted: ${counts.converted}\n\n${items.map((item) => `## ${item.type} / ${item.severity} / ${item.status}\nSource: ${item.source}\nPersona: ${item.persona}\nFeedback: ${item.message}\nSuggested action: ${item.suggestedAction}`).join('\n\n')}`;
+    const report = `# Feedback Loop Report\n\nTotal: ${counts.total}\nIdeas: ${counts.ideas}\nBugs: ${counts.bugs}\nRisks: ${counts.risks}\nConverted: ${counts.converted}`;
     await navigator.clipboard.writeText(report);
-    appendAgentOpsAudit('FEEDBACK_REPORT_COPIED', 'feedback-loop', `Copied ${items.length} feedback items.`);
+    appendAgentOpsAudit('FEEDBACK_REPORT_COPIED', 'feedback-loop', `Copied ${items.length} items.`);
   };
 
   return (
     <section className="rounded-3xl border border-amber-400/35 bg-amber-400/10 p-4 text-slate-100">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200">Feedback → Idea/Bug/Risk → WorkCard</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-200">Feedback loop</p>
           <h3 className="mt-1 text-xl font-black text-white">Customer Feedback Loop</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Thu phản hồi dùng thử, phân loại cục bộ và đẩy thành việc cho AI nhân sự. MVP dùng localStorage, có audit trail.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Thu phản hồi, phân loại và đẩy thành WorkCard đúng schema.</p>
         </div>
-        <button onClick={copyReport} className="rounded-2xl border border-amber-300/40 px-4 py-2 text-xs font-black text-amber-100">Copy feedback report</button>
+        <button onClick={copyReport} className="rounded-2xl border border-amber-300/40 px-4 py-2 text-xs font-black text-amber-100">Copy report</button>
       </div>
 
       <div className="mb-4 grid gap-3 md:grid-cols-5">
@@ -153,27 +138,18 @@ export default function FeedbackLoopTab() {
         <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-3">
           <p className="text-sm font-black text-white">Nhập feedback mới</p>
           <div className="mt-3 space-y-2">
-            <input value={source} onChange={(event) => setSource(event.target.value)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Nguồn: demo, group, Google Form..." />
+            <input value={source} onChange={(event) => setSource(event.target.value)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Nguồn" />
             <input value={persona} onChange={(event) => setPersona(event.target.value)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Persona" />
-            <textarea value={message} onChange={(event) => setMessage(event.target.value)} className="min-h-[120px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Nội dung feedback người dùng..." />
-            <button onClick={addFeedback} className="w-full rounded-2xl bg-amber-300 px-4 py-2 text-xs font-black text-slate-950">Phân loại & lưu feedback</button>
+            <textarea value={message} onChange={(event) => setMessage(event.target.value)} className="min-h-[120px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Nội dung feedback" />
+            <button onClick={addFeedback} className="w-full rounded-2xl bg-amber-300 px-4 py-2 text-xs font-black text-slate-950">Phân loại & lưu</button>
           </div>
         </div>
 
         <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-3">
-          <p className="text-sm font-black text-white">Rule phân loại MVP</p>
-          <div className="mt-3 grid gap-2 md:grid-cols-2">
-            <Rule title="Idea" body="Có từ khóa thêm, nên có, muốn, tính năng → Product Factory." />
-            <Rule title="Bug" body="Có lỗi, bug, crash, trắng màn, sai → AI QA / CI Fix." />
-            <Rule title="Risk" body="Có thuế, pháp lý, bảo mật, API key → AI Auditor / Gate." />
-            <Rule title="Question" body="Câu hỏi chung → AI Chief of Staff / FAQ/SOP." />
-          </div>
-          <label className="mt-3 block">
-            <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">Lọc</span>
-            <select value={filter} onChange={(event) => setFilter(event.target.value as 'All' | FeedbackType)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">
-              {['All', 'Idea', 'Bug', 'Risk', 'Question'].map((item) => <option key={item}>{item}</option>)}
-            </select>
-          </label>
+          <p className="text-sm font-black text-white">Bộ lọc</p>
+          <select value={filter} onChange={(event) => setFilter(event.target.value as 'All' | FeedbackType)} className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">
+            {['All', 'Idea', 'Bug', 'Risk', 'Question'].map((item) => <option key={item}>{item}</option>)}
+          </select>
         </div>
       </div>
 
@@ -196,7 +172,7 @@ export default function FeedbackLoopTab() {
             </div>
           </article>
         ))}
-        {filtered.length === 0 && <p className="rounded-2xl border border-dashed border-slate-800 p-4 text-sm font-semibold text-slate-500">Chưa có feedback phù hợp bộ lọc.</p>}
+        {filtered.length === 0 && <p className="rounded-2xl border border-dashed border-slate-800 p-4 text-sm font-semibold text-slate-500">Chưa có feedback phù hợp.</p>}
       </div>
     </section>
   );
@@ -204,8 +180,4 @@ export default function FeedbackLoopTab() {
 
 function Metric({ label, value }: { label: string; value: number }) {
   return <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-center"><p className="text-[10px] font-black uppercase text-slate-500">{label}</p><p className="mt-1 text-2xl font-black text-white">{value}</p></div>;
-}
-
-function Rule({ title, body }: { title: string; body: string }) {
-  return <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-xs font-black text-white">{title}</p><p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">{body}</p></div>;
 }
