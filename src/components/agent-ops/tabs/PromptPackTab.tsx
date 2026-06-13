@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AI_AGENT_TASK_TEMPLATES } from '../../../data/founderCompanyEnhancements';
+import { appendAgentOpsAudit, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const PROMPT_PACK_KEY = 'ledgerflow_prompt_pack_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 
 type PromptPackItem = {
   id: string;
@@ -15,22 +15,8 @@ type PromptPackItem = {
   updatedAt: string;
 };
 
-type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
-
 const roleOptions = ['AI Chief of Staff', 'AI Product Manager', 'AI Fullstack Dev', 'AI Auditor', 'AI Marketer', 'AI Dev', 'AI QA', 'AI Data Analyst'];
-
-function readLocal<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeLocal<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
+const defaultGuardrails = ['Founder duyệt cuối', 'Medium/High risk qua Approval Gate', 'Không hardcode secret', 'Không định vị như ERP kế toán thật', 'Output có acceptance criteria', 'Có audit trail khi copy/export'];
 
 function seedPrompts(): PromptPackItem[] {
   return AI_AGENT_TASK_TEMPLATES.map((item, index) => ({
@@ -46,11 +32,23 @@ function seedPrompts(): PromptPackItem[] {
 }
 
 function buildPromptText(item: PromptPackItem) {
-  return `Vai trò: ${item.role}\nViệc cần làm: ${item.title}\n\nPrompt:\n${item.prompt}\n\nAcceptance criteria:\n${item.acceptance.map((x) => `- ${x}`).join('\n')}\n\nGuardrails:\n- Founder là người duyệt cuối.\n- Không tự thực hiện hành động external/rủi ro nếu chưa qua Approval Gate.\n- Không hardcode API key/secret.\n- Giữ app là learning/R&D/simulation + Company OS, không định vị như ERP kế toán thật.`;
+  return [
+    `Vai trò: ${item.role}`,
+    `Việc cần làm: ${item.title}`,
+    '',
+    'Prompt:',
+    item.prompt,
+    '',
+    'Acceptance criteria:',
+    ...item.acceptance.map((x) => `- ${x}`),
+    '',
+    'Guardrails:',
+    ...defaultGuardrails.map((x) => `- ${x}`)
+  ].join('\n');
 }
 
 export default function PromptPackTab() {
-  const [customItems, setCustomItems] = useState<PromptPackItem[]>(() => readLocal(PROMPT_PACK_KEY, []));
+  const [customItems, setCustomItems] = useState<PromptPackItem[]>(() => readLocalStorageValue(PROMPT_PACK_KEY, []));
   const [role, setRole] = useState(roleOptions[0]);
   const [title, setTitle] = useState('');
   const [prompt, setPrompt] = useState('');
@@ -58,16 +56,12 @@ export default function PromptPackTab() {
   const [filterRole, setFilterRole] = useState('All');
   const [copied, setCopied] = useState<string | null>(null);
 
-  useEffect(() => writeLocal(PROMPT_PACK_KEY, customItems), [customItems]);
+  useEffect(() => writeLocalStorageValue(PROMPT_PACK_KEY, customItems), [customItems]);
 
   const prompts = useMemo(() => [...seedPrompts(), ...customItems], [customItems]);
   const filtered = filterRole === 'All' ? prompts : prompts.filter((item) => item.role === filterRole);
   const roles = ['All', ...Array.from(new Set(prompts.map((item) => item.role)))];
-
-  const pushAudit = (action: string, detail: string) => {
-    const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-    writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action, cardId: 'prompt-pack', detail }, ...current].slice(0, 120));
-  };
+  const pushAudit = (action: string, detail: string) => appendAgentOpsAudit(action, 'prompt-pack', detail);
 
   const addPrompt = () => {
     if (!title.trim() || !prompt.trim()) return;
@@ -96,8 +90,7 @@ export default function PromptPackTab() {
   };
 
   const exportJson = async () => {
-    const payload = JSON.stringify({ exportedAt: new Date().toISOString(), prompts }, null, 2);
-    await navigator.clipboard.writeText(payload);
+    await navigator.clipboard.writeText(JSON.stringify({ exportedAt: new Date().toISOString(), prompts }, null, 2));
     setCopied('export');
     pushAudit('PROMPT_PACK_EXPORTED', `Exported ${prompts.length} prompts to clipboard JSON.`);
     setTimeout(() => setCopied(null), 1200);
@@ -114,7 +107,7 @@ export default function PromptPackTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Versioned prompt library · localStorage first</p>
           <h3 className="mt-1 text-xl font-black text-white">Prompt Pack Library</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Kho prompt cho AI nhân sự. Copy sang ChatGPT/Claude/Gemini/Copilot mà vẫn giữ guardrail approval-first.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Kho prompt cho AI nhân sự, có copy/export và audit trail.</p>
         </div>
         <button onClick={exportJson} className="rounded-2xl border border-emerald-300/40 px-4 py-2 text-xs font-black text-emerald-100">{copied === 'export' ? 'Đã copy JSON' : `Export ${prompts.length} prompts`}</button>
       </div>
@@ -136,7 +129,7 @@ export default function PromptPackTab() {
         <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-3">
           <p className="text-sm font-black text-white">Guardrails mặc định</p>
           <div className="mt-3 grid gap-2 md:grid-cols-2">
-            {['Founder duyệt cuối', 'Medium/High risk qua Approval Gate', 'Không hardcode secret', 'Không định vị như ERP kế toán thật', 'Output có acceptance criteria', 'Có audit trail khi copy/export'].map((item) => <p key={item} className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs font-bold leading-5 text-slate-300">• {item}</p>)}
+            {defaultGuardrails.map((item) => <p key={item} className="rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs font-bold leading-5 text-slate-300">• {item}</p>)}
           </div>
           <label className="mt-3 block">
             <span className="mb-1 block text-[10px] font-black uppercase text-slate-500">Lọc theo vai trò</span>
