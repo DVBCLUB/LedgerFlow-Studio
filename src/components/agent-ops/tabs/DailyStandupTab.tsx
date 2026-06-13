@@ -1,25 +1,17 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import {
-  FOUNDER_DAILY_KPI_DASHBOARD,
-  FOUNDER_RISK_REGISTER,
-  PRODUCT_IDEA_PORTFOLIO,
-  RELEASE_READINESS_CHECKLIST
-} from '../../../data/founderCompanyEnhancements';
+import { FOUNDER_RISK_REGISTER, PRODUCT_IDEA_PORTFOLIO, RELEASE_READINESS_CHECKLIST } from '../../../data/founderCompanyEnhancements';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
-const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const FEEDBACK_KEY = 'ledgerflow_customer_feedback_v1';
-const COST_MANUAL_KEY = 'ledgerflow_ai_manual_usage_v1';
-const FACTORY_STATE_KEY = 'ledgerflow_product_factory_state_v1';
+const AUDIT_KEY = 'ledgerflow_aiops_audit_v1';
 const STANDUP_KEY = 'ledgerflow_daily_standup_v1';
 
-type WorkCard = { id: string; title: string; status: string; risk: string; owner: string; kind: string; request?: string };
-type ApprovalRequest = { id: string; title: string; status: string; risk: string; action?: string };
-type FeedbackItem = { id: string; type: string; severity?: string; risk?: string; status: string; message?: string; text?: string; source: string };
+type WorkCard = { id?: string; title?: string; status?: string; risk?: string; owner?: string };
+type ApprovalRequest = { id?: string; title?: string; status?: string; risk?: string };
+type FeedbackItem = { id?: string; type?: string; severity?: string; risk?: string; status?: string; message?: string };
 type AuditEntry = { id: string; at: string; action: string; cardId: string; detail: string };
-type CostEntry = { id: string; provider: string; estimatedCostUsd?: number; costUsd?: number; status?: string; promptChars?: number; outputChars?: number };
 type StandupArchive = { id: string; at: string; report: string };
 
 function readLocal<T>(key: string, fallback: T): T {
@@ -39,22 +31,8 @@ function ideaScore(idea: { pain: number; mvpCheapness: number; distribution: num
   return Math.round(idea.pain * 3 + idea.mvpCheapness * 2 + idea.distribution * 1.5 - idea.technicalRisk * 1.5);
 }
 
-function healthLabel(score: number) {
-  if (score >= 75) return 'GREEN - tập trung tốt';
-  if (score >= 55) return 'YELLOW - cần cắt bớt việc';
-  return 'RED - backlog/risk đang vượt sức founder';
-}
-
-function feedbackRisk(item: FeedbackItem) {
+function riskOf(item: { risk?: string; severity?: string }) {
   return item.risk ?? item.severity ?? 'LOW';
-}
-
-function estimatedCost(item: CostEntry) {
-  if (typeof item.estimatedCostUsd === 'number') return item.estimatedCostUsd;
-  if (typeof item.costUsd === 'number') return item.costUsd;
-  const inputTokens = Math.ceil((item.promptChars ?? 0) / 4);
-  const outputTokens = Math.ceil((item.outputChars ?? 0) / 4);
-  return (inputTokens + outputTokens) * 0;
 }
 
 export default function DailyStandupTab() {
@@ -66,24 +44,16 @@ export default function DailyStandupTab() {
     const approvals = readLocal<ApprovalRequest[]>(APPROVAL_KEY, []);
     const feedback = readLocal<FeedbackItem[]>(FEEDBACK_KEY, []);
     const audit = readLocal<AuditEntry[]>(AUDIT_KEY, []);
-    const cost = readLocal<CostEntry[]>(COST_MANUAL_KEY, []);
-    const factory = readLocal<Record<string, string>>(FACTORY_STATE_KEY, {});
     const openCards = cards.filter((card) => card.status !== 'Done');
-    const waitingApproval = [...cards.filter((card) => card.status === 'Waiting Approval'), ...approvals.filter((item) => item.status === 'Pending')];
-    const highRisk = cards.filter((card) => card.risk === 'HIGH').length + approvals.filter((item) => item.risk === 'HIGH' && item.status === 'Pending').length + feedback.filter((item) => feedbackRisk(item) === 'HIGH' && item.status !== 'Converted').length;
+    const pendingApprovals = approvals.filter((item) => item.status === 'Pending');
+    const highRisk = cards.filter((card) => riskOf(card) === 'HIGH').length + pendingApprovals.filter((item) => riskOf(item) === 'HIGH').length + feedback.filter((item) => riskOf(item) === 'HIGH' && item.status !== 'Converted').length;
     const bugs = feedback.filter((item) => item.type === 'Bug' && item.status !== 'Converted');
-    const riskFeedback = feedback.filter((item) => item.type === 'Risk' && item.status !== 'Converted');
-    const estimatedCostTotal = cost.reduce((sum, item) => sum + estimatedCost(item), 0);
     const topIdeas = PRODUCT_IDEA_PORTFOLIO.map((idea) => ({ ...idea, score: ideaScore(idea) })).sort((a, b) => b.score - a.score).slice(0, 3);
-    const doneCards = cards.filter((card) => card.status === 'Done').length;
-    const focusPenalty = Math.min(35, openCards.length * 3 + waitingApproval.length * 5 + highRisk * 6);
-    const progressBoost = Math.min(20, doneCards * 4 + Object.keys(factory).length * 2);
-    const healthScore = Math.max(0, Math.min(100, 70 - focusPenalty + progressBoost));
-
-    return { cards, approvals, feedback, audit, cost, factory, openCards, waitingApproval, highRisk, bugs, riskFeedback, estimatedCost: estimatedCostTotal, topIdeas, healthScore };
+    const healthScore = Math.max(0, Math.min(100, 80 - openCards.length * 3 - pendingApprovals.length * 5 - highRisk * 4));
+    return { cards, approvals, feedback, audit, openCards, pendingApprovals, highRisk, bugs, topIdeas, healthScore };
   }, []);
 
-  const report = `# AI Daily Standup - LedgerFlow Studio\n\nNgày: ${new Date().toLocaleString('vi-VN')}\nFounder health score: ${data.healthScore}/100 (${healthLabel(data.healthScore)})\n\n## 1. Tình hình hôm nay\n- WorkCards mở: ${data.openCards.length}\n- Đang chờ founder duyệt: ${data.waitingApproval.length}\n- High-risk signals: ${data.highRisk}\n- Feedback bug chưa xử lý: ${data.bugs.length}\n- Feedback risk chưa xử lý: ${data.riskFeedback.length}\n- AI cost ước tính local: $${data.estimatedCost.toFixed(4)}\n\n## 2. Founder cần duyệt trước\n${data.waitingApproval.slice(0, 8).map((item, index) => `${index + 1}. ${item.title} [${item.risk}]`).join('\n') || '- Không có mục pending approval.'}\n\n## 3. Top việc AI nên làm tiếp\n${data.openCards.slice(0, 5).map((card, index) => `${index + 1}. ${card.owner} — ${card.title} (${card.status}/${card.risk})`).join('\n') || '- Chưa có WorkCard mở. Tạo việc từ Product Factory hoặc Feedback.'}\n\n## 4. Ý tưởng sản phẩm nên ưu tiên\n${data.topIdeas.map((idea, index) => `${index + 1}. ${idea.idea} — score ${idea.score}; MVP: ${idea.firstMvp}`).join('\n')}\n\n## 5. Rủi ro cần nhớ\n${FOUNDER_RISK_REGISTER.slice(0, 5).map((risk) => `- [${risk.severity}] ${risk.risk}: ${risk.control}`).join('\n')}\n\n## 6. Checklist trước khi ship hôm nay\n${RELEASE_READINESS_CHECKLIST.slice(0, 5).map((item) => `- [ ] ${item}`).join('\n')}\n\n## 7. KPI nhóm đang theo dõi\n${FOUNDER_DAILY_KPI_DASHBOARD.map((item) => `- ${item.group}: ${item.kpis.slice(0, 2).join(', ')}`).join('\n')}\n\n## 8. Recent audit\n${data.audit.slice(0, 8).map((item) => `- ${item.at} | ${item.action} | ${item.detail}`).join('\n') || '- Chưa có audit event.'}\n\nGuardrail: báo cáo này chỉ điều phối việc học/R&D/simulation/Company OS. Không tự thực hiện external action và không thay founder duyệt.`;
+  const report = `# AI Daily Standup - LedgerFlow Studio\n\nNgày: ${new Date().toLocaleString('vi-VN')}\nFounder health score: ${data.healthScore}/100\n\n## Tình hình\n- WorkCards mở: ${data.openCards.length}\n- Approval pending: ${data.pendingApprovals.length}\n- High-risk signals: ${data.highRisk}\n- Bug feedback: ${data.bugs.length}\n\n## Founder cần duyệt\n${data.pendingApprovals.map((item, index) => `${index + 1}. ${item.title ?? item.id ?? 'Pending item'} [${riskOf(item)}]`).join('\n') || '- Không có mục pending.'}\n\n## Top ideas\n${data.topIdeas.map((idea, index) => `${index + 1}. ${idea.idea} — score ${idea.score}`).join('\n')}\n\n## Rủi ro cần nhớ\n${FOUNDER_RISK_REGISTER.slice(0, 4).map((risk) => `- [${risk.severity}] ${risk.risk}`).join('\n')}\n\n## Release checklist\n${RELEASE_READINESS_CHECKLIST.slice(0, 5).map((item) => `- [ ] ${item}`).join('\n')}\n\nGuardrail: không tự chạy external action; founder duyệt cuối.`;
 
   const pushAudit = (detail: string) => {
     const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
@@ -109,38 +79,28 @@ export default function DailyStandupTab() {
     <section className="rounded-3xl border border-sky-400/35 bg-sky-400/10 p-4 text-slate-100">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Morning command brief · approval-first</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Morning command brief · CI-stable</p>
           <h3 className="mt-1 text-xl font-black text-white">AI Daily Standup</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Tổng hợp việc đang mở, approval, feedback, risk, cost và audit để founder quyết định hôm nay.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Báo cáo sáng local-first: việc mở, approval, feedback, rủi ro và release checklist.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={saveSnapshot} className="rounded-2xl border border-sky-300/40 px-4 py-2 text-xs font-black text-sky-100">{saved ? 'Đã lưu' : 'Save local snapshot'}</button>
+          <button onClick={saveSnapshot} className="rounded-2xl border border-sky-300/40 px-4 py-2 text-xs font-black text-sky-100">{saved ? 'Đã lưu' : 'Save snapshot'}</button>
           <button onClick={copyReport} className="rounded-2xl bg-sky-300 px-4 py-2 text-xs font-black text-slate-950">{copied ? 'Đã copy' : 'Copy Markdown'}</button>
         </div>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-6">
+      <div className="grid gap-3 md:grid-cols-4">
         <Metric label="Health" value={`${data.healthScore}/100`} />
         <Metric label="Open cards" value={data.openCards.length} />
-        <Metric label="Pending" value={data.waitingApproval.length} />
+        <Metric label="Pending" value={data.pendingApprovals.length} />
         <Metric label="High risk" value={data.highRisk} />
-        <Metric label="Bugs" value={data.bugs.length} />
-        <Metric label="Cost" value={`$${data.estimatedCost.toFixed(2)}`} />
       </div>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_1.3fr]">
-        <div className="space-y-3">
-          <Panel title="Founder duyệt trước">
-            {data.waitingApproval.slice(0, 6).map((item) => <p key={item.id} className="text-xs font-semibold leading-5 text-amber-100">• {item.title} ({item.risk})</p>)}
-            {data.waitingApproval.length === 0 && <p className="text-xs font-semibold text-slate-500">Không có mục đang chờ duyệt.</p>}
-          </Panel>
-          <Panel title="Top ideas">
-            {data.topIdeas.map((idea) => <p key={idea.idea} className="text-xs font-semibold leading-5 text-emerald-100">• {idea.idea} — {idea.score}</p>)}
-          </Panel>
-          <Panel title="Risk reminders">
-            {FOUNDER_RISK_REGISTER.slice(0, 3).map((risk) => <p key={risk.risk} className="text-xs font-semibold leading-5 text-rose-100">• {risk.risk}</p>)}
-          </Panel>
-        </div>
+        <Panel title="Founder duyệt trước">
+          {data.pendingApprovals.slice(0, 6).map((item, index) => <p key={item.id ?? `approval-${index}`} className="text-xs font-semibold leading-5 text-amber-100">• {item.title ?? 'Pending item'} ({riskOf(item)})</p>)}
+          {data.pendingApprovals.length === 0 && <p className="text-xs font-semibold text-slate-500">Không có mục đang chờ duyệt.</p>}
+        </Panel>
         <pre className="max-h-[620px] overflow-auto whitespace-pre-wrap rounded-3xl border border-slate-800 bg-slate-950/80 p-4 text-xs font-semibold leading-6 text-slate-300">{report}</pre>
       </div>
     </section>
