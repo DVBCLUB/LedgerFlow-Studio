@@ -27,13 +27,16 @@ export function readLocalStorageArray<T>(keys: string[]): T[] {
 
 export function useLocalStorageVersion(events: string[] = []) {
   const [, setVersion] = useState(0);
+  const eventKey = events.join('|');
+
   useEffect(() => {
     const bump = () => setVersion((value) => value + 1);
+    const eventNames = eventKey ? eventKey.split('|') : [];
     window.addEventListener('storage', bump);
-    events.forEach((eventName) => window.addEventListener(eventName, bump));
+    eventNames.forEach((eventName) => window.addEventListener(eventName, bump));
     return () => {
       window.removeEventListener('storage', bump);
-      events.forEach((eventName) => window.removeEventListener(eventName, bump));
+      eventNames.forEach((eventName) => window.removeEventListener(eventName, bump));
     };
-  }, [events.join('|')]);
+  }, [eventKey]);
 }
