@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AIUsageLogEntry, fetchAIUsageLogs } from '../../../utils/aiSettingsApi';
+import { fetchAIUsageLogs } from '../../../utils/aiSettingsApi';
+import type { AIUsageLogEntry } from '../../../utils/aiSettingsApi';
 
 const COST_RATE_KEY = 'ledgerflow_ai_cost_rates_v1';
 const MANUAL_USAGE_KEY = 'ledgerflow_ai_manual_usage_v1';
@@ -72,6 +73,10 @@ function normalizeManual(log: ManualUsage): NormalizedUsage {
   return { ...log, source: 'Manual' };
 }
 
+function errorMessage(error: unknown) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function pushAudit(detail: string) {
   const current = readLocal<AuditEntry[]>(AUDIT_KEY, []);
   writeLocal(AUDIT_KEY, [{ id: `audit-${Date.now()}`, at: new Date().toLocaleString('vi-VN'), action: 'AI_COST_TRACKER', cardId: 'ai-cost-tracker', detail }, ...current].slice(0, 120));
@@ -93,14 +98,13 @@ export default function AICostTrackerTab() {
       setGatewayLogs(logs);
       setMessage(`Đã tải ${logs.length} AI Gateway usage logs.`);
       pushAudit(`Loaded ${logs.length} AI Gateway usage logs into cost tracker.`);
-    } catch (err: any) {
-      setMessage(`Không tải được AI Gateway logs: ${err.message || err}. Vẫn dùng manual/local logs được.`);
+    } catch (error: unknown) {
+      setMessage(`Không tải được AI Gateway logs: ${errorMessage(error)}. Vẫn dùng manual/local logs được.`);
     }
   };
 
   useEffect(() => {
     reload();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const usages = useMemo(() => [...gatewayLogs.map(normalizeGatewayLog), ...manualLogs.map(normalizeManual)], [gatewayLogs, manualLogs]);
