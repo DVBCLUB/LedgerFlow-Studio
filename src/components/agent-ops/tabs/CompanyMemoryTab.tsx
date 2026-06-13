@@ -9,7 +9,7 @@ import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageValue, useLoc
 
 const FACTORY_STATE_KEY = 'ledgerflow_product_factory_state_v1';
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
-const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
+const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const PROMPT_PACK_KEY = 'ledgerflow_prompt_pack_v1';
 const DECISION_KEY = 'ledgerflow-founder-decision-log-v1';
 
@@ -29,7 +29,47 @@ function buildSnapshot() {
     .sort((a, b) => b.score - a.score)
     .slice(0, 3);
 
-  return `# LedgerFlow Studio - Company Memory Snapshot\n\nGenerated: ${new Date().toLocaleString('vi-VN')}\n\n## Product Boundary\nLedgerFlow Studio là learning/R&D/simulation + Company OS cho solo founder. Không định vị như ERP kế toán thật và không thay MISA/Bravo. Founder duyệt cuối.\n\n## Operating Counts\n- WorkCards: ${cards.length}\n- Approval requests: ${approvals.length}\n- Custom prompt pack items: ${prompts.length}\n- Decision log items: ${decisions.length}\n- Product Factory tracked ideas: ${Object.keys(factoryState).length}\n- Recent audit events: ${audit.length}\n\n## Founder KPI Groups\n${FOUNDER_DAILY_KPI_DASHBOARD.map((item) => `### ${item.group}\nPurpose: ${item.purpose}\nKPI: ${item.kpis.join(', ')}\nWarning: ${item.warning}`).join('\n\n')}\n\n## Top Ideas\n${topIdeas.map((idea, index) => `${index + 1}. ${idea.idea} — score ${idea.score}\n   MVP: ${idea.firstMvp}\n   Monetization: ${idea.monetization}`).join('\n')}\n\n## Product Factory State\n${Object.entries(factoryState).map(([idea, status]) => `- ${idea}: ${status}`).join('\n') || '- No tracked product factory state yet.'}\n\n## Risk Register\n${FOUNDER_RISK_REGISTER.map((risk) => `- [${risk.severity}] ${risk.risk}: ${risk.control}`).join('\n')}\n\n## Release Readiness\n${RELEASE_READINESS_CHECKLIST.map((item) => `- [ ] ${item}`).join('\n')}\n\n## Recent Audit Trail\n${audit.slice(0, 12).map((item) => `- ${item.at} | ${item.action} | ${item.cardId} | ${item.detail}`).join('\n') || '- No local audit event yet.'}\n`;
+  const kpiText = FOUNDER_DAILY_KPI_DASHBOARD.map((item) => `### ${item.group}\nPurpose: ${item.purpose}\nKPI: ${item.kpis.join(', ')}\nWarning: ${item.warning}`).join('\n\n');
+  const ideaText = topIdeas.map((idea, index) => `${index + 1}. ${idea.idea} — score ${idea.score}\n   MVP: ${idea.firstMvp}\n   Monetization: ${idea.monetization}`).join('\n');
+  const factoryText = Object.entries(factoryState).map(([idea, status]) => `- ${idea}: ${status}`).join('\n') || '- No tracked product factory state yet.';
+  const riskText = FOUNDER_RISK_REGISTER.map((risk) => `- [${risk.severity}] ${risk.risk}: ${risk.control}`).join('\n');
+  const releaseText = RELEASE_READINESS_CHECKLIST.map((item) => `- [ ] ${item}`).join('\n');
+  const auditText = audit.slice(0, 12).map((item) => `- ${item.at} | ${item.action} | ${item.cardId} | ${item.detail}`).join('\n') || '- No local audit event yet.';
+
+  return [
+    '# LedgerFlow Studio - Company Memory Snapshot',
+    '',
+    `Generated: ${new Date().toLocaleString('vi-VN')}`,
+    '',
+    '## Product Boundary',
+    'LedgerFlow Studio is a learning, R&D, simulation and Company OS workspace. Founder keeps final approval.',
+    '',
+    '## Operating Counts',
+    `- WorkCards: ${cards.length}`,
+    `- Approval requests: ${approvals.length}`,
+    `- Custom prompt pack items: ${prompts.length}`,
+    `- Decision log items: ${decisions.length}`,
+    `- Product Factory tracked ideas: ${Object.keys(factoryState).length}`,
+    `- Recent audit events: ${audit.length}`,
+    '',
+    '## Founder KPI Groups',
+    kpiText,
+    '',
+    '## Top Ideas',
+    ideaText,
+    '',
+    '## Product Factory State',
+    factoryText,
+    '',
+    '## Risk Register',
+    riskText,
+    '',
+    '## Release Readiness',
+    releaseText,
+    '',
+    '## Recent Audit Trail',
+    auditText
+  ].join('\n');
 }
 
 export default function CompanyMemoryTab() {
@@ -51,7 +91,7 @@ export default function CompanyMemoryTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-200">Weekly snapshot · markdown export · offline-ready</p>
           <h3 className="mt-1 text-xl font-black text-white">Company Memory</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Tạo snapshot để lưu vào docs/snapshots hoặc gửi cho AI agent ở cuộc trò chuyện mới, giữ lịch sử quyết định và rủi ro.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Tạo snapshot để gửi cho AI agent ở cuộc trò chuyện mới, giữ lịch sử quyết định và rủi ro.</p>
         </div>
         <button onClick={copySnapshot} className="rounded-2xl bg-indigo-300 px-4 py-2 text-xs font-black text-slate-950">{copied ? 'Đã copy snapshot' : 'Copy Markdown Snapshot'}</button>
       </div>
