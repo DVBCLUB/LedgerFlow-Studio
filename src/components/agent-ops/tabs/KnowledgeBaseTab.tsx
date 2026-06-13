@@ -52,16 +52,18 @@ function buildRagContext(notes: KnowledgeNote[]) {
 }
 
 function makeWorkCard(note: KnowledgeNote): WorkCard {
-  const highRisk = note.source === 'Risk Note' || note.trust !== 'Approved';
+  const needsFounderReview = note.source === 'Risk Note' || note.trust !== 'Approved';
   return {
     id: `kb-card-${Date.now()}`,
     title: `Review knowledge: ${note.title}`,
+    kind: 'Audit',
     owner: 'AI Chief of Staff',
-    lane: 'Waiting Approval',
-    risk: highRisk ? 'MEDIUM' : 'LOW',
-    nextAction: 'Review note, approve trusted context, then decide if it can be used in AI prompts/RAG.',
-    evidence: `${note.source} · ${note.trust} · ${note.tags || 'no tags'}`,
-    updatedAt: new Date().toLocaleString('vi-VN')
+    status: needsFounderReview ? 'Waiting Approval' : 'Inbox',
+    risk: needsFounderReview ? 'MEDIUM' : 'LOW',
+    request: `Review knowledge note before AI/RAG usage. Source: ${note.source}. Trust: ${note.trust}. Tags: ${note.tags || 'no tags'}.`,
+    plan: ['Read note', 'Check source and trust level', 'Decide if safe for AI context', 'Update Knowledge Base trust level'],
+    tools: ['Knowledge Base', 'Company Memory', 'Approval Gate'],
+    approval: needsFounderReview ? 'Founder review required before using this note as approved AI context.' : 'Approved note can be used as local RAG context.'
   };
 }
 
@@ -124,7 +126,7 @@ export default function KnowledgeBaseTab() {
 
   const sendToWorkboard = (note: KnowledgeNote) => {
     const card = makeWorkCard(note);
-    appendLocalStorageArrayItem(WORKBOARD_KEY, card, 120);
+    appendLocalStorageArrayItem<WorkCard>(WORKBOARD_KEY, card, 120);
     appendAgentOpsAudit('KNOWLEDGE_SENT_TO_WORKBOARD', card.id, note.title);
   };
 
