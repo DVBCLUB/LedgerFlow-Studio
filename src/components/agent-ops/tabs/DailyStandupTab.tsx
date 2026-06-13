@@ -4,7 +4,7 @@ import { FOUNDER_RISK_REGISTER, PRODUCT_IDEA_PORTFOLIO, RELEASE_READINESS_CHECKL
 import { appendAgentOpsAudit, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
-const APPROVAL_KEY = 'ledgerflow_aiops_approvals_v1';
+const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const FEEDBACK_KEY = 'ledgerflow_customer_feedback_v1';
 const STANDUP_KEY = 'ledgerflow_daily_standup_v1';
 
