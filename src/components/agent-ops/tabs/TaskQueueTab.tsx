@@ -91,6 +91,12 @@ function approvalRiskFor(risk: TaskRisk): ApprovalRequest['risk'] {
   return risk === 'LOW' ? 'MEDIUM' : risk;
 }
 
+function approvalExpiryIso(days = 7) {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + days);
+  return expiresAt.toISOString();
+}
+
 function createMarkdown(task: AITask) {
   return [
     `# AI Task: ${task.title}`,
@@ -183,6 +189,7 @@ export default function TaskQueueTab() {
       action: `Allow ${task.agent} to execute task`,
       details: createMarkdown(task),
       createdAt: new Date().toISOString(),
+      expiresAt: approvalExpiryIso(),
     };
     appendLocalStorageArrayItem(APPROVAL_KEY, request, 200);
     updateStatus(task, 'Waiting Approval');
