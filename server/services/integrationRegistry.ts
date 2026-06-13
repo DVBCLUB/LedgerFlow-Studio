@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { appendAuditEvent, integrationLevelToAuditRisk, integrationTypeToAuditStatus } from "./auditLog";
 import { getGitHubSummary } from "./githubConnector";
 
 export type IntegrationStatus = "connected" | "local" | "manual" | "planned" | "error";
@@ -239,6 +240,17 @@ export async function appendIntegrationEvent(input: Omit<IntegrationEvent, "id" 
   };
   events.unshift(event);
   await writeJsonFile(EVENTS_FILE, events.slice(0, 300));
+  await appendAuditEvent({
+    actor: "connector",
+    workspace: "Integration Hub",
+    action: input.type,
+    target: input.connectorId,
+    risk: integrationLevelToAuditRisk(input.level),
+    status: integrationTypeToAuditStatus(input.type, input.level),
+    summary: input.message,
+    connectorId: input.connectorId,
+    evidence: { integrationEventId: event.id, level: input.level, type: input.type },
+  }).catch(() => undefined);
   return event;
 }
 
