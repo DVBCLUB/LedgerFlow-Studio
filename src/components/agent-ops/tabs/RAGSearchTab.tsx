@@ -104,23 +104,22 @@ export default function RAGSearchTab() {
   const knowledge = readLocalStorageValue<KnowledgeNote[]>(KNOWLEDGE_KEY, []);
   const memories = readLocalStorageValue<MemoryVersion[]>(MEMORY_VERSION_KEY, []);
 
-  const sources = useMemo(() => {
-    const allSources = [
-      ...knowledge.map(knowledgeToSource),
-      ...memories.map(memoryToSource),
-    ];
+  const allSources = useMemo(() => [
+    ...knowledge.map(knowledgeToSource),
+    ...memories.map(memoryToSource),
+  ], [knowledge, memories]);
 
-    return allSources
-      .filter((source) => includeDraft || source.status === 'Approved')
-      .map((source) => ({ ...source, score: scoreText(`${source.title}\n${source.text}`, query) }))
-      .filter((source) => !query.trim() || source.score > 0)
-      .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
-      .slice(0, 30);
-  }, [includeDraft, knowledge, memories, query]);
+  const eligibleSources = useMemo(() => allSources.filter((source) => includeDraft || source.status === 'Approved'), [allSources, includeDraft]);
 
-  const selectedSources = sources.filter((source) => selectedIds.includes(source.id));
+  const sources = useMemo(() => eligibleSources
+    .map((source) => ({ ...source, score: scoreText(`${source.title}\n${source.text}`, query) }))
+    .filter((source) => !query.trim() || source.score > 0)
+    .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+    .slice(0, 30), [eligibleSources, query]);
+
+  const selectedSources = eligibleSources.filter((source) => selectedIds.includes(source.id));
   const context = buildContext(selectedSources);
-  const approvedCount = [...knowledge, ...memories].filter((item) => item.status === 'Approved').length;
+  const approvedCount = allSources.filter((item) => item.status === 'Approved').length;
 
   const toggleSource = (id: string) => {
     setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
