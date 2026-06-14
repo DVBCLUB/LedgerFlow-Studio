@@ -66,6 +66,36 @@ export type GitHubPullRequestDigest = {
   lastCheckedAt: string;
 };
 
+export type GitHubWorkflowStepSummary = {
+  name: string;
+  status: string;
+  conclusion: string | null;
+  number: number;
+  startedAt: string | null;
+  completedAt: string | null;
+};
+
+export type GitHubWorkflowJobSummary = {
+  id: number;
+  name: string;
+  status: string;
+  conclusion: string | null;
+  htmlUrl: string;
+  startedAt: string | null;
+  completedAt: string | null;
+  failedSteps: GitHubWorkflowStepSummary[];
+  steps: GitHubWorkflowStepSummary[];
+};
+
+export type GitHubWorkflowRunJobsResult = {
+  repo: string;
+  runId: number;
+  jobs: GitHubWorkflowJobSummary[];
+  failedJobs: GitHubWorkflowJobSummary[];
+  hasFailures: boolean;
+  lastCheckedAt: string;
+};
+
 async function readJson<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
   if (!response.ok || data?.success === false) {
@@ -93,6 +123,13 @@ export async function createApprovedGitHubChangeRequest(input: ApprovedGitHubCha
 export async function fetchGitHubPullRequestDigest(repo: string | undefined, pullNumber: number): Promise<GitHubPullRequestDigest> {
   const data = await readJson<{ success: true; result: GitHubPullRequestDigest }>(
     await fetch(`/api/integrations/github/prs/${encodeURIComponent(String(pullNumber))}/digest${repoQuery(repo)}`),
+  );
+  return data.result;
+}
+
+export async function fetchGitHubWorkflowRunJobs(repo: string | undefined, runId: number): Promise<GitHubWorkflowRunJobsResult> {
+  const data = await readJson<{ success: true; result: GitHubWorkflowRunJobsResult }>(
+    await fetch(`/api/integrations/github/runs/${encodeURIComponent(String(runId))}/jobs${repoQuery(repo)}`),
   );
   return data.result;
 }
