@@ -95,6 +95,13 @@ function buildContext(sources: RAGSource[]) {
   ].join('\n')).join('\n\n---\n\n');
 }
 
+function evidenceWarning(query: string, matches: RAGSource[], selectedSources: RAGSource[]) {
+  if (matches.length === 0) return 'Không có source phù hợp. Không nên trả lời chắc chắn; cần bổ sung hoặc approve nguồn.';
+  if (selectedSources.length === 0) return 'Chưa chọn citation vào context basket. AI chỉ được trả lời sau khi có nguồn được chọn.';
+  if (query.trim() && selectedSources.length < 2) return 'Nguồn còn mỏng. Nên chọn thêm citation độc lập hoặc nói rõ bằng chứng chưa đủ.';
+  return '';
+}
+
 export default function RAGSearchTab() {
   useLocalStorageVersion();
   const [query, setQuery] = useState('');
@@ -120,6 +127,7 @@ export default function RAGSearchTab() {
   const selectedSources = eligibleSources.filter((source) => selectedIds.includes(source.id));
   const context = buildContext(selectedSources);
   const approvedCount = allSources.filter((item) => item.status === 'Approved').length;
+  const warning = evidenceWarning(query, sources, selectedSources);
 
   const toggleSource = (id: string) => {
     setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
@@ -131,16 +139,19 @@ export default function RAGSearchTab() {
       '',
       `Query: ${query || 'No query'}`,
       `Sources: ${selectedSources.map((source) => `[${source.citation}]`).join(', ') || 'none'}`,
+      warning ? `Evidence warning: ${warning}` : '',
       '',
       context,
       '',
       'Instruction: use only cited context above. If evidence is weak, say what is missing.',
-    ].join('\n'));
+    ].filter(Boolean).join('\n'));
     appendAgentOpsAudit('RAG_CONTEXT_COPIED', 'rag-search', `${selectedSources.length} sources copied for query: ${query || 'none'}`);
+    if (warning) appendAgentOpsAudit('RAG_LOW_EVIDENCE_WARNING', 'rag-search', warning);
   };
 
   const runSearch = () => {
     appendAgentOpsAudit('RAG_SEARCH_RUN', 'rag-search', `${sources.length} matches for query: ${query || 'empty'}`);
+    if (warning) appendAgentOpsAudit('RAG_LOW_EVIDENCE_WARNING', 'rag-search', warning);
   };
 
   return (
@@ -165,6 +176,8 @@ export default function RAGSearchTab() {
         </label>
         <button onClick={runSearch} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-400/10">Audit search</button>
       </div>
+
+      {warning && <p className="mt-3 rounded-2xl border border-amber-300/35 bg-amber-400/10 p-3 text-xs font-bold leading-5 text-amber-100">Evidence warning: {warning}</p>}
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="grid gap-3">
