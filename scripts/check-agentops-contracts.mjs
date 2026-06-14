@@ -59,6 +59,28 @@ assertContains('src/components/agent-ops/agentOpsNavigation.ts', 'export const a
 assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'rag'", 'RAG Search tab must remain registered in Knowledge navigation.');
 assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'release'", 'Release tab must remain registered in Governance navigation.');
 
+const companyLaneFile = 'src/config/companyOSNavigation.ts';
+[
+  'command-center',
+  'product-studio',
+  'marketing-growth',
+  'sales-crm',
+  'finance-accounting',
+  'projects-delivery',
+  'ai-workforce',
+  'documents-approval',
+  'analytics-sandbox',
+  'integration-hub',
+  'system-settings',
+  'industry-templates',
+].forEach((laneId) => assertContains(companyLaneFile, laneId, `Company OS lane ${laneId} must remain registered.`));
+assertContains('src/components/agent-ops/tabs/NavigationMapTab.tsx', 'companyOSLanes', 'Navigation Map must read from the Company OS lane registry.');
+
+assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'Import document text', 'Knowledge Base must keep local document import.');
+assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'Needs Review', 'Imported document chunks must require review before RAG use.');
+assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'RAG_LOW_EVIDENCE_WARNING', 'RAG Search must warn when evidence is weak.');
+assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'eligibleSources', 'RAG context basket must not depend only on filtered search results.');
+
 if (failures.length > 0) {
   console.error('\nAgentOps contract check failed:\n');
   for (const failure of failures) console.error(`- ${failure}`);
