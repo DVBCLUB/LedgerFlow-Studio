@@ -8,6 +8,7 @@ import MemoryVersionsTab from './tabs/MemoryVersionsTab';
 import FounderOSTab from './tabs/FounderOSTab';
 import IndustryTemplatesTab from './tabs/IndustryTemplatesTab';
 import NavigationMapTab from './tabs/NavigationMapTab';
+import GrowthStudioTab from './tabs/GrowthStudioTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -20,7 +21,7 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
@@ -28,6 +29,7 @@ const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'workboard', label: 'Workboard' },
   { id: 'tasks', label: 'Task Queue' },
   { id: 'factory', label: 'Product Factory' },
+  { id: 'growth', label: 'Growth Studio' },
   { id: 'tools', label: 'Tool Cards' },
   { id: 'prompts', label: 'Prompt Pack' },
   { id: 'memory', label: 'Company Memory' },
@@ -75,6 +77,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         {tab === 'workboard' && <WorkboardTab />}
         {tab === 'tasks' && <TaskQueueTab />}
         {tab === 'factory' && <ProductFactoryTab />}
+        {tab === 'growth' && <GrowthStudioTab />}
         {tab === 'tools' && <ToolCardsTab />}
         {tab === 'prompts' && <PromptPackTab />}
         {tab === 'memory' && <CompanyMemoryTab />}
