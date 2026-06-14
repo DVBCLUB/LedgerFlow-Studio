@@ -15,6 +15,7 @@ import AnalyticsSandboxTab from './tabs/AnalyticsSandboxTab';
 import LearningGamesTab from './tabs/LearningGamesTab';
 import SecretsVaultTab from './tabs/SecretsVaultTab';
 import QATestMatrixTab from './tabs/QATestMatrixTab';
+import GitHubPRControlTab from './tabs/GitHubPRControlTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -27,7 +28,7 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
@@ -42,6 +43,7 @@ const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'games', label: 'Learning Games' },
   { id: 'secrets', label: 'Secrets Vault' },
   { id: 'qa', label: 'QA Matrix' },
+  { id: 'githubPr', label: 'GitHub PR' },
   { id: 'tools', label: 'Tool Cards' },
   { id: 'prompts', label: 'Prompt Pack' },
   { id: 'memory', label: 'Company Memory' },
@@ -96,6 +98,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         {tab === 'games' && <LearningGamesTab />}
         {tab === 'secrets' && <SecretsVaultTab />}
         {tab === 'qa' && <QATestMatrixTab />}
+        {tab === 'githubPr' && <GitHubPRControlTab />}
         {tab === 'tools' && <ToolCardsTab />}
         {tab === 'prompts' && <PromptPackTab />}
         {tab === 'memory' && <CompanyMemoryTab />}
