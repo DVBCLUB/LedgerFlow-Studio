@@ -17,6 +17,7 @@ const statusHelp: Record<WorkStatus, string> = {
 };
 
 type StoredSession = { id: string; title: string; kind?: WorkKind; status?: string; risk?: WorkCard['risk']; goal?: string; steps?: SessionStep[] };
+type StoredWorkCard = Partial<WorkCard> & Record<string, unknown>;
 type ReviewDeskResultEvent = { sourceCardId?: string; at?: string; result?: { branchName?: string; pullRequestNumber?: number; pullRequestUrl?: string } };
 type CiFixPackage = { id: string; sourceCardId?: string; branchName: string; pullRequestNumber: number; workflowName: string; status: string; conclusion: string | null; createdAt: string; prompt: string };
 
@@ -37,6 +38,15 @@ function ownerFor(kind: WorkKind) {
   return 'AI Chief of Staff';
 }
 
+function normalizeKind(value: unknown): WorkKind {
+  return typeof value === 'string' && kindOptions.includes(value as WorkKind) ? value as WorkKind : 'Ops';
+}
+
+function normalizeRisk(value: unknown, kind: WorkKind): WorkCard['risk'] {
+  if (value === 'LOW' || value === 'MEDIUM' || value === 'HIGH') return value;
+  return riskFor(kind);
+}
+
 function normalizeStatus(value?: string): WorkStatus {
   if (value === 'Done') return 'Done';
   if (value === 'Ready') return 'Ready';
@@ -45,8 +55,48 @@ function normalizeStatus(value?: string): WorkStatus {
   return 'Planning';
 }
 
+function stringArray(value: unknown, fallback: string[]): string[] {
+  if (Array.isArray(value)) {
+    const normalized = value.map((item) => String(item)).filter(Boolean);
+    if (normalized.length) return normalized;
+  }
+  if (typeof value === 'string' && value.trim()) return [value.trim()];
+  return fallback;
+}
+
+function normalizeStoredCard(card: StoredWorkCard, index: number): WorkCard {
+  const kind = normalizeKind(card.kind);
+  const risk = normalizeRisk(card.risk, kind);
+  return {
+    id: typeof card.id === 'string' && card.id ? card.id : `legacy-card-${index}`,
+    title: typeof card.title === 'string' && card.title ? card.title : 'Legacy work card',
+    kind,
+    owner: typeof card.owner === 'string' && card.owner ? card.owner : ownerFor(kind),
+    status: normalizeStatus(typeof card.status === 'string' ? card.status : undefined),
+    risk,
+    request: typeof card.request === 'string' && card.request ? card.request : typeof card.context === 'string' ? card.context : 'Imported legacy card.',
+    plan: stringArray(card.plan, ['Review legacy card', 'Normalize schema', risk === 'LOW' ? 'Run sandbox only' : 'Request founder approval']),
+    tools: stringArray(card.tools, ['Workboard']),
+    approval: typeof card.approval === 'string' && card.approval ? card.approval : risk === 'LOW' ? 'Sandbox-first, audit required.' : 'Founder approval required.',
+    steps: Array.isArray(card.steps) ? card.steps as SessionStep[] : undefined,
+    sourceSessionId: typeof card.sourceSessionId === 'string' ? card.sourceSessionId : undefined,
+    aiStaff: typeof card.aiStaff === 'string' ? card.aiStaff : undefined,
+    role: typeof card.role === 'string' ? card.role : undefined,
+    task: typeof card.task === 'string' ? card.task : undefined,
+    input: typeof card.input === 'string' ? card.input : undefined,
+    expectedOutput: typeof card.expectedOutput === 'string' ? card.expectedOutput : undefined,
+    acceptanceCriteria: typeof card.acceptanceCriteria === 'string' ? card.acceptanceCriteria : undefined,
+    founderReview: typeof card.founderReview === 'string' ? card.founderReview : undefined,
+    deadline: typeof card.deadline === 'string' ? card.deadline : undefined,
+  };
+}
+
+function readCards(): WorkCard[] {
+  return readLocalStorageValue<StoredWorkCard[]>(CARD_KEY, []).map(normalizeStoredCard);
+}
+
 function sessionToCard(session: StoredSession): WorkCard {
-  const kind = session.kind ?? 'Q&A';
+  const kind = normalizeKind(session.kind);
   return {
     id: session.id,
     title: session.title,
@@ -73,7 +123,7 @@ function nextStatus(card: WorkCard): WorkStatus | null {
 
 export default function WorkboardTab() {
   useLocalStorageVersion(['ledgerflow-aiops-card-updated', 'ledgerflow-review-desk-result', 'ledgerflow-ci-fix-package']);
-  const [cards, setCards] = useState<WorkCard[]>(() => readLocalStorageValue(CARD_KEY, []));
+  const [cards, setCards] = useState<WorkCard[]>(readCards);
   const [sessions] = useState<StoredSession[]>(() => readLocalStorageArray<StoredSession>(SESSION_KEYS));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
   const audit = readLocalStorageValue<AgentOpsAuditEntry[]>(AGENT_OPS_AUDIT_KEY, []);
@@ -182,6 +232,7 @@ export default function WorkboardTab() {
               {cardsByStatus(status).map((card) => {
                 const next = nextStatus(card);
                 const imported = Boolean(card.sourceSessionId) && !cards.some((item) => item.id === card.id);
+                const visibleTools = Array.isArray(card.tools) ? card.tools : ['Workboard'];
                 return (
                   <article key={`${card.sourceSessionId ?? 'card'}-${card.id}`} className="rounded-2xl border border-slate-800 bg-slate-950/80 p-3">
                     <div className="flex items-start justify-between gap-2">
@@ -193,7 +244,7 @@ export default function WorkboardTab() {
                     </div>
                     <p className="mt-3 line-clamp-4 text-xs font-semibold leading-5 text-slate-300">{card.request}</p>
                     <div className="mt-3 flex flex-wrap gap-1">
-                      {card.tools.slice(0, 3).map((tool) => <span key={tool} className="rounded-full border border-cyan-400/20 px-2 py-0.5 text-[10px] font-bold text-cyan-200">{tool}</span>)}
+                      {visibleTools.slice(0, 3).map((tool) => <span key={tool} className="rounded-full border border-cyan-400/20 px-2 py-0.5 text-[10px] font-bold text-cyan-200">{tool}</span>)}
                     </div>
                     {card.steps && <p className="mt-2 text-[11px] font-bold text-cyan-200">{card.steps.length} session steps</p>}
                     {!imported && next && <button onClick={() => moveCard(card, next)} className="mt-3 w-full rounded-xl border border-violet-300/40 px-3 py-2 text-[11px] font-black text-violet-100">Chuyển sang {next}</button>}
