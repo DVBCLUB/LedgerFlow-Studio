@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { companyOSLanes } from '../../../config/companyOSNavigation';
 import { appendAgentOpsAudit, readLocalStorageValue, writeLocalStorageValue } from '../storage';
 
 const NAV_MAP_KEY = 'ledgerflow_company_os_navigation_map_v1';
@@ -14,104 +15,85 @@ type NavigationLane = {
   moveRule: string;
 };
 
-const seedLanes: NavigationLane[] = [
-  {
-    id: 'command-center',
-    label: 'Command Center',
-    status: 'Core',
+const laneDetails: Record<string, Pick<NavigationLane, 'purpose' | 'owns' | 'moveRule'>> = {
+  'command-center': {
     purpose: 'Màn hình điều hành chính cho founder.',
     owns: ['daily standup', 'approval summary', 'risk alerts', 'today focus'],
     moveRule: 'Giữ ở lõi app, không gắn với ngành cụ thể.',
   },
-  {
-    id: 'product-studio',
-    label: 'Product Studio',
-    status: 'Core',
+  'product-studio': {
     purpose: 'Biến ý tưởng thành work order, code plan, release audit.',
     owns: ['idea portfolio', 'product factory', 'release checklist'],
     moveRule: 'Giữ lõi vì mọi ngành đều cần tạo sản phẩm/quy trình.',
   },
-  {
-    id: 'marketing-growth',
-    label: 'Marketing & Growth',
-    status: 'Next',
+  'marketing-growth': {
     purpose: 'Quản lý content, campaign, SEO, feedback loop.',
     owns: ['content calendar', 'landing ideas', 'growth experiments'],
     moveRule: 'Làm sau khi AgentOps/Founder OS ổn định.',
   },
-  {
-    id: 'sales-crm',
-    label: 'Sales & CRM',
-    status: 'Next',
+  'sales-crm': {
     purpose: 'Theo dõi lead, khách hàng, deal, follow-up.',
     owns: ['lead board', 'customer notes', 'sales tasks'],
     moveRule: 'Không trộn vào kế toán; để lane riêng.',
   },
-  {
-    id: 'finance-accounting',
-    label: 'Finance & Accounting',
-    status: 'Core',
+  'finance-accounting': {
     purpose: 'Theo dõi tiền, chi phí, ngân sách, báo cáo tài chính quản trị.',
     owns: ['budget', 'cost tracker', 'cash planning', 'management reports'],
-    moveRule: 'Giữ lõi tài chính; phần công trình đưa sang template ngành xây dựng.',
+    moveRule: 'Giữ lõi tài chính; phần công trình đưa sang template ngành.',
   },
-  {
-    id: 'projects-delivery',
-    label: 'Projects & Delivery',
-    status: 'Core',
+  'projects-delivery': {
     purpose: 'Quản lý giao việc, tiến độ, delivery, blocker.',
     owns: ['workboard', 'task queue', 'delivery risk'],
     moveRule: 'Giữ lõi; tên công trình chỉ là template ngành.',
   },
-  {
-    id: 'agentops',
-    label: 'AI Workforce / AgentOps',
-    status: 'Core',
+  'ai-workforce': {
     purpose: 'Điều phối AI staff, approval, tools, prompts, audit.',
     owns: ['AI staff', 'approval gate', 'tool cards', 'prompt pack'],
     moveRule: 'Đây là xương sống Company OS, giữ ưu tiên cao.',
   },
-  {
-    id: 'documents-approval',
-    label: 'Documents & Approval',
-    status: 'Core',
+  'documents-approval': {
     purpose: 'Quản lý chứng từ, SOP, phê duyệt, bằng chứng.',
     owns: ['SOP library', 'approval evidence', 'document checklist'],
     moveRule: 'Giữ lõi theo dạng documents chung, không chỉ hồ sơ công trình.',
   },
-  {
-    id: 'analytics-sandbox',
-    label: 'Analytics & Sandbox',
-    status: 'Next',
+  'analytics-sandbox': {
     purpose: 'Phân tích thử nghiệm, mô phỏng, học thuật, game training.',
     owns: ['scenario sandbox', 'simulators', 'data views'],
     moveRule: 'Làm sau khi data model ổn định.',
   },
-  {
-    id: 'integration-hub',
-    label: 'Integration Hub',
-    status: 'Core',
+  'integration-hub': {
     purpose: 'Quản lý connector, registry, test, policy.',
     owns: ['GitHub', 'Google', 'AI Gateway', 'connector logs'],
     moveRule: 'Giữ lõi; mọi external action phải qua approval/audit.',
   },
-  {
-    id: 'system-settings',
-    label: 'System Settings',
-    status: 'Core',
+  'system-settings': {
     purpose: 'Thiết lập app, secrets vault, backup, import/export.',
     owns: ['settings', 'vault', 'backup', 'permissions'],
     moveRule: 'Giữ lõi, nhưng secrets thật phải nằm server-side.',
   },
-  {
-    id: 'construction-template',
-    label: 'Industry Template: Xây dựng',
-    status: 'Template',
-    purpose: 'Template kế toán công trình, dầu, vật tư, hồ sơ thanh toán.',
-    owns: ['công trình', 'vật tư', 'dầu', 'HCNS công trường', 'hồ sơ nghiệm thu'],
-    moveRule: 'Không để template này chiếm navigation lõi.',
+  'industry-templates': {
+    purpose: 'Template ngành như xây dựng, SaaS, dịch vụ, thương mại.',
+    owns: ['construction', 'materials', 'fuel', 'delivery templates'],
+    moveRule: 'Không để template ngành chiếm navigation lõi.',
   },
-];
+};
+
+function toLaneStatus(status: string): LaneStatus {
+  if (status === 'template') return 'Template';
+  if (status === 'next') return 'Next';
+  return 'Core';
+}
+
+const seedLanes: NavigationLane[] = companyOSLanes.map((lane) => ({
+  id: lane.id,
+  label: lane.label,
+  status: toLaneStatus(lane.status),
+  ...(laneDetails[lane.id] ?? {
+    purpose: `${lane.label} lane`,
+    owns: [lane.owner, lane.group],
+    moveRule: `Route hint: ${lane.routeHint}`,
+  }),
+}));
 
 function statusTone(status: LaneStatus) {
   if (status === 'Core') return 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100';
@@ -169,7 +151,7 @@ export default function NavigationMapTab() {
   const resetSeed = () => {
     setLanes(seedLanes);
     writeLocalStorageValue(NAV_MAP_KEY, seedLanes);
-    appendAgentOpsAudit('NAV_MAP_RESET', 'navigation-map', 'Reset to Claude brief navigation seed');
+    appendAgentOpsAudit('NAV_MAP_RESET', 'navigation-map', 'Reset to Company OS navigation registry seed');
   };
 
   return (
@@ -178,7 +160,7 @@ export default function NavigationMapTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Company OS IA</p>
           <h3 className="mt-1 text-xl font-black text-white">Navigation Map</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Bản đồ dọn navigation theo brief Claude: lõi Company OS ở trên, template ngành nằm riêng, không để app bị khóa vào kế toán công trình.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Bản đồ dọn navigation theo registry Company OS: lõi ở trên, template ngành nằm riêng, không để app bị khóa vào kế toán công trình.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-emerald-300/40 px-3 py-1 text-emerald-100">{counts.core} core</span>
