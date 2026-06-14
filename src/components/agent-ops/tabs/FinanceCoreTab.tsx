@@ -3,11 +3,13 @@ import type { ApprovalRequest, RiskLevel, WorkCard } from '../../../types/agentO
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const FINANCE_CORE_KEY = 'ledgerflow_finance_core_v1';
+const PROJECTS_CORE_KEY = 'ledgerflow_projects_delivery_core_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 
 type FinanceType = 'Cashflow' | 'Budget' | 'Invoice' | 'Payment' | 'Tax' | 'Payroll' | 'Procurement' | 'Report';
 type FinanceStatus = 'Draft' | 'Review' | 'Approved' | 'Posted' | 'Blocked';
+type ProjectFinanceStatus = 'Unknown' | 'Budget Draft' | 'Budget Approved' | 'Over Budget' | 'On Track' | 'Closed';
 
 type FinanceItem = {
   id: string;
@@ -25,6 +27,17 @@ type FinanceItem = {
   evidence: string;
   createdAt: string;
   updatedAt: string;
+};
+
+type ProjectItem = {
+  id: string;
+  name: string;
+  stage: string;
+  risk: RiskLevel;
+  client: string;
+  budget: number;
+  actual: number;
+  financeStatus: ProjectFinanceStatus;
 };
 
 const types: FinanceType[] = ['Cashflow', 'Budget', 'Invoice', 'Payment', 'Tax', 'Payroll', 'Procurement', 'Report'];
@@ -70,6 +83,14 @@ const seedItems: FinanceItem[] = [
 
 function money(value: number) {
   return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(Number.isFinite(value) ? value : 0);
+}
+
+function norm(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function varianceFor(project: ProjectItem) {
+  return Number(project.actual || 0) - Number(project.budget || 0);
 }
 
 function approvalExpiryIso() {
@@ -151,11 +172,17 @@ export default function FinanceCoreTab() {
   const [filter, setFilter] = useState<'ALL' | FinanceType>('ALL');
 
   const items = readLocalStorageValue<FinanceItem[]>(FINANCE_CORE_KEY, seedItems);
+  const projects = readLocalStorageValue<ProjectItem[]>(PROJECTS_CORE_KEY, []);
   const visibleItems = useMemo(() => filter === 'ALL' ? items : items.filter((item) => item.type === filter), [filter, items]);
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
   const highRiskCount = items.filter((item) => item.risk === 'HIGH').length;
   const reviewCount = items.filter((item) => item.status === 'Review' || item.status === 'Blocked').length;
-  const linkedProjectCount = items.filter((item) => Boolean(item.projectName?.trim())).length;
+  const linkedProjectCount = items.filter((item) => Boolean(item.projectName?.trim()) && item.projectName !== 'Unassigned').length;
+  const projectNames = new Set(projects.map((project) => norm(project.name)));
+  const financeProjectNames = new Set(items.filter((item) => item.projectName && item.projectName !== 'Unassigned').map((item) => norm(item.projectName)));
+  const unmatchedFinance = items.filter((item) => item.projectName && item.projectName !== 'Unassigned' && !projectNames.has(norm(item.projectName)));
+  const projectsWithoutFinance = projects.filter((project) => !financeProjectNames.has(norm(project.name)));
+  const overBudgetProjects = projects.filter((project) => varianceFor(project) > 0 || project.financeStatus === 'Over Budget');
 
   const saveItems = (next: FinanceItem[]) => writeLocalStorageValue(FINANCE_CORE_KEY, next);
 
@@ -227,6 +254,47 @@ export default function FinanceCoreTab() {
           <span className="rounded-full border border-rose-300/40 px-3 py-1 text-rose-100">{highRiskCount} high</span>
         </div>
       </div>
+
+      <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-3">
+        <div className="rounded-xl border border-sky-400/25 bg-sky-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">Unmatched finance</p>
+          <p className="mt-1 text-2xl font-black text-white">{unmatchedFinance.length}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-300">Finance item có project name nhưng chưa có project tương ứng.</p>
+        </div>
+        <div className="rounded-xl border border-amber-400/25 bg-amber-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200">Projects without finance</p>
+          <p className="mt-1 text-2xl font-black text-white">{projectsWithoutFinance.length}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-300">Project chưa có dòng finance liên kết.</p>
+        </div>
+        <div className="rounded-xl border border-rose-400/25 bg-rose-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-200">Over budget projects</p>
+          <p className="mt-1 text-2xl font-black text-white">{overBudgetProjects.length}</p>
+          <p className="mt-1 text-[11px] font-semibold text-slate-300">Project có actual vượt budget hoặc finance status Over Budget.</p>
+        </div>
+      </div>
+
+      {(unmatchedFinance.length > 0 || projectsWithoutFinance.length > 0 || overBudgetProjects.length > 0) && (
+        <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <p className="text-sm font-black text-white">Finance / Project reconciliation</p>
+          <div className="mt-3 grid gap-2 md:grid-cols-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
+              <span className="font-black text-sky-200">Unmatched finance</span><br />
+              {unmatchedFinance.slice(0, 5).map((item) => <span key={item.id}>• {item.title} → {item.projectName}<br /></span>)}
+              {unmatchedFinance.length === 0 && 'None'}
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
+              <span className="font-black text-amber-200">Projects without finance</span><br />
+              {projectsWithoutFinance.slice(0, 5).map((project) => <span key={project.id}>• {project.name}<br /></span>)}
+              {projectsWithoutFinance.length === 0 && 'None'}
+            </div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
+              <span className="font-black text-rose-200">Over budget</span><br />
+              {overBudgetProjects.slice(0, 5).map((project) => <span key={project.id}>• {project.name}: {money(varianceFor(project))}<br /></span>)}
+              {overBudgetProjects.length === 0 && 'None'}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-2">
         <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Finance item title" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
