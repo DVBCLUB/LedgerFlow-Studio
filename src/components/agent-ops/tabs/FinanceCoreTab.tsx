@@ -17,6 +17,7 @@ type FinanceItem = {
   risk: RiskLevel;
   amount: number;
   counterparty: string;
+  projectName: string;
   period: string;
   owner: string;
   summary: string;
@@ -39,6 +40,7 @@ const seedItems: FinanceItem[] = [
     risk: 'MEDIUM',
     amount: 0,
     counterparty: 'Internal',
+    projectName: 'Company OS rollout',
     period: 'This week',
     owner: 'Founder / AI Accountant',
     summary: 'Review cash-in, cash-out, payable pressure and runway before committing new spend.',
@@ -55,6 +57,7 @@ const seedItems: FinanceItem[] = [
     risk: 'LOW',
     amount: 0,
     counterparty: 'Internal',
+    projectName: 'Client delivery template',
     period: 'Monthly',
     owner: 'AI Accountant',
     summary: 'Compare planned vs actual cost before approving new project commitments.',
@@ -84,6 +87,7 @@ function itemMarkdown(item: FinanceItem) {
     `- Risk: ${item.risk}`,
     `- Amount: ${money(item.amount)}`,
     `- Counterparty: ${item.counterparty}`,
+    `- Linked project: ${item.projectName || 'Unassigned'}`,
     `- Period: ${item.period}`,
     `- Owner: ${item.owner}`,
     '',
@@ -109,11 +113,12 @@ function workCardFor(item: FinanceItem): WorkCard {
     request: itemMarkdown(item),
     plan: [
       'Verify source evidence and accounting treatment',
+      `Check linked project impact: ${item.projectName || 'Unassigned'}`,
       'Prepare founder decision brief',
       'Return control note and rollback/adjustment path',
     ],
-    tools: ['Finance Core', 'Workboard', 'Approval Gate'],
-    approval: item.risk === 'LOW' ? 'Sandbox analysis allowed. External payment/posting still needs approval.' : 'Founder approval required before payment, posting or external commitment.',
+    tools: ['Finance Core', 'Projects Core', 'Workboard', 'Approval Gate'],
+    approval: item.risk === 'LOW' ? 'Sandbox analysis allowed. Payment/posting still needs approval.' : 'Founder approval required before payment, posting or commitment.',
   };
 }
 
@@ -139,6 +144,7 @@ export default function FinanceCoreTab() {
   const [risk, setRisk] = useState<RiskLevel>('LOW');
   const [amount, setAmount] = useState('');
   const [counterparty, setCounterparty] = useState('');
+  const [projectName, setProjectName] = useState('');
   const [period, setPeriod] = useState('');
   const [summary, setSummary] = useState('');
   const [nextAction, setNextAction] = useState('');
@@ -149,6 +155,7 @@ export default function FinanceCoreTab() {
   const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
   const highRiskCount = items.filter((item) => item.risk === 'HIGH').length;
   const reviewCount = items.filter((item) => item.status === 'Review' || item.status === 'Blocked').length;
+  const linkedProjectCount = items.filter((item) => Boolean(item.projectName?.trim())).length;
 
   const saveItems = (next: FinanceItem[]) => writeLocalStorageValue(FINANCE_CORE_KEY, next);
 
@@ -163,6 +170,7 @@ export default function FinanceCoreTab() {
       risk,
       amount: Number(amount || 0),
       counterparty: counterparty.trim() || 'Internal / TBD',
+      projectName: projectName.trim() || 'Unassigned',
       period: period.trim() || 'Current period',
       owner: 'AI Accountant',
       summary: summary.trim(),
@@ -172,10 +180,11 @@ export default function FinanceCoreTab() {
       updatedAt: now,
     };
     saveItems([item, ...items].slice(0, 200));
-    appendAgentOpsAudit('FINANCE_ITEM_CREATED', item.id, `${item.type} · ${item.risk} · ${item.title}`);
+    appendAgentOpsAudit('FINANCE_ITEM_CREATED', item.id, `${item.type} · ${item.risk} · ${item.title} · project ${item.projectName}`);
     setTitle('');
     setAmount('');
     setCounterparty('');
+    setProjectName('');
     setPeriod('');
     setSummary('');
     setNextAction('');
@@ -208,11 +217,12 @@ export default function FinanceCoreTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Finance & Accounting Core</p>
           <h3 className="mt-1 text-xl font-black text-white">Finance Core</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core tài chính/kế toán cho Company OS: cashflow, budget, invoice, payment, tax và report. Không post/pay external nếu chưa qua approval.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core tài chính/kế toán cho Company OS: cashflow, budget, invoice, payment, tax và report. Mỗi dòng có thể gắn project để nối tiền với delivery.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-emerald-300/40 px-3 py-1 text-emerald-100">{items.length} items</span>
           <span className="rounded-full border border-cyan-300/40 px-3 py-1 text-cyan-100">{money(totalAmount)}</span>
+          <span className="rounded-full border border-sky-300/40 px-3 py-1 text-sky-100">{linkedProjectCount} linked</span>
           <span className="rounded-full border border-amber-300/40 px-3 py-1 text-amber-100">{reviewCount} review</span>
           <span className="rounded-full border border-rose-300/40 px-3 py-1 text-rose-100">{highRiskCount} high</span>
         </div>
@@ -224,7 +234,8 @@ export default function FinanceCoreTab() {
         <select value={risk} onChange={(event) => setRisk(event.target.value as RiskLevel)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-emerald-300">{risks.map((item) => <option key={item}>{item}</option>)}</select>
         <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Amount" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
         <input value={counterparty} onChange={(event) => setCounterparty(event.target.value)} placeholder="Counterparty" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
-        <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="Period" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="Linked project / delivery" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="Period" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
         <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="Summary / accounting control" className="min-h-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
         <input value={nextAction} onChange={(event) => setNextAction(event.target.value)} placeholder="Next action" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
         <button onClick={addItem} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-400/10 md:col-span-2">Add finance item</button>
@@ -246,6 +257,7 @@ export default function FinanceCoreTab() {
               <span className="rounded-full border border-emerald-300/40 px-2 py-0.5 text-[10px] font-black text-emerald-100">{item.status} · {item.risk}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{item.summary}</p>
+            <p className="mt-2 rounded-xl border border-sky-400/20 bg-sky-400/10 p-2 text-[11px] font-black text-sky-100">Linked project: {item.projectName || 'Unassigned'}</p>
             <p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">Next: {item.nextAction}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {statuses.map((status) => <button key={status} onClick={() => updateStatus(item, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-emerald-300 hover:text-emerald-100">{status}</button>)}
