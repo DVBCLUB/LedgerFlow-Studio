@@ -30,75 +30,9 @@ import PeopleTab from './tabs/PeopleTab';
 import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
+import { agentOpsTabGroups, type AgentOpsHubTab } from './agentOpsNavigation';
 
-export type AgentOpsHubTab = 'brief' | 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'rag' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
-
-type AgentOpsTabItem = { id: AgentOpsHubTab; label: string };
-type AgentOpsTabGroup = { title: string; description: string; items: AgentOpsTabItem[] };
-
-const tabGroups: AgentOpsTabGroup[] = [
-  {
-    title: 'Command',
-    description: 'Founder view, daily ops, work queue',
-    items: [
-      { id: 'brief', label: 'Brief Tracker' },
-      { id: 'standup', label: 'Daily Standup' },
-      { id: 'founder', label: 'Founder OS' },
-      { id: 'workboard', label: 'Workboard' },
-      { id: 'tasks', label: 'Task Queue' }
-    ]
-  },
-  {
-    title: 'Build & Growth',
-    description: 'Product, market, sales, documents, sandbox',
-    items: [
-      { id: 'factory', label: 'Product Factory' },
-      { id: 'growth', label: 'Growth Studio' },
-      { id: 'sales', label: 'Sales CRM' },
-      { id: 'documents', label: 'Documents' },
-      { id: 'analytics', label: 'Analytics Sandbox' },
-      { id: 'games', label: 'Learning Games' }
-    ]
-  },
-  {
-    title: 'Governance',
-    description: 'Security, QA, GitHub, release control',
-    items: [
-      { id: 'secrets', label: 'Secrets Vault' },
-      { id: 'qa', label: 'QA Matrix' },
-      { id: 'githubPr', label: 'GitHub PR' },
-      { id: 'release', label: 'Release' },
-      { id: 'approvals', label: 'Approvals' },
-      { id: 'review', label: 'Review Mode' }
-    ]
-  },
-  {
-    title: 'Knowledge',
-    description: 'Memory, prompts, tools, templates',
-    items: [
-      { id: 'tools', label: 'Tool Cards' },
-      { id: 'prompts', label: 'Prompt Pack' },
-      { id: 'memory', label: 'Company Memory' },
-      { id: 'knowledge', label: 'Knowledge Base' },
-      { id: 'rag', label: 'RAG Search' },
-      { id: 'memoryVersions', label: 'Memory Versions' },
-      { id: 'industry', label: 'Industry Templates' },
-      { id: 'navmap', label: 'Navigation Map' }
-    ]
-  },
-  {
-    title: 'Runtime',
-    description: 'Cost, feedback, skills, staff, connectors',
-    items: [
-      { id: 'costs', label: 'AI Cost' },
-      { id: 'feedback', label: 'Feedback' },
-      { id: 'runtime', label: 'Runtime' },
-      { id: 'skills', label: 'Skills' },
-      { id: 'staff', label: 'AI Staff' },
-      { id: 'connectors', label: 'Connectors' }
-    ]
-  }
-];
+export type { AgentOpsHubTab } from './agentOpsNavigation';
 
 type Props = { initialTab?: AgentOpsHubTab; onClose: () => void };
 
@@ -156,7 +90,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
             <button onClick={onClose} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-rose-300 hover:text-rose-200">Đóng</button>
           </div>
           <div className="mt-4 grid gap-3 lg:grid-cols-5">
-            {tabGroups.map((group) => (
+            {agentOpsTabGroups.map((group) => (
               <div key={group.title} className="rounded-2xl border border-slate-800 bg-slate-900/45 p-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">{group.title}</p>
                 <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">{group.description}</p>
