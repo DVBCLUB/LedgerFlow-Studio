@@ -5,6 +5,7 @@ import PromptPackTab from './tabs/PromptPackTab';
 import CompanyMemoryTab from './tabs/CompanyMemoryTab';
 import KnowledgeBaseTab from './tabs/KnowledgeBaseTab';
 import MemoryVersionsTab from './tabs/MemoryVersionsTab';
+import FounderOSTab from './tabs/FounderOSTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -17,10 +18,11 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'workboard' | 'tasks' | 'factory' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
+  { id: 'founder', label: 'Founder OS' },
   { id: 'workboard', label: 'Workboard' },
   { id: 'tasks', label: 'Task Queue' },
   { id: 'factory', label: 'Product Factory' },
@@ -65,6 +67,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
           </div>
         </div>
         {tab === 'standup' && <DailyStandupTab />}
+        {tab === 'founder' && <FounderOSTab />}
         {tab === 'workboard' && <WorkboardTab />}
         {tab === 'tasks' && <TaskQueueTab />}
         {tab === 'factory' && <ProductFactoryTab />}
