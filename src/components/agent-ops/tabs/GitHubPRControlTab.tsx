@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
 import type { ApprovalRequest, RiskLevel } from '../../../types/agentOps';
-import { createApprovedGitHubChangeRequest, fetchGitHubPullRequestDigest, fetchGitHubWorkflowRunJobs } from '../../../utils/githubApprovedChangeApi';
+import { createApprovedGitHubChangeRequest, fetchGitHubPullRequestDigest, fetchGitHubWorkflowRunJobs, requestCloseGitHubPullRequest } from '../../../utils/githubApprovedChangeApi';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const PR_PLANS_KEY = 'ledgerflow_github_pr_plans_v1';
 const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const APPROVAL_PHRASE = 'APPROVE AI GITHUB PUSH';
+const CLOSE_PHRASE = 'APPROVE AI GITHUB CLOSE';
 
-type PRStatus = 'Draft' | 'Needs Approval' | 'Approved Plan' | 'Ready for Agent' | 'Draft PR Created' | 'Archived';
+type PRStatus = 'Draft' | 'Needs Approval' | 'Approved Plan' | 'Ready for Agent' | 'Draft PR Created' | 'Close Requested' | 'Closed' | 'Archived';
 type PRCIStatus = 'Unknown' | 'Running' | 'Passed' | 'Failed';
 
 type PRPlan = {
@@ -24,6 +25,7 @@ type PRPlan = {
   workflowRunId?: number;
   prNumber?: number;
   prDigestNote?: string;
+  closeResultNote?: string;
   summary: string;
   files: string;
   filePath: string;
@@ -59,7 +61,7 @@ const seedPlans: PRPlan[] = [
   },
 ];
 
-const statuses: PRStatus[] = ['Draft', 'Needs Approval', 'Approved Plan', 'Ready for Agent', 'Draft PR Created', 'Archived'];
+const statuses: PRStatus[] = ['Draft', 'Needs Approval', 'Approved Plan', 'Ready for Agent', 'Draft PR Created', 'Close Requested', 'Closed', 'Archived'];
 const ciStatuses: PRCIStatus[] = ['Unknown', 'Running', 'Passed', 'Failed'];
 const risks: RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
@@ -74,6 +76,8 @@ function riskTone(risk: RiskLevel) {
 }
 
 function statusTone(status: PRStatus) {
+  if (status === 'Closed' || status === 'Archived') return 'border-slate-600 text-slate-300';
+  if (status === 'Close Requested') return 'border-rose-400/40 text-rose-200';
   if (status === 'Draft PR Created') return 'border-emerald-400/40 text-emerald-200';
   if (status === 'Ready for Agent') return 'border-cyan-400/40 text-cyan-200';
   if (status === 'Needs Approval') return 'border-amber-400/40 text-amber-200';
@@ -102,6 +106,7 @@ function markdown(plan: PRPlan) {
     plan.ciNote ? `- CI note: ${plan.ciNote}` : '',
     plan.ciJobsNote ? `- CI jobs: ${plan.ciJobsNote}` : '',
     plan.prDigestNote ? `- PR digest: ${plan.prDigestNote}` : '',
+    plan.closeResultNote ? `- Close result: ${plan.closeResultNote}` : '',
     plan.prUrl ? `- PR: ${plan.prUrl}` : '',
     '',
     '## Summary',
@@ -174,14 +179,16 @@ export default function GitHubPRControlTab() {
   const [testPlan, setTestPlan] = useState('npm run lint\nnpm run build');
   const [rollback, setRollback] = useState('Close the draft PR or revert the generated branch if CI/runtime breaks.');
   const [approvalPhrase, setApprovalPhrase] = useState('');
+  const [closePhrase, setClosePhrase] = useState('');
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [closingId, setClosingId] = useState<string | null>(null);
   const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState('');
   const [filter, setFilter] = useState<'ALL' | PRStatus>('ALL');
 
   const plans = readLocalStorageValue<PRPlan[]>(PR_PLANS_KEY, seedPlans);
   const visiblePlans = useMemo(() => filter === 'ALL' ? plans : plans.filter((plan) => plan.status === filter), [filter, plans]);
-  const openCount = plans.filter((plan) => plan.status !== 'Archived').length;
+  const openCount = plans.filter((plan) => plan.status !== 'Archived' && plan.status !== 'Closed').length;
   const approvalCount = plans.filter((plan) => plan.status === 'Needs Approval').length;
   const ciFailedCount = plans.filter((plan) => plan.ciStatus === 'Failed').length;
   const ciPendingCount = plans.filter((plan) => plan.status === 'Draft PR Created' && (plan.ciStatus || 'Unknown') !== 'Passed').length;
@@ -306,6 +313,48 @@ export default function GitHubPRControlTab() {
     }
   };
 
+  const closePr = async (plan: PRPlan) => {
+    if (closePhrase !== CLOSE_PHRASE) {
+      setLastResult('Nhập đúng APPROVE AI GITHUB CLOSE trước khi request close PR.');
+      return;
+    }
+    const pullNumber = parsePullNumber(plan);
+    if (!pullNumber) {
+      setLastResult('Không tìm thấy PR number để close. Refresh PR hoặc dán PR URL trước.');
+      return;
+    }
+    setClosingId(plan.id);
+    setLastResult(`Đang gửi request close PR #${pullNumber}...`);
+    try {
+      const result = await requestCloseGitHubPullRequest({
+        repo: plan.repo,
+        pullNumber,
+        reason: `Founder requested close from GitHub PR Control: ${plan.title}`,
+        rollbackNote: plan.rollback || 'Rollback note was not provided.',
+        approvalPhrase: CLOSE_PHRASE,
+      });
+      const note = `Closed ${result.repo} #${result.pullRequest.number} · state=${result.pullRequest.state} · ${new Date(result.closedAt).toLocaleString('vi-VN')}`;
+      patchPlan(plan, {
+        status: 'Closed',
+        prNumber: result.pullRequest.number,
+        prUrl: result.pullRequest.htmlUrl,
+        branchName: result.pullRequest.branch || plan.branchName,
+        baseBranch: result.pullRequest.base || plan.baseBranch,
+        closeResultNote: note,
+      });
+      appendAgentOpsAudit('GITHUB_PR_CLOSED', plan.id, note);
+      setLastResult(note);
+      setClosePhrase('');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown GitHub close PR error';
+      patchPlan(plan, { status: 'Close Requested', closeResultNote: message });
+      appendAgentOpsAudit('GITHUB_PR_CLOSE_FAILED', plan.id, message);
+      setLastResult(`Close PR failed: ${message}`);
+    } finally {
+      setClosingId(null);
+    }
+  };
+
   const refreshPrDigest = async (plan: PRPlan) => {
     const pullNumber = parsePullNumber(plan);
     if (!pullNumber) {
@@ -346,11 +395,7 @@ export default function GitHubPRControlTab() {
       const result = await fetchGitHubWorkflowRunJobs(plan.repo, plan.workflowRunId);
       const ciStatus = ciStatusFromJobs(result);
       const note = ciJobsNoteFrom(result);
-      patchPlan(plan, {
-        ciStatus,
-        ciNote: note,
-        ciJobsNote: note,
-      });
+      patchPlan(plan, { ciStatus, ciNote: note, ciJobsNote: note });
       appendAgentOpsAudit('GITHUB_PR_CI_JOBS_REFRESHED', plan.id, `${plan.title} → ${ciStatus} · ${note}`);
       setLastResult(`CI jobs refreshed: ${ciStatus} · ${note}`);
     } catch (err) {
@@ -373,7 +418,7 @@ export default function GitHubPRControlTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">GitHub connector control</p>
           <h3 className="mt-1 text-xl font-black text-white">GitHub PR Control</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lập kế hoạch branch/commit/PR theo approval-first. Draft PR thật chỉ chạy khi nhập đúng founder phrase.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lập kế hoạch branch/commit/PR theo approval-first. Draft PR thật hoặc close PR thật đều cần founder phrase.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-cyan-300/40 px-3 py-1 text-cyan-100">{plans.length} plans</span>
@@ -400,13 +445,22 @@ export default function GitHubPRControlTab() {
         <button onClick={addPlan} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-400/10 md:col-span-2">Thêm PR plan</button>
       </div>
 
-      <div className="mt-4 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3">
-        <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-200">Founder phrase required for real GitHub write</p>
-        <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
-          <input value={approvalPhrase} onChange={(event) => setApprovalPhrase(event.target.value)} placeholder="APPROVE AI GITHUB PUSH" className="rounded-xl border border-amber-300/40 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-200" />
-          <span className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300">{approvalPhrase === APPROVAL_PHRASE ? 'Phrase OK' : 'Locked'}</span>
+      <div className="mt-4 grid gap-3 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 md:grid-cols-2">
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-amber-200">Founder phrase: real GitHub write</p>
+          <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
+            <input value={approvalPhrase} onChange={(event) => setApprovalPhrase(event.target.value)} placeholder="APPROVE AI GITHUB PUSH" className="rounded-xl border border-amber-300/40 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-amber-200" />
+            <span className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300">{approvalPhrase === APPROVAL_PHRASE ? 'Push OK' : 'Locked'}</span>
+          </div>
         </div>
-        {lastResult && <p className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-xs font-semibold text-slate-300">{lastResult}</p>}
+        <div>
+          <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-200">Founder phrase: close PR</p>
+          <div className="mt-2 grid gap-2 md:grid-cols-[1fr_auto]">
+            <input value={closePhrase} onChange={(event) => setClosePhrase(event.target.value)} placeholder="APPROVE AI GITHUB CLOSE" className="rounded-xl border border-rose-300/40 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-rose-200" />
+            <span className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300">{closePhrase === CLOSE_PHRASE ? 'Close OK' : 'Locked'}</span>
+          </div>
+        </div>
+        {lastResult && <p className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-xs font-semibold text-slate-300 md:col-span-2">{lastResult}</p>}
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
@@ -440,6 +494,7 @@ export default function GitHubPRControlTab() {
                 {plan.workflowRunId && <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Workflow run: {plan.workflowRunId}</p>}
                 {plan.ciJobsNote && <p className={`rounded-xl border p-2 ${ciTone(ciStatus)}`}>CI jobs: {plan.ciJobsNote}</p>}
                 {plan.prDigestNote && <p className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-2 text-cyan-100">PR digest: {plan.prDigestNote}</p>}
+                {plan.closeResultNote && <p className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-2 text-rose-100">Close result: {plan.closeResultNote}</p>}
                 {plan.prUrl && <p className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-2 text-emerald-100">Draft PR: {plan.prUrl}</p>}
               </div>
               <div className="mt-3 grid gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-2 md:grid-cols-[1fr_auto]">
@@ -453,6 +508,7 @@ export default function GitHubPRControlTab() {
                 <button onClick={() => copyPlan(plan)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">Copy plan</button>
                 <button disabled={refreshingId === plan.id} onClick={() => refreshPrDigest(plan)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50">{refreshingId === plan.id ? 'Refreshing...' : 'Refresh PR'}</button>
                 <button disabled={submittingId === plan.id} onClick={() => createDraftPr(plan)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-50">{submittingId === plan.id ? 'Creating...' : 'Create draft PR'}</button>
+                <button disabled={closingId === plan.id} onClick={() => closePr(plan)} className="rounded-xl border border-rose-300/50 px-3 py-2 text-[11px] font-black text-rose-100 hover:bg-rose-400/10 disabled:cursor-not-allowed disabled:opacity-50">{closingId === plan.id ? 'Closing...' : 'Request close PR'}</button>
               </div>
             </article>
           );
