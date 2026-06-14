@@ -7,6 +7,8 @@ export type AgentOpsHubTab =
   | 'factory'
   | 'growth'
   | 'sales'
+  | 'finance'
+  | 'projects'
   | 'documents'
   | 'analytics'
   | 'games'
@@ -48,11 +50,13 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
   },
   {
     title: 'Build & Growth',
-    description: 'Product, market, sales, documents, sandbox',
+    description: 'Product, market, sales, finance, projects',
     items: [
       { id: 'factory', label: 'Product Factory' },
       { id: 'growth', label: 'Growth Studio' },
       { id: 'sales', label: 'Sales CRM' },
+      { id: 'finance', label: 'Finance Core' },
+      { id: 'projects', label: 'Projects Core' },
       { id: 'documents', label: 'Documents' },
       { id: 'analytics', label: 'Analytics Sandbox' },
       { id: 'games', label: 'Learning Games' }
