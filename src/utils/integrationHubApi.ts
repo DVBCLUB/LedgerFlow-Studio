@@ -70,7 +70,7 @@ export interface GitHubConnectorSummary {
   actionsUrl: string;
   issuesUrl: string;
   pullsUrl: string;
-  lastCheckedAt: string
+  lastCheckedAt: string;
 }
 
 export interface GitHubCIJobSummary {
