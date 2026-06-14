@@ -146,9 +146,26 @@ export interface ApprovedChangeRequestResult {
   pullRequest: GitHubPullRequestSummary;
 }
 
+export interface CloseGitHubPullRequestInput {
+  repo?: string;
+  pullNumber: number;
+  reason: string;
+  rollbackNote: string;
+  approvalPhrase: string;
+}
+
+export interface CloseGitHubPullRequestResult {
+  repo: string;
+  pullRequest: GitHubPullRequestSummary;
+  closedAt: string;
+  reason: string;
+  rollbackNote: string;
+}
+
 const DEFAULT_REPO = process.env.GITHUB_REPOSITORY || "DVBCLUB/LedgerFlow-Studio";
 const GITHUB_API_BASE = "https://api.github.com";
 const APPROVAL_PHRASE = "APPROVE AI GITHUB PUSH";
+const CLOSE_APPROVAL_PHRASE = "APPROVE AI GITHUB CLOSE";
 const MAX_FILES_PER_REQUEST = 10;
 const MAX_FILE_CHARS = 250_000;
 const BLOCKED_PATH_PATTERNS = [
@@ -355,6 +372,15 @@ function validateChangeRequest(input: ApprovedChangeRequestInput): void {
     if (file.content.length > MAX_FILE_CHARS) throw new Error(`File quá lớn để AI tự push an toàn: ${normalized}`);
     assertNoHighRiskContent(file);
   }
+}
+
+function validateCloseRequest(input: CloseGitHubPullRequestInput): void {
+  if (input.approvalPhrase !== CLOSE_APPROVAL_PHRASE) {
+    throw new Error(`Founder close phrase không đúng. Gõ chính xác: ${CLOSE_APPROVAL_PHRASE}`);
+  }
+  if (!Number.isFinite(input.pullNumber) || input.pullNumber <= 0) throw new Error("Pull request number không hợp lệ.");
+  if (input.reason.trim().length < 10) throw new Error("Reason đóng PR phải đủ rõ để audit.");
+  if (input.rollbackNote.trim().length < 10) throw new Error("Rollback note phải đủ rõ để review.");
 }
 
 async function getDefaultBranchHeadSha(encodedRepo: string, branch: string): Promise<string> {
@@ -564,4 +590,61 @@ export async function createApprovedGitHubChangeRequest(input: ApprovedChangeReq
   );
 
   return { repo, branch, base, commitMessages, pullRequest: mapPullRequest(pr) };
+}
+
+export async function requestCloseGitHubPullRequest(input: CloseGitHubPullRequestInput): Promise<CloseGitHubPullRequestResult> {
+  validateCloseRequest(input);
+  const repo = normalizeGitHubRepo(input.repo);
+  const encodedRepo = encodeRepo(repo);
+  const pullNumber = encodeURIComponent(String(input.pullNumber));
+
+  const existing = await githubFetch<any>(`/repos/${encodedRepo}/pulls/${pullNumber}`, {}, true);
+  const current = mapPullRequest(existing);
+  if (current.state === "closed") {
+    return {
+      repo,
+      pullRequest: current,
+      closedAt: new Date().toISOString(),
+      reason: input.reason,
+      rollbackNote: input.rollbackNote,
+    };
+  }
+
+  await githubFetch<any>(
+    `/repos/${encodedRepo}/issues/${pullNumber}/comments`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        body: [
+          "## Founder-approved PR close request",
+          "",
+          `Reason: ${input.reason}`,
+          "",
+          `Rollback note: ${input.rollbackNote}`,
+          "",
+          "Branch deletion is intentionally not automated by LedgerFlow Studio.",
+        ].join("\n"),
+      }),
+    },
+    true,
+  );
+
+  const closed = await githubFetch<any>(
+    `/repos/${encodedRepo}/pulls/${pullNumber}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: "closed" }),
+    },
+    true,
+  );
+
+  return {
+    repo,
+    pullRequest: mapPullRequest(closed),
+    closedAt: new Date().toISOString(),
+    reason: input.reason,
+    rollbackNote: input.rollbackNote,
+  };
 }
