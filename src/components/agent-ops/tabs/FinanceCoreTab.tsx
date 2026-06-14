@@ -7,8 +7,10 @@ const PROJECTS_CORE_KEY = 'ledgerflow_projects_delivery_core_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 
-type FinanceType = 'Cashflow' | 'Budget' | 'Invoice' | 'Payment' | 'Tax' | 'Payroll' | 'Procurement' | 'Report';
+type FinanceType = 'Cashflow' | 'Budget' | 'Invoice' | 'Payment' | 'Tax' | 'Payroll' | 'Procurement' | 'Report' | 'Receivable' | 'Payable' | 'Advance' | 'Settlement';
 type FinanceStatus = 'Draft' | 'Review' | 'Approved' | 'Posted' | 'Blocked';
+type AccountingFlow = 'Cash In' | 'Cash Out' | 'Non-cash' | 'Transfer';
+type SettlementStatus = 'Not Due' | 'Due Soon' | 'Overdue' | 'Paid' | 'Reconciled';
 type ProjectFinanceStatus = 'Unknown' | 'Budget Draft' | 'Budget Approved' | 'Over Budget' | 'On Track' | 'Closed';
 
 type FinanceItem = {
@@ -25,6 +27,11 @@ type FinanceItem = {
   summary: string;
   nextAction: string;
   evidence: string;
+  accountingFlow?: AccountingFlow;
+  settlementStatus?: SettlementStatus;
+  dueDate?: string;
+  documentNo?: string;
+  taxNote?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -40,8 +47,10 @@ type ProjectItem = {
   financeStatus: ProjectFinanceStatus;
 };
 
-const types: FinanceType[] = ['Cashflow', 'Budget', 'Invoice', 'Payment', 'Tax', 'Payroll', 'Procurement', 'Report'];
+const types: FinanceType[] = ['Cashflow', 'Budget', 'Invoice', 'Payment', 'Tax', 'Payroll', 'Procurement', 'Report', 'Receivable', 'Payable', 'Advance', 'Settlement'];
 const statuses: FinanceStatus[] = ['Draft', 'Review', 'Approved', 'Posted', 'Blocked'];
+const flows: AccountingFlow[] = ['Cash In', 'Cash Out', 'Non-cash', 'Transfer'];
+const settlementStatuses: SettlementStatus[] = ['Not Due', 'Due Soon', 'Overdue', 'Paid', 'Reconciled'];
 const risks: RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 
 const seedItems: FinanceItem[] = [
@@ -59,6 +68,11 @@ const seedItems: FinanceItem[] = [
     summary: 'Review cash-in, cash-out, payable pressure and runway before committing new spend.',
     nextAction: 'Prepare a one-page cashflow brief for founder approval.',
     evidence: 'Use bank balance, expected collections, payables and payroll notes.',
+    accountingFlow: 'Non-cash',
+    settlementStatus: 'Not Due',
+    dueDate: '',
+    documentNo: 'INTERNAL-RUNWAY',
+    taxNote: 'Internal management review.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -76,6 +90,11 @@ const seedItems: FinanceItem[] = [
     summary: 'Compare planned vs actual cost before approving new project commitments.',
     nextAction: 'Flag lines over budget and send only exceptions to Approval Gate.',
     evidence: 'Budget sheet, actual expenses and pending commitments.',
+    accountingFlow: 'Non-cash',
+    settlementStatus: 'Not Due',
+    dueDate: '',
+    documentNo: 'BUDGET-CONTROL',
+    taxNote: 'No tax action until source document exists.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -99,6 +118,25 @@ function approvalExpiryIso() {
   return date.toISOString();
 }
 
+function isClosed(item: FinanceItem) {
+  return item.status === 'Posted' || item.settlementStatus === 'Paid' || item.settlementStatus === 'Reconciled';
+}
+
+function isOverdue(item: FinanceItem) {
+  if (item.settlementStatus === 'Overdue') return true;
+  if (!item.dueDate || isClosed(item)) return false;
+  const due = new Date(item.dueDate);
+  if (Number.isNaN(due.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+  return due < today;
+}
+
+function needsDocument(item: FinanceItem) {
+  return ['Invoice', 'Payment', 'Tax', 'Payroll', 'Procurement', 'Receivable', 'Payable', 'Advance', 'Settlement'].includes(item.type) && !item.documentNo?.trim();
+}
+
 function itemMarkdown(item: FinanceItem) {
   return [
     `# Finance item: ${item.title}`,
@@ -110,6 +148,11 @@ function itemMarkdown(item: FinanceItem) {
     `- Counterparty: ${item.counterparty}`,
     `- Linked project: ${item.projectName || 'Unassigned'}`,
     `- Period: ${item.period}`,
+    `- Accounting flow: ${item.accountingFlow || 'Non-cash'}`,
+    `- Settlement: ${item.settlementStatus || 'Not Due'}`,
+    `- Due date: ${item.dueDate || 'No due date'}`,
+    `- Document no: ${item.documentNo || 'Missing'}`,
+    `- Tax note: ${item.taxNote || 'No tax note'}`,
     `- Owner: ${item.owner}`,
     '',
     '## Summary',
@@ -129,17 +172,18 @@ function workCardFor(item: FinanceItem): WorkCard {
     title: item.nextAction || item.title,
     kind: 'Ops',
     owner: item.owner || 'AI Accountant',
-    status: item.risk === 'LOW' ? 'Planning' : 'Waiting Approval',
+    status: item.risk === 'LOW' && !isOverdue(item) ? 'Planning' : 'Waiting Approval',
     risk: item.risk,
     request: itemMarkdown(item),
     plan: [
       'Verify source evidence and accounting treatment',
       `Check linked project impact: ${item.projectName || 'Unassigned'}`,
+      `Check due date and settlement: ${item.dueDate || 'No due date'} · ${item.settlementStatus || 'Not Due'}`,
       'Prepare founder decision brief',
       'Return control note and rollback/adjustment path',
     ],
     tools: ['Finance Core', 'Projects Core', 'Workboard', 'Approval Gate'],
-    approval: item.risk === 'LOW' ? 'Sandbox analysis allowed. Payment/posting still needs approval.' : 'Founder approval required before payment, posting or commitment.',
+    approval: item.risk === 'LOW' && !isOverdue(item) ? 'Sandbox analysis allowed. Payment/posting still needs approval.' : 'Founder approval required before payment, posting, settlement or commitment.',
   };
 }
 
@@ -167,6 +211,11 @@ export default function FinanceCoreTab() {
   const [counterparty, setCounterparty] = useState('');
   const [projectName, setProjectName] = useState('');
   const [period, setPeriod] = useState('');
+  const [accountingFlow, setAccountingFlow] = useState<AccountingFlow>('Non-cash');
+  const [settlementStatus, setSettlementStatus] = useState<SettlementStatus>('Not Due');
+  const [dueDate, setDueDate] = useState('');
+  const [documentNo, setDocumentNo] = useState('');
+  const [taxNote, setTaxNote] = useState('');
   const [summary, setSummary] = useState('');
   const [nextAction, setNextAction] = useState('');
   const [filter, setFilter] = useState<'ALL' | FinanceType>('ALL');
@@ -178,6 +227,11 @@ export default function FinanceCoreTab() {
   const highRiskCount = items.filter((item) => item.risk === 'HIGH').length;
   const reviewCount = items.filter((item) => item.status === 'Review' || item.status === 'Blocked').length;
   const linkedProjectCount = items.filter((item) => Boolean(item.projectName?.trim()) && item.projectName !== 'Unassigned').length;
+  const receivableOpen = items.filter((item) => ['Receivable', 'Invoice'].includes(item.type) && !isClosed(item)).reduce((sum, item) => sum + item.amount, 0);
+  const payableOpen = items.filter((item) => ['Payable', 'Payment', 'Payroll', 'Tax', 'Procurement'].includes(item.type) && !isClosed(item)).reduce((sum, item) => sum + item.amount, 0);
+  const advanceOpen = items.filter((item) => item.type === 'Advance' && !isClosed(item)).reduce((sum, item) => sum + item.amount, 0);
+  const overdueItems = items.filter(isOverdue);
+  const missingDocumentItems = items.filter(needsDocument);
   const projectNames = new Set(projects.map((project) => norm(project.name)));
   const financeProjectNames = new Set(items.filter((item) => item.projectName && item.projectName !== 'Unassigned').map((item) => norm(item.projectName)));
   const unmatchedFinance = items.filter((item) => item.projectName && item.projectName !== 'Unassigned' && !projectNames.has(norm(item.projectName)));
@@ -203,6 +257,11 @@ export default function FinanceCoreTab() {
       summary: summary.trim(),
       nextAction: nextAction.trim() || 'Prepare finance decision brief.',
       evidence: 'Attach source documents before posting/payment.',
+      accountingFlow,
+      settlementStatus,
+      dueDate,
+      documentNo: documentNo.trim(),
+      taxNote: taxNote.trim(),
       createdAt: now,
       updatedAt: now,
     };
@@ -213,6 +272,9 @@ export default function FinanceCoreTab() {
     setCounterparty('');
     setProjectName('');
     setPeriod('');
+    setDueDate('');
+    setDocumentNo('');
+    setTaxNote('');
     setSummary('');
     setNextAction('');
   };
@@ -220,6 +282,11 @@ export default function FinanceCoreTab() {
   const updateStatus = (item: FinanceItem, status: FinanceStatus) => {
     saveItems(items.map((entry) => entry.id === item.id ? { ...entry, status, updatedAt: new Date().toISOString() } : entry));
     appendAgentOpsAudit('FINANCE_STATUS_UPDATED', item.id, `${item.title} → ${status}`);
+  };
+
+  const updateSettlement = (item: FinanceItem, status: SettlementStatus) => {
+    saveItems(items.map((entry) => entry.id === item.id ? { ...entry, settlementStatus: status, updatedAt: new Date().toISOString() } : entry));
+    appendAgentOpsAudit('FINANCE_SETTLEMENT_UPDATED', item.id, `${item.title} → ${status}`);
   };
 
   const pushToWorkboard = (item: FinanceItem) => {
@@ -244,7 +311,7 @@ export default function FinanceCoreTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Finance & Accounting Core</p>
           <h3 className="mt-1 text-xl font-black text-white">Finance Core</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core tài chính/kế toán cho Company OS: cashflow, budget, invoice, payment, tax và report. Mỗi dòng có thể gắn project để nối tiền với delivery.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core tài chính/kế toán cho Company OS: cashflow, budget, invoice, payment, tax, công nợ, tạm ứng/hoàn ứng và report. Mỗi dòng có thể gắn project để nối tiền với delivery.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-emerald-300/40 px-3 py-1 text-emerald-100">{items.length} items</span>
@@ -252,6 +319,29 @@ export default function FinanceCoreTab() {
           <span className="rounded-full border border-sky-300/40 px-3 py-1 text-sky-100">{linkedProjectCount} linked</span>
           <span className="rounded-full border border-amber-300/40 px-3 py-1 text-amber-100">{reviewCount} review</span>
           <span className="rounded-full border border-rose-300/40 px-3 py-1 text-rose-100">{highRiskCount} high</span>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-5">
+        <div className="rounded-xl border border-emerald-400/25 bg-emerald-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200">Receivable open</p>
+          <p className="mt-1 text-lg font-black text-white">{money(receivableOpen)}</p>
+        </div>
+        <div className="rounded-xl border border-rose-400/25 bg-rose-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-rose-200">Payable open</p>
+          <p className="mt-1 text-lg font-black text-white">{money(payableOpen)}</p>
+        </div>
+        <div className="rounded-xl border border-amber-400/25 bg-amber-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200">Advance open</p>
+          <p className="mt-1 text-lg font-black text-white">{money(advanceOpen)}</p>
+        </div>
+        <div className="rounded-xl border border-orange-400/25 bg-orange-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-orange-200">Overdue</p>
+          <p className="mt-1 text-lg font-black text-white">{overdueItems.length}</p>
+        </div>
+        <div className="rounded-xl border border-purple-400/25 bg-purple-400/10 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-purple-200">Missing docs</p>
+          <p className="mt-1 text-lg font-black text-white">{missingDocumentItems.length}</p>
         </div>
       </div>
 
@@ -273,25 +363,15 @@ export default function FinanceCoreTab() {
         </div>
       </div>
 
-      {(unmatchedFinance.length > 0 || projectsWithoutFinance.length > 0 || overBudgetProjects.length > 0) && (
+      {(unmatchedFinance.length > 0 || projectsWithoutFinance.length > 0 || overBudgetProjects.length > 0 || overdueItems.length > 0 || missingDocumentItems.length > 0) && (
         <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <p className="text-sm font-black text-white">Finance / Project reconciliation</p>
-          <div className="mt-3 grid gap-2 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
-              <span className="font-black text-sky-200">Unmatched finance</span><br />
-              {unmatchedFinance.slice(0, 5).map((item) => <span key={item.id}>• {item.title} → {item.projectName}<br /></span>)}
-              {unmatchedFinance.length === 0 && 'None'}
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
-              <span className="font-black text-amber-200">Projects without finance</span><br />
-              {projectsWithoutFinance.slice(0, 5).map((project) => <span key={project.id}>• {project.name}<br /></span>)}
-              {projectsWithoutFinance.length === 0 && 'None'}
-            </div>
-            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
-              <span className="font-black text-rose-200">Over budget</span><br />
-              {overBudgetProjects.slice(0, 5).map((project) => <span key={project.id}>• {project.name}: {money(varianceFor(project))}<br /></span>)}
-              {overBudgetProjects.length === 0 && 'None'}
-            </div>
+          <div className="mt-3 grid gap-2 md:grid-cols-5">
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300"><span className="font-black text-sky-200">Unmatched finance</span><br />{unmatchedFinance.slice(0, 5).map((item) => <span key={item.id}>• {item.title} → {item.projectName}<br /></span>)}{unmatchedFinance.length === 0 && 'None'}</div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300"><span className="font-black text-amber-200">Projects without finance</span><br />{projectsWithoutFinance.slice(0, 5).map((project) => <span key={project.id}>• {project.name}<br /></span>)}{projectsWithoutFinance.length === 0 && 'None'}</div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300"><span className="font-black text-rose-200">Over budget</span><br />{overBudgetProjects.slice(0, 5).map((project) => <span key={project.id}>• {project.name}: {money(varianceFor(project))}<br /></span>)}{overBudgetProjects.length === 0 && 'None'}</div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300"><span className="font-black text-orange-200">Overdue</span><br />{overdueItems.slice(0, 5).map((item) => <span key={item.id}>• {item.title}: {item.dueDate || item.settlementStatus}<br /></span>)}{overdueItems.length === 0 && 'None'}</div>
+            <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300"><span className="font-black text-purple-200">Missing docs</span><br />{missingDocumentItems.slice(0, 5).map((item) => <span key={item.id}>• {item.title}<br /></span>)}{missingDocumentItems.length === 0 && 'None'}</div>
           </div>
         </div>
       )}
@@ -303,7 +383,12 @@ export default function FinanceCoreTab() {
         <input value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="Amount" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
         <input value={counterparty} onChange={(event) => setCounterparty(event.target.value)} placeholder="Counterparty" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
         <input value={projectName} onChange={(event) => setProjectName(event.target.value)} placeholder="Linked project / delivery" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
-        <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="Period" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
+        <select value={accountingFlow} onChange={(event) => setAccountingFlow(event.target.value as AccountingFlow)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-emerald-300">{flows.map((item) => <option key={item}>{item}</option>)}</select>
+        <select value={settlementStatus} onChange={(event) => setSettlementStatus(event.target.value as SettlementStatus)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-emerald-300">{settlementStatuses.map((item) => <option key={item}>{item}</option>)}</select>
+        <input value={dueDate} onChange={(event) => setDueDate(event.target.value)} placeholder="Due date YYYY-MM-DD" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <input value={documentNo} onChange={(event) => setDocumentNo(event.target.value)} placeholder="Document / invoice no." className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="Period" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <input value={taxNote} onChange={(event) => setTaxNote(event.target.value)} placeholder="Tax / VAT / PIT note" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
         <textarea value={summary} onChange={(event) => setSummary(event.target.value)} placeholder="Summary / accounting control" className="min-h-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
         <input value={nextAction} onChange={(event) => setNextAction(event.target.value)} placeholder="Next action" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
         <button onClick={addItem} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-400/10 md:col-span-2">Add finance item</button>
@@ -325,10 +410,16 @@ export default function FinanceCoreTab() {
               <span className="rounded-full border border-emerald-300/40 px-2 py-0.5 text-[10px] font-black text-emerald-100">{item.status} · {item.risk}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{item.summary}</p>
-            <p className="mt-2 rounded-xl border border-sky-400/20 bg-sky-400/10 p-2 text-[11px] font-black text-sky-100">Linked project: {item.projectName || 'Unassigned'}</p>
+            <div className="mt-2 grid gap-2 md:grid-cols-2">
+              <p className="rounded-xl border border-sky-400/20 bg-sky-400/10 p-2 text-[11px] font-black text-sky-100">Linked project: {item.projectName || 'Unassigned'}</p>
+              <p className="rounded-xl border border-amber-400/20 bg-amber-400/10 p-2 text-[11px] font-black text-amber-100">Settlement: {item.settlementStatus || 'Not Due'} · Due {item.dueDate || 'N/A'}</p>
+              <p className="rounded-xl border border-cyan-400/20 bg-cyan-400/10 p-2 text-[11px] font-black text-cyan-100">Flow: {item.accountingFlow || 'Non-cash'} · Doc {item.documentNo || 'Missing'}</p>
+              <p className="rounded-xl border border-purple-400/20 bg-purple-400/10 p-2 text-[11px] font-black text-purple-100">Tax: {item.taxNote || 'No note'}</p>
+            </div>
             <p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">Next: {item.nextAction}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {statuses.map((status) => <button key={status} onClick={() => updateStatus(item, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-emerald-300 hover:text-emerald-100">{status}</button>)}
+              {settlementStatuses.map((status) => <button key={status} onClick={() => updateSettlement(item, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-amber-300 hover:text-amber-100">{status}</button>)}
               <button onClick={() => pushToWorkboard(item)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">To Workboard</button>
               <button onClick={() => requestApproval(item)} className="rounded-xl border border-amber-300/50 px-3 py-2 text-[11px] font-black text-amber-100 hover:bg-amber-400/10">Approval</button>
               <button onClick={() => copyBrief(item)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10">Copy brief</button>
