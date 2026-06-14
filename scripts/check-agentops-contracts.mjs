@@ -81,6 +81,12 @@ assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'Needs Revi
 assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'RAG_LOW_EVIDENCE_WARNING', 'RAG Search must warn when evidence is weak.');
 assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'eligibleSources', 'RAG context basket must not depend only on filtered search results.');
 
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'RELEASE_GATE_BLOCKED', 'Release Notes must block release when release gate fails.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'releaseGateProblems', 'Release Notes must compute release gate blockers.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'qaFail > 0', 'Release gate must include QA fail/blocked checks.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'openWork > 0', 'Release gate must include open Workboard checks.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'highRiskPlans > 0', 'Release gate must include high-risk PR plan checks.');
+
 if (failures.length > 0) {
   console.error('\nAgentOps contract check failed:\n');
   for (const failure of failures) console.error(`- ${failure}`);
