@@ -111,19 +111,17 @@ function markdownFor(item: GrowthItem) {
 function workCardFor(item: GrowthItem): WorkCard {
   return {
     id: `growth-work-${item.id}`,
-    kind: 'Growth Experiment',
+    kind: 'Marketing',
     title: item.title,
     status: item.risk === 'LOW' ? 'Planning' : 'Waiting Approval',
     risk: item.risk,
     owner: 'AI Marketer',
     request: item.offer,
-    plan: item.message,
+    plan: ['Review persona and offer', 'Draft message and CTA', 'Define test metric', 'Return learning note'],
     tools: [item.channel, 'Prompt Pack', 'Feedback Loop'],
     approval: item.risk === 'LOW' ? 'Sandbox draft allowed' : 'Founder approval required before publishing',
-    source: 'Growth Studio',
     expectedOutput: 'Draft content, CTA, channel plan, test metric and learning note',
-    context: markdownFor(item),
-    createdAt: item.createdAt,
+    founderReview: markdownFor(item),
   };
 }
 
@@ -186,47 +184,50 @@ export default function GrowthStudioTab() {
     appendAgentOpsAudit('GROWTH_TO_WORKBOARD', item.id, item.title);
   };
 
-  const pushToFeedback = (item: GrowthItem) => {
+  const pushLearningToFeedback = (item: GrowthItem) => {
     const feedback: FeedbackSeed = {
-      id: `feedback-${item.id}-${Date.now()}`,
+      id: `growth-feedback-${item.id}-${Date.now()}`,
       source: `Growth Studio / ${item.channel}`,
       persona: item.targetPersona,
-      content: `Test learning needed: ${item.title}. Offer: ${item.offer}`,
+      content: `${item.title}\nOffer: ${item.offer}\nLearning: ${item.learning}`,
       severity: item.risk,
-      type: 'Idea',
+      type: item.risk === 'HIGH' ? 'Risk' : 'Idea',
       status: 'New',
       createdAt: new Date().toISOString(),
     };
     appendLocalStorageArrayItem(FEEDBACK_KEY, feedback, 200);
-    appendAgentOpsAudit('GROWTH_TO_FEEDBACK', item.id, item.title);
+    appendAgentOpsAudit('GROWTH_LEARNING_TO_FEEDBACK', item.id, item.title);
   };
 
   return (
-    <section className="rounded-3xl border border-fuchsia-400/30 bg-fuchsia-400/10 p-4 text-slate-100">
+    <section className="rounded-3xl border border-emerald-400/30 bg-emerald-400/10 p-4 text-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-fuchsia-200">Marketing & Growth</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Marketing & Growth</p>
           <h3 className="mt-1 text-xl font-black text-white">Growth Studio</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lập offer, content, channel, metric và learning loop cho Company OS. Local-only, publish phải qua Founder approval.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lập offer, content test, channel plan và learning loop trước khi publish thật.</p>
         </div>
-        <span className="rounded-full border border-fuchsia-300/40 px-3 py-1 text-xs font-black text-fuchsia-100">{items.length} growth items</span>
+        <div className="flex flex-wrap gap-2 text-xs font-black">
+          <span className="rounded-full border border-emerald-300/40 px-3 py-1 text-emerald-100">{items.length} growth items</span>
+          <span className="rounded-full border border-amber-300/40 px-3 py-1 text-amber-100">{items.filter((item) => item.stage !== 'Published').length} not published</span>
+        </div>
       </div>
 
       <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-2">
-        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Tên campaign/content/offer" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-fuchsia-300" />
-        <select value={channel} onChange={(event) => setChannel(event.target.value as GrowthChannel)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-fuchsia-300">
+        <input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Tên campaign/content/offer" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <select value={channel} onChange={(event) => setChannel(event.target.value as GrowthChannel)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-emerald-300">
           {channels.map((item) => <option key={item}>{item}</option>)}
         </select>
-        <select value={risk} onChange={(event) => setRisk(event.target.value as GrowthRisk)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-fuchsia-300">
+        <select value={risk} onChange={(event) => setRisk(event.target.value as GrowthRisk)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-emerald-300">
           {risks.map((item) => <option key={item}>{item}</option>)}
         </select>
-        <input value={persona} onChange={(event) => setPersona(event.target.value)} placeholder="Persona mục tiêu" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-fuchsia-300" />
-        <input value={offer} onChange={(event) => setOffer(event.target.value)} placeholder="Offer / lời hứa giá trị" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-fuchsia-300 md:col-span-2" />
-        <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Thông điệp chính / angle cần test" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-fuchsia-300 md:col-span-2" />
-        <button onClick={addItem} className="rounded-xl border border-fuchsia-300/50 px-3 py-2 text-xs font-black text-fuchsia-100 hover:bg-fuchsia-400/10 md:col-span-2">Thêm growth item</button>
+        <input value={persona} onChange={(event) => setPersona(event.target.value)} placeholder="Persona / khách hàng mục tiêu" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
+        <textarea value={offer} onChange={(event) => setOffer(event.target.value)} placeholder="Offer / lời hứa giá trị" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
+        <textarea value={message} onChange={(event) => setMessage(event.target.value)} placeholder="Thông điệp / angle / CTA" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-emerald-300 md:col-span-2" />
+        <button onClick={addItem} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-400/10 md:col-span-2">Thêm growth item</button>
       </div>
 
-      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search channel, persona, offer..." className="mt-4 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-fuchsia-300" />
+      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search growth items" className="mt-4 w-full rounded-2xl border border-slate-700 bg-slate-950 px-4 py-3 text-sm font-semibold text-white outline-none focus:border-emerald-300" />
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {visibleItems.map((item) => (
@@ -245,10 +246,10 @@ export default function GrowthStudioTab() {
             <p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">{item.message}</p>
             <p className="mt-2 text-[11px] font-semibold text-slate-400">Metric: {item.metric}</p>
             <div className="mt-3 flex flex-wrap gap-2">
-              {stages.map((stage) => <button key={stage} onClick={() => updateStage(item, stage)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-fuchsia-300 hover:text-fuchsia-100">{stage}</button>)}
-              <button onClick={() => copyBrief(item)} className="rounded-xl border border-fuchsia-300/50 px-3 py-2 text-[11px] font-black text-fuchsia-100 hover:bg-fuchsia-400/10">Copy brief</button>
+              {stages.map((stage) => <button key={stage} onClick={() => updateStage(item, stage)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-emerald-300 hover:text-emerald-100">{stage}</button>)}
+              <button onClick={() => copyBrief(item)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">Copy brief</button>
               <button onClick={() => pushToWorkboard(item)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10">To Workboard</button>
-              <button onClick={() => pushToFeedback(item)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">To Feedback</button>
+              <button onClick={() => pushLearningToFeedback(item)} className="rounded-xl border border-violet-300/50 px-3 py-2 text-[11px] font-black text-violet-100 hover:bg-violet-400/10">To Feedback</button>
             </div>
           </article>
         ))}
