@@ -17,6 +17,7 @@ import SecretsVaultTab from './tabs/SecretsVaultTab';
 import QATestMatrixTab from './tabs/QATestMatrixTab';
 import GitHubPRControlTab from './tabs/GitHubPRControlTab';
 import ReleaseNotesTab from './tabs/ReleaseNotesTab';
+import ClaudeBriefTrackerTab from './tabs/ClaudeBriefTrackerTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -29,9 +30,10 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'brief' | 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
+  { id: 'brief', label: 'Brief Tracker' },
   { id: 'standup', label: 'Daily Standup' },
   { id: 'founder', label: 'Founder OS' },
   { id: 'workboard', label: 'Workboard' },
@@ -88,6 +90,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
             {tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`rounded-2xl border px-4 py-2 text-xs font-black ${tab === item.id ? 'border-cyan-300 bg-cyan-400/10 text-cyan-100' : 'border-slate-700 text-slate-300 hover:border-cyan-300'}`}>{item.label}</button>)}
           </div>
         </div>
+        {tab === 'brief' && <ClaudeBriefTrackerTab />}
         {tab === 'standup' && <DailyStandupTab />}
         {tab === 'founder' && <FounderOSTab />}
         {tab === 'workboard' && <WorkboardTab />}
