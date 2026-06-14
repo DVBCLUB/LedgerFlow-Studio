@@ -80,6 +80,10 @@ assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'FinanceCoreTab', 'Ag
 assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'ProjectsDeliveryCoreTab', 'AgentOpsHub must render Projects Delivery Core.');
 assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'FINANCE_APPROVAL_REQUESTED', 'Finance Core must route risky actions to Approval Gate.');
 assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'PROJECT_APPROVAL_REQUESTED', 'Projects Core must route risky actions to Approval Gate.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'projectName', 'Finance Core items must keep linked project field.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'Linked project', 'Finance Core briefs must show linked project context.');
+assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'financeStatus', 'Projects Core must track finance status.');
+assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'Variance', 'Projects Core must show budget variance.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'FINANCE_CORE_KEY', 'Daily Standup must read Finance Core items.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'PROJECTS_CORE_KEY', 'Daily Standup must read Projects Core items.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'Finance / Projects', 'Daily Standup must show Finance and Projects section.');
