@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { ApprovalRequest, RiskLevel } from '../../../types/agentOps';
-import { createApprovedGitHubChangeRequest, fetchGitHubPullRequestDigest } from '../../../utils/githubApprovedChangeApi';
+import { createApprovedGitHubChangeRequest, fetchGitHubPullRequestDigest, fetchGitHubWorkflowRunJobs } from '../../../utils/githubApprovedChangeApi';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const PR_PLANS_KEY = 'ledgerflow_github_pr_plans_v1';
@@ -20,6 +20,8 @@ type PRPlan = {
   status: PRStatus;
   ciStatus?: PRCIStatus;
   ciNote?: string;
+  ciJobsNote?: string;
+  workflowRunId?: number;
   prNumber?: number;
   prDigestNote?: string;
   summary: string;
@@ -95,8 +97,10 @@ function markdown(plan: PRPlan) {
     `- Risk: ${plan.risk}`,
     `- Status: ${plan.status}`,
     `- CI: ${plan.ciStatus || 'Unknown'}`,
+    plan.workflowRunId ? `- Workflow run: ${plan.workflowRunId}` : '',
     plan.prNumber ? `- PR number: #${plan.prNumber}` : '',
     plan.ciNote ? `- CI note: ${plan.ciNote}` : '',
+    plan.ciJobsNote ? `- CI jobs: ${plan.ciJobsNote}` : '',
     plan.prDigestNote ? `- PR digest: ${plan.prDigestNote}` : '',
     plan.prUrl ? `- PR: ${plan.prUrl}` : '',
     '',
@@ -142,6 +146,18 @@ function digestNoteFrom(result: Awaited<ReturnType<typeof fetchGitHubPullRequest
     result.safety.hasDeletes ? 'large-delete' : '',
   ].filter(Boolean);
   return `#${pr.number} · ${pr.changedFiles} files · +${pr.additions}/-${pr.deletions} · mergeable=${pr.mergeableState || 'unknown'}${flags.length ? ` · flags=${flags.join(',')}` : ''}`;
+}
+
+function ciStatusFromJobs(result: Awaited<ReturnType<typeof fetchGitHubWorkflowRunJobs>>): PRCIStatus {
+  if (result.hasFailures || result.failedJobs.length > 0) return 'Failed';
+  if (result.jobs.length === 0) return 'Unknown';
+  if (result.jobs.some((job) => job.status !== 'completed')) return 'Running';
+  return 'Passed';
+}
+
+function ciJobsNoteFrom(result: Awaited<ReturnType<typeof fetchGitHubWorkflowRunJobs>>) {
+  const failedNames = result.failedJobs.map((job) => job.name).join(', ');
+  return `${result.jobs.length} job(s) · failed=${result.failedJobs.length}${failedNames ? ` · ${failedNames}` : ''} · checked=${new Date(result.lastCheckedAt).toLocaleString('vi-VN')}`;
 }
 
 export default function GitHubPRControlTab() {
@@ -319,6 +335,33 @@ export default function GitHubPRControlTab() {
     }
   };
 
+  const refreshCiJobs = async (plan: PRPlan) => {
+    if (!plan.workflowRunId) {
+      setLastResult('Nhập workflow run id trước khi refresh CI jobs.');
+      return;
+    }
+    setRefreshingId(plan.id);
+    setLastResult(`Đang refresh CI jobs run ${plan.workflowRunId}...`);
+    try {
+      const result = await fetchGitHubWorkflowRunJobs(plan.repo, plan.workflowRunId);
+      const ciStatus = ciStatusFromJobs(result);
+      const note = ciJobsNoteFrom(result);
+      patchPlan(plan, {
+        ciStatus,
+        ciNote: note,
+        ciJobsNote: note,
+      });
+      appendAgentOpsAudit('GITHUB_PR_CI_JOBS_REFRESHED', plan.id, `${plan.title} → ${ciStatus} · ${note}`);
+      setLastResult(`CI jobs refreshed: ${ciStatus} · ${note}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown workflow jobs error';
+      appendAgentOpsAudit('GITHUB_PR_CI_JOBS_FAILED', plan.id, message);
+      setLastResult(`Refresh CI jobs failed: ${message}`);
+    } finally {
+      setRefreshingId(null);
+    }
+  };
+
   const copyPlan = async (plan: PRPlan) => {
     await navigator.clipboard.writeText(markdown(plan));
     appendAgentOpsAudit('GITHUB_PR_PLAN_COPIED', plan.id, plan.title);
@@ -394,8 +437,14 @@ export default function GitHubPRControlTab() {
                 <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Test: {plan.testPlan}</p>
                 <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Rollback: {plan.rollback}</p>
                 <p className={`rounded-xl border p-2 ${ciTone(ciStatus)}`}>CI follow-up: {ciStatus} · {plan.ciNote || 'No CI note yet.'}</p>
+                {plan.workflowRunId && <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Workflow run: {plan.workflowRunId}</p>}
+                {plan.ciJobsNote && <p className={`rounded-xl border p-2 ${ciTone(ciStatus)}`}>CI jobs: {plan.ciJobsNote}</p>}
                 {plan.prDigestNote && <p className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-2 text-cyan-100">PR digest: {plan.prDigestNote}</p>}
                 {plan.prUrl && <p className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-2 text-emerald-100">Draft PR: {plan.prUrl}</p>}
+              </div>
+              <div className="mt-3 grid gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-2 md:grid-cols-[1fr_auto]">
+                <input value={plan.workflowRunId ?? ''} onChange={(event) => patchPlan(plan, { workflowRunId: event.target.value ? Number(event.target.value) : undefined })} placeholder="GitHub workflow run id" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-cyan-300" />
+                <button disabled={refreshingId === plan.id || !plan.workflowRunId} onClick={() => refreshCiJobs(plan)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-50">{refreshingId === plan.id ? 'Refreshing...' : 'Refresh CI jobs'}</button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {statuses.map((status) => <button key={status} onClick={() => updateStatus(plan, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-cyan-300 hover:text-cyan-100">{status}</button>)}
