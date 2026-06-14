@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { ApprovalRequest, RiskLevel } from '../../../types/agentOps';
-import { createApprovedGitHubChangeRequest } from '../../../utils/githubApprovedChangeApi';
+import { createApprovedGitHubChangeRequest, fetchGitHubPullRequestDigest } from '../../../utils/githubApprovedChangeApi';
 import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
 
 const PR_PLANS_KEY = 'ledgerflow_github_pr_plans_v1';
@@ -20,6 +20,8 @@ type PRPlan = {
   status: PRStatus;
   ciStatus?: PRCIStatus;
   ciNote?: string;
+  prNumber?: number;
+  prDigestNote?: string;
   summary: string;
   files: string;
   filePath: string;
@@ -93,7 +95,9 @@ function markdown(plan: PRPlan) {
     `- Risk: ${plan.risk}`,
     `- Status: ${plan.status}`,
     `- CI: ${plan.ciStatus || 'Unknown'}`,
+    plan.prNumber ? `- PR number: #${plan.prNumber}` : '',
     plan.ciNote ? `- CI note: ${plan.ciNote}` : '',
+    plan.prDigestNote ? `- PR digest: ${plan.prDigestNote}` : '',
     plan.prUrl ? `- PR: ${plan.prUrl}` : '',
     '',
     '## Summary',
@@ -124,6 +128,22 @@ function normalizeBranchName(input: string) {
   return value.startsWith('ai/') ? value : `ai/${value.replace(/^\/+/, '')}`;
 }
 
+function parsePullNumber(plan: PRPlan) {
+  if (plan.prNumber && Number.isFinite(plan.prNumber)) return plan.prNumber;
+  const match = (plan.prUrl || '').match(/\/pull\/(\d+)/);
+  return match ? Number(match[1]) : undefined;
+}
+
+function digestNoteFrom(result: Awaited<ReturnType<typeof fetchGitHubPullRequestDigest>>) {
+  const pr = result.pullRequest;
+  const flags = [
+    result.safety.touchesBlockedPath ? 'blocked-path' : '',
+    result.safety.largeChange ? 'large-change' : '',
+    result.safety.hasDeletes ? 'large-delete' : '',
+  ].filter(Boolean);
+  return `#${pr.number} · ${pr.changedFiles} files · +${pr.additions}/-${pr.deletions} · mergeable=${pr.mergeableState || 'unknown'}${flags.length ? ` · flags=${flags.join(',')}` : ''}`;
+}
+
 export default function GitHubPRControlTab() {
   useLocalStorageVersion();
   const [title, setTitle] = useState('');
@@ -139,6 +159,7 @@ export default function GitHubPRControlTab() {
   const [rollback, setRollback] = useState('Close the draft PR or revert the generated branch if CI/runtime breaks.');
   const [approvalPhrase, setApprovalPhrase] = useState('');
   const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [refreshingId, setRefreshingId] = useState<string | null>(null);
   const [lastResult, setLastResult] = useState('');
   const [filter, setFilter] = useState<'ALL' | PRStatus>('ALL');
 
@@ -250,8 +271,9 @@ export default function GitHubPRControlTab() {
       patchPlan(plan, {
         status: 'Draft PR Created',
         ciStatus: 'Running',
-        ciNote: 'Draft PR created. Check GitHub Actions and update CI status here.',
+        ciNote: 'Draft PR created. Refresh PR digest or check GitHub Actions before release.',
         prUrl,
+        prNumber: result.pullRequest.number,
         repo: result.repo,
         baseBranch: result.base,
         branchName: result.branch,
@@ -265,6 +287,35 @@ export default function GitHubPRControlTab() {
       setLastResult(`GitHub request failed: ${message}`);
     } finally {
       setSubmittingId(null);
+    }
+  };
+
+  const refreshPrDigest = async (plan: PRPlan) => {
+    const pullNumber = parsePullNumber(plan);
+    if (!pullNumber) {
+      setLastResult('Không tìm thấy PR number. Tạo draft PR thật hoặc dán PR URL trước.');
+      return;
+    }
+    setRefreshingId(plan.id);
+    setLastResult(`Đang refresh PR digest #${pullNumber}...`);
+    try {
+      const result = await fetchGitHubPullRequestDigest(plan.repo, pullNumber);
+      const note = digestNoteFrom(result);
+      patchPlan(plan, {
+        prNumber: result.pullRequest.number,
+        prUrl: result.pullRequest.htmlUrl,
+        branchName: result.pullRequest.branch || plan.branchName,
+        baseBranch: result.pullRequest.base || plan.baseBranch,
+        prDigestNote: note,
+      });
+      appendAgentOpsAudit('GITHUB_PR_DIGEST_REFRESHED', plan.id, note);
+      setLastResult(`PR digest refreshed: ${note}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown PR digest error';
+      appendAgentOpsAudit('GITHUB_PR_DIGEST_FAILED', plan.id, message);
+      setLastResult(`Refresh PR digest failed: ${message}`);
+    } finally {
+      setRefreshingId(null);
     }
   };
 
@@ -328,7 +379,7 @@ export default function GitHubPRControlTab() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-black text-white">{plan.title}</p>
-                  <p className="mt-1 text-[11px] font-bold text-slate-400">{plan.repo} · {plan.baseBranch} → {plan.branchName}</p>
+                  <p className="mt-1 text-[11px] font-bold text-slate-400">{plan.repo} · {plan.baseBranch} → {plan.branchName}{plan.prNumber ? ` · #${plan.prNumber}` : ''}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${statusTone(plan.status)}`}>{plan.status}</span>
@@ -343,6 +394,7 @@ export default function GitHubPRControlTab() {
                 <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Test: {plan.testPlan}</p>
                 <p className="rounded-xl border border-slate-800 bg-slate-950/60 p-2">Rollback: {plan.rollback}</p>
                 <p className={`rounded-xl border p-2 ${ciTone(ciStatus)}`}>CI follow-up: {ciStatus} · {plan.ciNote || 'No CI note yet.'}</p>
+                {plan.prDigestNote && <p className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 p-2 text-cyan-100">PR digest: {plan.prDigestNote}</p>}
                 {plan.prUrl && <p className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-2 text-emerald-100">Draft PR: {plan.prUrl}</p>}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -350,6 +402,7 @@ export default function GitHubPRControlTab() {
                 {ciStatuses.map((status) => <button key={status} onClick={() => updateCiStatus(plan, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-emerald-300 hover:text-emerald-100">CI {status}</button>)}
                 <button onClick={() => requestApproval(plan)} className="rounded-xl border border-amber-300/50 px-3 py-2 text-[11px] font-black text-amber-100 hover:bg-amber-400/10">Approval</button>
                 <button onClick={() => copyPlan(plan)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">Copy plan</button>
+                <button disabled={refreshingId === plan.id} onClick={() => refreshPrDigest(plan)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50">{refreshingId === plan.id ? 'Refreshing...' : 'Refresh PR'}</button>
                 <button disabled={submittingId === plan.id} onClick={() => createDraftPr(plan)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10 disabled:cursor-not-allowed disabled:opacity-50">{submittingId === plan.id ? 'Creating...' : 'Create draft PR'}</button>
               </div>
             </article>
