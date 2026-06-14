@@ -5,6 +5,8 @@ const TASK_KEY = 'ledgerflow_ai_task_queue_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 const KNOWLEDGE_KEY = 'ledgerflow_company_knowledge_v1';
+const FINANCE_CORE_KEY = 'ledgerflow_finance_core_v1';
+const PROJECTS_CORE_KEY = 'ledgerflow_projects_delivery_core_v1';
 const SOP_KEY = 'ledgerflow_founder_sop_library_v1';
 const RISK_KEY = 'ledgerflow_founder_risk_register_v1';
 
@@ -94,6 +96,11 @@ function riskOf(item: LooseRecord): RiskLevel {
   return 'LOW';
 }
 
+function isOpenStatus(item: LooseRecord, doneStatuses: string[]) {
+  const status = valueText(item, ['status', 'stage'], '').toLowerCase();
+  return !doneStatuses.map((value) => value.toLowerCase()).includes(status);
+}
+
 function riskTone(risk: RiskLevel) {
   if (risk === 'HIGH') return 'border-rose-400/40 bg-rose-400/10 text-rose-100';
   if (risk === 'MEDIUM') return 'border-amber-400/40 bg-amber-400/10 text-amber-100';
@@ -117,26 +124,36 @@ export default function FounderOSTab() {
   const workCards = readLocalStorageValue<LooseRecord[]>(WORKBOARD_KEY, []);
   const approvals = readLocalStorageValue<LooseRecord[]>(APPROVAL_KEY, []);
   const knowledge = readLocalStorageValue<LooseRecord[]>(KNOWLEDGE_KEY, []);
+  const financeItems = readLocalStorageValue<LooseRecord[]>(FINANCE_CORE_KEY, []);
+  const projectItems = readLocalStorageValue<LooseRecord[]>(PROJECTS_CORE_KEY, []);
   const sops = readLocalStorageValue<FounderSop[]>(SOP_KEY, seedSops);
   const risks = readLocalStorageValue<FounderRisk[]>(RISK_KEY, seedRisks);
 
   const pendingApprovals = approvals.filter((item) => valueText(item, ['status'], 'Pending') === 'Pending');
   const openTasks = tasks.filter((item) => valueText(item, ['status'], '') !== 'Done');
   const openCards = workCards.filter((item) => valueText(item, ['status'], '') !== 'Done');
-  const highRisks = [...tasks, ...workCards, ...risks].filter((item) => riskOf(item) === 'HIGH');
+  const openFinanceItems = financeItems.filter((item) => isOpenStatus(item, ['Posted', 'Approved']));
+  const openProjectItems = projectItems.filter((item) => isOpenStatus(item, ['Delivered']));
+  const highRisks = [...tasks, ...workCards, ...financeItems, ...projectItems, ...risks].filter((item) => riskOf(item) === 'HIGH');
 
   const dashboardMarkdown = useMemo(() => [
     '# Founder OS Daily Control',
     '',
     `- Open AI tasks: ${openTasks.length}`,
     `- Open work cards: ${openCards.length}`,
+    `- Open finance items: ${openFinanceItems.length}`,
+    `- Open projects: ${openProjectItems.length}`,
     `- Pending approvals: ${pendingApprovals.length}`,
     `- High risk items: ${highRisks.length}`,
     `- Knowledge notes: ${knowledge.length}`,
     '',
+    '## Finance / Projects to inspect',
+    openFinanceItems.slice(0, 3).map((item) => `- Finance: ${valueText(item, ['title'])} · ${valueText(item, ['status'])} · ${riskOf(item)}`).join('\n') || '- No open finance blocker.',
+    openProjectItems.slice(0, 3).map((item) => `- Project: ${valueText(item, ['title'])} · ${valueText(item, ['stage', 'status'])} · ${riskOf(item)}`).join('\n') || '- No open project blocker.',
+    '',
     '## Next actions',
     pendingApprovals.slice(0, 5).map((item) => `- Approve/reject: ${valueText(item, ['title', 'action'])}`).join('\n') || '- No approval blocker.',
-  ].join('\n'), [openTasks.length, openCards.length, pendingApprovals, highRisks.length, knowledge.length]);
+  ].join('\n'), [openTasks.length, openCards.length, openFinanceItems, openProjectItems, pendingApprovals, highRisks.length, knowledge.length]);
 
   const addSop = () => {
     if (!sopTitle.trim() || !sopSteps.trim()) return;
@@ -186,23 +203,43 @@ export default function FounderOSTab() {
       </div>
 
       {view === 'dashboard' && (
-        <div className="mt-4 grid gap-3 md:grid-cols-5">
-          {[
-            ['AI Tasks', openTasks.length],
-            ['Work Cards', openCards.length],
-            ['Approvals', pendingApprovals.length],
-            ['High Risk', highRisks.length],
-            ['Knowledge', knowledge.length],
-          ].map(([label, value]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-white">{value}</p></div>)}
-        </div>
+        <>
+          <div className="mt-4 grid gap-3 md:grid-cols-7">
+            {[
+              ['AI Tasks', openTasks.length],
+              ['Work Cards', openCards.length],
+              ['Finance', openFinanceItems.length],
+              ['Projects', openProjectItems.length],
+              ['Approvals', pendingApprovals.length],
+              ['High Risk', highRisks.length],
+              ['Knowledge', knowledge.length],
+            ].map(([label, value]) => <div key={label} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-white">{value}</p></div>)}
+          </div>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+              <p className="text-sm font-black text-white">Finance cần xem</p>
+              <div className="mt-2 grid gap-2">
+                {openFinanceItems.slice(0, 4).map((item, index) => <p key={valueText(item, ['id'], `finance-${index}`)} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold text-slate-300">{valueText(item, ['title'])} · {valueText(item, ['status'])} · {riskOf(item)}</p>)}
+                {openFinanceItems.length === 0 && <p className="text-xs font-semibold text-slate-500">Không có finance blocker.</p>}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+              <p className="text-sm font-black text-white">Projects cần xem</p>
+              <div className="mt-2 grid gap-2">
+                {openProjectItems.slice(0, 4).map((item, index) => <p key={valueText(item, ['id'], `project-${index}`)} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold text-slate-300">{valueText(item, ['title'])} · {valueText(item, ['stage', 'status'])} · {riskOf(item)}</p>)}
+                {openProjectItems.length === 0 && <p className="text-xs font-semibold text-slate-500">Không có project blocker.</p>}
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {view === 'orders' && (
         <div className="mt-4 grid gap-3 md:grid-cols-2">
-          {[...tasks, ...workCards].slice(0, 12).map((item, index) => {
+          {[...tasks, ...workCards, ...financeItems, ...projectItems].slice(0, 12).map((item, index) => {
             const id = valueText(item, ['id'], `order-${index}`);
             const title = valueText(item, ['title', 'request'], 'Untitled order');
-            const status = valueText(item, ['status'], 'Inbox');
+            const status = valueText(item, ['status', 'stage'], 'Inbox');
             const risk = riskOf(item);
             return <article key={id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-sm font-black text-white">{title}</p><span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${riskTone(risk)}`}>{risk}</span></div><p className="mt-2 text-xs font-semibold text-slate-400">Status: {status}</p></article>;
           })}
@@ -225,8 +262,8 @@ export default function FounderOSTab() {
 
       {view === 'risk' && (
         <div className="mt-4 grid gap-3 md:grid-cols-[0.85fr_1.15fr]">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><input value={riskTitle} onChange={(event) => setRiskTitle(event.target.value)} placeholder="Rủi ro/release gate" className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" /><textarea value={riskMitigation} onChange={(event) => setRiskMitigation(event.target.value)} placeholder="Cách giảm rủi ro" className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" /><button onClick={addRisk} className="mt-2 rounded-xl border border-violet-300/50 px-3 py-2 text-xs font-black text-violet-100 hover:bg-violet-400/10">Thêm risk</button></div>
-          <div className="grid gap-3">{risks.slice(0, 8).map((item) => <article key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-sm font-black text-white">{item.title}</p><span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${riskTone(item.risk)}`}>{item.risk}</span></div><p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{item.mitigation}</p><p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold text-amber-100">Gate: {item.releaseGate}</p></article>)}</div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><input value={riskTitle} onChange={(event) => setRiskTitle(event.target.value)} placeholder="Rủi ro/release gate" className="w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" /><textarea value={riskMitigation} onChange={(event) => setRiskMitigation(event.target.value)} placeholder="Mitigation / điều kiện release" className="mt-2 min-h-28 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" /><button onClick={addRisk} className="mt-2 rounded-xl border border-violet-300/50 px-3 py-2 text-xs font-black text-violet-100 hover:bg-violet-400/10">Thêm risk gate</button></div>
+          <div className="grid gap-3">{risks.slice(0, 8).map((risk) => <article key={risk.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-start justify-between gap-2"><p className="text-sm font-black text-white">{risk.title}</p><span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${riskTone(risk.risk)}`}>{risk.risk}</span></div><p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{risk.mitigation}</p><p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold text-slate-400">Gate: {risk.releaseGate}</p></article>)}</div>
         </div>
       )}
     </section>
