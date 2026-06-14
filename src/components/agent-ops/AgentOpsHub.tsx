@@ -4,6 +4,7 @@ import ProductFactoryTab from './tabs/ProductFactoryTab';
 import PromptPackTab from './tabs/PromptPackTab';
 import CompanyMemoryTab from './tabs/CompanyMemoryTab';
 import KnowledgeBaseTab from './tabs/KnowledgeBaseTab';
+import RAGSearchTab from './tabs/RAGSearchTab';
 import MemoryVersionsTab from './tabs/MemoryVersionsTab';
 import FounderOSTab from './tabs/FounderOSTab';
 import IndustryTemplatesTab from './tabs/IndustryTemplatesTab';
@@ -30,7 +31,7 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'brief' | 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'brief' | 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'rag' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 type AgentOpsTabItem = { id: AgentOpsHubTab; label: string };
 type AgentOpsTabGroup = { title: string; description: string; items: AgentOpsTabItem[] };
@@ -79,6 +80,7 @@ const tabGroups: AgentOpsTabGroup[] = [
       { id: 'prompts', label: 'Prompt Pack' },
       { id: 'memory', label: 'Company Memory' },
       { id: 'knowledge', label: 'Knowledge Base' },
+      { id: 'rag', label: 'RAG Search' },
       { id: 'memoryVersions', label: 'Memory Versions' },
       { id: 'industry', label: 'Industry Templates' },
       { id: 'navmap', label: 'Navigation Map' }
@@ -120,6 +122,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'prompts') return <PromptPackTab />;
   if (tab === 'memory') return <CompanyMemoryTab />;
   if (tab === 'knowledge') return <KnowledgeBaseTab />;
+  if (tab === 'rag') return <RAGSearchTab />;
   if (tab === 'memoryVersions') return <MemoryVersionsTab />;
   if (tab === 'industry') return <IndustryTemplatesTab />;
   if (tab === 'navmap') return <NavigationMapTab />;
