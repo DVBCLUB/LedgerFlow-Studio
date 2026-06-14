@@ -50,6 +50,9 @@ assertContains('src/components/agent-ops/tabs/GitHubPRControlTab.tsx', 'APPROVE 
 assertContains('src/components/agent-ops/tabs/GitHubPRControlTab.tsx', 'createApprovedGitHubChangeRequest', 'GitHub PR Control must call the approved-change API helper.');
 assertContains('src/components/agent-ops/tabs/GitHubPRControlTab.tsx', 'ciStatus', 'GitHub PR Control must track CI status for PR plans.');
 assertContains('src/utils/githubApprovedChangeApi.ts', '/api/integrations/github/approved-change-request', 'Approved GitHub API helper must use backend approved-change endpoint.');
+assertContains('src/utils/githubApprovedChangeApi.ts', 'fetchGitHubWorkflowRunJobs', 'GitHub API helper must expose workflow job inspection.');
+assertContains('src/utils/githubApprovedChangeApi.ts', '/api/integrations/github/runs/', 'GitHub workflow helper must call the backend workflow jobs endpoint.');
+assertContains('server.ts', '/api/integrations/github/runs/:runId/jobs', 'Server must expose GitHub workflow jobs endpoint.');
 assertContains('src/utils/integrationHubApi.ts', '/api/integrations/local-tools/summary', 'Local tool summary must use the server summary endpoint.');
 assertNotContains('src/utils/integrationHubApi.ts', '/api/integrations/local-tools/status', 'Old local tool status endpoint is not exposed by server.ts.');
 assertRegex('src/components/agent-ops/tabs/GrowthStudioTab.tsx', /kind:\s*'Marketing'/, 'Growth work cards must use WorkKind Marketing.');
