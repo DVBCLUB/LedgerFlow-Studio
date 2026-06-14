@@ -32,40 +32,106 @@ import ReviewModeTab from './tabs/ReviewModeTab';
 
 export type AgentOpsHubTab = 'brief' | 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'games' | 'secrets' | 'qa' | 'githubPr' | 'release' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
-const tabs: { id: AgentOpsHubTab; label: string }[] = [
-  { id: 'brief', label: 'Brief Tracker' },
-  { id: 'standup', label: 'Daily Standup' },
-  { id: 'founder', label: 'Founder OS' },
-  { id: 'workboard', label: 'Workboard' },
-  { id: 'tasks', label: 'Task Queue' },
-  { id: 'factory', label: 'Product Factory' },
-  { id: 'growth', label: 'Growth Studio' },
-  { id: 'sales', label: 'Sales CRM' },
-  { id: 'documents', label: 'Documents' },
-  { id: 'analytics', label: 'Analytics Sandbox' },
-  { id: 'games', label: 'Learning Games' },
-  { id: 'secrets', label: 'Secrets Vault' },
-  { id: 'qa', label: 'QA Matrix' },
-  { id: 'githubPr', label: 'GitHub PR' },
-  { id: 'release', label: 'Release' },
-  { id: 'tools', label: 'Tool Cards' },
-  { id: 'prompts', label: 'Prompt Pack' },
-  { id: 'memory', label: 'Company Memory' },
-  { id: 'knowledge', label: 'Knowledge Base' },
-  { id: 'memoryVersions', label: 'Memory Versions' },
-  { id: 'industry', label: 'Industry Templates' },
-  { id: 'navmap', label: 'Navigation Map' },
-  { id: 'costs', label: 'AI Cost' },
-  { id: 'feedback', label: 'Feedback' },
-  { id: 'runtime', label: 'Runtime' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'staff', label: 'AI Staff' },
-  { id: 'approvals', label: 'Approvals' },
-  { id: 'connectors', label: 'Connectors' },
-  { id: 'review', label: 'Review Mode' }
+type AgentOpsTabItem = { id: AgentOpsHubTab; label: string };
+type AgentOpsTabGroup = { title: string; description: string; items: AgentOpsTabItem[] };
+
+const tabGroups: AgentOpsTabGroup[] = [
+  {
+    title: 'Command',
+    description: 'Founder view, daily ops, work queue',
+    items: [
+      { id: 'brief', label: 'Brief Tracker' },
+      { id: 'standup', label: 'Daily Standup' },
+      { id: 'founder', label: 'Founder OS' },
+      { id: 'workboard', label: 'Workboard' },
+      { id: 'tasks', label: 'Task Queue' }
+    ]
+  },
+  {
+    title: 'Build & Growth',
+    description: 'Product, market, sales, documents, sandbox',
+    items: [
+      { id: 'factory', label: 'Product Factory' },
+      { id: 'growth', label: 'Growth Studio' },
+      { id: 'sales', label: 'Sales CRM' },
+      { id: 'documents', label: 'Documents' },
+      { id: 'analytics', label: 'Analytics Sandbox' },
+      { id: 'games', label: 'Learning Games' }
+    ]
+  },
+  {
+    title: 'Governance',
+    description: 'Security, QA, GitHub, release control',
+    items: [
+      { id: 'secrets', label: 'Secrets Vault' },
+      { id: 'qa', label: 'QA Matrix' },
+      { id: 'githubPr', label: 'GitHub PR' },
+      { id: 'release', label: 'Release' },
+      { id: 'approvals', label: 'Approvals' },
+      { id: 'review', label: 'Review Mode' }
+    ]
+  },
+  {
+    title: 'Knowledge',
+    description: 'Memory, prompts, tools, templates',
+    items: [
+      { id: 'tools', label: 'Tool Cards' },
+      { id: 'prompts', label: 'Prompt Pack' },
+      { id: 'memory', label: 'Company Memory' },
+      { id: 'knowledge', label: 'Knowledge Base' },
+      { id: 'memoryVersions', label: 'Memory Versions' },
+      { id: 'industry', label: 'Industry Templates' },
+      { id: 'navmap', label: 'Navigation Map' }
+    ]
+  },
+  {
+    title: 'Runtime',
+    description: 'Cost, feedback, skills, staff, connectors',
+    items: [
+      { id: 'costs', label: 'AI Cost' },
+      { id: 'feedback', label: 'Feedback' },
+      { id: 'runtime', label: 'Runtime' },
+      { id: 'skills', label: 'Skills' },
+      { id: 'staff', label: 'AI Staff' },
+      { id: 'connectors', label: 'Connectors' }
+    ]
+  }
 ];
 
 type Props = { initialTab?: AgentOpsHubTab; onClose: () => void };
+
+function renderTab(tab: AgentOpsHubTab) {
+  if (tab === 'brief') return <ClaudeBriefTrackerTab />;
+  if (tab === 'standup') return <DailyStandupTab />;
+  if (tab === 'founder') return <FounderOSTab />;
+  if (tab === 'workboard') return <WorkboardTab />;
+  if (tab === 'tasks') return <TaskQueueTab />;
+  if (tab === 'factory') return <ProductFactoryTab />;
+  if (tab === 'growth') return <GrowthStudioTab />;
+  if (tab === 'sales') return <SalesCRMTab />;
+  if (tab === 'documents') return <DocumentsApprovalTab />;
+  if (tab === 'analytics') return <AnalyticsSandboxTab />;
+  if (tab === 'games') return <LearningGamesTab />;
+  if (tab === 'secrets') return <SecretsVaultTab />;
+  if (tab === 'qa') return <QATestMatrixTab />;
+  if (tab === 'githubPr') return <GitHubPRControlTab />;
+  if (tab === 'release') return <ReleaseNotesTab />;
+  if (tab === 'tools') return <ToolCardsTab />;
+  if (tab === 'prompts') return <PromptPackTab />;
+  if (tab === 'memory') return <CompanyMemoryTab />;
+  if (tab === 'knowledge') return <KnowledgeBaseTab />;
+  if (tab === 'memoryVersions') return <MemoryVersionsTab />;
+  if (tab === 'industry') return <IndustryTemplatesTab />;
+  if (tab === 'navmap') return <NavigationMapTab />;
+  if (tab === 'costs') return <AICostTrackerTab />;
+  if (tab === 'feedback') return <FeedbackLoopTab />;
+  if (tab === 'runtime') return <RunTab />;
+  if (tab === 'skills') return <SkillsTab />;
+  if (tab === 'staff') return <PeopleTab />;
+  if (tab === 'approvals') return <GateTab />;
+  if (tab === 'connectors') return <ConnectorsTab />;
+  return <ReviewModeTab />;
+}
 
 export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props) {
   const [tab, setTab] = useState<AgentOpsHubTab>(initialTab);
@@ -82,44 +148,23 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-300">AgentOpsHub</p>
               <h2 className="mt-1 text-xl font-black text-white">AI Ops / Agent / Approval Hub</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Hub gom Workboard, Runtime, Skills, AI Staff, Approvals, Connectors và Review Mode vào một mount point.</p>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Company OS control center: command, build, governance, knowledge and runtime grouped for founder-led execution.</p>
             </div>
             <button onClick={onClose} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-rose-300 hover:text-rose-200">Đóng</button>
           </div>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`rounded-2xl border px-4 py-2 text-xs font-black ${tab === item.id ? 'border-cyan-300 bg-cyan-400/10 text-cyan-100' : 'border-slate-700 text-slate-300 hover:border-cyan-300'}`}>{item.label}</button>)}
+          <div className="mt-4 grid gap-3 lg:grid-cols-5">
+            {tabGroups.map((group) => (
+              <div key={group.title} className="rounded-2xl border border-slate-800 bg-slate-900/45 p-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-200">{group.title}</p>
+                <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-500">{group.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {group.items.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`rounded-xl border px-3 py-2 text-[11px] font-black ${tab === item.id ? 'border-cyan-300 bg-cyan-400/10 text-cyan-100' : 'border-slate-700 text-slate-300 hover:border-cyan-300'}`}>{item.label}</button>)}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-        {tab === 'brief' && <ClaudeBriefTrackerTab />}
-        {tab === 'standup' && <DailyStandupTab />}
-        {tab === 'founder' && <FounderOSTab />}
-        {tab === 'workboard' && <WorkboardTab />}
-        {tab === 'tasks' && <TaskQueueTab />}
-        {tab === 'factory' && <ProductFactoryTab />}
-        {tab === 'growth' && <GrowthStudioTab />}
-        {tab === 'sales' && <SalesCRMTab />}
-        {tab === 'documents' && <DocumentsApprovalTab />}
-        {tab === 'analytics' && <AnalyticsSandboxTab />}
-        {tab === 'games' && <LearningGamesTab />}
-        {tab === 'secrets' && <SecretsVaultTab />}
-        {tab === 'qa' && <QATestMatrixTab />}
-        {tab === 'githubPr' && <GitHubPRControlTab />}
-        {tab === 'release' && <ReleaseNotesTab />}
-        {tab === 'tools' && <ToolCardsTab />}
-        {tab === 'prompts' && <PromptPackTab />}
-        {tab === 'memory' && <CompanyMemoryTab />}
-        {tab === 'knowledge' && <KnowledgeBaseTab />}
-        {tab === 'memoryVersions' && <MemoryVersionsTab />}
-        {tab === 'industry' && <IndustryTemplatesTab />}
-        {tab === 'navmap' && <NavigationMapTab />}
-        {tab === 'costs' && <AICostTrackerTab />}
-        {tab === 'feedback' && <FeedbackLoopTab />}
-        {tab === 'runtime' && <RunTab />}
-        {tab === 'skills' && <SkillsTab />}
-        {tab === 'staff' && <PeopleTab />}
-        {tab === 'approvals' && <GateTab />}
-        {tab === 'connectors' && <ConnectorsTab />}
-        {tab === 'review' && <ReviewModeTab />}
+        {renderTab(tab)}
       </div>
     </div>
   );
