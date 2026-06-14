@@ -5,7 +5,7 @@ import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue
 const KNOWLEDGE_KEY = 'ledgerflow_company_knowledge_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 
-type KnowledgeSource = 'Founder Note' | 'Customer Feedback' | 'Process SOP' | 'Code Decision' | 'Accounting Rule' | 'Risk Note';
+type KnowledgeSource = 'Founder Note' | 'Customer Feedback' | 'Process SOP' | 'Code Decision' | 'Accounting Rule' | 'Risk Note' | 'Document Import';
 type KnowledgeTrust = 'Draft' | 'Approved' | 'Needs Review';
 
 type KnowledgeNote = {
@@ -19,7 +19,7 @@ type KnowledgeNote = {
   updatedAt: string;
 };
 
-const sourceOptions: KnowledgeSource[] = ['Founder Note', 'Customer Feedback', 'Process SOP', 'Code Decision', 'Accounting Rule', 'Risk Note'];
+const sourceOptions: KnowledgeSource[] = ['Founder Note', 'Customer Feedback', 'Process SOP', 'Code Decision', 'Accounting Rule', 'Risk Note', 'Document Import'];
 const trustOptions: KnowledgeTrust[] = ['Draft', 'Needs Review', 'Approved'];
 
 function emptyDraft(): Pick<KnowledgeNote, 'title' | 'source' | 'trust' | 'tags' | 'body'> {
@@ -67,12 +67,44 @@ function makeWorkCard(note: KnowledgeNote): WorkCard {
   };
 }
 
+function splitDocumentIntoChunks(text: string) {
+  const paragraphs = text
+    .split(/\n\s*\n/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  if (paragraphs.length <= 1) {
+    const compact = text.trim();
+    if (!compact) return [];
+    const chunks: string[] = [];
+    for (let index = 0; index < compact.length; index += 1200) chunks.push(compact.slice(index, index + 1200).trim());
+    return chunks.filter(Boolean);
+  }
+
+  const chunks: string[] = [];
+  let current = '';
+  for (const paragraph of paragraphs) {
+    const next = current ? `${current}\n\n${paragraph}` : paragraph;
+    if (next.length > 1400 && current) {
+      chunks.push(current);
+      current = paragraph;
+    } else {
+      current = next;
+    }
+  }
+  if (current) chunks.push(current);
+  return chunks;
+}
+
 export default function KnowledgeBaseTab() {
   useLocalStorageVersion();
   const notes = readLocalStorageValue<KnowledgeNote[]>(KNOWLEDGE_KEY, []);
   const [draft, setDraft] = useState(emptyDraft());
   const [filter, setFilter] = useState<'all' | KnowledgeTrust>('all');
   const [query, setQuery] = useState('');
+  const [importTitle, setImportTitle] = useState('');
+  const [importTags, setImportTags] = useState('');
+  const [importText, setImportText] = useState('');
 
   const filteredNotes = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -107,6 +139,30 @@ export default function KnowledgeBaseTab() {
     setDraft(emptyDraft());
   };
 
+  const importDocument = () => {
+    const title = importTitle.trim();
+    const text = importText.trim();
+    if (!title || !text) return;
+    const chunks = splitDocumentIntoChunks(text);
+    if (chunks.length === 0) return;
+    const now = new Date().toLocaleString('vi-VN');
+    const importedNotes: KnowledgeNote[] = chunks.map((chunk, index) => ({
+      id: `kb-import-${Date.now()}-${index + 1}`,
+      title: chunks.length === 1 ? title : `${title} · chunk ${index + 1}/${chunks.length}`,
+      source: 'Document Import',
+      trust: 'Needs Review',
+      tags: [importTags.trim(), `doc:${title}`, `chunk:${index + 1}`].filter(Boolean).join(', '),
+      body: chunk,
+      createdAt: now,
+      updatedAt: now
+    }));
+    writeLocalStorageValue(KNOWLEDGE_KEY, [...importedNotes, ...notes].slice(0, 240));
+    appendAgentOpsAudit('KNOWLEDGE_DOCUMENT_IMPORTED', importedNotes[0].id, `${title} · ${importedNotes.length} chunks · Needs Review`);
+    setImportTitle('');
+    setImportTags('');
+    setImportText('');
+  };
+
   const updateTrust = (note: KnowledgeNote, trust: KnowledgeTrust) => {
     const next = notes.map((item) => item.id === note.id ? { ...item, trust, updatedAt: new Date().toLocaleString('vi-VN') } : item);
     writeLocalStorageValue(KNOWLEDGE_KEY, next);
@@ -136,7 +192,7 @@ export default function KnowledgeBaseTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-violet-200">Knowledge base</p>
           <h3 className="mt-1 text-xl font-black text-white">Company Memory / RAG Seed</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lưu tri thức công ty ở localStorage, gắn mức tin cậy, chỉ dùng note Approved làm context cho AI.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Lưu tri thức công ty local-first. Tài liệu import luôn vào Needs Review, chỉ note Approved mới được dùng làm RAG context.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-violet-300/35 px-3 py-1 text-violet-100">{notes.length} notes</span>
@@ -146,20 +202,31 @@ export default function KnowledgeBaseTab() {
       </div>
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[0.95fr_1.4fr]">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-          <p className="text-sm font-black text-white">Add knowledge note</p>
-          <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Tiêu đề tri thức / quyết định / SOP" className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
-          <div className="mt-2 grid gap-2 sm:grid-cols-2">
-            <select value={draft.source} onChange={(event) => setDraft({ ...draft, source: event.target.value as KnowledgeSource })} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300">
-              {sourceOptions.map((source) => <option key={source} value={source}>{source}</option>)}
-            </select>
-            <select value={draft.trust} onChange={(event) => setDraft({ ...draft, trust: event.target.value as KnowledgeTrust })} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300">
-              {trustOptions.map((trust) => <option key={trust} value={trust}>{trust}</option>)}
-            </select>
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <p className="text-sm font-black text-white">Add knowledge note</p>
+            <input value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} placeholder="Tiêu đề tri thức / quyết định / SOP" className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
+            <div className="mt-2 grid gap-2 sm:grid-cols-2">
+              <select value={draft.source} onChange={(event) => setDraft({ ...draft, source: event.target.value as KnowledgeSource })} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300">
+                {sourceOptions.map((source) => <option key={source} value={source}>{source}</option>)}
+              </select>
+              <select value={draft.trust} onChange={(event) => setDraft({ ...draft, trust: event.target.value as KnowledgeTrust })} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300">
+                {trustOptions.map((trust) => <option key={trust} value={trust}>{trust}</option>)}
+              </select>
+            </div>
+            <input value={draft.tags} onChange={(event) => setDraft({ ...draft, tags: event.target.value })} placeholder="tags: accounting, github, ci, founder-rule..." className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
+            <textarea value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} placeholder="Nội dung tri thức..." rows={6} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold leading-6 text-white outline-none focus:border-violet-300" />
+            <button onClick={saveNote} className="mt-3 rounded-xl border border-violet-300/50 px-4 py-2 text-xs font-black text-violet-100 hover:bg-violet-400/10">Save note</button>
           </div>
-          <input value={draft.tags} onChange={(event) => setDraft({ ...draft, tags: event.target.value })} placeholder="tags: accounting, github, ci, founder-rule..." className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
-          <textarea value={draft.body} onChange={(event) => setDraft({ ...draft, body: event.target.value })} placeholder="Nội dung tri thức. Ví dụ: quy tắc công ty, quyết định sản phẩm, lỗi CI đã gặp, SOP kế toán..." rows={8} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold leading-6 text-white outline-none focus:border-violet-300" />
-          <button onClick={saveNote} className="mt-3 rounded-xl border border-violet-300/50 px-4 py-2 text-xs font-black text-violet-100 hover:bg-violet-400/10">Save note</button>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            <p className="text-sm font-black text-white">Import document text</p>
+            <p className="mt-1 text-xs font-semibold text-slate-400">Dán text tài liệu vào đây. App sẽ tách chunk local-only và lưu Needs Review trước khi được dùng cho RAG.</p>
+            <input value={importTitle} onChange={(event) => setImportTitle(event.target.value)} placeholder="Tên tài liệu / nguồn" className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
+            <input value={importTags} onChange={(event) => setImportTags(event.target.value)} placeholder="tags import" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
+            <textarea value={importText} onChange={(event) => setImportText(event.target.value)} placeholder="Dán nội dung tài liệu dài ở đây..." rows={8} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold leading-6 text-white outline-none focus:border-violet-300" />
+            <button onClick={importDocument} className="mt-3 rounded-xl border border-amber-300/50 px-4 py-2 text-xs font-black text-amber-100 hover:bg-amber-400/10">Import as review chunks</button>
+          </div>
         </div>
 
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
@@ -175,7 +242,7 @@ export default function KnowledgeBaseTab() {
             </select>
           </div>
 
-          <div className="mt-3 grid max-h-[560px] gap-2 overflow-y-auto pr-1">
+          <div className="mt-3 grid max-h-[760px] gap-2 overflow-y-auto pr-1">
             {filteredNotes.map((note) => (
               <article key={note.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
                 <div className="flex flex-wrap items-start justify-between gap-2">
