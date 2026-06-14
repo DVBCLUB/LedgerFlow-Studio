@@ -61,7 +61,7 @@ function statusTone(status: ReleaseStatus) {
   return 'border-slate-700 text-slate-300';
 }
 
-function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, openWork: number) {
+function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, openWork: number, releaseGate: string) {
   return [
     `# Release Notes: ${note.title}`,
     '',
@@ -70,6 +70,7 @@ function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, open
     `- Risk: ${note.risk}`,
     `- QA pass/fail: ${qaPass}/${qaFail}`,
     `- Open work cards: ${openWork}`,
+    `- Release gate: ${releaseGate}`,
     '',
     '## Summary',
     note.summary,
@@ -98,6 +99,7 @@ export default function ReleaseNotesTab() {
   const [testPlan, setTestPlan] = useState('');
   const [rollback, setRollback] = useState('');
   const [evidence, setEvidence] = useState('');
+  const [gateMessage, setGateMessage] = useState('');
 
   const notes = readLocalStorageValue<ReleaseNote[]>(RELEASE_NOTES_KEY, seedNotes);
   const qaItems = readLocalStorageValue<QAItem[]>(QA_KEY, []);
@@ -107,7 +109,13 @@ export default function ReleaseNotesTab() {
   const qaPass = qaItems.filter((item) => item.status === 'Pass').length;
   const qaFail = qaItems.filter((item) => item.status === 'Fail' || item.status === 'Blocked').length;
   const openWork = workCards.filter((card) => card.status !== 'Done').length;
-  const highRiskPlans = pullPlans.filter((plan) => plan.risk === 'HIGH').length;
+  const highRiskPlans = pullPlans.filter((plan) => plan.risk === 'HIGH' && plan.status !== 'Archived').length;
+  const releaseGateProblems = [
+    qaFail > 0 ? `${qaFail} QA fail/blocked` : '',
+    openWork > 0 ? `${openWork} open work cards` : '',
+    highRiskPlans > 0 ? `${highRiskPlans} high-risk PR plans` : '',
+  ].filter(Boolean);
+  const releaseGate = releaseGateProblems.length === 0 ? 'PASS' : `BLOCKED: ${releaseGateProblems.join(' · ')}`;
 
   const stats = useMemo(() => ({
     draft: notes.filter((note) => note.status === 'Draft').length,
@@ -146,13 +154,21 @@ export default function ReleaseNotesTab() {
   };
 
   const updateStatus = (note: ReleaseNote, status: ReleaseStatus) => {
+    if (status === 'Released' && releaseGateProblems.length > 0) {
+      const detail = `${note.version} blocked: ${releaseGateProblems.join(' · ')}`;
+      setGateMessage(detail);
+      appendAgentOpsAudit('RELEASE_GATE_BLOCKED', note.id, detail);
+      return;
+    }
+
     const next = notes.map((item) => item.id === note.id ? { ...item, status, updatedAt: new Date().toISOString() } : item);
     saveNotes(next);
+    setGateMessage(status === 'Released' ? `${note.version} released after release gate passed.` : '');
     appendAgentOpsAudit('RELEASE_STATUS_CHANGED', note.id, `${note.version} → ${status}`);
   };
 
   const copyNote = async (note: ReleaseNote) => {
-    await navigator.clipboard.writeText(releaseMarkdown(note, qaPass, qaFail, openWork));
+    await navigator.clipboard.writeText(releaseMarkdown(note, qaPass, qaFail, openWork, releaseGate));
     appendAgentOpsAudit('RELEASE_NOTE_COPIED', note.id, note.version);
   };
 
@@ -170,6 +186,11 @@ export default function ReleaseNotesTab() {
           <span className="rounded-full border border-emerald-300/40 px-3 py-1 text-emerald-100">{stats.released} released</span>
           <span className="rounded-full border border-rose-300/40 px-3 py-1 text-rose-100">{qaFail} QA issues</span>
         </div>
+      </div>
+
+      <div className={`mt-4 rounded-2xl border p-3 text-xs font-black ${releaseGate === 'PASS' ? 'border-emerald-300/35 bg-emerald-400/10 text-emerald-100' : 'border-rose-300/35 bg-rose-400/10 text-rose-100'}`}>
+        Release gate: {releaseGate}
+        {gateMessage && <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-200">{gateMessage}</p>}
       </div>
 
       <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-2">
