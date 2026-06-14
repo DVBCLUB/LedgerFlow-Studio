@@ -96,6 +96,10 @@ function splitDocumentIntoChunks(text: string) {
   return chunks;
 }
 
+function normalizeKnowledgeBody(text: string) {
+  return text.toLowerCase().replace(/\s+/g, ' ').trim();
+}
+
 export default function KnowledgeBaseTab() {
   useLocalStorageVersion();
   const notes = readLocalStorageValue<KnowledgeNote[]>(KNOWLEDGE_KEY, []);
@@ -146,18 +150,35 @@ export default function KnowledgeBaseTab() {
     const chunks = splitDocumentIntoChunks(text);
     if (chunks.length === 0) return;
     const now = new Date().toLocaleString('vi-VN');
-    const importedNotes: KnowledgeNote[] = chunks.map((chunk, index) => ({
-      id: `kb-import-${Date.now()}-${index + 1}`,
-      title: chunks.length === 1 ? title : `${title} · chunk ${index + 1}/${chunks.length}`,
-      source: 'Document Import',
-      trust: 'Needs Review',
-      tags: [importTags.trim(), `doc:${title}`, `chunk:${index + 1}`].filter(Boolean).join(', '),
-      body: chunk,
-      createdAt: now,
-      updatedAt: now
-    }));
+    const seenBodies = new Set(notes.map((note) => normalizeKnowledgeBody(note.body)));
+    const importedNotes: KnowledgeNote[] = [];
+    let skipped = 0;
+
+    chunks.forEach((chunk, index) => {
+      const normalized = normalizeKnowledgeBody(chunk);
+      if (!normalized || seenBodies.has(normalized)) {
+        skipped += 1;
+        return;
+      }
+      seenBodies.add(normalized);
+      importedNotes.push({
+        id: `kb-import-${Date.now()}-${index + 1}`,
+        title: chunks.length === 1 ? title : `${title} · chunk ${index + 1}/${chunks.length}`,
+        source: 'Document Import',
+        trust: 'Needs Review',
+        tags: [importTags.trim(), `doc:${title}`, `chunk:${index + 1}`].filter(Boolean).join(', '),
+        body: chunk,
+        createdAt: now,
+        updatedAt: now
+      });
+    });
+
+    if (importedNotes.length === 0) {
+      appendAgentOpsAudit('KNOWLEDGE_DOCUMENT_IMPORT_SKIPPED', 'knowledge-base', `${title} · ${skipped} duplicate chunks skipped`);
+      return;
+    }
     writeLocalStorageValue(KNOWLEDGE_KEY, [...importedNotes, ...notes].slice(0, 240));
-    appendAgentOpsAudit('KNOWLEDGE_DOCUMENT_IMPORTED', importedNotes[0].id, `${title} · ${importedNotes.length} chunks · Needs Review`);
+    appendAgentOpsAudit('KNOWLEDGE_DOCUMENT_IMPORTED', importedNotes[0].id, `${title} · ${importedNotes.length} chunks · ${skipped} duplicates skipped · Needs Review`);
     setImportTitle('');
     setImportTags('');
     setImportText('');
@@ -221,7 +242,7 @@ export default function KnowledgeBaseTab() {
 
           <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
             <p className="text-sm font-black text-white">Import document text</p>
-            <p className="mt-1 text-xs font-semibold text-slate-400">Dán text tài liệu vào đây. App sẽ tách chunk local-only và lưu Needs Review trước khi được dùng cho RAG.</p>
+            <p className="mt-1 text-xs font-semibold text-slate-400">Dán text tài liệu vào đây. App sẽ tách chunk local-only, bỏ qua chunk trùng và lưu Needs Review trước khi được dùng cho RAG.</p>
             <input value={importTitle} onChange={(event) => setImportTitle(event.target.value)} placeholder="Tên tài liệu / nguồn" className="mt-3 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
             <input value={importTags} onChange={(event) => setImportTags(event.target.value)} placeholder="tags import" className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-violet-300" />
             <textarea value={importText} onChange={(event) => setImportText(event.target.value)} placeholder="Dán nội dung tài liệu dài ở đây..." rows={8} className="mt-2 w-full rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold leading-6 text-white outline-none focus:border-violet-300" />
