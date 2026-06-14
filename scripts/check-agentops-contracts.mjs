@@ -115,6 +115,9 @@ assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'eligibleSource
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'RELEASE_GATE_BLOCKED', 'Release Notes must block release when release gate fails.');
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'releaseGateProblems', 'Release Notes must compute release gate blockers.');
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'ciBlockingPlans', 'Release gate must include PR CI status checks.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'financeProjectBlocking', 'Release gate must include Finance and Project blockers.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'financeBlocking > 0', 'Release gate must block finance blockers.');
+assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'projectBlocking > 0', 'Release gate must block project blockers.');
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'qaFail > 0', 'Release gate must include QA fail/blocked checks.');
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'openWork > 0', 'Release gate must include open Workboard checks.');
 assertContains('src/components/agent-ops/tabs/ReleaseNotesTab.tsx', 'highRiskPlans > 0', 'Release gate must include high-risk PR plan checks.');
