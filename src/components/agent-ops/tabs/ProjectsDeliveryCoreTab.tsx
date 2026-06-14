@@ -9,6 +9,7 @@ const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 type ProjectType = 'Client Delivery' | 'Internal Product' | 'Finance Ops' | 'Implementation' | 'Research' | 'Maintenance';
 type ProjectStage = 'Discovery' | 'Planning' | 'In Progress' | 'Review' | 'Delivered' | 'Blocked';
 type FinanceStatus = 'Unknown' | 'Budget Draft' | 'Budget Approved' | 'Over Budget' | 'On Track' | 'Closed';
+type DeliveryStatus = 'Not Started' | 'In Progress' | 'Ready for Review' | 'Accepted' | 'Closed';
 
 type ProjectItem = {
   id: string;
@@ -16,6 +17,7 @@ type ProjectItem = {
   name: string;
   client: string;
   stage: ProjectStage;
+  deliveryStatus: DeliveryStatus;
   risk: RiskLevel;
   owner: string;
   deadline: string;
@@ -26,6 +28,9 @@ type ProjectItem = {
   milestone: string;
   blocker: string;
   acceptance: string;
+  evidenceLinks: string;
+  riskLog: string;
+  handoverChecklist: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -34,6 +39,9 @@ const projectTypes: ProjectType[] = ['Client Delivery', 'Internal Product', 'Fin
 const stages: ProjectStage[] = ['Discovery', 'Planning', 'In Progress', 'Review', 'Delivered', 'Blocked'];
 const risks: RiskLevel[] = ['LOW', 'MEDIUM', 'HIGH'];
 const financeStatuses: FinanceStatus[] = ['Unknown', 'Budget Draft', 'Budget Approved', 'Over Budget', 'On Track', 'Closed'];
+const deliveryStatuses: DeliveryStatus[] = ['Not Started', 'In Progress', 'Ready for Review', 'Accepted', 'Closed'];
+
+const defaultHandoverChecklist = 'Scope confirmed\nEvidence attached\nFinance impact reviewed\nFounder/client acceptance captured';
 
 const seedProjects: ProjectItem[] = [
   {
@@ -42,6 +50,7 @@ const seedProjects: ProjectItem[] = [
     name: 'Company OS rollout',
     client: 'Internal',
     stage: 'In Progress',
+    deliveryStatus: 'In Progress',
     risk: 'MEDIUM',
     owner: 'Founder / Chief of Staff',
     deadline: 'This month',
@@ -52,6 +61,9 @@ const seedProjects: ProjectItem[] = [
     milestone: 'CI green, release gate active, core lanes mapped.',
     blocker: 'Avoid adding new modules before hardening core workflow.',
     acceptance: 'Founder can see what to build, approve, release and rollback from one operating system.',
+    evidenceLinks: 'GitHub Actions, release notes, Daily Standup, Founder OS.',
+    riskLog: 'Scope creep and CI red are the main risks.',
+    handoverChecklist: defaultHandoverChecklist,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -61,6 +73,7 @@ const seedProjects: ProjectItem[] = [
     name: 'Client delivery template',
     client: 'Template',
     stage: 'Planning',
+    deliveryStatus: 'Not Started',
     risk: 'LOW',
     owner: 'AI Project Manager',
     deadline: 'Next sprint',
@@ -71,6 +84,9 @@ const seedProjects: ProjectItem[] = [
     milestone: 'Delivery checklist and approval points drafted.',
     blocker: 'Need founder decision on client vertical.',
     acceptance: 'Every project has scope, milestone, blocker, acceptance and approval path.',
+    evidenceLinks: 'Template docs, workboard card, finance handoff note.',
+    riskLog: 'Acceptance criteria may be too vague if not reviewed.',
+    handoverChecklist: defaultHandoverChecklist,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   },
@@ -96,6 +112,10 @@ function normalizeProject(project: ProjectItem): ProjectItem {
     budget: Number(project.budget || 0),
     actual: Number(project.actual || 0),
     financeStatus: project.financeStatus || 'Unknown',
+    deliveryStatus: project.deliveryStatus || 'Not Started',
+    evidenceLinks: project.evidenceLinks || 'No evidence linked yet.',
+    riskLog: project.riskLog || 'No project risk recorded yet.',
+    handoverChecklist: project.handoverChecklist || defaultHandoverChecklist,
   };
 }
 
@@ -106,6 +126,7 @@ function projectMarkdown(project: ProjectItem) {
     `- Type: ${project.type}`,
     `- Client: ${project.client}`,
     `- Stage: ${project.stage}`,
+    `- Delivery status: ${project.deliveryStatus}`,
     `- Risk: ${project.risk}`,
     `- Owner: ${project.owner}`,
     `- Deadline: ${project.deadline}`,
@@ -125,6 +146,15 @@ function projectMarkdown(project: ProjectItem) {
     '',
     '## Acceptance criteria',
     project.acceptance,
+    '',
+    '## Evidence links',
+    project.evidenceLinks,
+    '',
+    '## Risk log',
+    project.riskLog,
+    '',
+    '## Handover checklist',
+    project.handoverChecklist,
   ].join('\n');
 }
 
@@ -142,8 +172,9 @@ function workCardFor(project: ProjectItem): WorkCard {
       'Review budget, actual and variance with Finance Core',
       'Break milestone into next actions',
       'Collect evidence and update founder review note',
+      'Check handover checklist before marking delivered',
     ],
-    tools: ['Projects Core', 'Finance Core', 'Workboard', 'Approval Gate'],
+    tools: ['Projects Core', 'Finance Core', 'Documents', 'Workboard', 'Approval Gate'],
     approval: project.risk === 'LOW' ? 'Planning allowed. External commitment needs founder approval.' : 'Founder approval required before delivery commitment, scope change or client-facing promise.',
   };
 }
@@ -173,9 +204,13 @@ export default function ProjectsDeliveryCoreTab() {
   const [budget, setBudget] = useState('');
   const [actual, setActual] = useState('');
   const [financeStatus, setFinanceStatus] = useState<FinanceStatus>('Unknown');
+  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>('Not Started');
   const [scope, setScope] = useState('');
   const [milestone, setMilestone] = useState('');
   const [acceptance, setAcceptance] = useState('');
+  const [evidenceLinks, setEvidenceLinks] = useState('');
+  const [riskLog, setRiskLog] = useState('');
+  const [handoverChecklist, setHandoverChecklist] = useState(defaultHandoverChecklist);
   const [filter, setFilter] = useState<'ALL' | ProjectType>('ALL');
 
   const projects = readLocalStorageValue<ProjectItem[]>(PROJECTS_CORE_KEY, seedProjects).map(normalizeProject);
@@ -184,6 +219,8 @@ export default function ProjectsDeliveryCoreTab() {
   const blockedCount = projects.filter((project) => project.stage === 'Blocked').length;
   const highRiskCount = projects.filter((project) => project.risk === 'HIGH').length;
   const overBudgetCount = projects.filter((project) => project.financeStatus === 'Over Budget' || variance(project) > 0).length;
+  const reviewCount = projects.filter((project) => project.deliveryStatus === 'Ready for Review').length;
+  const acceptedCount = projects.filter((project) => project.deliveryStatus === 'Accepted' || project.deliveryStatus === 'Closed').length;
 
   const saveProjects = (next: ProjectItem[]) => writeLocalStorageValue(PROJECTS_CORE_KEY, next.map(normalizeProject));
 
@@ -196,6 +233,7 @@ export default function ProjectsDeliveryCoreTab() {
       name: name.trim(),
       client: client.trim() || 'Internal / TBD',
       stage: risk === 'LOW' ? 'Discovery' : 'Review',
+      deliveryStatus,
       risk,
       owner: 'AI Project Manager',
       deadline: deadline.trim() || 'TBD',
@@ -206,6 +244,9 @@ export default function ProjectsDeliveryCoreTab() {
       milestone: milestone.trim(),
       blocker: 'No blocker recorded.',
       acceptance: acceptance.trim() || 'Founder reviews scope, milestone evidence and next action.',
+      evidenceLinks: evidenceLinks.trim() || 'No evidence linked yet.',
+      riskLog: riskLog.trim() || 'No project risk recorded yet.',
+      handoverChecklist: handoverChecklist.trim() || defaultHandoverChecklist,
       createdAt: now,
       updatedAt: now,
     };
@@ -217,9 +258,13 @@ export default function ProjectsDeliveryCoreTab() {
     setBudget('');
     setActual('');
     setFinanceStatus('Unknown');
+    setDeliveryStatus('Not Started');
     setScope('');
     setMilestone('');
     setAcceptance('');
+    setEvidenceLinks('');
+    setRiskLog('');
+    setHandoverChecklist(defaultHandoverChecklist);
   };
 
   const updateStage = (project: ProjectItem, stage: ProjectStage) => {
@@ -230,6 +275,11 @@ export default function ProjectsDeliveryCoreTab() {
   const updateFinanceStatus = (project: ProjectItem, nextStatus: FinanceStatus) => {
     saveProjects(projects.map((entry) => entry.id === project.id ? { ...entry, financeStatus: nextStatus, updatedAt: new Date().toISOString() } : entry));
     appendAgentOpsAudit('PROJECT_FINANCE_STATUS_UPDATED', project.id, `${project.name} → ${nextStatus}`);
+  };
+
+  const updateDeliveryStatus = (project: ProjectItem, nextStatus: DeliveryStatus) => {
+    saveProjects(projects.map((entry) => entry.id === project.id ? { ...entry, deliveryStatus: nextStatus, updatedAt: new Date().toISOString() } : entry));
+    appendAgentOpsAudit('PROJECT_DELIVERY_STATUS_UPDATED', project.id, `${project.name} → ${nextStatus}`);
   };
 
   const pushToWorkboard = (project: ProjectItem) => {
@@ -254,7 +304,7 @@ export default function ProjectsDeliveryCoreTab() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-200">Projects & Delivery Core</p>
           <h3 className="mt-1 text-xl font-black text-white">Projects Delivery Core</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core vận hành dự án: scope, milestone, blocker, acceptance, budget, actual và approval path.</p>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Core vận hành dự án: scope, milestone, blocker, acceptance, evidence, handover, budget, actual và approval path.</p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs font-black">
           <span className="rounded-full border border-sky-300/40 px-3 py-1 text-sky-100">{projects.length} projects</span>
@@ -262,6 +312,8 @@ export default function ProjectsDeliveryCoreTab() {
           <span className="rounded-full border border-amber-300/40 px-3 py-1 text-amber-100">{blockedCount} blocked</span>
           <span className="rounded-full border border-rose-300/40 px-3 py-1 text-rose-100">{highRiskCount} high</span>
           <span className="rounded-full border border-fuchsia-300/40 px-3 py-1 text-fuchsia-100">{overBudgetCount} budget watch</span>
+          <span className="rounded-full border border-cyan-300/40 px-3 py-1 text-cyan-100">{reviewCount} review</span>
+          <span className="rounded-full border border-lime-300/40 px-3 py-1 text-lime-100">{acceptedCount} accepted</span>
         </div>
       </div>
 
@@ -269,6 +321,7 @@ export default function ProjectsDeliveryCoreTab() {
         <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Project name" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300" />
         <select value={type} onChange={(event) => setType(event.target.value as ProjectType)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-sky-300">{projectTypes.map((item) => <option key={item}>{item}</option>)}</select>
         <select value={risk} onChange={(event) => setRisk(event.target.value as RiskLevel)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-sky-300">{risks.map((item) => <option key={item}>{item}</option>)}</select>
+        <select value={deliveryStatus} onChange={(event) => setDeliveryStatus(event.target.value as DeliveryStatus)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-sky-300">{deliveryStatuses.map((item) => <option key={item}>{item}</option>)}</select>
         <select value={financeStatus} onChange={(event) => setFinanceStatus(event.target.value as FinanceStatus)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-black text-white outline-none focus:border-sky-300">{financeStatuses.map((item) => <option key={item}>{item}</option>)}</select>
         <input value={client} onChange={(event) => setClient(event.target.value)} placeholder="Client / internal owner" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300" />
         <input value={deadline} onChange={(event) => setDeadline(event.target.value)} placeholder="Deadline" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300" />
@@ -277,6 +330,9 @@ export default function ProjectsDeliveryCoreTab() {
         <textarea value={scope} onChange={(event) => setScope(event.target.value)} placeholder="Scope" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
         <textarea value={milestone} onChange={(event) => setMilestone(event.target.value)} placeholder="Current milestone / next deliverable" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
         <input value={acceptance} onChange={(event) => setAcceptance(event.target.value)} placeholder="Acceptance criteria" className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
+        <textarea value={evidenceLinks} onChange={(event) => setEvidenceLinks(event.target.value)} placeholder="Evidence links / document references" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
+        <textarea value={riskLog} onChange={(event) => setRiskLog(event.target.value)} placeholder="Project risk log" className="min-h-20 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
+        <textarea value={handoverChecklist} onChange={(event) => setHandoverChecklist(event.target.value)} placeholder="Handover checklist" className="min-h-24 rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-sky-300 md:col-span-2" />
         <button onClick={addProject} className="rounded-xl border border-sky-300/50 px-3 py-2 text-xs font-black text-sky-100 hover:bg-sky-400/10 md:col-span-2">Add project</button>
       </div>
 
@@ -293,15 +349,21 @@ export default function ProjectsDeliveryCoreTab() {
                 <p className="text-sm font-black text-white">{project.name}</p>
                 <p className="mt-1 text-[11px] font-bold text-slate-400">{project.type} · {project.client} · {project.deadline}</p>
               </div>
-              <span className="rounded-full border border-sky-300/40 px-2 py-0.5 text-[10px] font-black text-sky-100">{project.stage} · {project.risk}</span>
+              <span className="rounded-full border border-sky-300/40 px-2 py-0.5 text-[10px] font-black text-sky-100">{project.stage} · {project.deliveryStatus} · {project.risk}</span>
             </div>
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{project.scope}</p>
             <p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">Milestone: {project.milestone}</p>
             <div className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">
               Finance: {project.financeStatus} · Budget {formatMoney(project.budget)} · Actual {formatMoney(project.actual)} · Variance {formatMoney(variance(project))}
             </div>
+            <div className="mt-2 grid gap-2 md:grid-cols-2">
+              <p className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">Evidence: {project.evidenceLinks}</p>
+              <p className="rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300">Risk log: {project.riskLog}</p>
+            </div>
+            <p className="mt-2 rounded-xl border border-slate-800 bg-slate-900/70 p-2 text-[11px] font-semibold leading-5 text-slate-300 whitespace-pre-line">Handover checklist:\n{project.handoverChecklist}</p>
             <div className="mt-3 flex flex-wrap gap-2">
               {stages.map((stage) => <button key={stage} onClick={() => updateStage(project, stage)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-sky-300 hover:text-sky-100">{stage}</button>)}
+              {deliveryStatuses.map((status) => <button key={status} onClick={() => updateDeliveryStatus(project, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-cyan-300 hover:text-cyan-100">{status}</button>)}
               {financeStatuses.map((status) => <button key={status} onClick={() => updateFinanceStatus(project, status)} className="rounded-xl border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-fuchsia-300 hover:text-fuchsia-100">{status}</button>)}
               <button onClick={() => pushToWorkboard(project)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">To Workboard</button>
               <button onClick={() => requestApproval(project)} className="rounded-xl border border-amber-300/50 px-3 py-2 text-[11px] font-black text-amber-100 hover:bg-amber-400/10">Approval</button>
