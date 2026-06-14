@@ -83,6 +83,10 @@ assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'PRO
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'FINANCE_CORE_KEY', 'Daily Standup must read Finance Core items.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'PROJECTS_CORE_KEY', 'Daily Standup must read Projects Core items.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'Finance / Projects', 'Daily Standup must show Finance and Projects section.');
+assertContains('src/components/agent-ops/tabs/FounderOSTab.tsx', 'FINANCE_CORE_KEY', 'Founder OS must read Finance Core items.');
+assertContains('src/components/agent-ops/tabs/FounderOSTab.tsx', 'PROJECTS_CORE_KEY', 'Founder OS must read Projects Core items.');
+assertContains('src/components/agent-ops/tabs/FounderOSTab.tsx', 'Finance cần xem', 'Founder OS dashboard must show Finance follow-up.');
+assertContains('src/components/agent-ops/tabs/FounderOSTab.tsx', 'Projects cần xem', 'Founder OS dashboard must show Projects follow-up.');
 
 const companyLaneFile = 'src/config/companyOSNavigation.ts';
 [
