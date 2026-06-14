@@ -13,6 +13,7 @@
     "check:simulations": "node scripts/check-simulation-modules.mjs",
     "check:founder-labs": "node scripts/check-founder-labs.mjs",
     "check:accounting-calculations": "node scripts/check-accounting-calculations.mjs",
+    "check:agentops-contracts": "node scripts/check-agentops-contracts.mjs",
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",
     "check:desktop": "node scripts/check-desktop-package.mjs",
