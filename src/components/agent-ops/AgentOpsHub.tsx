@@ -11,6 +11,8 @@ import IndustryTemplatesTab from './tabs/IndustryTemplatesTab';
 import NavigationMapTab from './tabs/NavigationMapTab';
 import GrowthStudioTab from './tabs/GrowthStudioTab';
 import SalesCRMTab from './tabs/SalesCRMTab';
+import FinanceCoreTab from './tabs/FinanceCoreTab';
+import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
 import AnalyticsSandboxTab from './tabs/AnalyticsSandboxTab';
 import LearningGamesTab from './tabs/LearningGamesTab';
@@ -45,6 +47,8 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'factory') return <ProductFactoryTab />;
   if (tab === 'growth') return <GrowthStudioTab />;
   if (tab === 'sales') return <SalesCRMTab />;
+  if (tab === 'finance') return <FinanceCoreTab />;
+  if (tab === 'projects') return <ProjectsDeliveryCoreTab />;
   if (tab === 'documents') return <DocumentsApprovalTab />;
   if (tab === 'analytics') return <AnalyticsSandboxTab />;
   if (tab === 'games') return <LearningGamesTab />;
