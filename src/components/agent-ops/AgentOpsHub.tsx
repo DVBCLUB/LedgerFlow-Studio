@@ -6,6 +6,7 @@ import CompanyMemoryTab from './tabs/CompanyMemoryTab';
 import KnowledgeBaseTab from './tabs/KnowledgeBaseTab';
 import MemoryVersionsTab from './tabs/MemoryVersionsTab';
 import FounderOSTab from './tabs/FounderOSTab';
+import IndustryTemplatesTab from './tabs/IndustryTemplatesTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -18,7 +19,7 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
@@ -31,6 +32,7 @@ const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'memory', label: 'Company Memory' },
   { id: 'knowledge', label: 'Knowledge Base' },
   { id: 'memoryVersions', label: 'Memory Versions' },
+  { id: 'industry', label: 'Industry Templates' },
   { id: 'costs', label: 'AI Cost' },
   { id: 'feedback', label: 'Feedback' },
   { id: 'runtime', label: 'Runtime' },
@@ -76,6 +78,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         {tab === 'memory' && <CompanyMemoryTab />}
         {tab === 'knowledge' && <KnowledgeBaseTab />}
         {tab === 'memoryVersions' && <MemoryVersionsTab />}
+        {tab === 'industry' && <IndustryTemplatesTab />}
         {tab === 'costs' && <AICostTrackerTab />}
         {tab === 'feedback' && <FeedbackLoopTab />}
         {tab === 'runtime' && <RunTab />}
