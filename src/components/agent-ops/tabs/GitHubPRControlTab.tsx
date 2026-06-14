@@ -215,9 +215,16 @@ export default function GitHubPRControlTab() {
         files: [{ path: plan.filePath.trim(), content: plan.fileContent }],
       });
       const prUrl = result.pullRequest.htmlUrl || result.pullRequest.url || '';
-      patchPlan(plan, { status: 'Draft PR Created', prUrl, branchName: result.branch });
-      appendAgentOpsAudit('GITHUB_DRAFT_PR_CREATED', plan.id, `#${result.pullRequest.number} · ${result.branch}`);
-      setLastResult(`Draft PR created: #${result.pullRequest.number} ${prUrl}`);
+      const commitCount = result.commitMessages.length;
+      patchPlan(plan, {
+        status: 'Draft PR Created',
+        prUrl,
+        repo: result.repo,
+        baseBranch: result.base,
+        branchName: result.branch,
+      });
+      appendAgentOpsAudit('GITHUB_DRAFT_PR_CREATED', plan.id, `${result.repo} · ${result.base} → ${result.branch} · ${commitCount} commit(s) · #${result.pullRequest.number}`);
+      setLastResult(`Draft PR created: ${result.repo} #${result.pullRequest.number} · ${result.base} → ${result.branch} · ${commitCount} commit(s) ${prUrl}`);
       setApprovalPhrase('');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown GitHub approved change error';
