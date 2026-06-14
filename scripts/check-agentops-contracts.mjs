@@ -80,6 +80,9 @@ assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'FinanceCoreTab', 'Ag
 assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'ProjectsDeliveryCoreTab', 'AgentOpsHub must render Projects Delivery Core.');
 assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'FINANCE_APPROVAL_REQUESTED', 'Finance Core must route risky actions to Approval Gate.');
 assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'PROJECT_APPROVAL_REQUESTED', 'Projects Core must route risky actions to Approval Gate.');
+assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'FINANCE_CORE_KEY', 'Daily Standup must read Finance Core items.');
+assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'PROJECTS_CORE_KEY', 'Daily Standup must read Projects Core items.');
+assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'Finance / Projects', 'Daily Standup must show Finance and Projects section.');
 
 const companyLaneFile = 'src/config/companyOSNavigation.ts';
 [
