@@ -35,6 +35,8 @@ const forbiddenApprovalKey = 'ledgerflow_aiops_approvals_v1';
   'src/components/agent-ops/tabs/DocumentsApprovalTab.tsx',
   'src/components/agent-ops/tabs/AnalyticsSandboxTab.tsx',
   'src/components/agent-ops/tabs/SalesCRMTab.tsx',
+  'src/components/agent-ops/tabs/FinanceCoreTab.tsx',
+  'src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx',
 ].forEach((file) => assertContains(file, approvalKey, 'Approval-producing tab must use the canonical Approval Gate key.'));
 
 [
@@ -72,6 +74,12 @@ assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'agentOpsTabGroups', 
 assertContains('src/components/agent-ops/agentOpsNavigation.ts', 'export const agentOpsTabGroups', 'AgentOps navigation registry must export tab groups.');
 assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'rag'", 'RAG Search tab must remain registered in Knowledge navigation.');
 assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'release'", 'Release tab must remain registered in Governance navigation.');
+assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'finance'", 'Finance Core tab must remain registered.');
+assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'projects'", 'Projects Core tab must remain registered.');
+assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'FinanceCoreTab', 'AgentOpsHub must render Finance Core.');
+assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'ProjectsDeliveryCoreTab', 'AgentOpsHub must render Projects Delivery Core.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'FINANCE_APPROVAL_REQUESTED', 'Finance Core must route risky actions to Approval Gate.');
+assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'PROJECT_APPROVAL_REQUESTED', 'Projects Core must route risky actions to Approval Gate.');
 
 const companyLaneFile = 'src/config/companyOSNavigation.ts';
 [
