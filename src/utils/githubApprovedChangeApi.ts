@@ -15,12 +15,19 @@ export type ApprovedGitHubChangeInput = {
 };
 
 export type ApprovedGitHubChangeResult = {
+  repo: string;
   branch: string;
+  base: string;
+  commitMessages: string[];
   pullRequest: {
     number: number;
     title: string;
+    state?: string;
     htmlUrl?: string;
     url?: string;
+    branch?: string;
+    base?: string;
+    draft?: boolean;
   };
 };
 
