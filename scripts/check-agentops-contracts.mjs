@@ -54,6 +54,10 @@ assertNotContains('src/utils/integrationHubApi.ts', '/api/integrations/local-too
 assertRegex('src/components/agent-ops/tabs/GrowthStudioTab.tsx', /kind:\s*'Marketing'/, 'Growth work cards must use WorkKind Marketing.');
 assertNotContains('src/components/agent-ops/tabs/GrowthStudioTab.tsx', "kind: 'Growth Experiment'", 'Invalid WorkKind Growth Experiment must not be used.');
 assertRegex('src/components/agent-ops/tabs/WorkboardTab.tsx', /normalizeStoredCard/, 'Workboard must normalize legacy localStorage cards.');
+assertContains('src/components/agent-ops/AgentOpsHub.tsx', 'agentOpsTabGroups', 'AgentOpsHub must render from the shared navigation registry.');
+assertContains('src/components/agent-ops/agentOpsNavigation.ts', 'export const agentOpsTabGroups', 'AgentOps navigation registry must export tab groups.');
+assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'rag'", 'RAG Search tab must remain registered in Knowledge navigation.');
+assertContains('src/components/agent-ops/agentOpsNavigation.ts', "id: 'release'", 'Release tab must remain registered in Governance navigation.');
 
 if (failures.length > 0) {
   console.error('\nAgentOps contract check failed:\n');
