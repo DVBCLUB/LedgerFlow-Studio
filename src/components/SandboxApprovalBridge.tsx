@@ -29,7 +29,7 @@ type ApprovalRequest = {
   source: string;
   risk: 'LOW' | 'MEDIUM' | 'HIGH';
   action: string;
-  details: string;
+  details?: string;
   createdAt: string;
   expiresAt: string;
   status: 'Pending' | 'Approved' | 'Rejected' | 'Expired';
@@ -118,7 +118,7 @@ function syncSandboxRouting() {
       return { ...patch, status: 'Sent' as SandboxPatch['status'] };
     }
 
-    const exists = approvals.some((approval) => approval.sourceSandboxPatchId === patch.id || approval.details.includes(`Sandbox Patch: ${patch.id}`));
+    const exists = approvals.some((approval) => approval.sourceSandboxPatchId === patch.id || (approval.details ?? '').includes(`Sandbox Patch: ${patch.id}`));
     if (!exists) {
       const request: ApprovalRequest = {
         id: `approval-sandbox-${Date.now()}`,
@@ -143,7 +143,10 @@ function syncSandboxRouting() {
   });
 
   if (patchesChanged) writeLocal('ledgerflow_sandbox_patches_v1', nextPatches);
-  if (approvalsChanged) writeLocal('ledgerflow_approval_gate_requests_v1', approvals);
+  if (approvalsChanged) {
+    writeLocal('ledgerflow_approval_gate_requests_v1', approvals);
+    window.dispatchEvent(new CustomEvent('ledgerflow-approval-gate-changed'));
+  }
   if (routed.size !== routedPatchIds.length) writeLocal('ledgerflow_sandbox_routed_patch_ids_v1', Array.from(routed));
 }
 
