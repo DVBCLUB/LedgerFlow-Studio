@@ -8,6 +8,7 @@ const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 
 type ReleaseStatus = 'Draft' | 'QA Review' | 'Ready' | 'Released' | 'Rolled Back';
 type ReleaseRisk = 'LOW' | 'MEDIUM' | 'HIGH';
+type PullPlanCIStatus = 'Unknown' | 'Running' | 'Passed' | 'Failed';
 
 type ReleaseNote = {
   id: string;
@@ -25,7 +26,7 @@ type ReleaseNote = {
 };
 
 type QAItem = { status?: string };
-type PullPlan = { title?: string; risk?: string; status?: string };
+type PullPlan = { title?: string; risk?: string; status?: string; ciStatus?: PullPlanCIStatus };
 type WorkCard = { status?: string; risk?: string };
 
 const statuses: ReleaseStatus[] = ['Draft', 'QA Review', 'Ready', 'Released', 'Rolled Back'];
@@ -61,7 +62,7 @@ function statusTone(status: ReleaseStatus) {
   return 'border-slate-700 text-slate-300';
 }
 
-function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, openWork: number, releaseGate: string) {
+function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, openWork: number, ciBlockingPlans: number, releaseGate: string) {
   return [
     `# Release Notes: ${note.title}`,
     '',
@@ -70,6 +71,7 @@ function releaseMarkdown(note: ReleaseNote, qaPass: number, qaFail: number, open
     `- Risk: ${note.risk}`,
     `- QA pass/fail: ${qaPass}/${qaFail}`,
     `- Open work cards: ${openWork}`,
+    `- PR plans not CI-passed: ${ciBlockingPlans}`,
     `- Release gate: ${releaseGate}`,
     '',
     '## Summary',
@@ -109,11 +111,14 @@ export default function ReleaseNotesTab() {
   const qaPass = qaItems.filter((item) => item.status === 'Pass').length;
   const qaFail = qaItems.filter((item) => item.status === 'Fail' || item.status === 'Blocked').length;
   const openWork = workCards.filter((card) => card.status !== 'Done').length;
-  const highRiskPlans = pullPlans.filter((plan) => plan.risk === 'HIGH' && plan.status !== 'Archived').length;
+  const activePullPlans = pullPlans.filter((plan) => plan.status !== 'Archived');
+  const highRiskPlans = activePullPlans.filter((plan) => plan.risk === 'HIGH').length;
+  const ciBlockingPlans = activePullPlans.filter((plan) => plan.ciStatus !== 'Passed').length;
   const releaseGateProblems = [
     qaFail > 0 ? `${qaFail} QA fail/blocked` : '',
     openWork > 0 ? `${openWork} open work cards` : '',
     highRiskPlans > 0 ? `${highRiskPlans} high-risk PR plans` : '',
+    ciBlockingPlans > 0 ? `${ciBlockingPlans} PR plans not CI-passed` : '',
   ].filter(Boolean);
   const releaseGate = releaseGateProblems.length === 0 ? 'PASS' : `BLOCKED: ${releaseGateProblems.join(' · ')}`;
 
@@ -168,7 +173,7 @@ export default function ReleaseNotesTab() {
   };
 
   const copyNote = async (note: ReleaseNote) => {
-    await navigator.clipboard.writeText(releaseMarkdown(note, qaPass, qaFail, openWork, releaseGate));
+    await navigator.clipboard.writeText(releaseMarkdown(note, qaPass, qaFail, openWork, ciBlockingPlans, releaseGate));
     appendAgentOpsAudit('RELEASE_NOTE_COPIED', note.id, note.version);
   };
 
@@ -207,11 +212,12 @@ export default function ReleaseNotesTab() {
         <button onClick={addNote} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-400/10 md:col-span-2">Thêm release note</button>
       </div>
 
-      <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-4">
+      <div className="mt-4 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-5">
         <p className="text-xs font-black text-slate-300">QA pass: <span className="text-emerald-200">{qaPass}</span></p>
         <p className="text-xs font-black text-slate-300">QA fail/blocked: <span className="text-rose-200">{qaFail}</span></p>
         <p className="text-xs font-black text-slate-300">Open work: <span className="text-amber-200">{openWork}</span></p>
         <p className="text-xs font-black text-slate-300">High-risk PR plans: <span className="text-rose-200">{highRiskPlans}</span></p>
+        <p className="text-xs font-black text-slate-300">PR not CI-passed: <span className="text-rose-200">{ciBlockingPlans}</span></p>
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
