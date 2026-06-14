@@ -11,6 +11,7 @@ import NavigationMapTab from './tabs/NavigationMapTab';
 import GrowthStudioTab from './tabs/GrowthStudioTab';
 import SalesCRMTab from './tabs/SalesCRMTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
+import AnalyticsSandboxTab from './tabs/AnalyticsSandboxTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -23,7 +24,7 @@ import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 
-export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
+export type AgentOpsHubTab = 'standup' | 'founder' | 'workboard' | 'tasks' | 'factory' | 'growth' | 'sales' | 'documents' | 'analytics' | 'tools' | 'prompts' | 'memory' | 'knowledge' | 'memoryVersions' | 'industry' | 'navmap' | 'costs' | 'feedback' | 'runtime' | 'skills' | 'staff' | 'approvals' | 'connectors' | 'review';
 
 const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'standup', label: 'Daily Standup' },
@@ -34,6 +35,7 @@ const tabs: { id: AgentOpsHubTab; label: string }[] = [
   { id: 'growth', label: 'Growth Studio' },
   { id: 'sales', label: 'Sales CRM' },
   { id: 'documents', label: 'Documents' },
+  { id: 'analytics', label: 'Analytics Sandbox' },
   { id: 'tools', label: 'Tool Cards' },
   { id: 'prompts', label: 'Prompt Pack' },
   { id: 'memory', label: 'Company Memory' },
@@ -84,6 +86,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
         {tab === 'growth' && <GrowthStudioTab />}
         {tab === 'sales' && <SalesCRMTab />}
         {tab === 'documents' && <DocumentsApprovalTab />}
+        {tab === 'analytics' && <AnalyticsSandboxTab />}
         {tab === 'tools' && <ToolCardsTab />}
         {tab === 'prompts' && <PromptPackTab />}
         {tab === 'memory' && <CompanyMemoryTab />}
