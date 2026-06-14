@@ -5,13 +5,15 @@ NEU BAN CHI MUON DUNG PHAN MEM:
 - Hay vao GitHub Actions artifact va tai goi: LedgerFlow-Hub-Windows-Download.
 - Giai nen goi do, bam file .exe de mo LedgerFlow Hub.
 
-DANG NHAP BAN DESKTOP/LOCAL:
-- User: admin
-- Pass: ledgerflow2026
+DANG NHAP:
+- Neu dung Supabase Auth: nhap email/password tren man hinh login.
+- Neu dung local/offline mode: tao ma mo khoa local tren may dang dung. Khong co tai khoan mac dinh duoc commit trong source code.
+- Neu can bao ve API server o local mode: cau hinh LOCAL_ADMIN_TOKEN trong file .env.
+- Chi tiet: docs/AUTH_SETUP.md
 
 Ghi chu:
-- Day la dang nhap local de mo app tren may tinh.
-- Supabase/GitHub/AI Gateway la cau hinh tich hop ben trong app, khong phai tai khoan de mo app.
+- Day la lop dang nhap de mo app tren may tinh hoac tren web.
+- Supabase/GitHub/AI Gateway la cau hinh tich hop ben trong app.
 - Sau nay se nang cap Auth/Role Center cho Admin, Ke toan, Thu kho, HCNS, Sep, Dev.
 
 NEU BAN DANG CAM BO SOURCE CODE NAY VA MUON TU TAO FILE .EXE:
@@ -39,5 +41,6 @@ TAI LIEU QUAN TRONG:
 - docs/AI_GATEWAY.md: huong dan AI Gateway.
 - docs/INTEGRATION_HUB.md: huong dan trung tam tich hop.
 - docs/CI_DOCTOR.md: huong dan xu ly loi CI.
+- docs/AUTH_SETUP.md: huong dan Supabase Auth va local mode.
 
 Tai lieu chi tiet nam trong thu muc docs.
