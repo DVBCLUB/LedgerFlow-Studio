@@ -3,7 +3,7 @@ import { appendAgentOpsAudit, readLocalStorageValue, useLocalStorageVersion, wri
 
 const RELEASE_NOTES_KEY = 'ledgerflow_release_notes_v1';
 const QA_KEY = 'ledgerflow_qa_test_matrix_v1';
-const GITHUB_PR_KEY = 'ledgerflow_github_pr_control_v1';
+const GITHUB_PR_KEY = 'ledgerflow_github_pr_plans_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';
 
 type ReleaseStatus = 'Draft' | 'QA Review' | 'Ready' | 'Released' | 'Rolled Back';
