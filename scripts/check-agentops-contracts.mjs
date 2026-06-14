@@ -79,6 +79,8 @@ assertContains('src/components/agent-ops/tabs/NavigationMapTab.tsx', 'companyOSL
 
 assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'Import document text', 'Knowledge Base must keep local document import.');
 assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'Needs Review', 'Imported document chunks must require review before RAG use.');
+assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'normalizeKnowledgeBody', 'Knowledge import must dedupe normalized chunks.');
+assertContains('src/components/agent-ops/tabs/KnowledgeBaseTab.tsx', 'KNOWLEDGE_DOCUMENT_IMPORT_SKIPPED', 'Knowledge import must audit all-duplicate document imports.');
 assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'RAG_LOW_EVIDENCE_WARNING', 'RAG Search must warn when evidence is weak.');
 assertContains('src/components/agent-ops/tabs/RAGSearchTab.tsx', 'eligibleSources', 'RAG context basket must not depend only on filtered search results.');
 
