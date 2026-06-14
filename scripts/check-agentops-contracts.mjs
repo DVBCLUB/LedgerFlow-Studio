@@ -82,6 +82,9 @@ assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'FINANCE_APPR
 assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'PROJECT_APPROVAL_REQUESTED', 'Projects Core must route risky actions to Approval Gate.');
 assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'projectName', 'Finance Core items must keep linked project field.');
 assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'Linked project', 'Finance Core briefs must show linked project context.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'PROJECTS_CORE_KEY', 'Finance Core must read Projects Core for reconciliation.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'Finance / Project reconciliation', 'Finance Core must show project reconciliation.');
+assertContains('src/components/agent-ops/tabs/FinanceCoreTab.tsx', 'overBudgetProjects', 'Finance Core must flag over-budget projects.');
 assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'financeStatus', 'Projects Core must track finance status.');
 assertContains('src/components/agent-ops/tabs/ProjectsDeliveryCoreTab.tsx', 'Variance', 'Projects Core must show budget variance.');
 assertContains('src/components/agent-ops/tabs/DailyStandupTab.tsx', 'FINANCE_CORE_KEY', 'Daily Standup must read Finance Core items.');
