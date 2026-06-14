@@ -31,6 +31,30 @@ export type ApprovedGitHubChangeResult = {
   };
 };
 
+export type CloseGitHubPullRequestInput = {
+  repo?: string;
+  pullNumber: number;
+  reason: string;
+  rollbackNote: string;
+  approvalPhrase: 'APPROVE AI GITHUB CLOSE';
+};
+
+export type CloseGitHubPullRequestResult = {
+  repo: string;
+  pullRequest: {
+    number: number;
+    title: string;
+    state: string;
+    htmlUrl: string;
+    branch: string;
+    base: string;
+    draft: boolean;
+  };
+  closedAt: string;
+  reason: string;
+  rollbackNote: string;
+};
+
 export type GitHubPullRequestDigest = {
   repo: string;
   pullRequest: {
@@ -115,6 +139,22 @@ export async function createApprovedGitHubChangeRequest(input: ApprovedGitHubCha
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
+    }),
+  );
+  return data.result;
+}
+
+export async function requestCloseGitHubPullRequest(input: CloseGitHubPullRequestInput): Promise<CloseGitHubPullRequestResult> {
+  const data = await readJson<{ success: true; result: CloseGitHubPullRequestResult }>(
+    await fetch(`/api/integrations/github/prs/${encodeURIComponent(String(input.pullNumber))}/request-close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        repo: input.repo,
+        reason: input.reason,
+        rollbackNote: input.rollbackNote,
+        approvalPhrase: input.approvalPhrase,
+      }),
     }),
   );
   return data.result;
