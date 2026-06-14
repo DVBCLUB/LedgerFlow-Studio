@@ -70,7 +70,7 @@ export interface GitHubConnectorSummary {
   actionsUrl: string;
   issuesUrl: string;
   pullsUrl: string;
-  lastCheckedAt: string;
+  lastCheckedAt: string
 }
 
 export interface GitHubCIJobSummary {
@@ -232,7 +232,7 @@ export async function createGitHubConnectorIssue(input: {
 }
 
 export async function fetchLocalToolSummary(): Promise<LocalToolSummary> {
-  const data = await readJson<{ success: true; summary: LocalToolSummary }>(await fetch('/api/integrations/local-tools/status'));
+  const data = await readJson<{ success: true; summary: LocalToolSummary }>(await fetch('/api/integrations/local-tools/summary'));
   return data.summary;
 }
 
