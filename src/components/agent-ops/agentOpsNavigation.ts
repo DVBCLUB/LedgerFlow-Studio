@@ -8,6 +8,7 @@ export type AgentOpsHubTab =
   | 'growth'
   | 'sales'
   | 'finance'
+  | 'vietqr'
   | 'projects'
   | 'documents'
   | 'analytics'
@@ -56,6 +57,7 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
       { id: 'growth', label: 'Growth Studio' },
       { id: 'sales', label: 'Sales CRM' },
       { id: 'finance', label: 'Finance Core' },
+      { id: 'vietqr', label: 'VietQR Reconcile' },
       { id: 'projects', label: 'Projects Core' },
       { id: 'documents', label: 'Documents' },
       { id: 'analytics', label: 'Analytics Sandbox' },
