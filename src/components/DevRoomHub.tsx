@@ -1,6 +1,5 @@
-// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
-import type { WorkCard } from '../types/agentOps';
+import type { RiskLevel, WorkCard, WorkKind, WorkStatus } from '../types/agentOps';
 import { getCompanyMemoryStatus } from '../utils/companyMemory';
 import CodexPromptBuilderTab from './dev-room/tabs/CodexPromptBuilderTab';
 
@@ -13,6 +12,9 @@ type ReleaseItem = { version: string; date: string; summary: string; status: str
 type PipelineStepView = { name: string; agentRole: string; status?: string; output?: string; requiresApproval?: boolean; approvedAt?: string; context?: { memoryInjected?: boolean } };
 type PipelineTypeItem = { id: string; name: string; steps: PipelineStepView[] };
 type PipelineResult = { id: string; name: string; status: string; output?: string; currentStepIndex?: number; steps: PipelineStepView[] };
+type PipelineTypesResponse = { types?: PipelineTypeItem[] };
+type PipelineResponse = { success?: boolean; error?: string; pipeline?: PipelineResult };
+type LegacyWorkCard = Partial<WorkCard> & { task?: string };
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const PRODUCTS_KEY = 'ledgerflow_devroom_products_v1';
@@ -47,14 +49,26 @@ function writeArray<T>(key: string, value: T[]) {
   window.localStorage.setItem(key, JSON.stringify(value));
 }
 
-function normalizeCard(raw: Partial<WorkCard>, index: number): WorkCard {
+function normalizeKind(kind?: WorkKind): WorkKind {
+  return kind === 'CI Fix' ? 'CI Fix' : 'Code';
+}
+
+function normalizeStatus(status?: WorkStatus): WorkStatus {
+  return status || 'Inbox';
+}
+
+function normalizeRisk(risk?: RiskLevel): RiskLevel {
+  return risk || 'HIGH';
+}
+
+function normalizeCard(raw: LegacyWorkCard, index: number): WorkCard {
   return {
     id: raw.id || `devroom-card-${index}`,
     title: raw.title || 'Untitled code task',
-    kind: raw.kind === 'CI Fix' ? 'CI Fix' : 'Code',
+    kind: normalizeKind(raw.kind),
     owner: raw.owner || 'AI Dev',
-    status: raw.status || 'Inbox',
-    risk: raw.risk || 'HIGH',
+    status: normalizeStatus(raw.status),
+    risk: normalizeRisk(raw.risk),
     request: raw.request || raw.task || 'No request recorded.',
     plan: Array.isArray(raw.plan) ? raw.plan : ['Read context', 'Prepare branch', 'Open Draft PR'],
     tools: Array.isArray(raw.tools) ? raw.tools : ['Workboard', 'Review Desk', 'GitHub'],
@@ -68,7 +82,7 @@ function ActiveTasksTab() {
   const [cards, setCards] = useState<WorkCard[]>([]);
 
   useEffect(() => {
-    const source = readArray<Partial<WorkCard>>(CARD_KEY, []);
+    const source = readArray<LegacyWorkCard>(CARD_KEY, []);
     setCards(source.filter((card) => card.kind === 'Code' || card.kind === 'CI Fix').map(normalizeCard));
   }, []);
 
@@ -88,7 +102,9 @@ function ActiveTasksTab() {
             <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{card.kind} · {card.owner}</p>
             <h4 className="mt-1 font-black text-white">{card.title}</h4>
             <p className="mt-3 text-sm leading-6 text-slate-300">{card.request}</p>
-            <div className="mt-3 flex flex-wrap gap-2">{card.tools.map((tool) => <span key={tool} className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{tool}</span>)}</div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {card.tools.map((tool) => <span key={tool} className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{tool}</span>)}
+            </div>
           </article>
         ))}
         {!cards.length && <p className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-sm font-semibold text-slate-400">Chưa có WorkCard Code/CI Fix.</p>}
@@ -157,7 +173,7 @@ function PipelinesTab() {
     void (async () => {
       try {
         const response = await fetch('/api/pipelines/types');
-        const json: { types?: PipelineTypeItem[] } = await response.json();
+        const json: PipelineTypesResponse = await response.json();
         setTypes(json.types || []);
       } catch {
         setTypes([]);
@@ -183,7 +199,7 @@ function PipelinesTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pipelineType: selectedType, input, userId: memoryUserId }),
       });
-      const json: { success?: boolean; error?: string; pipeline?: PipelineResult } = await response.json();
+      const json: PipelineResponse = await response.json();
       if (!response.ok || json.success === false || !json.pipeline) throw new Error(json.error || 'Failed to start pipeline');
       setResult(json.pipeline);
     } catch (err) {
@@ -203,7 +219,7 @@ function PipelinesTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: memoryUserId }),
       });
-      const json: { success?: boolean; error?: string; pipeline?: PipelineResult } = await response.json();
+      const json: PipelineResponse = await response.json();
       if (!response.ok || json.success === false || !json.pipeline) throw new Error(json.error || 'Failed to approve pipeline');
       setResult(json.pipeline);
     } catch (err) {
