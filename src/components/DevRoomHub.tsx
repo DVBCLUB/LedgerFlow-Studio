@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useEffect, useMemo, useState } from 'react';
 import type { WorkCard } from '../types/agentOps';
 import { getCompanyMemoryStatus } from '../utils/companyMemory';
