@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WorkboardTab from './tabs/WorkboardTab';
 import ProductFactoryTab from './tabs/ProductFactoryTab';
 import PromptPackTab from './tabs/PromptPackTab';
-import CompanyMemoryTab from './tabs/CompanyMemoryTab';
+import CompanyMemoryV2Tab from './tabs/CompanyMemoryV2Tab';
 import KnowledgeBaseTab from './tabs/KnowledgeBaseTab';
 import RAGSearchTab from './tabs/RAGSearchTab';
 import MemoryVersionsTab from './tabs/MemoryVersionsTab';
@@ -60,7 +60,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'release') return <ReleaseNotesTab />;
   if (tab === 'tools') return <ToolCardsTab />;
   if (tab === 'prompts') return <PromptPackTab />;
-  if (tab === 'memory') return <CompanyMemoryTab />;
+  if (tab === 'memory') return <CompanyMemoryV2Tab />;
   if (tab === 'knowledge') return <KnowledgeBaseTab />;
   if (tab === 'rag') return <RAGSearchTab />;
   if (tab === 'memoryVersions') return <MemoryVersionsTab />;
