@@ -28,9 +28,9 @@ import {
   YAxis, 
   Tooltip, 
   CartesianGrid, 
-  Legend 
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import SeoTrafficCalculatorPanel from './marketing-growth/tabs/SeoTrafficCalculatorPanel';
 
 // Define Interfaces for Keyword Discovery
 interface SuggestKeyword {
@@ -139,7 +139,7 @@ export default function GoogleKeywordStrategy() {
       setTargetAudience(activeIdea.type === 'game' ? 'Game thủ / Học sinh sinh viên' : 'Chủ shop bán hàng / Hộ kinh doanh');
       setBudgetTarget(activeIdea.pricePoint);
       setProductNameInput(activeIdea.title.split(' - ')[0]);
-      setCalcPrice(activeIdea.pricePoint);
+      setCalculatorInitialPrice(activeIdea.pricePoint);
       
       if (activeIdea.type === 'game') {
         setPrimaryKeywordInput('game di động sài gòn vui nhộn');
@@ -170,13 +170,7 @@ export default function GoogleKeywordStrategy() {
   const [activeAccordion, setActiveAccordion] = useState<string>('seo');
   const [copiedSectionIndex, setCopiedSectionIndex] = useState<string | null>(null);
 
-  // Tab 4 States (Calculator)
-  const [calcVolume, setCalcVolume] = useState<number>(3100);
-  const [calcCTR, setCalcCTR] = useState<number>(3); // 3% 
-  const [calcConv, setCalcConv] = useState<number>(8); // 8% trial to paid
-  const [calcPrice, setCalcPrice] = useState<number>(99000); // 99k
-  const [calcChurn, setCalcChurn] = useState<number>(5); // 5% monthly churn
-  const [calcRankWeeks, setCalcRankWeeks] = useState<number>(12); // Weeks to rank #3
+  const [calculatorInitialPrice, setCalculatorInitialPrice] = useState<number>(99000);
 
   // Load selected keywords initially or provide presets
   useEffect(() => {
@@ -471,10 +465,8 @@ Yêu cầu ĐẦU RA 100% khớp lược đồ JSON sạch, tuyệt đối khôn
         try {
           const parsed = JSON.parse(cleanText);
           setBlueprintResult(parsed);
-          // Auto fill calculators
-          setCalcVolume(2400); 
           if (parsed.pricingTiers && parsed.pricingTiers[1]) {
-            setCalcPrice(parsed.pricingTiers[1].price);
+            setCalculatorInitialPrice(parsed.pricingTiers[1].price);
           }
         } catch (e) {
           console.warn("JSON error, falling back to mapper fallback:", e);
@@ -537,7 +529,7 @@ Yêu cầu ĐẦU RA 100% khớp lược đồ JSON sạch, tuyệt đối khôn
 
     setBlueprintResult(mockBlueprint);
     // Autofill calculator from fallback pricing
-    setCalcPrice(mockBlueprint.pricingTiers[1].price);
+    setCalculatorInitialPrice(mockBlueprint.pricingTiers[1].price);
   };
 
   const handleSaveToGuerrillaHub = () => {
@@ -603,7 +595,7 @@ ${blueprintResult.coreFeatures.map(f => `- ${f}`).join('\n')}
 Sản phẩm: "${productNameInput}"
 Nhóm từ khóa chính cần tối ưu hóa lên TOP GOOGLE: "${primaryKeywordInput}"
 Đối tượng khách hàng phục vụ: "${targetAudience}"
-Giá gói Pro đề xuất: ${calcPrice.toLocaleString('vi-VN')} VNĐ/tháng
+Giá gói Pro đề xuất: ${calculatorInitialPrice.toLocaleString('vi-VN')} VNĐ/tháng
 
 Hãy viết toàn bộ nội dung của trang đích SEO có cấu trúc JSON sạch, tuyệt đối không chèn chữ giải thích ngoài khối JSON:
 {
@@ -786,7 +778,7 @@ ${landingDesign.socialProof.testimonials.map(t => `> "${t.quote}"\n> — **${t.n
 ---
 
 ## 💰 CHÍNH SÁCH ĐỊNH GIÁ & CAM KẾT: ${landingDesign.pricingSection.heading}
-- **Giá trị gói tháng Pro**: ${calcPrice.toLocaleString('vi-VN')} VNĐ / tháng
+- **Giá trị gói tháng Pro**: ${calculatorInitialPrice.toLocaleString('vi-VN')} VNĐ / tháng
 - **Chính sách bảo hành**: ${landingDesign.pricingSection.guarantee}
 
 ---
@@ -815,55 +807,6 @@ ${landingDesign.blogIdeas.map((idea, i) => `${i+1}. Tên bài: "${idea}" (Tối 
     setCopiedSectionIndex(indexKey);
     setTimeout(() => setCopiedSectionIndex(null), 1500);
   };
-
-  // ================= TAB 4: CALCULATOR LOGIC =================
-  const getCalculatorData = () => {
-    const monthlyVisitors = calcVolume * (calcCTR / 100);
-    const newTrials = monthlyVisitors * (calcConv / 100);
-    const churn = calcChurn / 100;
-    
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    
-    // Scenarios data building
-    return months.map(m => {
-      // Realistic Growth with cumulative users taking churn into consideration
-      // cumulative_users_m = cumulative_users_m-1 * (1 - churn) + newTrials
-      let realisticUsers = 0;
-      let conservativeUsers = 0;
-      let optimisticUsers = 0;
-      
-      const consCTR = calcCTR / 3;
-      const consConv = calcConv / 2;
-      const consTrials = (calcVolume * (consCTR / 100)) * (consConv / 100);
-      
-      const optCTR = calcCTR * 2.2;
-      const optConv = calcConv * 1.5;
-      const optTrials = (calcVolume * (optCTR / 100)) * (optConv / 100);
-
-      for (let prev = 1; prev <= m; prev++) {
-        realisticUsers = realisticUsers * (1 - churn) + newTrials;
-        conservativeUsers = conservativeUsers * (1 - (churn + 0.02)) + consTrials;
-        optimisticUsers = optimisticUsers * (1 - (churn - 0.015)) + optTrials;
-      }
-
-      // We align MRR computation
-      return {
-        month: `Tháng ${m}`,
-        'Khách quan (Realistic)': Math.round(realisticUsers * calcPrice),
-        'Thận trọng (Conservative)': Math.round(conservativeUsers * (calcPrice * 0.9)),
-        'Tối ưu (Optimistic)': Math.round(optimisticUsers * (calcPrice * 1.15)),
-        realisticUsers: Math.floor(realisticUsers),
-        conservativeUsers: Math.floor(conservativeUsers),
-        optimisticUsers: Math.floor(optimisticUsers)
-      };
-    });
-  };
-
-  const calcData = getCalculatorData();
-  const realisticMonth12MRR = calcData[11]['Khách quan (Realistic)'];
-  const realisticCumulativeUsers = calcData[11].realisticUsers;
-  const CACCost = 30000; // Estimated 30.000 VNĐ to acquire one customer via SEO seeding
-  const estimatedPaybackWeeks = Math.max(1, Math.round((CACCost * calcVolume * 0.05) / (realisticMonth12MRR || 1) * 4));
 
   return (
     <div className="bg-slate-950/40 p-5 rounded-2xl border border-slate-900 shadow-xl space-y-6">
@@ -1880,191 +1823,7 @@ ${landingDesign.blogIdeas.map((idea, i) => `${i+1}. Tên bài: "${idea}" (Tối 
 
       {/* ======================= TAB 4: CALCULATOR INTERACTIVE SCREEN ======================= */}
       {activeTab === 'calculator' && (
-        <div className="space-y-6">
-          
-          <div className="grid lg:grid-cols-12 gap-8 select-text">
-            
-            {/* Left Area: Inputs sliders */}
-            <div className="lg:col-span-4 bg-[#070b13]/85 p-5.5 rounded-2xl border border-slate-900 space-y-5">
-              <span className="text-[10px] text-slate-500 font-black tracking-widest uppercase font-mono block border-b border-slate-900 pb-2">
-                ⚙️ Chỉ Số Phễu Chuyển Đổi Thực Tế
-              </span>
-
-              <div className="space-y-4 text-xs font-semibold">
-                
-                {/* Traffic Volume */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-bold block flex items-center gap-1">1. LƯU LƯỢNG GOOGLE TRAFFIC</span>
-                    <span className="text-purple-400 font-extrabold font-mono">{calcVolume.toLocaleString('vi-VN')} / Tháng</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="500"
-                    max="15000"
-                    step="100"
-                    value={calcVolume}
-                    onChange={(e) => setCalcVolume(Number(e.target.value))}
-                    className="w-full accent-purple-500 h-1 rounded bg-slate-950 cursor-pointer"
-                  />
-                  <span className="text-[10px] text-slate-500 italic leading-snug font-medium block">
-                    Ước tính tổng lưu lượng tìm kiếm hàng tháng cho mảng từ khóa đã chọn.
-                  </span>
-                </div>
-
-                {/* Organic CTR */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-bold block flex items-center gap-1">2. TỶ LỆ CLICK ORGANIC (CTR)</span>
-                    <span className="text-amber-400 font-extrabold font-mono">{calcCTR} % / Top #3</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="15"
-                    step="0.5"
-                    value={calcCTR}
-                    onChange={(e) => setCalcCTR(Number(e.target.value))}
-                    className="w-full accent-amber-500 h-1 rounded bg-slate-950 cursor-pointer"
-                  />
-                  <span className="text-[10px] text-slate-500 italic leading-snug font-medium block">
-                    Khuyên dùng 3% đối với thứ hạng SEO cao trong trang 1 Google.
-                  </span>
-                </div>
-
-                {/* Trial -> Paid Conversion */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-bold block flex items-center gap-1">3. TỶ LỆ DÙNG THỰC -&rsaquo; PRO</span>
-                    <span className="text-emerald-400 font-extrabold font-mono">{calcConv} %</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="20"
-                    step="0.5"
-                    value={calcConv}
-                    onChange={(e) => setCalcConv(Number(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 rounded bg-slate-950 cursor-pointer"
-                  />
-                  <span className="text-[10px] text-slate-500 italic leading-snug font-medium block">
-                    Tỷ lệ người dùng thử đăng ký trả phí sau 14 ngày.
-                  </span>
-                </div>
-
-                {/* Monthly fee pricing */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-bold block flex items-center gap-1">4. ĐỊNH GIÁ / THÁNG (VND)</span>
-                    <span className="text-purple-400 font-extrabold font-mono">{calcPrice.toLocaleString('vi-VN')} đ</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="19000"
-                    max="499000"
-                    step="5000"
-                    value={calcPrice}
-                    onChange={(e) => setCalcPrice(Number(e.target.value))}
-                    className="w-full accent-purple-500 h-1 rounded bg-slate-950 cursor-pointer"
-                  />
-                </div>
-
-                {/* Churn rate */}
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-slate-400 font-bold block flex items-center gap-1">5. TỶ LỆ HỦY GÓI (CHURN RATE)</span>
-                    <span className="text-rose-500 font-extrabold font-mono">{calcChurn} % / Tháng</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="15"
-                    step="0.5"
-                    value={calcChurn}
-                    onChange={(e) => setCalcChurn(Number(e.target.value))}
-                    className="w-full accent-rose-500 h-1 rounded bg-slate-950 cursor-pointer"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right Area: KPI cards and multi-series Recharts projections line */}
-            <div className="lg:col-span-8 space-y-6">
-              
-              {/* CUMULATIVE KPI METRICS ROW */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-[#070b13]/85 p-4 rounded-xl border border-slate-900">
-                  <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">REALISTIC Month 12 MRR</span>
-                  <p className="text-xl font-black mt-1 mb-0.5 text-white">{realisticMonth12MRR.toLocaleString('vi-VN')} VNĐ</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Doanh thu đều đặn hàng tháng dự báo.</p>
-                </div>
-
-                <div className="bg-[#070b13]/85 p-4 rounded-xl border border-slate-900">
-                  <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Tổng Users Đạt Được</span>
-                  <p className="text-xl font-black mt-1 mb-0.5 text-purple-400">{realisticCumulativeUsers.toLocaleString('vi-VN')} Khách</p>
-                  <p className="text-[10px] text-slate-400 font-medium font-semibold">Tích lũy lũy kế sau 12 tháng hạch toán.</p>
-                </div>
-
-                <div className="bg-[#070b13]/85 p-4 rounded-xl border border-slate-900">
-                  <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider font-mono">Payback Period (SEO)</span>
-                  <p className="text-xl font-black mt-1 mb-0.5 text-emerald-400">~ {estimatedPaybackWeeks} Tuần</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Thời gian hòa vốn chi phí phân hữu du kích.</p>
-                </div>
-              </div>
-
-              {/* AREA MULTI-SCENARIOS GRAPH */}
-              <div className="bg-[#070b13]/85 p-5 rounded-2xl border border-slate-900 space-y-5">
-                <div className="flex justify-between items-center border-b border-slate-900 pb-2">
-                  <span className="text-[10px] text-slate-500 font-black tracking-widest uppercase font-mono">📊 Phân tích 3 Kịch Bản Doanh Thu (Conservative vs Realistic vs Optimistic)</span>
-                  <span className="bg-emerald-500/10 text-emerald-400 text-[8.5px] px-1.5 py-0.5 rounded border border-emerald-500/20 font-bold font-mono">MRR SPREAD</span>
-                </div>
-
-                <div className="h-[220px] w-full pt-2 select-text">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart
-                      data={calcData}
-                      margin={{ top: 10, right: 10, left: 20, bottom: 0 }}
-                    >
-                      <defs>
-                        <linearGradient id="optGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="realGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="consGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.15}/>
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#0f172a" />
-                      <XAxis dataKey="month" stroke="#475569" style={{ fontSize: '9px', fontFamily: 'monospace' }} />
-                      <YAxis stroke="#475569" tickFormatter={(val) => `${val/1000000}M`} style={{ fontSize: '9px', fontFamily: 'monospace' }} />
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#020617', borderColor: '#1e293b' }}
-                        formatter={(value) => [`${Number(value).toLocaleString('vi-VN')} đ`]}
-                      />
-                      <Legend style={{ fontSize: '10px' }} />
-                      
-                      <Area type="monotone" name="Conservative (Thận trọng)" dataKey="Thận trọng (Conservative)" stroke="#f59e0b" strokeWidth={1.5} fillOpacity={1} fill="url(#consGrad)" />
-                      <Area type="monotone" name="Realistic (Khách quan)" dataKey="Khách quan (Realistic)" stroke="#8b5cf6" strokeWidth={2.5} fillOpacity={1} fill="url(#realGrad)" />
-                      <Area type="monotone" name="Optimistic (Tối ưu)" dataKey="Tối ưu (Optimistic)" stroke="#10b981" strokeWidth={1.5} fillOpacity={1} fill="url(#optGrad)" strokeDasharray="4 4" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="bg-slate-950 p-3 rounded-xl border border-slate-900 text-xs italic leading-relaxed text-slate-400 font-semibold text-center font-mono">
-                  💡 Nhận xét: &ldquo; Với giá trị đầu phễu tự nhiên SEO an toàn, kể cả trong kịch bản thận trọng nhất, bạn vẫn có khả năng gieo mầm thành công hạch toán ròng đều lớn hơn <strong className="text-amber-400">{(calcData[11]['Thận trọng (Conservative)']).toLocaleString('vi-VN')}đ</strong> vào cuối kỳ hạn 1 năm mà không chịu bất cứ rủi ro tài chính nào.&rdquo;
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-        </div>
+        <SeoTrafficCalculatorPanel initialPrice={calculatorInitialPrice} />
       )}
 
     </div>
