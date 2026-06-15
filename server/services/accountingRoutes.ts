@@ -39,7 +39,7 @@ export function registerAccountingRoutes(app: Express) {
             { role: "system", content: "Bạn là kế toán viên Việt Nam chuyên VAS/Thông tư 200. Luôn trả JSON hợp lệ khi được yêu cầu." },
             { role: "user", content: prompt },
           ], { model: "ai-assistant" });
-          return output.text;
+          return output.content || output.text || "[]";
         }).catch(() => []);
 
         for (const aiEntry of aiEntries) {
