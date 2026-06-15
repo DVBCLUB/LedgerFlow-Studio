@@ -16,7 +16,6 @@ import RevenueDashboard from '../RevenueDashboard';
 import DevRoomHub from '../DevRoomHub';
 import NotificationCenter from '../NotificationCenter';
 import VietQRReconcilerTab from './tabs/VietQRReconcilerTab';
-import MISABridgeTab from './tabs/MISABridgeTab';
 import InvoiceOCRTab from './tabs/InvoiceOCRTab';
 import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
@@ -58,7 +57,6 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'finance') return <FinanceCoreTab />;
   if (tab === 'revenue') return <RevenueDashboard />;
   if (tab === 'vietqr') return <VietQRReconcilerTab />;
-  if (tab === 'misaBridge') return <MISABridgeTab />;
   if (tab === 'invoiceOcr') return <InvoiceOCRTab />;
   if (tab === 'projects') return <ProjectsDeliveryCoreTab />;
   if (tab === 'documents') return <DocumentsApprovalTab />;
