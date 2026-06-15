@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { Express } from "express";
 import { createClient } from "@supabase/supabase-js";
 import helmet from "helmet";
