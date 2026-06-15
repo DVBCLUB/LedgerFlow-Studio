@@ -207,6 +207,7 @@ async function buildCompanyMemoryContext(userId: string): Promise<string> {
   if (!userId || userId === 'local' || !isUuid(userId)) return '';
   const sb = getSupabaseServiceClient();
   if (!sb) return '';
+  const nowIso = new Date().toISOString();
 
   const { data, error } = await sb
     .from('company_memory')
@@ -214,7 +215,7 @@ async function buildCompanyMemoryContext(userId: string): Promise<string> {
     .eq('user_id', userId)
     .eq('is_active', true)
     .in('importance', ['critical', 'high'])
-    .or('expires_at.is.null,expires_at.gt.now()')
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
     .order('created_at', { ascending: false })
     .limit(8);
 
