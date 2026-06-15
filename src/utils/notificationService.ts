@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { getSupabaseClientInstance, getSupabaseConfig } from './supabaseSync';
 
 export interface AppNotification {
@@ -12,10 +11,29 @@ export interface AppNotification {
   created_at: string;
 }
 
-function getClient() {
+type RealtimeInsertPayload = {
+  new: Record<string, unknown>;
+};
+
+type SupabaseClientInstance = ReturnType<typeof getSupabaseClientInstance>;
+
+function getClient(): SupabaseClientInstance | null {
   const config = getSupabaseConfig();
   if (!config?.url || !config?.anonKey) return null;
   return getSupabaseClientInstance(config.url, config.anonKey);
+}
+
+function normalizeNotification(raw: Record<string, unknown>): AppNotification {
+  return {
+    id: String(raw.id || ''),
+    user_id: typeof raw.user_id === 'string' ? raw.user_id : undefined,
+    title: String(raw.title || 'Thông báo'),
+    content: String(raw.content || ''),
+    type: String(raw.type || 'info'),
+    is_read: Boolean(raw.is_read),
+    metadata: raw.metadata && typeof raw.metadata === 'object' && !Array.isArray(raw.metadata) ? raw.metadata as Record<string, unknown> : {},
+    created_at: String(raw.created_at || new Date().toISOString()),
+  };
 }
 
 export async function fetchNotifications(limit = 20): Promise<AppNotification[]> {
@@ -27,8 +45,8 @@ export async function fetchNotifications(limit = 20): Promise<AppNotification[]>
     .eq('is_read', false)
     .order('created_at', { ascending: false })
     .limit(limit);
-  if (error) return [];
-  return data || [];
+  if (error || !Array.isArray(data)) return [];
+  return data.map((item) => normalizeNotification(item as Record<string, unknown>));
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
@@ -50,12 +68,12 @@ export function subscribeToNotifications(onNew: (notification: AppNotification) 
   if (!supabase) return () => undefined;
   const channel = supabase
     .channel('notifications-realtime')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
-      onNew(payload.new as AppNotification);
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload: RealtimeInsertPayload) => {
+      onNew(normalizeNotification(payload.new));
     })
     .subscribe();
 
   return () => {
-    supabase.removeChannel(channel);
+    void supabase.removeChannel(channel);
   };
 }
