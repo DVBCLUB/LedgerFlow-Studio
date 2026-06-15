@@ -41,6 +41,9 @@ export interface LegacyRouteDefinition {
 }
 
 const CommandCenter = React.lazy(() => import('../components/CommandCenter'));
+const ProductStudioHub = React.lazy(() => import('../components/product-studio/ProductStudioHub'));
+const MarketingGrowthHub = React.lazy(() => import('../components/marketing-growth/MarketingGrowthHub'));
+const AnalyticsSandboxHub = React.lazy(() => import('../components/analytics-sandbox/AnalyticsSandboxHub'));
 const GuerrillaProductHub = React.lazy(() => import('../components/GuerrillaProductHub'));
 const MarketingSuite = React.lazy(() => import('../components/MarketingSuite'));
 const OutboundSalesHub = React.lazy(() => import('../components/OutboundSalesHub'));
@@ -99,7 +102,7 @@ export const moduleRegistry: ModuleDefinition[] = [
     status: 'core',
     roleAccess: ['founder', 'product', 'admin'],
     hashRoute: '/product',
-    component: GuerrillaProductHub,
+    component: ProductStudioHub,
     tags: ['software', 'ai-products', 'games'],
   },
   {
@@ -111,7 +114,7 @@ export const moduleRegistry: ModuleDefinition[] = [
     status: 'core',
     roleAccess: ['founder', 'growth', 'admin'],
     hashRoute: '/growth',
-    component: MarketingSuite,
+    component: MarketingGrowthHub,
     tags: ['campaigns', 'content', 'surveys'],
   },
   {
@@ -183,7 +186,7 @@ export const moduleRegistry: ModuleDefinition[] = [
     status: 'core',
     roleAccess: ['founder', 'data', 'admin'],
     hashRoute: '/analytics',
-    component: GameAndMLWorkbench,
+    component: AnalyticsSandboxHub,
     tags: ['charts', 'simulation', 'ml'],
   },
   {
