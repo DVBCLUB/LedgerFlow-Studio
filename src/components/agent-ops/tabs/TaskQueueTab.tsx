@@ -8,7 +8,24 @@ const APPROVAL_KEY = 'ledgerflow_approval_gate_requests_v1';
 
 type TaskRisk = 'LOW' | 'MEDIUM' | 'HIGH';
 type TaskStatus = 'Inbox' | 'Planning' | 'Waiting Approval' | 'Running' | 'Blocked' | 'Done';
-type AgentRole = 'Chief of Staff' | 'AI Dev' | 'AI Designer' | 'AI Accountant' | 'AI Auditor' | 'AI Data Analyst' | 'AI QA' | 'AI Marketer';
+type AgentRole =
+  | 'Chief of Staff'
+  | 'AI CFO'
+  | 'AI PM'
+  | 'AI Dev'
+  | 'AI DevOps'
+  | 'AI Designer'
+  | 'AI Game Dev'
+  | 'AI QA'
+  | 'AI Marketer'
+  | 'AI Research'
+  | 'AI Sales'
+  | 'AI Accountant'
+  | 'AI Auditor'
+  | 'AI Legal'
+  | 'AI Onboarding'
+  | 'AI Support'
+  | 'AI Analyst';
 
 type AITask = {
   id: string;
@@ -23,7 +40,25 @@ type AITask = {
   updatedAt: string;
 };
 
-const agents: AgentRole[] = ['Chief of Staff', 'AI Dev', 'AI Designer', 'AI Accountant', 'AI Auditor', 'AI Data Analyst', 'AI QA', 'AI Marketer'];
+const agents: AgentRole[] = [
+  'Chief of Staff',
+  'AI CFO',
+  'AI PM',
+  'AI Dev',
+  'AI DevOps',
+  'AI Designer',
+  'AI Game Dev',
+  'AI QA',
+  'AI Marketer',
+  'AI Research',
+  'AI Sales',
+  'AI Accountant',
+  'AI Auditor',
+  'AI Legal',
+  'AI Onboarding',
+  'AI Support',
+  'AI Analyst',
+];
 const statuses: TaskStatus[] = ['Inbox', 'Planning', 'Waiting Approval', 'Running', 'Blocked', 'Done'];
 const risks: TaskRisk[] = ['LOW', 'MEDIUM', 'HIGH'];
 

@@ -11,7 +11,7 @@ class ProviderError extends Error {
 }
 
 const DEFAULT_PROXY_URL = process.env.AI_PROXY_URL ?? "http://127.0.0.1:4000";
-const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "sk-ledgerflow-local-2026";
+const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "";
 
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
   const entries = await getEnabledAIKeyEntries();

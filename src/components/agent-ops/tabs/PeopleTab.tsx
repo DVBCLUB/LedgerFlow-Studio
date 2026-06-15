@@ -7,7 +7,12 @@ const LEGACY_STAFF_KEY = 'ledgerflow-ai-staff-assignment-v1';
 const watchedEvents = ['ledgerflow-aiops-card-updated', 'ledgerflow-ai-staff-updated', 'storage'];
 
 const roleDirectory = [
-  { name: 'AI Chief of Staff', mission: 'Điều phối founder dashboard, daily standup, risk queue và ưu tiên công việc.', permission: 'MEDIUM', connectors: ['AI Gateway', 'Knowledge Library'], output: 'Daily brief, work order, risk summary' },
+  { name: 'Chief of Staff', mission: 'Điều phối founder dashboard, daily standup, risk queue và ưu tiên công việc.', permission: 'MEDIUM', connectors: ['AI Gateway', 'Knowledge Library'], output: 'Daily brief, work order, risk summary' },
+  { name: 'AI CFO', mission: 'Forecast cash flow, burn rate, pricing, pricing và financial planning cho startup solo founder.', permission: 'HIGH', connectors: ['Finance & Accounting', 'Knowledge Library'], output: 'Cash forecast, scenario analysis, budget warnings' },
+  { name: 'AI DevOps', mission: 'Thiết kế CI/CD, deployment, monitoring và rollback plan cho app React + Express.', permission: 'HIGH', connectors: ['GitHub Actions', 'Docker', 'CI Doctor'], output: 'Deploy plan, pipeline checklist, incident response' },
+  { name: 'AI Legal', mission: 'Soạn thảo điều khoản pháp lý, chính sách bảo mật và tuân thủ luật Việt Nam.', permission: 'MEDIUM', connectors: ['Docs', 'Policy Gate'], output: 'Legal checklist, draft terms, compliance note' },
+  { name: 'AI Research', mission: 'Nghiên cứu thị trường, đối thủ, xu hướng và insight khách hàng.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Market insight, competitor scan, value proposition' },
+  { name: 'AI Sales', mission: 'Support sales pipeline, outreach kịch bản, objection handling và demo notes.', permission: 'MEDIUM', connectors: ['CRM', 'Review Desk'], output: 'Sales cadence, pitch note, next action' },
   { name: 'AI Dev', mission: 'Lập plan code, sửa UI/module nhỏ, tạo handoff cho VS Code/Cursor và Draft PR.', permission: 'HIGH', connectors: ['GitHub', 'VS Code', 'CI Doctor'], output: 'Code plan, patch summary, PR checklist' },
   { name: 'AI Designer', mission: 'Thiết kế giao diện Company OS, flow màn hình và component spec.', permission: 'MEDIUM', connectors: ['Knowledge Library'], output: 'Wireframe note, UI checklist' },
   { name: 'AI Marketer', mission: 'Lập content calendar, SEO angle, A/B test landing page và feedback loop.', permission: 'LOW', connectors: ['Marketing workspace'], output: 'Campaign brief, copy draft' },
@@ -15,6 +20,7 @@ const roleDirectory = [
   { name: 'AI Auditor', mission: 'Tìm red flag, Benford/Isolation Forest lab và checklist kiểm soát.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Audit finding, risk scoring' },
   { name: 'AI Data Analyst', mission: 'Phân tích KPI, cashflow, anomaly và dashboard metric.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Insight card, model note' },
   { name: 'AI QA', mission: 'Viết checklist test, release readiness, CI triage và regression note.', permission: 'HIGH', connectors: ['CI Doctor', 'Risk & Release Audit'], output: 'QA checklist, release gate result' },
+  { name: 'AI Onboarding', mission: 'Soạn onboarding script, FAQ và tutorial cho khách hàng mới.', permission: 'LOW', connectors: ['Docs', 'Customer Support'], output: 'Onboarding guide, FAQ, ticket triage' },
 ];
 
 type LegacyStaffTask = {

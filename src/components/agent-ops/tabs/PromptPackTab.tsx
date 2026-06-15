@@ -15,7 +15,25 @@ type PromptPackItem = {
   updatedAt: string;
 };
 
-const roleOptions = ['AI Chief of Staff', 'AI Product Manager', 'AI Fullstack Dev', 'AI Auditor', 'AI Marketer', 'AI Dev', 'AI QA', 'AI Data Analyst'];
+const roleOptions = [
+  'Chief of Staff',
+  'AI CFO',
+  'AI PM',
+  'AI Dev',
+  'AI DevOps',
+  'AI Designer',
+  'AI Game Dev',
+  'AI QA',
+  'AI Marketer',
+  'AI Research',
+  'AI Sales',
+  'AI Accountant',
+  'AI Auditor',
+  'AI Legal',
+  'AI Onboarding',
+  'AI Support',
+  'AI Data Analyst',
+];
 const defaultGuardrails = ['Founder duyệt cuối', 'Medium/High risk qua Approval Gate', 'Không hardcode secret', 'Không định vị như ERP kế toán thật', 'Output có acceptance criteria', 'Có audit trail khi copy/export'];
 
 function seedPrompts(): PromptPackItem[] {
