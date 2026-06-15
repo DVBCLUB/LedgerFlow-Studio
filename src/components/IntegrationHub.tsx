@@ -13,6 +13,7 @@ import {
   GitBranch,
   Github,
   Loader2,
+  MessageCircle,
   Network,
   PlayCircle,
   RefreshCw,
@@ -69,6 +70,7 @@ const iconById: Record<string, ConnectorIcon> = {
   'document-vault': FileText,
   automation: Workflow,
   'data-hub': Database,
+  'zalo-oa': MessageCircle,
 };
 
 const fallbackIconByCategory: Record<HubCategory, ConnectorIcon> = {

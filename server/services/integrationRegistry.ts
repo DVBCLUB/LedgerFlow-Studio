@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { appendAuditEvent, integrationLevelToAuditRisk, integrationTypeToAuditStatus } from "./auditLog";
 import { getGitHubSummary } from "./githubConnector";
+import { testZaloConnection } from "./zaloConnector";
 
 export type IntegrationStatus = "connected" | "local" | "manual" | "planned" | "error";
 export type IntegrationCategory = "ai" | "devops" | "workspace" | "accounting" | "documents" | "automation" | "data";
@@ -132,6 +133,18 @@ const defaultConnectors: IntegrationConnector[] = [
     quickActions: [{ label: "Thiết kế workflow", hash: "/integration_hub?focus=automation" }],
   },
   {
+    id: "zalo-oa",
+    title: "Zalo Official Account",
+    subtitle: "Customer care, demo follow-up, onboarding and reminders through Zalo OA.",
+    category: "automation",
+    status: "planned",
+    priority: "P1",
+    enabled: false,
+    notes: "Configure ZALO_OA_ACCESS_TOKEN and ZALO_OA_ID in .env. Tokens stay server-side and are never exposed to the frontend.",
+    capabilities: ["Test OA connection", "Read follower list", "Send 1:1 customer care messages", "Audit every connector test"],
+    quickActions: [{ label: "Open Zalo workspace", hash: "/growth" }],
+  },
+  {
     id: "data-hub",
     title: "Data Hub / Import Export",
     subtitle: "CSV, Excel, JSON, API staging để gom dữ liệu từ nhiều nơi.",
@@ -212,6 +225,12 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
   } else if (connector.id === "vscode-cursor") {
     status = "manual";
     message = connector.localCommand ? `IDE handoff command configured: ${connector.localCommand}` : "IDE handoff is manual until a local command is configured.";
+  } else if (connector.id === "zalo-oa") {
+    const result = await testZaloConnection();
+    status = result.connected ? "connected" : "error";
+    message = result.connected
+      ? `Zalo OA connected: ${result.oaInfo?.name || "Official Account"} (${result.oaInfo?.id || "unknown id"}).`
+      : result.error || "Zalo OA connection failed.";
   } else if (["document-vault", "data-hub"].includes(connector.id)) {
     status = "local";
     message = "Local-first connector is ready inside LedgerFlow.";
