@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { callAI } from './aiClient';
 import { createReferralCode, getReferralStats, trackReferralEvent } from './affiliateService';
 import { getAgentRole } from './agentRoles';
+import { getFacebookPageInsights, prepareFacebookPost, testFacebookConnection } from './facebookConnector';
 import { importMISAWorkbook } from './misaBridge';
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
@@ -13,6 +14,14 @@ const referralCodeSchema = z.object({ userId: z.string().uuid(), partnerName: z.
 const referralEventSchema = z.object({ code: z.string().min(1), eventType: z.enum(['click', 'signup', 'trial', 'paid', 'churned']), customerEmail: z.string().email().optional(), productName: z.string().optional(), revenueVND: z.coerce.number().optional().default(0), metadata: z.record(z.string(), z.unknown()).optional().default({}) });
 
 export function registerBrief3Routes(app: Express) {
+  app.get('/api/integrations/facebook/test', async (_req, res) => res.json(await testFacebookConnection()));
+  app.get('/api/integrations/facebook/insights', async (_req, res) => res.json(await getFacebookPageInsights()));
+  app.post('/api/integrations/facebook/post', async (req, res) => {
+    const parsed = z.object({ message: z.string().min(1), link: z.string().url().optional().or(z.literal('')).default('') }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((i) => i.message).join(', ') });
+    res.json(await prepareFacebookPost(parsed.data.message, parsed.data.link || undefined));
+  });
+
   app.post('/api/accounting/misa-import', upload.single('file'), async (req, res) => {
     try {
       if (!req.file) return res.status(400).json({ success: false, error: 'Chưa upload file' });
