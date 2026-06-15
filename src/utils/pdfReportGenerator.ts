@@ -1,6 +1,6 @@
 // @ts-nocheck
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { jsPDF } from 'jspdf';
+import { autoTable } from 'jspdf-autotable';
 
 type ReportLine = { code: string; name: string; currentYear?: number; prevYear?: number; currentPeriod?: number; prevPeriod?: number };
 
@@ -28,13 +28,7 @@ function addSignature(doc: jsPDF, startY: number) {
   doc.text('Giám đốc', 170, y, { align: 'center' });
 }
 
-export function generateBalanceSheet(data: {
-  companyName: string;
-  period: string;
-  assets: ReportLine[];
-  liabilities: ReportLine[];
-  equity: ReportLine[];
-}): Blob {
+export function generateBalanceSheet(data: { companyName: string; period: string; assets: ReportLine[]; liabilities: ReportLine[]; equity: ReportLine[] }): Blob {
   const doc = new jsPDF({ format: 'a4', unit: 'mm' });
   addHeader(doc, data.companyName, 'BẢNG CÂN ĐỐI KẾ TOÁN', data.period);
   const assets = data.assets || [];
@@ -50,39 +44,15 @@ export function generateBalanceSheet(data: {
     ...equity.map((item) => [item.code, item.name, vnd(item.currentYear || 0), vnd(item.prevYear || 0)]),
     ['', 'TỔNG CỘNG NGUỒN VỐN', vnd(total([...liabilities, ...equity], 'currentYear')), vnd(total([...liabilities, ...equity], 'prevYear'))],
   ];
-  autoTable(doc, {
-    startY: 52,
-    head: [['Mã số', 'Chỉ tiêu', 'Năm nay', 'Năm trước']],
-    body: rows,
-    theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
-    columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 90 }, 2: { cellWidth: 40, halign: 'right' }, 3: { cellWidth: 40, halign: 'right' } },
-    didParseCell: (hook) => {
-      const firstCell = hook.row.raw?.[0];
-      if (['A', 'B', ''].includes(firstCell)) hook.cell.styles.fontStyle = 'bold';
-    },
-  });
+  autoTable(doc, { startY: 52, head: [['Mã số', 'Chỉ tiêu', 'Năm nay', 'Năm trước']], body: rows, theme: 'grid', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 90 }, 2: { cellWidth: 40, halign: 'right' }, 3: { cellWidth: 40, halign: 'right' } } });
   addSignature(doc, doc.lastAutoTable?.finalY || 230);
   return doc.output('blob');
 }
 
-export function generateIncomeStatement(data: {
-  companyName: string;
-  period: string;
-  items: ReportLine[];
-}): Blob {
+export function generateIncomeStatement(data: { companyName: string; period: string; items: ReportLine[] }): Blob {
   const doc = new jsPDF({ format: 'a4', unit: 'mm' });
   addHeader(doc, data.companyName, 'BÁO CÁO KẾT QUẢ HOẠT ĐỘNG KINH DOANH', data.period);
-  autoTable(doc, {
-    startY: 52,
-    head: [['Mã số', 'Chỉ tiêu', 'Kỳ này', 'Kỳ trước']],
-    body: (data.items || []).map((item) => [item.code, item.name, vnd(item.currentPeriod || 0), vnd(item.prevPeriod || 0)]),
-    theme: 'grid',
-    styles: { fontSize: 8, cellPadding: 2 },
-    headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' },
-    columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 100 }, 2: { cellWidth: 35, halign: 'right' }, 3: { cellWidth: 35, halign: 'right' } },
-  });
+  autoTable(doc, { startY: 52, head: [['Mã số', 'Chỉ tiêu', 'Kỳ này', 'Kỳ trước']], body: (data.items || []).map((item) => [item.code, item.name, vnd(item.currentPeriod || 0), vnd(item.prevPeriod || 0)]), theme: 'grid', styles: { fontSize: 8, cellPadding: 2 }, headStyles: { fillColor: [30, 41, 59], textColor: 255, fontStyle: 'bold' }, columnStyles: { 0: { cellWidth: 20 }, 1: { cellWidth: 100 }, 2: { cellWidth: 35, halign: 'right' }, 3: { cellWidth: 35, halign: 'right' } } });
   addSignature(doc, doc.lastAutoTable?.finalY || 230);
   return doc.output('blob');
 }
