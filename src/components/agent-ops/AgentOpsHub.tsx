@@ -15,6 +15,7 @@ import SalesCRMTab from './tabs/SalesCRMTab';
 import FinanceCoreTab from './tabs/FinanceCoreTab';
 import RevenueDashboard from '../RevenueDashboard';
 import DevRoomHub from '../DevRoomHub';
+import GameStudioBuilder from '../GameStudioBuilder';
 import NotificationCenter from '../NotificationCenter';
 import MISABridgeTab from './tabs/MISABridgeTab';
 import PDFReportTab from './tabs/PDFReportTab';
@@ -55,6 +56,7 @@ function renderTab(tab: AgentOpsHubTab | string) {
   if (tab === 'tasks') return <TaskQueueTab />;
   if (tab === 'factory') return <ProductFactoryTab />;
   if (tab === 'devroom') return <DevRoomHub />;
+  if (tab === 'gameStudio') return <GameStudioBuilder />;
   if (tab === 'growth') return <GrowthStudioTab />;
   if (tab === 'sales') return <SalesCRMTab />;
   if (tab === 'finance') return <FinanceCoreTab />;
@@ -108,6 +110,7 @@ export default function AgentOpsHub({ initialTab = 'workboard', onClose }: Props
               <div className="mt-3 flex flex-wrap gap-2">
                 <button onClick={() => setTab('misaBridge')} className="rounded-xl border border-cyan-400/40 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">MISA Bridge</button>
                 <button onClick={() => setTab('pdfReports')} className="rounded-xl border border-emerald-400/40 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10">PDF Reports</button>
+                <button onClick={() => setTab('gameStudio')} className="rounded-xl border border-violet-400/40 px-3 py-2 text-[11px] font-black text-violet-100 hover:bg-violet-400/10">Game Studio</button>
               </div>
             </div>
             <button onClick={onClose} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-rose-300 hover:text-rose-200">Đóng</button>
