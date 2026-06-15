@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { z } from "zod";
 import { callAI } from "./aiClient";
+import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 
@@ -25,6 +26,23 @@ const invoiceOcrSchema = z.object({
 });
 
 export function registerAccountingRoutes(app: Express) {
+  app.get("/api/github/prs", async (req, res) => {
+    try {
+      const summary = await getGitHubSummary(typeof req.query.repo === "string" ? req.query.repo : undefined);
+      const pullRequests = summary.openPullRequests.map((pr) => ({
+        number: pr.number,
+        title: pr.title,
+        state: pr.state,
+        htmlUrl: pr.htmlUrl,
+        updatedAt: pr.updatedAt,
+        labels: pr.labels,
+      }));
+      res.json({ success: true, repo: summary.repo, pullRequests, prs: pullRequests, lastCheckedAt: summary.lastCheckedAt });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Failed to load GitHub pull requests." });
+    }
+  });
+
   app.post("/api/accounting/reconcile", async (req, res) => {
     try {
       const parsed = reconcileSchema.safeParse(req.body);
