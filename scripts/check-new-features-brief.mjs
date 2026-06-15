@@ -18,6 +18,11 @@ function contains(relativePath, needle, message) {
   if (!content.includes(needle)) failures.push(`${relativePath}: ${message}`);
 }
 
+function notContains(relativePath, needle, message) {
+  const content = read(relativePath);
+  if (content.includes(needle)) failures.push(`${relativePath}: ${message}`);
+}
+
 function containsAll(relativePath, needles, label) {
   for (const needle of needles) contains(relativePath, needle, `${label} must include ${needle}`);
 }
@@ -76,13 +81,27 @@ exists('src/data/ecommerceAccountingVietnam.ts', 'Task H ecommerceAccountingViet
 exists('src/data/payrollVietnam.ts', 'Task H payrollVietnam is missing.');
 containsAll('src/data/taxKnowledgeVietnam.ts', ['TAX_RATES_VN', 'VAS_ACCOUNTS'], 'Vietnam tax/VAS knowledge');
 
+// Brief 3 P0 — Activation layer, customized for this company workflow
+exists('server/services/cronScheduler.ts', 'Brief 3 Task I cronScheduler is missing.');
+containsAll('server/services/accountingRoutes.ts', ['/api/cron/status', '/api/cron/trigger'], 'Cron routes');
+exists('src/utils/notificationService.ts', 'Brief 3 Task J notificationService is missing.');
+exists('src/components/NotificationCenter.tsx', 'Brief 3 Task J NotificationCenter is missing.');
+contains('server/services/accountingRoutes.ts', '/api/notifications/test', 'Notification test route is missing.');
+exists('server/services/inputSanitizer.ts', 'Brief 3 Task P inputSanitizer is missing.');
+containsAll('server/services/accountingRoutes.ts', ['helmet', 'rateLimit', '/api/agents/', '/api/pipelines/'], 'Security hardening');
+
+// Company-specific workflow guardrails
+notContains('src/components/agent-ops/agentOpsNavigation.ts', 'MISA Bridge', 'MISA Bridge must stay removed because this company does not use MISA.');
+notContains('src/components/agent-ops/AgentOpsHub.tsx', 'MISABridgeTab', 'MISA Bridge UI must stay removed because this company does not use MISA.');
+notContains('server/services/accountingRoutes.ts', 'misa-import', 'MISA import API must stay removed because this company does not use MISA.');
+
 // Shared integration points
 contains('src/components/agent-ops/AgentOpsHub.tsx', 'DevRoomHub', 'AgentOpsHub must render DevRoom.');
 contains('src/components/agent-ops/AgentOpsHub.tsx', 'VietQRReconcilerTab', 'AgentOpsHub must render VietQR tab.');
 contains('src/components/agent-ops/AgentOpsHub.tsx', 'InvoiceOCRTab', 'AgentOpsHub must render Invoice OCR tab.');
 contains('src/components/agent-ops/AgentOpsHub.tsx', 'RevenueDashboard', 'AgentOpsHub must render Revenue Dashboard.');
-contains('src/components/agent-ops/agentOpsNavigation.ts', 'vietqr-reconcile', 'Navigation must register VietQR Reconcile.');
-contains('src/components/agent-ops/agentOpsNavigation.ts', 'invoice-ocr', 'Navigation must register Invoice OCR.');
+contains('src/components/agent-ops/agentOpsNavigation.ts', 'VietQR Reconcile', 'Navigation must register VietQR Reconcile.');
+contains('src/components/agent-ops/agentOpsNavigation.ts', 'Invoice OCR', 'Navigation must register Invoice OCR.');
 contains('src/components/agent-ops/agentOpsNavigation.ts', 'devroom', 'Navigation must register DevRoom.');
 contains('src/components/agent-ops/agentOpsNavigation.ts', 'revenue', 'Navigation must register Revenue.');
 
