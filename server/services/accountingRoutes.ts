@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { z } from "zod";
 import { callAI } from "./aiClient";
+import { extractInvoiceFromImage } from "./invoiceOCR";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 
 const transactionSchema = z.object({
@@ -16,6 +17,11 @@ const transactionSchema = z.object({
 const reconcileSchema = z.object({
   transactions: z.array(transactionSchema).min(1, "transactions array required"),
   useAI: z.boolean().optional().default(true),
+});
+
+const invoiceOcrSchema = z.object({
+  imageBase64: z.string().min(20, "imageBase64 required"),
+  mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "application/pdf"]).default("image/jpeg"),
 });
 
 export function registerAccountingRoutes(app: Express) {
@@ -54,6 +60,20 @@ export function registerAccountingRoutes(app: Express) {
       res.json({ success: true, result, entries: result.entries, stats: result.stats });
     } catch (err: any) {
       res.status(500).json({ error: err?.message || "Failed to reconcile bank statement." });
+    }
+  });
+
+  app.post("/api/accounting/invoice-ocr", async (req, res) => {
+    try {
+      const parsed = invoiceOcrSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      }
+
+      const result = await extractInvoiceFromImage(parsed.data.imageBase64, parsed.data.mimeType);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || "Failed to OCR invoice." });
     }
   });
 }
