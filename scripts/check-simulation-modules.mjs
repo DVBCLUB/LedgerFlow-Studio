@@ -5,6 +5,8 @@ const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
 const registryPath = path.join(root, 'src', 'data', 'simulationRegistry.ts');
 const appPath = path.join(root, 'src', 'App.tsx');
+const appShellPath = path.join(root, 'src', 'app', 'AppShell.tsx');
+const moduleRegistryPath = path.join(root, 'src', 'app', 'moduleRegistry.ts');
 const mainPath = path.join(root, 'src', 'main.tsx');
 const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
 
@@ -43,6 +45,8 @@ const criticalModules = registry.components;
 
 const requiredRuntimeFiles = [
   'src/App.tsx',
+  'src/app/AppShell.tsx',
+  'src/app/moduleRegistry.ts',
   'src/main.tsx',
   'src/store/useStore.ts',
   'src/utils/dbSync.ts',
@@ -84,6 +88,9 @@ for (const moduleName of criticalModules) {
 }
 
 const appContent = fs.existsSync(appPath) ? fs.readFileSync(appPath, 'utf8') : '';
+const appShellContent = fs.existsSync(appShellPath) ? fs.readFileSync(appShellPath, 'utf8') : '';
+const moduleRegistryContent = fs.existsSync(moduleRegistryPath) ? fs.readFileSync(moduleRegistryPath, 'utf8') : '';
+const appRuntimeContent = `${appContent}\n${appShellContent}\n${moduleRegistryContent}`;
 const mainContent = fs.existsSync(mainPath) ? fs.readFileSync(mainPath, 'utf8') : '';
 const dockContent = fs.existsSync(dockPath) ? fs.readFileSync(dockPath, 'utf8') : '';
 
@@ -116,11 +123,13 @@ if (mainContent.includes('FounderLabsDock') && !mainContent.includes("./componen
 }
 
 for (const moduleName of criticalModules) {
-  const appLoadsModule = appContent.includes(`./components/${moduleName}`);
+  const appLoadsModule =
+    appRuntimeContent.includes(`./components/${moduleName}`) ||
+    appRuntimeContent.includes(`../components/${moduleName}`);
   const dockLoadsModule = dockContent.includes(`import('./${moduleName}')`);
 
   if (!appLoadsModule && !dockLoadsModule) {
-    errors.push(`Registry module is not lazy-loaded by App.tsx or FounderLabsDock.tsx: ${moduleName}`);
+    errors.push(`Registry module is not lazy-loaded by App runtime or FounderLabsDock.tsx: ${moduleName}`);
   }
 
   if (dockHostedComponents.has(moduleName) && !dockLoadsModule) {
@@ -128,17 +137,17 @@ for (const moduleName of criticalModules) {
   }
 
   if (!dockHostedComponents.has(moduleName) && !appLoadsModule) {
-    errors.push(`App.tsx does not lazy-load routed registry module: ${moduleName}`);
+    errors.push(`App runtime does not lazy-load routed registry module: ${moduleName}`);
   }
 }
 
 for (const route of registry.routes) {
   const routeKey = route.replace(/^\//, '');
-  const appHasRoute = appContent.includes(`'${routeKey}'`) || appContent.includes(`"${routeKey}"`);
+  const appHasRoute = appRuntimeContent.includes(`'${routeKey}'`) || appRuntimeContent.includes(`"${routeKey}"`);
   const isDockHosted = dockHostedRoutes.has(route);
 
   if (!appHasRoute && !isDockHosted) {
-    errors.push(`App.tsx may not include route/tab key for registry route: ${route}`);
+    errors.push(`App runtime may not include route/tab key for registry route: ${route}`);
   }
 
   if (isDockHosted && !dockContent) {
