@@ -15,6 +15,7 @@ import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnecto
 import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest } from "./server/services/githubConnector";
 import { getGitHubWorkflowRunArtifacts } from "./server/services/githubArtifacts";
 import { getLocalToolSummary, openLocalTool } from "./server/services/localToolConnector";
+import { registerAccountingRoutes } from "./server/services/accountingRoutes";
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ async function startServer() {
   const apiLimiter = rateLimit({ windowMs: 60_000, max: 30, message: { error: "Bạn đã đạt giới hạn yêu cầu/phút. Vui lòng thử lại sau.", isRateLimit: true }, standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false } });
   app.use("/api/gemini/", apiLimiter); app.use("/api/ai/", apiLimiter); app.use("/api/integrations/", apiLimiter);
   app.get("/api/health", (req, res) => res.json({ status: "ok", time: new Date() }));
+  registerAccountingRoutes(app);
 
   const STORAGE_FILE = path.join(process.cwd(), "db_storage.json");
   app.get("/api/db/load", async (req, res) => { try { if (!fs.existsSync(STORAGE_FILE)) return res.json({ success: true, data: {} }); res.json({ success: true, data: JSON.parse(await fs.promises.readFile(STORAGE_FILE, "utf-8")) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
