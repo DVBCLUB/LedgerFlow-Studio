@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { z } from "zod";
 import { callAI } from "./aiClient";
+import { getAgentRole, listAgentRoles } from "./agentRoles";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
@@ -26,6 +27,16 @@ const invoiceOcrSchema = z.object({
 });
 
 export function registerAccountingRoutes(app: Express) {
+  app.get("/api/agents/roles", (_req, res) => {
+    res.json({ success: true, roles: listAgentRoles() });
+  });
+
+  app.get("/api/agents/roles/:id", (req, res) => {
+    const role = getAgentRole(req.params.id);
+    if (!role) return res.status(404).json({ success: false, error: "Agent role not found." });
+    res.json({ success: true, role });
+  });
+
   app.get("/api/github/prs", async (req, res) => {
     try {
       const summary = await getGitHubSummary(typeof req.query.repo === "string" ? req.query.repo : undefined);
