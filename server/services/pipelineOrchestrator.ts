@@ -258,19 +258,31 @@ export async function startPipeline(
   };
 
   await persistPipeline(pipeline).catch(() => undefined);
-  await executePipelineSteps(pipeline, template);
+  await executePipelineSteps(pipeline, template, 0);
   return pipeline;
 }
 
-async function executePipelineSteps(pipeline: Pipeline, template: PipelineTemplate) {
-  const prevOutputs: string[] = [];
+async function executePipelineSteps(pipeline: Pipeline, template: PipelineTemplate, startIndex = 0) {
+  const prevOutputs = pipeline.steps
+    .slice(0, startIndex)
+    .map((step) => step.output || '')
+    .filter(Boolean);
 
-  for (let index = 0; index < template.steps.length; index += 1) {
+  for (let index = startIndex; index < template.steps.length; index += 1) {
     const stepDef = template.steps[index];
     const step = pipeline.steps[index];
+
+    if (!step) break;
+    if (step.status === 'done' && step.output) {
+      prevOutputs.push(step.output);
+      continue;
+    }
+
     step.prompt = stepDef.buildPrompt(pipeline.input, prevOutputs);
     step.status = 'running';
     step.startedAt = new Date().toISOString();
+    step.error = undefined;
+    pipeline.status = 'running';
     pipeline.currentStepIndex = index;
     pipeline.updatedAt = new Date().toISOString();
     await persistPipeline(pipeline).catch(() => undefined);
@@ -305,9 +317,33 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
   }
 
   pipeline.status = 'completed';
-  pipeline.output = prevOutputs[prevOutputs.length - 1] || '';
+  pipeline.output = prevOutputs[prevOutputs.length - 1] || pipeline.output || '';
   pipeline.updatedAt = new Date().toISOString();
   await persistPipeline(pipeline).catch(() => undefined);
+}
+
+export async function resumePipeline(pipelineId: string, userId = 'local'): Promise<Pipeline> {
+  const pipeline = await getPipelineById(pipelineId);
+  if (!pipeline) throw new Error('Pipeline not found or Supabase service key is not configured.');
+  if (pipeline.userId !== userId && userId !== 'local') throw new Error('Pipeline does not belong to this user.');
+  if (pipeline.status !== 'waiting_approval') throw new Error(`Pipeline is not waiting for approval. Current status: ${pipeline.status}`);
+
+  const template = PIPELINE_TEMPLATES[pipeline.type];
+  if (!template) throw new Error(`Invalid pipeline type: ${pipeline.type}`);
+
+  const approvalIndex = pipeline.currentStepIndex;
+  const step = pipeline.steps[approvalIndex];
+  if (!step || step.status !== 'waiting_approval') throw new Error('No step is currently waiting for approval.');
+
+  step.status = 'done';
+  step.approvedAt = new Date().toISOString();
+  step.completedAt = step.completedAt || step.approvedAt;
+  pipeline.status = 'running';
+  pipeline.updatedAt = new Date().toISOString();
+  await persistPipeline(pipeline).catch(() => undefined);
+
+  await executePipelineSteps(pipeline, template, approvalIndex + 1);
+  return pipeline;
 }
 
 export async function getPipelineById(id: string): Promise<Pipeline | null> {
