@@ -6,6 +6,7 @@ import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { callAI } from "./aiClient";
 import { getAgentRole, listAgentRoles } from "./agentRoles";
+import { registerBrief3Routes } from "./brief3Routes";
 import { getCronStatus, startCronScheduler, triggerJobNow } from "./cronScheduler";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
@@ -127,4 +128,6 @@ export function registerAccountingRoutes(app: Express) {
     try { const parsed = invoiceOcrSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const result = await extractInvoiceFromImage(parsed.data.imageBase64, parsed.data.mimeType); res.json({ success: true, result }); }
     catch (err: any) { res.status(500).json({ error: err?.message || "Failed to OCR invoice." }); }
   });
+
+  registerBrief3Routes(app);
 }
