@@ -55,6 +55,7 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "multer": "^2.0.2",
     "node-cron": "^4.2.1",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
@@ -69,6 +70,7 @@
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/helmet": "^4.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.14.0",
     "@types/node-cron": "^3.0.11",
     "@types/react": "^19.0.12",
@@ -87,41 +89,12 @@
     "appId": "com.ledgerflow.hub",
     "productName": "LedgerFlow Hub",
     "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}",
-    "directories": {
-      "output": "release",
-      "buildResources": "build"
-    },
-    "files": [
-      "dist/**/*",
-      "desktop/**/*",
-      "build/**/*",
-      "package.json",
-      "node_modules/**/*"
-    ],
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["dist/**/*", "desktop/**/*", "build/**/*", "package.json", "node_modules/**/*"],
     "asar": false,
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "nsis",
-        "portable"
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
-      "shortcutName": "LedgerFlow Hub",
-      "uninstallDisplayName": "LedgerFlow Hub",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
-    },
-    "mac": {
-      "target": "dmg"
-    },
-    "linux": {
-      "target": "AppImage"
-    }
+    "win": { "icon": "build/icon.ico", "target": ["nsis", "portable"] },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": "always", "createStartMenuShortcut": true, "shortcutName": "LedgerFlow Hub", "uninstallDisplayName": "LedgerFlow Hub", "installerIcon": "build/icon.ico", "uninstallerIcon": "build/icon.ico" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
   }
 }
