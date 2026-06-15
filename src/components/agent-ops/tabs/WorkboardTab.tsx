@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { SessionStep, WorkCard, WorkKind, WorkStatus } from '../../../types/agentOps';
+import { executeAgentTask, type AgentRole } from '../../../utils/agentApi';
 import { AGENT_OPS_AUDIT_KEY, appendAgentOpsAudit, readLocalStorageArray, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue, type AgentOpsAuditEntry } from '../storage';
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
@@ -36,6 +37,18 @@ function ownerFor(kind: WorkKind) {
   if (kind === 'Data') return 'AI Data Analyst';
   if (kind === 'Integration') return 'AI Dev';
   return 'AI Chief of Staff';
+}
+
+function agentRoleFor(card: WorkCard): AgentRole {
+  const owner = `${card.aiStaff || card.owner || card.role || ''}`.toLowerCase();
+  if (owner.includes('dev') || card.kind === 'Code' || card.kind === 'CI Fix' || card.kind === 'Integration') return 'AI Dev';
+  if (owner.includes('marketer') || card.kind === 'Marketing') return 'AI Marketer';
+  if (owner.includes('accountant')) return 'AI Accountant';
+  if (owner.includes('auditor') || card.kind === 'Audit') return 'AI Auditor';
+  if (owner.includes('designer') || card.kind === 'Design') return 'AI Designer';
+  if (owner.includes('analyst') || owner.includes('data') || card.kind === 'Data') return 'AI Analyst';
+  if (owner.includes('support') || card.kind === 'Q&A') return 'AI Support';
+  return 'AI PM';
 }
 
 function normalizeKind(value: unknown): WorkKind {
@@ -126,6 +139,8 @@ export default function WorkboardTab() {
   const [cards, setCards] = useState<WorkCard[]>(readCards);
   const [sessions] = useState<StoredSession[]>(() => readLocalStorageArray<StoredSession>(SESSION_KEYS));
   const [draft, setDraft] = useState({ title: '', kind: 'Code' as WorkKind, request: '' });
+  const [runningCardId, setRunningCardId] = useState<string | null>(null);
+  const [runError, setRunError] = useState<string | null>(null);
   const audit = readLocalStorageValue<AgentOpsAuditEntry[]>(AGENT_OPS_AUDIT_KEY, []);
   const sessionCards = useMemo(() => sessions.map(sessionToCard), [sessions]);
   const allCards = useMemo(() => [...cards, ...sessionCards], [cards, sessionCards]);
@@ -196,6 +211,52 @@ export default function WorkboardTab() {
     pushAudit('CARD_STATUS_CHANGED', card.id, `${card.status} → ${status}`);
   };
 
+  const updateCard = (cardId: string, patch: Partial<WorkCard>) => {
+    setCards((current) => current.map((item) => item.id === cardId ? { ...item, ...patch } : item));
+  };
+
+  const runWithAI = async (card: WorkCard) => {
+    setRunError(null);
+    setRunningCardId(card.id);
+    const agentRole = agentRoleFor(card);
+
+    try {
+      const result = await executeAgentTask({
+        taskId: card.id,
+        agentRole,
+        prompt: card.request || card.task || card.title,
+        context: {
+          title: card.title,
+          kind: card.kind,
+          owner: card.owner,
+          risk: card.risk,
+          input: card.input,
+          expectedOutput: card.expectedOutput,
+          acceptanceCriteria: card.acceptanceCriteria,
+          plan: card.plan,
+          tools: card.tools,
+        },
+      });
+
+      if (!result.success || !result.output) {
+        throw new Error(result.error || 'Agent execution returned no output.');
+      }
+
+      updateCard(card.id, {
+        status: 'Waiting Approval',
+        founderReview: result.output,
+        aiStaff: agentRole,
+      });
+      pushAudit('AI_DRAFT_CREATED', card.id, `${agentRole} drafted output via ${result.provider || 'AI Gateway'} (${result.model || 'model unknown'}).`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      setRunError(message);
+      pushAudit('AI_DRAFT_FAILED', card.id, message);
+    } finally {
+      setRunningCardId(null);
+    }
+  };
+
   const cardsByStatus = (status: WorkStatus) => allCards.filter((card) => card.status === status);
 
   return (
@@ -208,6 +269,7 @@ export default function WorkboardTab() {
         </div>
         <span className="rounded-full border border-cyan-400/30 px-3 py-1 text-xs font-black text-cyan-200">{allCards.length} cards · {audit.length} audit events</span>
       </div>
+      {runError && <p className="mb-4 rounded-2xl border border-red-400/30 bg-red-400/10 p-3 text-xs font-bold text-red-100">{runError}</p>}
 
       <div className="mb-4 rounded-3xl border border-slate-800 bg-slate-950/70 p-3">
         <p className="text-sm font-black text-white">Tạo việc cho AI agent</p>
@@ -247,7 +309,17 @@ export default function WorkboardTab() {
                       {visibleTools.slice(0, 3).map((tool) => <span key={tool} className="rounded-full border border-cyan-400/20 px-2 py-0.5 text-[10px] font-bold text-cyan-200">{tool}</span>)}
                     </div>
                     {card.steps && <p className="mt-2 text-[11px] font-bold text-cyan-200">{card.steps.length} session steps</p>}
+                    {!imported && (
+                      <button
+                        onClick={() => runWithAI(card)}
+                        disabled={runningCardId === card.id}
+                        className="mt-3 w-full rounded-xl border border-cyan-300/40 bg-cyan-300/10 px-3 py-2 text-[11px] font-black text-cyan-100 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {runningCardId === card.id ? 'Đang chạy AI...' : `Chạy với ${agentRoleFor(card)}`}
+                      </button>
+                    )}
                     {!imported && next && <button onClick={() => moveCard(card, next)} className="mt-3 w-full rounded-xl border border-violet-300/40 px-3 py-2 text-[11px] font-black text-violet-100">Chuyển sang {next}</button>}
+                    {card.founderReview && <p className="mt-3 line-clamp-5 rounded-xl border border-cyan-400/25 bg-cyan-400/10 p-2 text-[11px] font-semibold leading-5 text-cyan-50">{card.founderReview}</p>}
                     {card.status === 'Waiting Approval' && <p className="mt-3 rounded-xl border border-amber-400/25 bg-amber-400/10 p-2 text-[11px] font-bold leading-5 text-amber-100">Mở tab Approval Gate để duyệt trước khi chạy external action.</p>}
                     {imported && <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">Imported session · read only</p>}
                   </article>
