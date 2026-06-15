@@ -4,7 +4,7 @@ import { callAI } from "./aiClient";
 import { getAgentRole, listAgentRoles } from "./agentRoles";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
-import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, startPipeline, type PipelineType } from "./pipelineOrchestrator";
+import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 
 const transactionSchema = z.object({
@@ -30,6 +30,10 @@ const invoiceOcrSchema = z.object({
 const pipelineStartSchema = z.object({
   pipelineType: z.string().min(1),
   input: z.record(z.string(), z.unknown()).optional().default({}),
+  userId: z.string().optional().default("local"),
+});
+
+const pipelineApproveSchema = z.object({
   userId: z.string().optional().default("local"),
 });
 
@@ -63,6 +67,19 @@ export function registerAccountingRoutes(app: Express) {
       res.json({ success: true, pipeline });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || "Failed to start pipeline." });
+    }
+  });
+
+  app.post("/api/pipelines/:id/approve", async (req, res) => {
+    try {
+      const parsed = pipelineApproveSchema.safeParse(req.body || {});
+      if (!parsed.success) {
+        return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      }
+      const pipeline = await resumePipeline(req.params.id, parsed.data.userId);
+      res.json({ success: true, pipeline });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err?.message || "Failed to approve/resume pipeline." });
     }
   });
 
