@@ -1,13 +1,18 @@
 export type AgentOpsHubTab =
   | 'brief'
   | 'standup'
+  | 'notifications'
   | 'founder'
   | 'workboard'
   | 'tasks'
   | 'factory'
+  | 'devroom'
   | 'growth'
   | 'sales'
   | 'finance'
+  | 'revenue'
+  | 'vietqr'
+  | 'invoiceOcr'
   | 'projects'
   | 'documents'
   | 'analytics'
@@ -43,6 +48,7 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
     items: [
       { id: 'brief', label: 'Brief Tracker' },
       { id: 'standup', label: 'Daily Standup' },
+      { id: 'notifications', label: 'Notifications' },
       { id: 'founder', label: 'Founder OS' },
       { id: 'workboard', label: 'Workboard' },
       { id: 'tasks', label: 'Task Queue' }
@@ -53,9 +59,13 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
     description: 'Product, market, sales, finance, projects',
     items: [
       { id: 'factory', label: 'Product Factory' },
+      { id: 'devroom', label: 'DevRoom' },
       { id: 'growth', label: 'Growth Studio' },
       { id: 'sales', label: 'Sales CRM' },
       { id: 'finance', label: 'Finance Core' },
+      { id: 'revenue', label: 'Revenue' },
+      { id: 'vietqr', label: 'VietQR Reconcile' },
+      { id: 'invoiceOcr', label: 'Invoice OCR' },
       { id: 'projects', label: 'Projects Core' },
       { id: 'documents', label: 'Documents' },
       { id: 'analytics', label: 'Analytics Sandbox' },

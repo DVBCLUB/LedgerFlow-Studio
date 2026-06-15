@@ -14,6 +14,7 @@
     "check:founder-labs": "node scripts/check-founder-labs.mjs",
     "check:accounting-calculations": "node scripts/check-accounting-calculations.mjs",
     "check:agentops-contracts": "node scripts/check-agentops-contracts.mjs",
+    "check:new-features-brief": "node scripts/check-new-features-brief.mjs",
     "check:company-os": "npm run lint && npm run check:agentops-contracts",
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",
@@ -49,9 +50,13 @@
     "dotenv": "^17.2.3",
     "express": "^4.21.2",
     "express-rate-limit": "^8.5.2",
+    "helmet": "^8.1.0",
     "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-router-dom": "^7.17.0",
@@ -64,7 +69,10 @@
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
+    "@types/helmet": "^4.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^22.14.0",
+    "@types/node-cron": "^3.0.11",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
     "autoprefixer": "^10.4.21",
@@ -81,41 +89,12 @@
     "appId": "com.ledgerflow.hub",
     "productName": "LedgerFlow Hub",
     "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}",
-    "directories": {
-      "output": "release",
-      "buildResources": "build"
-    },
-    "files": [
-      "dist/**/*",
-      "desktop/**/*",
-      "build/**/*",
-      "package.json",
-      "node_modules/**/*"
-    ],
+    "directories": { "output": "release", "buildResources": "build" },
+    "files": ["dist/**/*", "desktop/**/*", "build/**/*", "package.json", "node_modules/**/*"],
     "asar": false,
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "nsis",
-        "portable"
-      ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
-      "shortcutName": "LedgerFlow Hub",
-      "uninstallDisplayName": "LedgerFlow Hub",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
-    },
-    "mac": {
-      "target": "dmg"
-    },
-    "linux": {
-      "target": "AppImage"
-    }
+    "win": { "icon": "build/icon.ico", "target": ["nsis", "portable"] },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": "always", "createStartMenuShortcut": true, "shortcutName": "LedgerFlow Hub", "uninstallDisplayName": "LedgerFlow Hub", "installerIcon": "build/icon.ico", "uninstallerIcon": "build/icon.ico" },
+    "mac": { "target": "dmg" },
+    "linux": { "target": "AppImage" }
   }
 }
