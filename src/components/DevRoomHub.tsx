@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { RiskLevel, WorkCard, WorkKind, WorkStatus } from '../types/agentOps';
-import { getCompanyMemoryStatus } from '../utils/companyMemory';
+import { getCompanyMemoryStatus, type MemoryClientStatus } from '../utils/companyMemory';
 import CodexPromptBuilderTab from './dev-room/tabs/CodexPromptBuilderTab';
 
 const DEV_TABS = ['Active Tasks', 'GitHub PRs', 'Codex Prompt', 'Pipelines', 'Products', 'Releases'] as const;
@@ -179,7 +179,8 @@ function PipelinesTab() {
         setTypes([]);
       }
 
-      const status = await getCompanyMemoryStatus().catch(() => ({ ready: false, message: 'Không đọc được Memory Bus.' }));
+      const fallbackStatus: MemoryClientStatus = { ready: false, message: 'Không đọc được Memory Bus.' };
+      const status = await getCompanyMemoryStatus().catch(() => fallbackStatus);
       if (status.userId) setMemoryUserId(status.userId);
       setMemoryStatus(status.userId ? `Memory Bus user: ${status.userId.slice(0, 8)}… — critical/high memories sẽ được inject.` : status.message);
     })();
