@@ -24,6 +24,7 @@ export type AgentOpsHubTab =
   | 'memoryVersions'
   | 'industry'
   | 'navmap'
+  | 'claude_code'
   | 'costs'
   | 'feedback'
   | 'runtime'
@@ -31,6 +32,7 @@ export type AgentOpsHubTab =
   | 'staff'
   | 'approvals'
   | 'connectors'
+  | 'pipelines'
   | 'review';
 
 export type AgentOpsTabItem = { id: AgentOpsHubTab; label: string };
@@ -59,7 +61,8 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
       { id: 'projects', label: 'Projects Core' },
       { id: 'documents', label: 'Documents' },
       { id: 'analytics', label: 'Analytics Sandbox' },
-      { id: 'games', label: 'Learning Games' }
+      { id: 'games', label: 'Learning Games' },
+      { id: 'pipelines', label: 'AI Pipelines' }
     ]
   },
   {
@@ -80,6 +83,7 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
     items: [
       { id: 'tools', label: 'Tool Cards' },
       { id: 'prompts', label: 'Prompt Pack' },
+      { id: 'claude_code', label: 'Claude Code Bridge' },
       { id: 'memory', label: 'Company Memory' },
       { id: 'knowledge', label: 'Knowledge Base' },
       { id: 'rag', label: 'RAG Search' },

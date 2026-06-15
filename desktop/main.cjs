@@ -231,7 +231,8 @@ async function createMainWindow() {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,
-      webSecurity: true
+      webSecurity: true,
+      preload: path.join(app.getAppPath(), 'desktop', 'preload.cjs')
     }
   });
 
@@ -273,6 +274,20 @@ app.whenReady().then(() => {
   installApplicationMenu();
   createMainWindow();
   startEmbeddedServer();
+
+  const { ipcMain, Notification } = require('electron');
+  // handle notification requests from renderer
+  ipcMain.on('ledgerflow:notify', (_event, payload) => {
+    try {
+      if (!payload) return;
+      const title = typeof payload.title === 'string' ? payload.title : 'LedgerFlow';
+      const body = typeof payload.body === 'string' ? payload.body : (payload.message || '');
+      const notif = new Notification({ title, body });
+      notif.show();
+    } catch (e) {
+      logDesktop('Failed to show desktop notification', e);
+    }
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

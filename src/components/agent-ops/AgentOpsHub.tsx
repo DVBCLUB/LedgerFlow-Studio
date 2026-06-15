@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import WorkboardTab from './tabs/WorkboardTab';
 import ProductFactoryTab from './tabs/ProductFactoryTab';
 import PromptPackTab from './tabs/PromptPackTab';
-import CompanyMemoryTab from './tabs/CompanyMemoryTab';
+import CompanyMemoryV2Tab from './tabs/CompanyMemoryV2Tab';
 import KnowledgeBaseTab from './tabs/KnowledgeBaseTab';
 import RAGSearchTab from './tabs/RAGSearchTab';
 import MemoryVersionsTab from './tabs/MemoryVersionsTab';
@@ -21,6 +21,7 @@ import QATestMatrixTab from './tabs/QATestMatrixTab';
 import GitHubPRControlTab from './tabs/GitHubPRControlTab';
 import ReleaseNotesTab from './tabs/ReleaseNotesTab';
 import ClaudeBriefTrackerTab from './tabs/ClaudeBriefTrackerTab';
+import ClaudeCodeBridgeTab from './tabs/ClaudeCodeBridgeTab';
 import TaskQueueTab from './tabs/TaskQueueTab';
 import AICostTrackerTab from './tabs/AICostTrackerTab';
 import FeedbackLoopTab from './tabs/FeedbackLoopTab';
@@ -31,6 +32,7 @@ import SkillsTab from './tabs/SkillsTab';
 import PeopleTab from './tabs/PeopleTab';
 import GateTab from './tabs/GateTab';
 import ConnectorsTab from './tabs/ConnectorsTab';
+import PipelinesTab from './tabs/PipelinesTab';
 import ReviewModeTab from './tabs/ReviewModeTab';
 import { agentOpsTabGroups, type AgentOpsHubTab } from './agentOpsNavigation';
 
@@ -40,6 +42,7 @@ type Props = { initialTab?: AgentOpsHubTab; onClose: () => void };
 
 function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'brief') return <ClaudeBriefTrackerTab />;
+  if (tab === 'claude_code') return <ClaudeCodeBridgeTab />;
   if (tab === 'standup') return <DailyStandupTab />;
   if (tab === 'founder') return <FounderOSTab />;
   if (tab === 'workboard') return <WorkboardTab />;
@@ -58,11 +61,12 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'release') return <ReleaseNotesTab />;
   if (tab === 'tools') return <ToolCardsTab />;
   if (tab === 'prompts') return <PromptPackTab />;
-  if (tab === 'memory') return <CompanyMemoryTab />;
+  if (tab === 'memory') return <CompanyMemoryV2Tab />;
   if (tab === 'knowledge') return <KnowledgeBaseTab />;
   if (tab === 'rag') return <RAGSearchTab />;
   if (tab === 'memoryVersions') return <MemoryVersionsTab />;
   if (tab === 'industry') return <IndustryTemplatesTab />;
+  if (tab === 'pipelines') return <PipelinesTab />;
   if (tab === 'navmap') return <NavigationMapTab />;
   if (tab === 'costs') return <AICostTrackerTab />;
   if (tab === 'feedback') return <FeedbackLoopTab />;

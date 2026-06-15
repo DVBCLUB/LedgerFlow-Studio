@@ -15,9 +15,11 @@ import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnecto
 import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest } from "./server/services/githubConnector";
 import { getGitHubWorkflowRunArtifacts } from "./server/services/githubArtifacts";
 import { getLocalToolSummary, openLocalTool } from "./server/services/localToolConnector";
-import { isSupabaseServerAuthConfigured, verifyLocalAdminToken } from "./server/services/authService";
+import { isSupabaseServerAuthConfigured, verifyLocalAdminToken, attachOptionalUser } from "./server/services/authService";
 import { AGENT_ROLES, executeAgentTask, isAgentRole } from "./server/services/agentExecutor";
 import { getZaloFollowers, sendZaloTextMessage, testZaloConnection } from "./server/services/zaloConnector";
+import { startPipeline, PIPELINE_TEMPLATES, resumePipeline, type PipelineType } from './server/services/pipelineOrchestrator';
+import { createClient } from '@supabase/supabase-js';
 
 dotenv.config();
 
@@ -52,6 +54,13 @@ async function startServer() {
   app.set("trust proxy", 1);
   app.use((req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Referrer-Policy", "no-referrer"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), clipboard-read=(), clipboard-write=(self)"); res.setHeader("Cross-Origin-Opener-Policy", "same-origin"); res.setHeader("Cross-Origin-Resource-Policy", "same-origin"); if (req.path.startsWith("/api/")) res.setHeader("Cache-Control", "no-store"); next(); });
   app.use(express.json({ limit: "15mb" }));
+  app.use((err: any, req: any, res: any, next: any) => {
+    if (err instanceof SyntaxError && "body" in err) {
+      console.error("Bad JSON:", err.message);
+      return res.status(400).send({ success: false, error: "Malformed JSON in request." });
+    }
+    next();
+  });
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
   app.use((req, res, next) => { const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"]; const origin = req.headers.origin; if (origin) { const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".run.app") || /https:\/\/ais-.*\.run\.app/.test(origin); if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin); } res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS"); res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Local-Auth"); if (req.method === "OPTIONS") res.sendStatus(204); else next(); });
   const apiLimiter = rateLimit({ windowMs: 60_000, max: 30, message: { error: "Bạn đã đạt giới hạn yêu cầu/phút. Vui lòng thử lại sau.", isRateLimit: true }, standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false } });
@@ -69,6 +78,35 @@ async function startServer() {
   app.post("/api/integrations/:id/test", async (req, res) => { try { res.json({ success: true, connector: await testIntegrationConnector(req.params.id), events: await readIntegrationEvents(30) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to test integration." }); } });
   app.post("/api/integrations/:id/events", async (req, res) => { try { const parsed = integrationEventSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, event: await appendIntegrationEvent({ connectorId: req.params.id, ...parsed.data }) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to append integration event." }); } });
   app.get("/api/integrations/events", async (req, res) => { try { res.json({ success: true, events: await readIntegrationEvents(Number(req.query.limit ?? 100)) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to read integration events." }); } });
+  // SSE stream for integration events (poll-backed)
+  app.get('/api/integrations/events/stream', async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    let lastId: string | null = null;
+    let mounted = true;
+
+    const iv = setInterval(async () => {
+      if (!mounted) return;
+      try {
+        const events = await readIntegrationEvents(50);
+        // send any events newer than lastId
+        const toSend = lastId ? events.filter(e => e.id !== lastId).slice(0, 20) : events.slice(0, 20);
+        if (toSend.length) {
+          toSend.reverse().forEach((ev) => {
+            res.write(`data: ${JSON.stringify(ev)}\n\n`);
+          });
+          lastId = toSend[0].id;
+        }
+      } catch (e) {
+        // ignore
+      }
+    }, 1500);
+
+    req.on('close', () => { mounted = false; clearInterval(iv); });
+  });
   app.delete("/api/integrations/events", async (req, res) => { try { await clearIntegrationEvents(); res.json({ success: true }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to clear integration events." }); } });
   app.get("/api/integrations/github/summary", async (req, res) => { try { const summary = await getGitHubSummary(typeof req.query.repo === "string" ? req.query.repo : undefined); await appendIntegrationEvent({ connectorId: "github", type: "test", level: "success", message: `GitHub summary loaded for ${summary.repo}.` }); res.json({ success: true, summary }); } catch (err: any) { await appendIntegrationEvent({ connectorId: "github", type: "test", level: "error", message: err.message || "GitHub summary failed." }).catch(() => undefined); res.status(400).json({ success: false, error: err.message || "Failed to load GitHub summary." }); } });
   app.get("/api/integrations/github/prs/:pullNumber/digest", async (req, res) => { try { const pullNumber = Number(req.params.pullNumber); const result = await getGitHubPullRequestDigest(typeof req.query.repo === "string" ? req.query.repo : undefined, pullNumber); await appendIntegrationEvent({ connectorId: "github", type: "test", level: result.safety.touchesBlockedPath ? "warning" : "success", message: `PR digest loaded for #${pullNumber}. Files: ${result.files.length}.` }); res.json({ success: true, result }); } catch (err: any) { await appendIntegrationEvent({ connectorId: "github", type: "test", level: "error", message: err.message || "GitHub PR digest failed." }).catch(() => undefined); res.status(400).json({ success: false, error: err.message || "Failed to load PR digest." }); } });
@@ -86,6 +124,290 @@ async function startServer() {
 
   app.get("/api/agents/roles", (_req, res) => res.json({ success: true, roles: AGENT_ROLES }));
   app.post("/api/agents/execute", async (req, res) => { try { const parsed = agentExecuteSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await executeAgentTask({ ...parsed.data, userId: "local" }); res.status(result.success ? 200 : 500).json(result); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Agent execution failed." }); } });
+
+  app.get('/api/pipelines/types', (_req, res) => {
+    res.json({
+      success: true,
+      types: Object.entries(PIPELINE_TEMPLATES).map(([id, template]) => ({
+        id,
+        name: template.name,
+        steps: template.steps.map((step) => ({
+          name: step.name,
+          agentRole: step.agentRole,
+          requiresApproval: step.requiresApproval,
+        })),
+      })),
+    });
+  });
+
+  // attach optional user info (Supabase Bearer or local X-Local-Auth) for pipeline routes
+  app.use('/api/pipelines', attachOptionalUser as any);
+
+  app.get('/api/pipelines', async (req, res) => {
+    try {
+      const userId = (req as any).user?.id || 'local';
+      const sb = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+      const { data, error } = await sb
+        .from('agent_pipelines')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      res.json({ success: true, pipelines: data });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to list pipelines.' });
+    }
+  });
+
+  app.post('/api/pipelines/start', async (req, res) => {
+    try {
+      const { pipelineType, input } = req.body;
+      if (!pipelineType || !(pipelineType in PIPELINE_TEMPLATES)) {
+        return res.status(400).json({ success: false, error: 'Invalid pipelineType' });
+      }
+      const userId = (req as any).user?.id || 'local';
+      const pipeline = await startPipeline(pipelineType as PipelineType, input || {}, userId);
+      res.json({ success: true, pipeline });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to start pipeline.' });
+    }
+  });
+
+  app.get('/api/pipelines/:id', async (req, res) => {
+    try {
+      const sb = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+      const { data, error } = await sb.from('agent_pipelines').select('*').eq('id', req.params.id).single();
+      if (error) return res.status(404).json({ success: false, error: error.message || 'Pipeline not found.' });
+      res.json({ success: true, pipeline: data });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to fetch pipeline.' });
+    }
+  });
+
+  // Per-pipeline SSE stream for live step output chunks
+  // Keep a registry of SSE clients per pipeline id to push realtime updates
+  const pipelineSseClients: Map<string, Set<import('express').Response>> = new Map();
+
+  // Setup a Supabase realtime channel to listen for updates to agent_pipelines
+  // We'll keep a small cache of last-known steps per pipeline and emit only deltas (chunks)
+  // Use a short debounce window to coalesce rapid updates (prevents flood).
+  const lastKnownSteps: Map<string, any[]> = new Map();
+  const pendingMessages: Map<string, string[]> = new Map();
+  const pendingTimers: Map<string, NodeJS.Timeout> = new Map();
+  const scheduleFlush = (pipelineId: string) => {
+    if (pendingTimers.has(pipelineId)) return;
+    const t = setTimeout(() => {
+      try {
+        const clients = pipelineSseClients.get(pipelineId);
+        const msgs = pendingMessages.get(pipelineId) || [];
+        if (clients && clients.size && msgs.length) {
+          for (const res of clients) {
+            try {
+              for (const m of msgs) res.write(`data: ${m}\n\n`);
+            } catch { /* ignore per-client errors */ }
+          }
+        }
+      } finally {
+        pendingMessages.delete(pipelineId);
+        const tm = pendingTimers.get(pipelineId);
+        if (tm) clearTimeout(tm);
+        pendingTimers.delete(pipelineId);
+      }
+    }, 180);
+    pendingTimers.set(pipelineId, t);
+  };
+  try {
+    const sbGlobal = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+    const channel = sbGlobal.channel('realtime-agent-pipelines');
+    channel.on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'agent_pipelines' }, (payload) => {
+      try {
+        const row = payload.new as any;
+        const id = row?.id;
+        if (!id) return;
+        const clients = pipelineSseClients.get(id);
+        if (!clients || clients.size === 0) {
+          // still update cache so next client gets baseline
+          lastKnownSteps.set(id, Array.isArray(row.steps) ? row.steps : JSON.parse(row.steps || '[]'));
+          return;
+        }
+
+        const newSteps = Array.isArray(row.steps) ? row.steps : JSON.parse(row.steps || '[]');
+        const prevSteps = lastKnownSteps.get(id) || [];
+
+        // compute per-step output diffs and enqueue chunk messages when output grows
+        for (let i = 0; i < newSteps.length; i++) {
+          const prevOut = String((prevSteps[i] && prevSteps[i].output) || '');
+          const newOut = String((newSteps[i] && newSteps[i].output) || '');
+          if (newOut.length > prevOut.length) {
+            const chunk = newOut.slice(prevOut.length);
+            const payloadMsg = JSON.stringify({ type: 'chunk', stepIndex: i, chunk });
+            const arr = pendingMessages.get(id) || [];
+            arr.push(payloadMsg);
+            pendingMessages.set(id, arr);
+          }
+        }
+
+        // If non-output fields changed (status, startedAt, completedAt), enqueue an 'update' with minimal info
+        for (let i = 0; i < newSteps.length; i++) {
+          const prev = prevSteps[i] || {};
+          const curr = newSteps[i] || {};
+          const metaChanged = prev.status !== curr.status || prev.startedAt !== curr.startedAt || prev.completedAt !== curr.completedAt || prev.error !== curr.error || prev.approvedAt !== curr.approvedAt;
+          if (metaChanged) {
+            const payloadMsg = JSON.stringify({ type: 'update', stepIndex: i, step: { ...curr, output: undefined } });
+            const arr = pendingMessages.get(id) || [];
+            arr.push(payloadMsg);
+            pendingMessages.set(id, arr);
+          }
+        }
+
+        // schedule a flush for this pipeline so messages are coalesced
+        if (pendingMessages.has(id)) scheduleFlush(id);
+
+        // update cache
+        lastKnownSteps.set(id, newSteps);
+      } catch (e) {
+        // ignore
+      }
+    });
+    channel.subscribe();
+  } catch (e) {
+    // ignore realtime subscription failures
+  }
+
+  app.get('/api/pipelines/:id/stream', async (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders?.();
+
+    const pipelineId = req.params.id;
+    let clients = pipelineSseClients.get(pipelineId);
+    if (!clients) {
+      clients = new Set();
+      pipelineSseClients.set(pipelineId, clients);
+    }
+    clients.add(res);
+
+    // When client closes, remove it
+    req.on('close', () => {
+      clients?.delete(res);
+      if (clients && clients.size === 0) pipelineSseClients.delete(pipelineId);
+    });
+  });
+
+  // Return number of active SSE clients for a pipeline (debug/admin)
+  app.get('/api/pipelines/:id/clients', async (req, res) => {
+    try {
+      const pipelineId = req.params.id;
+      const clients = pipelineSseClients.get(pipelineId);
+      res.json({ success: true, clients: clients ? clients.size : 0 });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to fetch clients.' });
+    }
+  });
+
+  app.post('/api/pipelines/:id/debug-event', async (req, res) => {
+    try {
+      const pipelineId = req.params.id;
+      const payload = req.body || {};
+      const eventType = payload.type === 'update' ? 'update' : 'chunk';
+      const stepIndex = Number.isFinite(Number(payload.stepIndex)) ? Number(payload.stepIndex) : 0;
+      const message: any = { type: eventType, stepIndex };
+      if (eventType === 'chunk') {
+        message.chunk = typeof payload.chunk === 'string' ? payload.chunk : '[test chunk]';
+      } else {
+        message.step = payload.step || { status: 'waiting_approval' };
+      }
+
+      const arr = pendingMessages.get(pipelineId) || [];
+      arr.push(JSON.stringify(message));
+      pendingMessages.set(pipelineId, arr);
+      scheduleFlush(pipelineId);
+      res.json({ success: true, event: message });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to emit debug event.' });
+    }
+  });
+
+  // Cancel a running pipeline
+  app.post('/api/pipelines/:id/cancel', async (req, res) => {
+    try {
+      const pipelineId = req.params.id;
+      const sb = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+      const { data, error } = await sb.from('agent_pipelines').select('*').eq('id', pipelineId).single();
+      if (error || !data) return res.status(404).json({ success: false, error: error?.message || 'Pipeline not found.' });
+      const steps = Array.isArray(data.steps) ? data.steps : JSON.parse(data.steps || '[]');
+      // Mark any running or pending steps as skipped/failed
+      for (const s of steps) {
+        if (s.status === 'running' || s.status === 'pending' || s.status === 'waiting_approval') {
+          s.status = 'skipped';
+          s.completedAt = new Date().toISOString();
+        }
+      }
+      await sb.from('agent_pipelines').update({ steps: JSON.stringify(steps), status: 'paused', updated_at: new Date().toISOString() }).eq('id', pipelineId);
+      res.json({ success: true, message: 'Pipeline cancelled.' });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to cancel pipeline.' });
+    }
+  });
+
+  // Approve a waiting step and resume pipeline execution
+  app.post('/api/pipelines/:id/approve', async (req, res) => {
+    try {
+      const pipelineId = req.params.id;
+      const stepNumber = Number(req.body.stepNumber ?? NaN);
+      const userId = (req as any).user?.id || 'local';
+      const sb = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+
+      const { data, error } = await sb.from('agent_pipelines').select('*').eq('id', pipelineId).single();
+      if (error || !data) return res.status(404).json({ success: false, error: error?.message || 'Pipeline not found.' });
+
+      const steps = Array.isArray(data.steps) ? (data.steps as any[]) : JSON.parse(data.steps || '[]');
+      const idx = Number.isFinite(stepNumber) ? stepNumber : (data.current_step_index ?? 0);
+      if (!steps[idx]) return res.status(400).json({ success: false, error: 'Invalid step index' });
+
+      // mark approved/completed so orchestrator can continue
+      steps[idx].status = 'done';
+      steps[idx].approvedAt = new Date().toISOString();
+      steps[idx].completedAt = new Date().toISOString();
+
+      await sb.from('agent_pipelines').update({ steps: JSON.stringify(steps), status: 'running', current_step_index: idx + 1, updated_at: new Date().toISOString() }).eq('id', pipelineId);
+
+      // record approval in approvals table (prefer explicit approver_id from body)
+      try {
+        const approverIdFromBody = typeof req.body.approver_id === 'string' && req.body.approver_id.trim() ? req.body.approver_id.trim() : null;
+        await sb.from('agent_pipeline_approvals').insert({
+          pipeline_id: pipelineId,
+          step_index: idx,
+          approver_id: approverIdFromBody ?? (userId === 'local' ? null : userId),
+          note: req.body.note ?? null,
+        });
+      } catch (e) {
+        // ignore approval write failure
+      }
+
+      // resume pipeline execution asynchronously
+      resumePipeline(pipelineId, userId).catch(() => undefined);
+
+      res.json({ success: true, message: 'Step approved and pipeline resumed.' });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to approve step.' });
+    }
+  });
+
+  // List approvals for a pipeline
+  app.get('/api/pipelines/:id/approvals', async (req, res) => {
+    try {
+      const pipelineId = req.params.id;
+      const sb = createClient(process.env.SUPABASE_URL || '', process.env.SUPABASE_SERVICE_KEY || '');
+      const { data, error } = await sb.from('agent_pipeline_approvals').select('*').eq('pipeline_id', pipelineId).order('created_at', { ascending: true });
+      if (error) throw error;
+      res.json({ success: true, approvals: data });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to fetch approvals.' });
+    }
+  });
 
   app.post("/api/gemini/generate", async (req, res) => { try { const parsed = geminiGenerateSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await callAI(buildAIMessages(parsed.data), { model: resolveProxyModel(parsed.data.model) }); res.json({ success: true, text: result.text, provider: result.provider, model: result.model, usage: result.usage }); } catch (error: any) { const isQuota = isRateLimitOrQuotaError(error); res.status(isQuota ? 429 : 500).json({ error: error.message || "AI proxy failed", isQuota, provider: error.provider, model: error.model }); } });
   app.post("/api/ai/chat", async (req, res) => { try { const parsed = geminiGenerateSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await callAI(buildAIMessages(parsed.data), { model: resolveProxyModel(parsed.data.model) }); res.json({ success: true, ...result }); } catch (error: any) { const isQuota = isRateLimitOrQuotaError(error); res.status(isQuota ? 429 : 500).json({ error: error.message || "AI proxy failed", isQuota, provider: error.provider, model: error.model }); } });
@@ -105,6 +427,20 @@ async function startServer() {
   app.get("/api/ai/keys/auto-lock", (_req, res) => res.json({ success: true, autoLock: getAIVaultAutoLockStatus() }));
   app.patch("/api/ai/keys/auto-lock", (req, res) => { try { const parsed = aiVaultAutoLockSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const autoLock = updateAIVaultAutoLockConfig(parsed.data); markAIVaultActivity(); res.json({ success: true, autoLock }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to update auto-lock." }); } });
   app.post("/api/ai/keys/auto-lock/disarm", (_req, res) => { disarmAIVaultAutoLock(); res.json({ success: true, autoLock: getAIVaultAutoLockStatus() }); });
+  // Claude Code Bridge (minimal): prepare a copyable prompt for Claude Code
+  app.post('/api/claude/code-bridge', async (req, res) => {
+    try {
+      const prompt = String((req.body && req.body.prompt) || req.query.prompt || '');
+      const mode = String((req.body && req.body.mode) || req.query.mode || 'task');
+      if (!prompt) return res.status(400).json({ success: false, error: 'prompt is required' });
+      // Prepare a canonical Claude Code prompt wrapper
+      const wrapped = `TASK MODE: ${mode}\n---\n${prompt}\n\nPlease produce a concise task spec with files to change, a small patch example, and a suggested PR description.`;
+      // Do not call external APIs here; return payload for client to copy or to send to Anthropic if configured
+      res.json({ success: true, prompt: wrapped });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Failed to prepare Claude prompt' });
+    }
+  });
   app.get("/api/ai/usage", (_req, res) => res.json({ success: true, logs: readAIUsageLogs(200) }));
   app.delete("/api/ai/usage", (_req, res) => { clearAIUsageLogs(); res.json({ success: true }); });
   app.get("/api/ai/doctor/preflight", async (_req, res) => { try { res.json({ success: true, result: await runAIPreflight() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "AI preflight failed." }); } });

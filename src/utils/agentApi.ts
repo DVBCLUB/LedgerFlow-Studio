@@ -1,12 +1,21 @@
 export const AGENT_ROLES = [
+  'Chief of Staff',
+  'AI CFO',
   'AI PM',
   'AI Dev',
+  'AI DevOps',
+  'AI Designer',
+  'AI Game Dev',
+  'AI QA',
   'AI Marketer',
+  'AI Research',
+  'AI Sales',
   'AI Accountant',
   'AI Auditor',
-  'AI Designer',
-  'AI Analyst',
+  'AI Legal',
+  'AI Onboarding',
   'AI Support',
+  'AI Analyst',
 ] as const;
 
 export type AgentRole = (typeof AGENT_ROLES)[number];

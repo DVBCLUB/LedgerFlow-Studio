@@ -158,6 +158,83 @@ create policy "agent_tasks_own_all"
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+create table if not exists public.company_memory (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  memory_type text not null check (memory_type in (
+    'decision', 'context', 'agent_output', 'product_update',
+    'market_intel', 'customer', 'blocker', 'learning'
+  )),
+  title text not null,
+  content text not null,
+  agent_author text,
+  related_card_id uuid references public.workboard_cards(id) on delete set null,
+  related_product text,
+  tags text[] default '{}',
+  importance text not null default 'normal' check (importance in ('low','normal','high','critical')),
+  is_active boolean not null default true,
+  expires_at timestamptz,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.company_memory enable row level security;
+
+drop policy if exists "company_memory_own_all" on public.company_memory;
+create policy "company_memory_own_all"
+  on public.company_memory for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists company_memory_user_type_idx on public.company_memory (user_id, memory_type);
+create index if not exists company_memory_user_active_created_idx on public.company_memory (user_id, is_active, created_at desc);
+create index if not exists company_memory_user_importance_idx on public.company_memory (user_id, importance);
+
+create table if not exists public.agent_pipelines (
+  id text primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  type text not null,
+  name text not null,
+  status text default 'running' check (status in ('running','waiting_approval','completed','failed','paused')),
+  steps jsonb default '[]',
+  input jsonb default '{}',
+  output text,
+  current_step_index integer default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+alter table public.agent_pipelines enable row level security;
+
+drop policy if exists "agent_pipelines_own_all" on public.agent_pipelines;
+create policy "agent_pipelines_own_all"
+  on public.agent_pipelines for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+
+create index if not exists agent_pipelines_user_status_idx on public.agent_pipelines (user_id, status);
+create index if not exists agent_pipelines_user_created_idx on public.agent_pipelines (user_id, created_at desc);
+
+create table if not exists public.agent_pipeline_approvals (
+  id uuid default uuid_generate_v4() primary key,
+  pipeline_id text references public.agent_pipelines(id) on delete cascade not null,
+  step_index integer not null,
+  approver_id uuid,
+  note text,
+  created_at timestamptz default now()
+);
+
+alter table public.agent_pipeline_approvals enable row level security;
+
+drop policy if exists "agent_pipeline_approvals_own_all" on public.agent_pipeline_approvals;
+create policy "agent_pipeline_approvals_own_all"
+  on public.agent_pipeline_approvals for all
+  using (true)
+  with check (true);
+
+create index if not exists agent_pipeline_approvals_pipeline_idx on public.agent_pipeline_approvals (pipeline_id, step_index);
+
+
 create table if not exists public.products (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references auth.users on delete cascade not null,

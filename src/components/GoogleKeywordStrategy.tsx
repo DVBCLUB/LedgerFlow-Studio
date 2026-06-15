@@ -31,6 +31,7 @@ import {
 } from 'recharts';
 import * as XLSX from 'xlsx';
 import SeoTrafficCalculatorPanel from './marketing-growth/tabs/SeoTrafficCalculatorPanel';
+import SeoKeywordDiscoveryPanel from './marketing-growth/tabs/SeoKeywordDiscoveryPanel';
 
 // Define Interfaces for Keyword Discovery
 interface SuggestKeyword {
@@ -883,269 +884,30 @@ ${landingDesign.blogIdeas.map((idea, i) => `${i+1}. Tên bài: "${idea}" (Tối 
 
       {/* ======================= TAB 1 DETAILED SCREEN ======================= */}
       {activeTab === 'discovery' && (
-        <div className="space-y-6">
-          <div className="bg-[#070b13]/80 p-5 rounded-2xl border border-slate-900 space-y-4">
-            <div className="flex items-center gap-2 text-purple-400 font-bold text-xs font-mono uppercase">
-              <Sparkles className="w-4 h-4 animate-slow" />
-              <span>Cấu hình nghiên cứu phễu tích hợp từ khóa Google</span>
-            </div>
-            
-            <div className="grid md:grid-cols-3 gap-4">
-              <div>
-                <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1">CHỦ ĐỀ/NGÀNH NGHỀ MỤC TIÊU</label>
-                <input
-                  type="text"
-                  value={nicheInput}
-                  onChange={(e) => setNicheInput(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-xs font-bold text-slate-100 focus:outline-none focus:border-purple-500 placeholder-slate-600"
-                  placeholder="Ví dụ: quản lý kho, hạch toán xây dựng..."
-                />
-              </div>
-
-              <div>
-                <label className="text-[10px] text-slate-500 font-mono font-bold block mb-1 font-mono">ĐỐI TƯỢNG BAN ĐẦU</label>
-                <select
-                  value={targetAudience}
-                  onChange={(e) => setTargetAudience(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-2 text-xs font-bold text-slate-200 focus:outline-none focus:border-purple-500"
-                >
-                  <option value="Hộ kinh doanh">Hộ Kinh Doanh Việt Nam (Mới)</option>
-                  <option value="SME/Công ty nhỏ">Công Ty SME Vừa &amp; Nhỏ</option>
-                  <option value="Freelancer chuyên nghiệp">Freelancer &amp; Kế Toán Tự Do</option>
-                  <option value="Startup bootstrap">Indie App &amp; Startup Bootstrap</option>
-                </select>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] text-slate-500 font-mono font-bold">GIÁ PHẦN MỀM THÁNG TARGET</label>
-                  <span className="text-[11px] text-amber-400 font-bold font-mono">{budgetTarget.toLocaleString('vi-VN')} VNĐ</span>
-                </div>
-                <input
-                  type="range"
-                  min="35000"
-                  max="500000"
-                  step="5000"
-                  value={budgetTarget}
-                  onChange={(e) => setBudgetTarget(Number(e.target.value))}
-                  className="w-full accent-purple-500 h-1 rounded bg-slate-900 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-2">
-              <button
-                onClick={handleKeywordDiscovery}
-                disabled={loadingDiscovery}
-                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg disabled:opacity-50"
-              >
-                {loadingDiscovery ? (
-                  <>
-                    <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    <span>Đang cào &amp; phân tích...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4 text-emerald-300" />
-                    <span>Quét Google SEO &amp; Khám Phá</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* DISCOVERY KEYWORD RESULTS AREA */}
-          {discoveredKeywords.length > 0 ? (
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/65 p-3 rounded-xl border border-slate-900">
-                <div className="flex items-center gap-2 flex-1 w-full min-w-0">
-                  <Search className="w-4 h-4 text-slate-500 shrink-0" />
-                  <input
-                    type="text"
-                    value={searchFilter}
-                    onChange={(e) => setSearchFilter(e.target.value)}
-                    placeholder="Lọc nhanh từ khóa phát hiện..."
-                    className="bg-transparent text-xs text-slate-100 placeholder-slate-650 outline-none w-full font-medium"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                  <span className="text-[10px] text-slate-550 font-bold uppercase font-mono">Sắp xếp:</span>
-                  <div className="flex bg-slate-950 p-1 rounded-lg border border-slate-900 gap-1">
-                    {[
-                      { id: 'score', label: 'Điểm Khả thi' },
-                      { id: 'vol', label: 'Lưu lượng' },
-                      { id: 'keyword', label: 'Từ khóa A-Z' }
-                    ].map(opt => (
-                      <button
-                        key={opt.id}
-                        onClick={() => setSortField(opt.id as any)}
-                        className={`px-2 py-1 text-[10px] font-bold rounded cursor-pointer ${
-                          sortField === opt.id ? 'bg-slate-900 text-purple-400' : 'text-slate-500'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <button
-                    onClick={handleExportExcel}
-                    className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 font-bold text-[10.5px] rounded-lg transition-all cursor-pointer flex items-center gap-1"
-                  >
-                    <Download className="w-3 h-3" />
-                    <span>Xuất Excel</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* TABLE CONTAINER */}
-              <div className="overflow-x-auto rounded-2xl border border-slate-900 bg-slate-950/20 shadow-lg">
-                <table className="w-full text-left text-xs text-slate-300">
-                  <thead className="bg-[#070b13] text-[9.5px] text-slate-500 uppercase font-mono border-b border-slate-900">
-                    <tr>
-                      <th className="py-3 px-4"></th>
-                      <th className="py-3 px-4">Từ khóa tìm kiếm (Google)</th>
-                      <th className="py-3 px-4 text-center">Volume/Tháng</th>
-                      <th className="py-3 px-4 text-center">Cạnh tranh</th>
-                      <th className="py-3 px-4 text-center">Y&nbsp;Định</th>
-                      <th className="py-3 px-4">Giải Pháp Micro-SaaS Lập Trình 0đ</th>
-                      <th className="py-3 px-4 text-center">Điểm Du Kích</th>
-                      <th className="py-3 px-4 text-right">Lựa chọn</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-900">
-                    {getSortedAndFilteredKeywords().map((item, index) => {
-                      const isSelected = selectedKeywords.includes(item.keyword);
-                      return (
-                        <tr 
-                          key={index} 
-                          className={`hover:bg-slate-900/30 transition-colors ${
-                            isSelected ? 'bg-purple-950/10 border-l-2 border-l-purple-500' : ''
-                          }`}
-                        >
-                          <td className="py-3.5 px-4 text-center">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => handleToggleKeyword(item.keyword)}
-                              className="accent-purple-500 cursor-pointer rounded"
-                            />
-                          </td>
-                          <td className="py-3.5 px-4 font-bold text-white max-w-[200px]">
-                            <div className="space-y-1">
-                              <span className="block truncate" title={item.keyword}>{item.keyword}</span>
-                              <div className="flex gap-1 flex-wrap">
-                                {item.longtailVariants?.slice(0, 2).map((v, vidx) => (
-                                  <span key={vidx} className="bg-slate-950 text-slate-500 text-[8.5px] px-1.5 py-0.5 rounded border border-slate-900 font-mono">
-                                    {v}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-mono font-bold">
-                            <span className="text-slate-250 block">{(item.searchVolumeNum || 1000).toLocaleString('vi-VN')}</span>
-                            <span className={`text-[8px] uppercase tracking-wider font-extrabold px-1.5 py-0.5 rounded inline-block mt-1 ${
-                              item.searchVolume === 'high' ? 'bg-red-950/20 text-rose-455 border border-rose-900/30' :
-                              item.searchVolume === 'medium' ? 'bg-amber-950/20 text-amber-455 border border-amber-900/30' :
-                              'bg-indigo-950/20 text-indigo-405 border border-indigo-900/30'
-                            }`}>
-                              {item.searchVolume}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-semibold">
-                            <span className={`px-2 py-0.5 rounded text-[9.5px] font-extrabold ${
-                              item.competition === 'high' ? 'bg-rose-950/20 text-rose-500' :
-                              item.competition === 'medium' ? 'bg-amber-950/25 text-amber-500' :
-                              'bg-emerald-950/20 text-emerald-400'
-                            }`}>
-                              {item.competition === 'high' ? '🟢 Cao' : item.competition === 'medium' ? '🟡 Trung bình' : '🟢 Thấp'}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-center">
-                            <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-black uppercase ${
-                              item.intent === 'transactional' ? 'bg-emerald-950/30 text-emerald-400 border border-emerald-900/40' :
-                              item.intent === 'commercial' ? 'bg-purple-950/30 text-purple-400 border border-purple-900/40' :
-                              'bg-slate-950 text-slate-400 border border-slate-900'
-                            }`}>
-                              {item.intent}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 space-y-1.5">
-                            <p className="font-bold text-slate-100 leading-tight block">{item.softwareIdea}</p>
-                            <p className="text-[10.5px] text-slate-450 italic leading-snug">
-                              💸 <strong className="text-slate-350">Monetize:</strong> {item.monetization}
-                            </p>
-                            <p className="text-[10px] text-slate-500 leading-snug">
-                              💔 <strong className="text-slate-450">Nỗi đau:</strong> {item.painPoint}
-                            </p>
-                          </td>
-                          <td className="py-3.5 px-4 text-center font-mono font-black">
-                            <span className={`text-base block ${
-                              item.guerrillaScore >= 9.0 ? 'text-emerald-400' :
-                              item.guerrillaScore >= 8.0 ? 'text-purple-400' :
-                              'text-amber-400'
-                            }`}>
-                              {item.guerrillaScore}
-                            </span>
-                            <span className="text-[8px] text-slate-500 uppercase tracking-widest block mt-0.5">Khả thi</span>
-                          </td>
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => handleToggleKeyword(item.keyword)}
-                              className={`px-2.5 py-1.5 rounded-lg text-[10.5px] font-black cursor-pointer transition-all border ${
-                                isSelected 
-                                  ? 'bg-purple-600 border-purple-500 text-white shadow-md' 
-                                  : 'bg-slate-950 hover:bg-slate-900 border-slate-900 hover:border-slate-800 text-slate-400'
-                              }`}
-                            >
-                              {isSelected ? 'Đã Chọn' : 'Chọn Gõ'}
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* ACTION BOTTOM ROW */}
-              <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-slate-950/30 p-4 rounded-xl border border-slate-900">
-                <span className="text-[11px] text-slate-400 font-semibold italic text-center md:text-left">
-                  💡 Hệ thống phát hiện <strong className="text-purple-400">{selectedKeywords.length} từ khóa</strong> được chọn. Nhấn Nút "Chuyển Sang Bước 2" để chuyển đổi số và may đo sản phẩm micro-SaaS tương thích.
-                </span>
-                
-                <button
-                  disabled={selectedKeywords.length === 0}
-                  onClick={() => {
-                    setActiveTab('mapper');
-                    handleProductMapping();
-                  }}
-                  className="px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition-all cursor-pointer flex items-center gap-2 disabled:opacity-40"
-                >
-                  <span>Chuyển Thiết kế Sản phẩm</span>
-                  <ArrowRight className="w-4 h-4 shrink-0" />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-slate-950/5 p-12 rounded-2xl border border-slate-900/60 text-center space-y-4">
-              <Search className="w-12 h-12 text-slate-700 mx-auto animate-pulse" />
-              <div className="space-y-1">
-                <p className="text-sm font-bold text-slate-400">Chưa bắt đầu cào từ khóa nào</p>
-                <p className="text-xs text-slate-500 max-w-lg mx-auto">
-                  Vui lòng chọn hoặc tự nhập từ khóa lĩnh vực ngách của bạn ở ô trên, chọn phân khúc Target và click "Quét Google SEO" để triệu hồi 15 ngách hái tiền du kích.
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
+        <SeoKeywordDiscoveryPanel
+          nicheInput={nicheInput}
+          setNicheInput={setNicheInput}
+          targetAudience={targetAudience}
+          setTargetAudience={setTargetAudience}
+          budgetTarget={budgetTarget}
+          setBudgetTarget={setBudgetTarget}
+          loadingDiscovery={loadingDiscovery}
+          onDiscover={handleKeywordDiscovery}
+          discoveredKeywords={discoveredKeywords}
+          selectedKeywords={selectedKeywords}
+          searchFilter={searchFilter}
+          setSearchFilter={setSearchFilter}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortedKeywords={getSortedAndFilteredKeywords()}
+          onExportExcel={handleExportExcel}
+          onToggleKeyword={handleToggleKeyword}
+          onMoveToMapper={() => {
+            setActiveTab('mapper');
+            handleProductMapping();
+          }}
+        />
       )}
-
       {/* ======================= TAB 2: PRODUCT MAPPER DETAIL ======================= */}
       {activeTab === 'mapper' && (
         <div className="space-y-6 animate-fadeIn">

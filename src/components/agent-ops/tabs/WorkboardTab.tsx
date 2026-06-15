@@ -41,6 +41,12 @@ function ownerFor(kind: WorkKind) {
 
 function agentRoleFor(card: WorkCard): AgentRole {
   const owner = `${card.aiStaff || card.owner || card.role || ''}`.toLowerCase();
+  if (owner.includes('chief')) return 'Chief of Staff';
+  if (owner.includes('cfo')) return 'AI CFO';
+  if (owner.includes('devops')) return 'AI DevOps';
+  if (owner.includes('legal')) return 'AI Legal';
+  if (owner.includes('research')) return 'AI Research';
+  if (owner.includes('sales')) return 'AI Sales';
   if (owner.includes('dev') || card.kind === 'Code' || card.kind === 'CI Fix' || card.kind === 'Integration') return 'AI Dev';
   if (owner.includes('marketer') || card.kind === 'Marketing') return 'AI Marketer';
   if (owner.includes('accountant')) return 'AI Accountant';

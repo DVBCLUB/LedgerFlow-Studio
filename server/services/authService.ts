@@ -72,3 +72,25 @@ export const requireAuth: RequestHandler = async (
 
   res.status(401).json({ success: false, error: "Unauthorized" });
 };
+
+export const attachOptionalUser: RequestHandler = async (
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction
+) => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    const user = await verifySupabaseToken(authHeader.slice(7));
+    if (user) {
+      req.user = { id: user.id, email: user.email ?? undefined, mode: 'supabase' };
+      next();
+      return;
+    }
+  }
+
+  const localToken = req.headers['x-local-auth'];
+  if (typeof localToken === 'string' && verifyLocalAdminToken(localToken)) {
+    req.user = { id: 'local', mode: 'local' };
+  }
+  next();
+};
