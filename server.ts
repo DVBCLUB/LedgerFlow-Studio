@@ -15,6 +15,7 @@ import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnecto
 import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest } from "./server/services/githubConnector";
 import { getGitHubWorkflowRunArtifacts } from "./server/services/githubArtifacts";
 import { getLocalToolSummary, openLocalTool } from "./server/services/localToolConnector";
+import { isSupabaseServerAuthConfigured, verifyLocalAdminToken } from "./server/services/authService";
 
 dotenv.config();
 
@@ -33,6 +34,7 @@ const githubIssueSchema = z.object({ repo: z.string().optional(), title: z.strin
 const githubApprovedChangeSchema = z.object({ repo: z.string().optional(), title: z.string().min(3, "Tiêu đề PR phải có ít nhất 3 ký tự."), summary: z.string().min(10, "Summary phải đủ rõ để review."), approvalPhrase: z.literal("APPROVE AI GITHUB PUSH"), baseBranch: z.string().optional(), branchName: z.string().optional(), draft: z.boolean().optional(), files: z.array(z.object({ path: z.string().min(1), content: z.string() })).min(1).max(10) });
 const githubClosePullRequestSchema = z.object({ repo: z.string().optional(), reason: z.string().min(10, "Reason đóng PR phải đủ rõ để audit."), rollbackNote: z.string().min(10, "Rollback note phải đủ rõ để review."), approvalPhrase: z.literal("APPROVE AI GITHUB CLOSE") });
 const localToolOpenSchema = z.object({ tool: z.enum(["vscode", "cursor", "github", "actions"]) });
+const localAuthSchema = z.object({ token: z.string().min(1, "LOCAL_ADMIN_TOKEN is required.") });
 type GeminiGenerateInput = z.infer<typeof geminiGenerateSchema>;
 
 function getSimulatedMarketSurveyResponse(niche: string, direction?: string) { return { summary: `Mô phỏng nghiên cứu thị trường cho: ${niche}.`, metrics: { pricingPreferred: [], painPoints: [], channels: [] }, personas: [], gaps: [], competitors: [], blueprint: { direction: direction || "B2D Tool" }, sources: [{ title: "Fallback simulator", url: "local" }] }; }
@@ -47,10 +49,12 @@ async function startServer() {
   app.use((req, res, next) => { res.setHeader("X-Content-Type-Options", "nosniff"); res.setHeader("X-Frame-Options", "DENY"); res.setHeader("Referrer-Policy", "no-referrer"); res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), clipboard-read=(), clipboard-write=(self)"); res.setHeader("Cross-Origin-Opener-Policy", "same-origin"); res.setHeader("Cross-Origin-Resource-Policy", "same-origin"); if (req.path.startsWith("/api/")) res.setHeader("Cache-Control", "no-store"); next(); });
   app.use(express.json({ limit: "15mb" }));
   app.use(express.urlencoded({ extended: true, limit: "15mb" }));
-  app.use((req, res, next) => { const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"]; const origin = req.headers.origin; if (origin) { const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".run.app") || /https:\/\/ais-.*\.run\.app/.test(origin); if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin); } res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS"); res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization"); if (req.method === "OPTIONS") res.sendStatus(204); else next(); });
+  app.use((req, res, next) => { const allowedOrigins = ["http://localhost:3000", "http://127.0.0.1:3000", "http://0.0.0.0:3000"]; const origin = req.headers.origin; if (origin) { const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".run.app") || /https:\/\/ais-.*\.run\.app/.test(origin); if (isAllowed) res.setHeader("Access-Control-Allow-Origin", origin); } res.setHeader("Access-Control-Allow-Methods", "GET,POST,PATCH,PUT,DELETE,OPTIONS"); res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization,X-Local-Auth"); if (req.method === "OPTIONS") res.sendStatus(204); else next(); });
   const apiLimiter = rateLimit({ windowMs: 60_000, max: 30, message: { error: "Bạn đã đạt giới hạn yêu cầu/phút. Vui lòng thử lại sau.", isRateLimit: true }, standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false } });
   app.use("/api/gemini/", apiLimiter); app.use("/api/ai/", apiLimiter); app.use("/api/integrations/", apiLimiter);
   app.get("/api/health", (req, res) => res.json({ status: "ok", time: new Date() }));
+  app.get("/api/auth/config", (_req, res) => res.json({ success: true, supabaseServerAuth: isSupabaseServerAuthConfigured(), localAuth: Boolean(process.env.LOCAL_ADMIN_TOKEN) }));
+  app.post("/api/auth/local-session", (req, res) => { const parsed = localAuthSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); if (!process.env.LOCAL_ADMIN_TOKEN) return res.status(503).json({ success: false, error: "LOCAL_ADMIN_TOKEN is not configured on this machine." }); if (!verifyLocalAdminToken(parsed.data.token)) return res.status(401).json({ success: false, error: "Invalid local token." }); res.json({ success: true, session: { mode: "local", loginAt: new Date().toISOString() } }); });
 
   const STORAGE_FILE = path.join(process.cwd(), "db_storage.json");
   app.get("/api/db/load", async (req, res) => { try { if (!fs.existsSync(STORAGE_FILE)) return res.json({ success: true, data: {} }); res.json({ success: true, data: JSON.parse(await fs.promises.readFile(STORAGE_FILE, "utf-8")) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
