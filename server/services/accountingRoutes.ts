@@ -1,11 +1,17 @@
 import type { Express } from "express";
+import { createClient } from "@supabase/supabase-js";
+import multer from "multer";
 import { z } from "zod";
 import { callAI } from "./aiClient";
 import { getAgentRole, listAgentRoles } from "./agentRoles";
+import { getCronStatus, startCronScheduler, triggerJobNow } from "./cronScheduler";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
+import { importMISAWorkbook } from "./misaBridge";
 import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
 const transactionSchema = z.object({
   id: z.string().optional(),
@@ -37,7 +43,63 @@ const pipelineApproveSchema = z.object({
   userId: z.string().optional().default("local"),
 });
 
+const cronTriggerSchema = z.object({
+  jobName: z.enum(["daily_brief", "weekly_report", "monthly_close_reminder"]),
+  userId: z.string().uuid(),
+});
+
+const notificationTestSchema = z.object({
+  userId: z.string().uuid(),
+  message: z.string().optional(),
+});
+
+function supabaseAdmin() {
+  const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+  const key = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (!url || !key) throw new Error("SUPABASE_URL và SUPABASE_SERVICE_KEY chưa cấu hình.");
+  return createClient(url, key);
+}
+
 export function registerAccountingRoutes(app: Express) {
+  startCronScheduler();
+
+  app.get("/api/cron/status", (_req, res) => {
+    res.json({ success: true, jobs: getCronStatus() });
+  });
+
+  app.post("/api/cron/trigger", async (req, res) => {
+    try {
+      const parsed = cronTriggerSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      res.json(await triggerJobNow(parsed.data.jobName, parsed.data.userId));
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
+  });
+
+  app.get("/api/notifications", (_req, res) => {
+    res.json({ success: true, message: "Use Supabase Realtime client-side for notifications." });
+  });
+
+  app.post("/api/notifications/test", async (req, res) => {
+    try {
+      const parsed = notificationTestSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      const { userId, message } = parsed.data;
+      const { error } = await supabaseAdmin().from("notifications").insert({
+        user_id: userId,
+        title: "Test Notification",
+        content: message || "Realtime notifications đang hoạt động! 🎉",
+        type: "info",
+        is_read: false,
+      });
+      if (error) throw error;
+      res.json({ success: true });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || String(err) });
+    }
+  });
+
   app.get("/api/agents/roles", (_req, res) => {
     res.json({ success: true, roles: listAgentRoles() });
   });
@@ -107,6 +169,16 @@ export function registerAccountingRoutes(app: Express) {
       res.json({ success: true, repo: summary.repo, pullRequests, prs: pullRequests, lastCheckedAt: summary.lastCheckedAt });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err?.message || "Failed to load GitHub pull requests." });
+    }
+  });
+
+  app.post("/api/accounting/misa-import", upload.single("file"), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ success: false, error: "Chưa upload file MISA." });
+      const result = importMISAWorkbook(req.file.buffer);
+      res.json(result);
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Failed to import MISA workbook." });
     }
   });
 
