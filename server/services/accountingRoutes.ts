@@ -2,7 +2,6 @@
 import type { Express } from "express";
 import { createClient } from "@supabase/supabase-js";
 import helmet from "helmet";
-import multer from "multer";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
 import { callAI } from "./aiClient";
@@ -10,11 +9,9 @@ import { getAgentRole, listAgentRoles } from "./agentRoles";
 import { getCronStatus, startCronScheduler, triggerJobNow } from "./cronScheduler";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
-import { importMISAWorkbook } from "./misaBridge";
 import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 let securityInstalled = false;
 
 const transactionSchema = z.object({ id: z.string().optional(), date: z.string().min(1), description: z.string().default(""), amount: z.number(), balance: z.number().default(0), bank: z.string().optional(), accountNo: z.string().optional() });
@@ -105,11 +102,6 @@ export function registerAccountingRoutes(app: Express) {
   app.get("/api/github/prs", async (req, res) => {
     try { const summary = await getGitHubSummary(typeof req.query.repo === "string" ? req.query.repo : undefined); const pullRequests = summary.openPullRequests.map((pr) => ({ number: pr.number, title: pr.title, state: pr.state, htmlUrl: pr.htmlUrl, updatedAt: pr.updatedAt, labels: pr.labels })); res.json({ success: true, repo: summary.repo, pullRequests, prs: pullRequests, lastCheckedAt: summary.lastCheckedAt }); }
     catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to load GitHub pull requests." }); }
-  });
-
-  app.post("/api/accounting/misa-import", upload.single("file"), async (req, res) => {
-    try { if (!req.file) return res.status(400).json({ success: false, error: "Chưa upload file MISA." }); const result = importMISAWorkbook(req.file.buffer); res.json(result); }
-    catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to import MISA workbook." }); }
   });
 
   app.post("/api/accounting/reconcile", async (req, res) => {
