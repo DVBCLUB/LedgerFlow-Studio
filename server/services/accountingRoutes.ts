@@ -4,6 +4,7 @@ import { callAI } from "./aiClient";
 import { getAgentRole, listAgentRoles } from "./agentRoles";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
+import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 
 const transactionSchema = z.object({
@@ -26,6 +27,12 @@ const invoiceOcrSchema = z.object({
   mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "application/pdf"]).default("image/jpeg"),
 });
 
+const pipelineStartSchema = z.object({
+  pipelineType: z.string().min(1),
+  input: z.record(z.string(), z.unknown()).optional().default({}),
+  userId: z.string().optional().default("local"),
+});
+
 export function registerAccountingRoutes(app: Express) {
   app.get("/api/agents/roles", (_req, res) => {
     res.json({ success: true, roles: listAgentRoles() });
@@ -35,6 +42,38 @@ export function registerAccountingRoutes(app: Express) {
     const role = getAgentRole(req.params.id);
     if (!role) return res.status(404).json({ success: false, error: "Agent role not found." });
     res.json({ success: true, role });
+  });
+
+  app.get("/api/pipelines/types", (_req, res) => {
+    res.json({ success: true, types: listPipelineTypes() });
+  });
+
+  app.post("/api/pipelines/start", async (req, res) => {
+    try {
+      const parsed = pipelineStartSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      }
+
+      if (!PIPELINE_TEMPLATES[parsed.data.pipelineType as PipelineType]) {
+        return res.status(400).json({ success: false, error: "Invalid pipelineType" });
+      }
+
+      const pipeline = await startPipeline(parsed.data.pipelineType as PipelineType, parsed.data.input, parsed.data.userId);
+      res.json({ success: true, pipeline });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Failed to start pipeline." });
+    }
+  });
+
+  app.get("/api/pipelines/:id", async (req, res) => {
+    try {
+      const pipeline = await getPipelineById(req.params.id);
+      if (!pipeline) return res.status(404).json({ success: false, error: "Pipeline not found or Supabase service key is not configured." });
+      res.json({ success: true, pipeline });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Failed to load pipeline." });
+    }
   });
 
   app.get("/api/github/prs", async (req, res) => {
