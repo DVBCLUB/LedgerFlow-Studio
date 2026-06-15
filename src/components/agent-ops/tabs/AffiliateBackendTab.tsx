@@ -1,18 +1,19 @@
-// @ts-nocheck
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value || 0) + ' ₫';
 
+type AffiliateCodeStats = {
+  code: string;
+  partner_name: string;
+  commission_rate: number;
+  clicks: number;
+  signups: number;
+  paid: number;
+  pendingCommission: number;
+};
+
 type AffiliateStats = {
-  codes: Array<{
-    code: string;
-    partner_name: string;
-    commission_rate: number;
-    clicks: number;
-    signups: number;
-    paid: number;
-    pendingCommission: number;
-  }>;
+  codes: AffiliateCodeStats[];
   totals: {
     clicks: number;
     signups: number;
@@ -21,10 +22,23 @@ type AffiliateStats = {
   };
 };
 
+type AffiliateCodeResponse = { code?: string; error?: string };
+type ApiErrorResponse = { error?: string };
+
+type ReferralEventType = 'click' | 'signup' | 'paid';
+
 const emptyStats: AffiliateStats = {
   codes: [],
   totals: { clicks: 0, signups: 0, paid: 0, pendingCommission: 0 },
 };
+
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : String(err);
+}
+
+async function parseJson<T>(res: Response): Promise<T> {
+  return res.json() as Promise<T>;
+}
 
 export default function AffiliateBackendTab() {
   const [userId, setUserId] = useState('');
@@ -41,22 +55,23 @@ export default function AffiliateBackendTab() {
     return Math.round((stats.totals.paid / stats.totals.clicks) * 100);
   }, [stats]);
 
-  async function loadStats(nextUserId = userId) {
-    if (!nextUserId.trim()) return;
+  const loadStats = useCallback(async (nextUserId = userId) => {
+    const trimmedUserId = nextUserId.trim();
+    if (!trimmedUserId) return;
     setLoading(true);
     setStatus('Đang tải affiliate stats...');
     try {
-      const res = await fetch(`/api/affiliate/stats?userId=${encodeURIComponent(nextUserId.trim())}`);
-      const data = await res.json();
+      const res = await fetch(`/api/affiliate/stats?userId=${encodeURIComponent(trimmedUserId)}`);
+      const data = await parseJson<AffiliateStats & ApiErrorResponse>(res);
       if (!res.ok) throw new Error(data.error || 'Không tải được stats');
-      setStats(data);
+      setStats({ codes: data.codes || [], totals: data.totals || emptyStats.totals });
       setStatus('Đã tải stats từ backend.');
     } catch (err) {
-      setStatus(String(err));
+      setStatus(errorMessage(err));
     } finally {
       setLoading(false);
     }
-  }
+  }, [userId]);
 
   async function createCode() {
     if (!userId.trim() || !partnerName.trim()) {
@@ -78,20 +93,20 @@ export default function AffiliateBackendTab() {
           commissionType: 'recurring',
         }),
       });
-      const data = await res.json();
+      const data = await parseJson<AffiliateCodeResponse>(res);
       if (!res.ok) throw new Error(data.error || 'Không tạo được code');
       setPartnerName('');
       setPartnerEmail('');
       setStatus(`Đã tạo code ${data.code || ''}`);
       await loadStats(userId);
     } catch (err) {
-      setStatus(String(err));
+      setStatus(errorMessage(err));
     } finally {
       setLoading(false);
     }
   }
 
-  async function trackDemo(code: string, eventType: string) {
+  async function trackDemo(code: string, eventType: ReferralEventType) {
     setLoading(true);
     setStatus(`Đang ghi event ${eventType} cho ${code}...`);
     try {
@@ -100,12 +115,12 @@ export default function AffiliateBackendTab() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code, eventType, revenueVND: eventType === 'paid' ? 599000 : 0 }),
       });
-      const data = await res.json();
+      const data = await parseJson<ApiErrorResponse>(res);
       if (!res.ok) throw new Error(data.error || 'Không ghi được event');
       setStatus(`Đã ghi event ${eventType}.`);
       await loadStats(userId);
     } catch (err) {
-      setStatus(String(err));
+      setStatus(errorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -115,13 +130,13 @@ export default function AffiliateBackendTab() {
     const saved = localStorage.getItem('ledgerflow-affiliate-user-id');
     if (saved) {
       setUserId(saved);
-      loadStats(saved);
+      void loadStats(saved);
     }
-  }, []);
+  }, [loadStats]);
 
   function saveUserId() {
     localStorage.setItem('ledgerflow-affiliate-user-id', userId.trim());
-    loadStats(userId);
+    void loadStats(userId);
   }
 
   return (
