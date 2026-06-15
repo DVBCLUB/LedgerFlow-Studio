@@ -9,7 +9,8 @@ type GitHubPr = { number: number; title: string; state: string; htmlUrl?: string
 type ProductItem = { name: string; milestone: string; status: string; owner: string };
 type ReleaseItem = { version: string; date: string; summary: string; status: string };
 type PipelineTypeItem = { id: string; name: string; steps: Array<{ name: string; agentRole: string; requiresApproval: boolean }> };
-type PipelineResult = { id: string; name: string; status: string; currentStepIndex: number; output?: string; steps: Array<{ name: string; agentRole: string; status: string; output?: string; requiresApproval: boolean }> };
+type PipelineStepView = { name: string; agentRole: string; status: string; output?: string; requiresApproval: boolean; approvedAt?: string };
+type PipelineResult = { id: string; name: string; status: string; currentStepIndex: number; output?: string; steps: PipelineStepView[] };
 
 const CARD_KEY = 'ledgerflow_aiops_cards_v1';
 const PRODUCTS_KEY = 'ledgerflow_devroom_products_v1';
@@ -63,8 +64,31 @@ function ActiveTasksTab() {
   useEffect(() => { setCards(readLocalStorageArray<Partial<WorkCard>>(CARD_KEY, []).filter(isDevTask).map(normalizeCard)); }, []);
   return (
     <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4 text-slate-100">
-      <div className="flex flex-wrap items-start justify-between gap-3"><div><p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Active Tasks</p><h3 className="mt-1 text-xl font-black text-white">Code / CI Fix WorkCards</h3><p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Đọc trực tiếp từ Workboard local storage, chỉ lọc kind='Code' hoặc kind='CI Fix' đúng brief DevRoom.</p></div><span className="rounded-full border border-cyan-400/30 px-3 py-1 text-xs font-black text-cyan-200">{cards.length} dev tasks</span></div>
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">{cards.map((card) => <article key={card.id} className="rounded-3xl border border-slate-800 bg-slate-900/55 p-4"><div className="flex flex-wrap items-start justify-between gap-2"><div><p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{card.kind} · {card.owner}</p><h4 className="mt-1 font-black text-white">{card.title}</h4></div><span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[10px] font-black text-amber-200">{card.status}</span></div><p className="mt-3 text-sm leading-6 text-slate-300">{card.request}</p><div className="mt-3 flex flex-wrap gap-2">{card.tools.map((tool) => <span key={tool} className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{tool}</span>)}</div>{card.acceptanceCriteria && <p className="mt-3 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-3 text-xs leading-5 text-cyan-100">{card.acceptanceCriteria}</p>}</article>)}{!cards.length && <p className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-sm font-semibold text-slate-400">Chưa có WorkCard Code/CI Fix. Tạo task ở Workboard rồi quay lại DevRoom để theo dõi.</p>}</div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Active Tasks</p>
+          <h3 className="mt-1 text-xl font-black text-white">Code / CI Fix WorkCards</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Đọc trực tiếp từ Workboard local storage, chỉ lọc kind='Code' hoặc kind='CI Fix' đúng brief DevRoom.</p>
+        </div>
+        <span className="rounded-full border border-cyan-400/30 px-3 py-1 text-xs font-black text-cyan-200">{cards.length} dev tasks</span>
+      </div>
+      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+        {cards.map((card) => (
+          <article key={card.id} className="rounded-3xl border border-slate-800 bg-slate-900/55 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-2">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{card.kind} · {card.owner}</p>
+                <h4 className="mt-1 font-black text-white">{card.title}</h4>
+              </div>
+              <span className="rounded-full border border-amber-400/30 bg-amber-400/10 px-2 py-1 text-[10px] font-black text-amber-200">{card.status}</span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-slate-300">{card.request}</p>
+            <div className="mt-3 flex flex-wrap gap-2">{card.tools.map((tool) => <span key={tool} className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-300">{tool}</span>)}</div>
+            {card.acceptanceCriteria && <p className="mt-3 rounded-2xl border border-cyan-400/20 bg-cyan-400/5 p-3 text-xs leading-5 text-cyan-100">{card.acceptanceCriteria}</p>}
+          </article>
+        ))}
+        {!cards.length && <p className="rounded-3xl border border-slate-800 bg-slate-900/50 p-6 text-sm font-semibold text-slate-400">Chưa có WorkCard Code/CI Fix. Tạo task ở Workboard rồi quay lại DevRoom để theo dõi.</p>}
+      </div>
     </section>
   );
 }
@@ -82,6 +106,7 @@ function PipelinesTab() {
   const [inputJson, setInputJson] = useState('{\n  "idea": "Tính năng mới cho kế toán SME VN",\n  "targetUser": "Kế toán viên kiêm nhiệm"\n}');
   const [result, setResult] = useState<PipelineResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => { (async () => { try { const res = await fetch('/api/pipelines/types'); const json = await res.json(); setTypes(json.types || []); } catch { setTypes([]); } })(); }, []);
@@ -98,7 +123,18 @@ function PipelinesTab() {
     } catch (err) { setError(err instanceof Error ? err.message : String(err)); } finally { setLoading(false); }
   }
 
-  return <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr] text-slate-100"><div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Multi-Agent Pipeline</p><h3 className="mt-1 text-xl font-black text-white">Pipeline Launcher</h3><p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Chạy 5 pipeline templates đúng Task C. Pipeline sẽ dừng ở step cần Founder approval.</p><label className="mt-4 block space-y-1"><span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Pipeline type</span><select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">{(types.length ? types : [{ id: 'software_product', name: 'Software Product Factory', steps: [] }]).map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label><label className="mt-3 block space-y-1"><span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Input JSON</span><textarea value={inputJson} onChange={(event) => setInputJson(event.target.value)} rows={9} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-white" /></label><button onClick={startSelectedPipeline} disabled={loading} className="mt-3 rounded-2xl bg-cyan-300 px-5 py-2 text-xs font-black text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{loading ? 'Đang chạy pipeline...' : 'Start pipeline'}</button>{error && <p className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm font-semibold text-rose-200">{error}</p>}</div><div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Steps</p><h3 className="mt-1 text-xl font-black text-white">{selected?.name || 'Pipeline'}</h3><div className="mt-4 space-y-2">{(result?.steps || selected?.steps || []).map((step, index) => <article key={`${step.name}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-black text-white">{index + 1}. {step.name}</p><span className="rounded-full border border-cyan-400/30 px-2 py-1 text-[10px] font-black text-cyan-200">{step.status || (step.requiresApproval ? 'approval' : 'auto')}</span></div><p className="mt-1 text-xs font-bold text-slate-400">{step.agentRole}{step.requiresApproval ? ' · Founder approval required' : ' · auto step'}</p>{step.output && <p className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-950 p-3 text-xs leading-5 text-slate-300">{step.output}</p>}</article>)}{result && <p className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm font-bold text-amber-100">Pipeline `{result.id}` status: {result.status}</p>}</div></div></section>;
+  async function approveAndResume() {
+    if (!result?.id) return;
+    setApproving(true); setError('');
+    try {
+      const response = await fetch(`/api/pipelines/${encodeURIComponent(result.id)}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId: 'local' }) });
+      const json = await response.json();
+      if (!response.ok || json.success === false) throw new Error(json.error || 'Failed to approve pipeline');
+      setResult(json.pipeline);
+    } catch (err) { setError(err instanceof Error ? err.message : String(err)); } finally { setApproving(false); }
+  }
+
+  return <section className="grid gap-4 xl:grid-cols-[0.8fr_1.2fr] text-slate-100"><div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Multi-Agent Pipeline</p><h3 className="mt-1 text-xl font-black text-white">Pipeline Launcher</h3><p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Chạy 5 pipeline templates đúng Task C. Pipeline sẽ dừng ở step cần Founder approval; bấm approve để chạy tiếp.</p><label className="mt-4 block space-y-1"><span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Pipeline type</span><select value={selectedType} onChange={(event) => setSelectedType(event.target.value)} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white">{(types.length ? types : [{ id: 'software_product', name: 'Software Product Factory', steps: [] }]).map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label><label className="mt-3 block space-y-1"><span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Input JSON</span><textarea value={inputJson} onChange={(event) => setInputJson(event.target.value)} rows={9} className="w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-white" /></label><div className="mt-3 flex flex-wrap gap-2"><button onClick={startSelectedPipeline} disabled={loading || approving} className="rounded-2xl bg-cyan-300 px-5 py-2 text-xs font-black text-slate-950 hover:bg-cyan-200 disabled:opacity-50">{loading ? 'Đang chạy pipeline...' : 'Start pipeline'}</button>{result?.status === 'waiting_approval' && <button onClick={approveAndResume} disabled={approving || loading} className="rounded-2xl border border-emerald-400/50 bg-emerald-400/10 px-5 py-2 text-xs font-black text-emerald-100 hover:bg-emerald-400/20 disabled:opacity-50">{approving ? 'Đang approve...' : 'Founder approve & resume'}</button>}</div>{error && <p className="mt-3 rounded-2xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm font-semibold text-rose-200">{error}</p>}</div><div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Steps</p><h3 className="mt-1 text-xl font-black text-white">{result?.name || selected?.name || 'Pipeline'}</h3><div className="mt-4 space-y-2">{(result?.steps || selected?.steps || []).map((step, index) => <article key={`${step.name}-${index}`} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-black text-white">{index + 1}. {step.name}</p><span className={`rounded-full border px-2 py-1 text-[10px] font-black ${step.status === 'waiting_approval' ? 'border-amber-400/40 bg-amber-400/10 text-amber-100' : step.status === 'done' ? 'border-emerald-400/40 bg-emerald-400/10 text-emerald-100' : 'border-cyan-400/30 text-cyan-200'}`}>{step.status || (step.requiresApproval ? 'approval' : 'auto')}</span></div><p className="mt-1 text-xs font-bold text-slate-400">{step.agentRole}{step.requiresApproval ? ' · Founder approval required' : ' · auto step'}{step.approvedAt ? ` · approved ${new Date(step.approvedAt).toLocaleString('vi-VN')}` : ''}</p>{step.output && <p className="mt-2 max-h-40 overflow-auto whitespace-pre-wrap rounded-xl bg-slate-950 p-3 text-xs leading-5 text-slate-300">{step.output}</p>}</article>)}{result && <p className="rounded-2xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm font-bold text-amber-100">Pipeline `{result.id}` status: {result.status}</p>}</div></div></section>;
 }
 
 function ProductsTab() {
