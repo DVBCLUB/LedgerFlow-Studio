@@ -1,8 +1,17 @@
-// @ts-nocheck
 import { useMemo, useState } from 'react';
 import { downloadPDF, generateBalanceSheet, generateIncomeStatement } from '../../../utils/pdfReportGenerator';
 
-const balanceSample = {
+type BalanceRow = { code: string; name: string; currentYear: number; prevYear: number };
+type IncomeRow = { code: string; name: string; currentPeriod: number; prevPeriod: number };
+type ReportType = 'balance' | 'income';
+
+const balanceSample: {
+  companyName: string;
+  period: string;
+  assets: BalanceRow[];
+  liabilities: BalanceRow[];
+  equity: BalanceRow[];
+} = {
   companyName: 'LedgerFlow Company',
   period: 'Năm 2026',
   assets: [
@@ -13,7 +22,11 @@ const balanceSample = {
   equity: [{ code: '411', name: 'Vốn chủ sở hữu', currentYear: 160000000, prevYear: 110000000 }],
 };
 
-const incomeSample = {
+const incomeSample: {
+  companyName: string;
+  period: string;
+  items: IncomeRow[];
+} = {
   companyName: 'LedgerFlow Company',
   period: 'Quý II/2026',
   items: [
@@ -23,19 +36,29 @@ const incomeSample = {
   ],
 };
 
+function parseRows<T>(rowsText: string): T[] {
+  try {
+    const parsed = JSON.parse(rowsText);
+    return Array.isArray(parsed) ? parsed as T[] : [];
+  } catch {
+    return [];
+  }
+}
+
 export default function PDFReportTab() {
-  const [reportType, setReportType] = useState('balance');
+  const [reportType, setReportType] = useState<ReportType>('balance');
   const [companyName, setCompanyName] = useState('LedgerFlow Company');
   const [period, setPeriod] = useState('Năm 2026');
   const [rowsText, setRowsText] = useState(JSON.stringify(balanceSample.assets, null, 2));
 
-  const rows = useMemo(() => {
-    try { return JSON.parse(rowsText); } catch { return []; }
-  }, [rowsText]);
+  const balanceRows = useMemo(() => parseRows<BalanceRow>(rowsText), [rowsText]);
+  const incomeRows = useMemo(() => parseRows<IncomeRow>(rowsText), [rowsText]);
+  const previewRows = reportType === 'balance' ? balanceRows : incomeRows;
 
   function handleType(type: string) {
-    setReportType(type);
-    if (type === 'balance') {
+    const nextType: ReportType = type === 'income' ? 'income' : 'balance';
+    setReportType(nextType);
+    if (nextType === 'balance') {
       setCompanyName(balanceSample.companyName);
       setPeriod(balanceSample.period);
       setRowsText(JSON.stringify(balanceSample.assets, null, 2));
@@ -48,8 +71,8 @@ export default function PDFReportTab() {
 
   function exportPdf() {
     const blob = reportType === 'balance'
-      ? generateBalanceSheet({ ...balanceSample, companyName, period, assets: rows })
-      : generateIncomeStatement({ companyName, period, items: rows });
+      ? generateBalanceSheet({ ...balanceSample, companyName, period, assets: balanceRows })
+      : generateIncomeStatement({ companyName, period, items: incomeRows });
     downloadPDF(blob, `${reportType === 'balance' ? 'bang-can-doi' : 'ket-qua-kinh-doanh'}.pdf`);
   }
 
@@ -87,10 +110,10 @@ export default function PDFReportTab() {
         <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
           <p className="text-sm font-black text-white">Preview</p>
           <p className="mt-2 text-xs text-slate-400">{companyName} — {period}</p>
-          <p className="mt-1 text-xs text-slate-400">Số dòng: {Array.isArray(rows) ? rows.length : 0}</p>
-          <div className="mt-3 max-h-72 overflow-auto space-y-2">
-            {(Array.isArray(rows) ? rows : []).map((row, index) => (
-              <div key={index} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
+          <p className="mt-1 text-xs text-slate-400">Số dòng: {previewRows.length}</p>
+          <div className="mt-3 max-h-72 space-y-2 overflow-auto">
+            {previewRows.map((row, index) => (
+              <div key={`${row.code}-${index}`} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs text-slate-300">
                 <b className="text-cyan-200">{row.code}</b> — {row.name}
               </div>
             ))}
