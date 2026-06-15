@@ -12,6 +12,7 @@ import NavigationMapTab from './tabs/NavigationMapTab';
 import GrowthStudioTab from './tabs/GrowthStudioTab';
 import SalesCRMTab from './tabs/SalesCRMTab';
 import FinanceCoreTab from './tabs/FinanceCoreTab';
+import VietQRReconcilerTab from './tabs/VietQRReconcilerTab';
 import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
 import AnalyticsSandboxTab from './tabs/AnalyticsSandboxTab';
@@ -48,6 +49,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'growth') return <GrowthStudioTab />;
   if (tab === 'sales') return <SalesCRMTab />;
   if (tab === 'finance') return <FinanceCoreTab />;
+  if (tab === 'vietqr') return <VietQRReconcilerTab />;
   if (tab === 'projects') return <ProjectsDeliveryCoreTab />;
   if (tab === 'documents') return <DocumentsApprovalTab />;
   if (tab === 'analytics') return <AnalyticsSandboxTab />;
