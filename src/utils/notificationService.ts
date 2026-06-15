@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { supabase } from './supabaseClient';
+import { getSupabaseClientInstance, getSupabaseConfig } from './supabaseSync';
 
 export interface AppNotification {
   id: string;
@@ -12,7 +12,14 @@ export interface AppNotification {
   created_at: string;
 }
 
+function getClient() {
+  const config = getSupabaseConfig();
+  if (!config?.url || !config?.anonKey) return null;
+  return getSupabaseClientInstance(config.url, config.anonKey);
+}
+
 export async function fetchNotifications(limit = 20): Promise<AppNotification[]> {
+  const supabase = getClient();
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('notifications')
@@ -25,11 +32,13 @@ export async function fetchNotifications(limit = 20): Promise<AppNotification[]>
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
+  const supabase = getClient();
   if (!supabase) return;
   await supabase.from('notifications').update({ is_read: true }).eq('id', notificationId);
 }
 
 export async function markAllAsRead(): Promise<void> {
+  const supabase = getClient();
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -37,6 +46,7 @@ export async function markAllAsRead(): Promise<void> {
 }
 
 export function subscribeToNotifications(onNew: (notification: AppNotification) => void): () => void {
+  const supabase = getClient();
   if (!supabase) return () => undefined;
   const channel = supabase
     .channel('notifications-realtime')
