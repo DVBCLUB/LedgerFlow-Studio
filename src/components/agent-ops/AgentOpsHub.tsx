@@ -14,7 +14,9 @@ import SalesCRMTab from './tabs/SalesCRMTab';
 import FinanceCoreTab from './tabs/FinanceCoreTab';
 import RevenueDashboard from '../RevenueDashboard';
 import DevRoomHub from '../DevRoomHub';
+import NotificationCenter from '../NotificationCenter';
 import VietQRReconcilerTab from './tabs/VietQRReconcilerTab';
+import MISABridgeTab from './tabs/MISABridgeTab';
 import InvoiceOCRTab from './tabs/InvoiceOCRTab';
 import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
@@ -45,6 +47,7 @@ type Props = { initialTab?: AgentOpsHubTab; onClose: () => void };
 function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'brief') return <ClaudeBriefTrackerTab />;
   if (tab === 'standup') return <DailyStandupTab />;
+  if (tab === 'notifications') return <NotificationCenter />;
   if (tab === 'founder') return <FounderOSTab />;
   if (tab === 'workboard') return <WorkboardTab />;
   if (tab === 'tasks') return <TaskQueueTab />;
@@ -55,6 +58,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'finance') return <FinanceCoreTab />;
   if (tab === 'revenue') return <RevenueDashboard />;
   if (tab === 'vietqr') return <VietQRReconcilerTab />;
+  if (tab === 'misaBridge') return <MISABridgeTab />;
   if (tab === 'invoiceOcr') return <InvoiceOCRTab />;
   if (tab === 'projects') return <ProjectsDeliveryCoreTab />;
   if (tab === 'documents') return <DocumentsApprovalTab />;
