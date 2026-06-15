@@ -1,7 +1,25 @@
 import { useMemo, useState } from 'react';
 
 const TASK_TYPES = ['Bug Fix', 'New Feature', 'Refactor', 'Test', 'DevOps'] as const;
-const AGENT_ROLES = ['AI Dev', 'AI DevOps', 'AI QA', 'AI PM', 'AI Designer', 'Chief of Staff'] as const;
+const AGENT_ROLES = [
+  'Chief of Staff',
+  'AI CFO',
+  'AI Dev',
+  'AI DevOps',
+  'AI PM',
+  'AI Designer',
+  'AI Game Dev',
+  'AI QA',
+  'AI Marketer',
+  'AI Research',
+  'AI Sales',
+  'AI Accountant',
+  'AI Auditor',
+  'AI Legal',
+  'AI Onboarding',
+  'AI Support',
+  'AI Analyst',
+] as const;
 
 const DEFAULT_CONTEXT_FILES = [
   'server.ts',
