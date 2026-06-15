@@ -13,6 +13,7 @@ import GrowthStudioTab from './tabs/GrowthStudioTab';
 import SalesCRMTab from './tabs/SalesCRMTab';
 import FinanceCoreTab from './tabs/FinanceCoreTab';
 import RevenueDashboard from '../RevenueDashboard';
+import DevRoomHub from '../DevRoomHub';
 import VietQRReconcilerTab from './tabs/VietQRReconcilerTab';
 import InvoiceOCRTab from './tabs/InvoiceOCRTab';
 import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
@@ -48,6 +49,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'workboard') return <WorkboardTab />;
   if (tab === 'tasks') return <TaskQueueTab />;
   if (tab === 'factory') return <ProductFactoryTab />;
+  if (tab === 'devroom') return <DevRoomHub />;
   if (tab === 'growth') return <GrowthStudioTab />;
   if (tab === 'sales') return <SalesCRMTab />;
   if (tab === 'finance') return <FinanceCoreTab />;
