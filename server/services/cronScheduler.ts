@@ -1,4 +1,4 @@
-import cron from "node-cron";
+import cron, { type ScheduledTask } from "node-cron";
 import { createClient } from "@supabase/supabase-js";
 import { callAIWithFallback } from "./aiRouter";
 
@@ -13,7 +13,7 @@ export interface CronJobDefinition {
   lastStatus?: "ok" | "error" | "skipped";
 }
 
-const activeJobs = new Map<string, cron.ScheduledTask>();
+const activeJobs = new Map<string, ScheduledTask>();
 const runtimeStatus = new Map<string, Pick<CronJobDefinition, "lastRun" | "lastStatus">>();
 let schedulerStarted = false;
 
@@ -42,14 +42,7 @@ async function getActiveUserIds(): Promise<string[]> {
 }
 
 export async function createNotification(userId: string, title: string, content: string, type: string, metadata: Record<string, unknown> = {}) {
-  const { error } = await supabaseAdmin().from("notifications").insert({
-    user_id: userId,
-    title,
-    content,
-    type,
-    metadata,
-    is_read: false,
-  });
+  const { error } = await supabaseAdmin().from("notifications").insert({ user_id: userId, title, content, type, metadata, is_read: false });
   if (error) throw error;
 }
 
@@ -88,12 +81,7 @@ async function runWeeklyReport(userId: string): Promise<void> {
 
 async function runMonthlyCloseReminder(userId: string): Promise<void> {
   const month = new Date().toLocaleDateString("vi-VN", { month: "long", year: "numeric" });
-  await createNotification(
-    userId,
-    `Nhắc nhở đóng sổ — ${month}`,
-    "📋 Checklist đóng sổ cuối tháng:\n□ Đối chiếu sao kê ngân hàng (VietQR Reconciler)\n□ Kiểm tra công nợ phải thu/phải trả\n□ Tính khấu hao TSCĐ\n□ Rà soát hóa đơn chưa ghi nhận\n□ Tính lương + BHXH\n□ Tạm tính thuế TNDN\n□ Kê khai thuế GTGT nếu đến kỳ\n□ Chạy báo cáo tài chính sơ bộ\n\n→ Dùng VietQR Reconciler và Invoice OCR để tự động hóa bước 1-4.",
-    "monthly_reminder",
-  );
+  await createNotification(userId, `Nhắc nhở đóng sổ — ${month}`, "📋 Checklist đóng sổ cuối tháng:\n□ Đối chiếu sao kê ngân hàng (VietQR Reconciler)\n□ Kiểm tra công nợ phải thu/phải trả\n□ Tính khấu hao TSCĐ\n□ Rà soát hóa đơn chưa ghi nhận\n□ Tính lương + BHXH\n□ Tạm tính thuế TNDN\n□ Kê khai thuế GTGT nếu đến kỳ\n□ Chạy báo cáo tài chính sơ bộ\n\n→ Dùng VietQR Reconciler và Invoice OCR để tự động hóa bước 1-4.", "monthly_reminder");
 }
 
 async function runJobForUser(jobName: CronJobName, userId: string) {
@@ -106,7 +94,6 @@ async function runJobForUser(jobName: CronJobName, userId: string) {
 export function startCronScheduler(): void {
   if (schedulerStarted) return;
   schedulerStarted = true;
-
   for (const job of JOB_REGISTRY) {
     if (!job.enabled) continue;
     const task = cron.schedule(job.schedule, async () => {
@@ -141,10 +128,5 @@ export async function triggerJobNow(jobName: string, userId: string): Promise<{ 
 }
 
 export function getCronStatus() {
-  return JOB_REGISTRY.map((job) => ({
-    ...job,
-    ...(runtimeStatus.get(job.name) || {}),
-    isRunning: activeJobs.has(job.name),
-    timezone: "Asia/Ho_Chi_Minh",
-  }));
+  return JOB_REGISTRY.map((job) => ({ ...job, ...(runtimeStatus.get(job.name) || {}), isRunning: activeJobs.has(job.name), timezone: "Asia/Ho_Chi_Minh" }));
 }
