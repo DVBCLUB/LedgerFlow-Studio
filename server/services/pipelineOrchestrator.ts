@@ -199,6 +199,35 @@ function getSupabaseServiceClient() {
   return createClient(url, key);
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function buildCompanyMemoryContext(userId: string): Promise<string> {
+  if (!userId || userId === 'local' || !isUuid(userId)) return '';
+  const sb = getSupabaseServiceClient();
+  if (!sb) return '';
+
+  const { data, error } = await sb
+    .from('company_memory')
+    .select('memory_type, title, content, agent_author, importance, tags')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .in('importance', ['critical', 'high'])
+    .or('expires_at.is.null,expires_at.gt.now()')
+    .order('created_at', { ascending: false })
+    .limit(8);
+
+  if (error || !data?.length) return '';
+
+  return '\n\n---\nCOMPANY CONTEXT (luôn nhớ trước khi trả lời):\n' +
+    data.map((memory: any) => {
+      const tags = Array.isArray(memory.tags) && memory.tags.length ? ` #${memory.tags.join(' #')}` : '';
+      return `[${String(memory.memory_type).toUpperCase()} · ${memory.importance}] ${memory.title}: ${memory.content}${tags}`;
+    }).join('\n') +
+    '\n---\n';
+}
+
 async function executeAgentPrompt(agentRole: string, prompt: string): Promise<string> {
   const role = getAgentRole(agentRole);
   const result = await callAI([
@@ -267,6 +296,7 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
     .slice(0, startIndex)
     .map((step) => step.output || '')
     .filter(Boolean);
+  const memoryContext = await buildCompanyMemoryContext(pipeline.userId).catch(() => '');
 
   for (let index = startIndex; index < template.steps.length; index += 1) {
     const stepDef = template.steps[index];
@@ -278,7 +308,13 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
       continue;
     }
 
-    step.prompt = stepDef.buildPrompt(pipeline.input, prevOutputs);
+    const taskPrompt = stepDef.buildPrompt(pipeline.input, prevOutputs);
+    step.prompt = memoryContext ? `${memoryContext}\n\n${taskPrompt}` : taskPrompt;
+    step.context = {
+      ...(step.context || {}),
+      memoryInjected: Boolean(memoryContext),
+      pipelineType: pipeline.type,
+    };
     step.status = 'running';
     step.startedAt = new Date().toISOString();
     step.error = undefined;
