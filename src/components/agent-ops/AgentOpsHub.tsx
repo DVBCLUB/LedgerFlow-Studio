@@ -14,6 +14,7 @@ import SalesCRMTab from './tabs/SalesCRMTab';
 import FinanceCoreTab from './tabs/FinanceCoreTab';
 import RevenueDashboard from '../RevenueDashboard';
 import VietQRReconcilerTab from './tabs/VietQRReconcilerTab';
+import InvoiceOCRTab from './tabs/InvoiceOCRTab';
 import ProjectsDeliveryCoreTab from './tabs/ProjectsDeliveryCoreTab';
 import DocumentsApprovalTab from './tabs/DocumentsApprovalTab';
 import AnalyticsSandboxTab from './tabs/AnalyticsSandboxTab';
@@ -52,6 +53,7 @@ function renderTab(tab: AgentOpsHubTab) {
   if (tab === 'finance') return <FinanceCoreTab />;
   if (tab === 'revenue') return <RevenueDashboard />;
   if (tab === 'vietqr') return <VietQRReconcilerTab />;
+  if (tab === 'invoiceOcr') return <InvoiceOCRTab />;
   if (tab === 'projects') return <ProjectsDeliveryCoreTab />;
   if (tab === 'documents') return <DocumentsApprovalTab />;
   if (tab === 'analytics') return <AnalyticsSandboxTab />;
