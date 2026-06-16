@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, Compass, LayoutList, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
+import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, Compass, Download, LayoutList, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
 import LandingPageCopyLab from './LandingPageCopyLab';
 import EmailSequenceBuilder from './EmailSequenceBuilder';
 import PLGConversionHub from './PLGConversionHub';
@@ -8,9 +8,10 @@ import MarketingV2QAConsole from './MarketingV2QAConsole';
 import MarketingV2LaunchPlaybookPanel from './MarketingV2LaunchPlaybookPanel';
 import MarketingV2ExecutionBoardPanel from './MarketingV2ExecutionBoardPanel';
 import MarketingV2AccessGuidePanel from './MarketingV2AccessGuidePanel';
+import MarketingV2ExportPackPanel from './MarketingV2ExportPackPanel';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'execution' | 'access' | 'rollout' | 'qa';
+type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'execution' | 'access' | 'export' | 'rollout' | 'qa';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -59,6 +60,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     label: 'Access Guide',
     note: 'Cách nối workspace vào app mà không phá router.',
     icon: Compass,
+  },
+  {
+    id: 'export',
+    label: 'Export Pack',
+    note: 'Xuất kế hoạch V2 thành Markdown để gửi/handoff.',
+    icon: Download,
   },
   {
     id: 'rollout',
@@ -137,7 +144,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-9">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-10">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -180,6 +187,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'launch' && <MarketingV2LaunchPlaybookPanel />}
         {activeTab === 'execution' && <MarketingV2ExecutionBoardPanel />}
         {activeTab === 'access' && <MarketingV2AccessGuidePanel />}
+        {activeTab === 'export' && <MarketingV2ExportPackPanel />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
         {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
