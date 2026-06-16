@@ -10,12 +10,20 @@ import {
 
 type PLGTab = 'aha' | 'activation' | 'pricing' | 'metrics' | 'advisor';
 
+type AIChatResponse = {
+  success?: boolean;
+  text?: string;
+  content?: string;
+  output?: string;
+  error?: string;
+};
+
 const tabs: { id: PLGTab; label: string }[] = [
   { id: 'aha', label: 'Aha moments' },
   { id: 'activation', label: 'Activation path' },
   { id: 'pricing', label: 'Freemium' },
   { id: 'metrics', label: 'Metrics' },
-  { id: 'advisor', label: 'AI prompt' },
+  { id: 'advisor', label: 'AI advisor' },
 ];
 
 export default function PLGConversionHub() {
@@ -166,8 +174,46 @@ function AdvisorPrompt({
   setUserState: (value: string) => void;
   advisorPrompt: string;
 }) {
+  const [recommendation, setRecommendation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const copyPrompt = async () => {
     await navigator.clipboard?.writeText(advisorPrompt);
+  };
+
+  const copyRecommendation = async () => {
+    await navigator.clipboard?.writeText(recommendation);
+  };
+
+  const runAdvisor = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: advisorPrompt,
+          systemInstruction:
+            'Bạn là PLG strategist cho B2B SaaS Việt Nam. Trả lời bằng tiếng Việt, thực tế, không hứa quá mức. Luôn đưa next action, trigger, metric và rủi ro cần kiểm soát.',
+          history: [],
+          model: 'ai-assistant-pro',
+        }),
+      });
+      const data = (await response.json()) as AIChatResponse;
+      const text = data.text ?? data.content ?? data.output;
+      if (!response.ok || !text) {
+        throw new Error(data.error ?? 'AI Gateway chưa trả về nội dung.');
+      }
+      setRecommendation(text);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Không gọi được AI Gateway.';
+      setError(`${message} Đang dùng khuyến nghị offline.`);
+      setRecommendation(buildOfflineRecommendation(userState));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -179,23 +225,49 @@ function AdvisorPrompt({
           onChange={(event) => setUserState(event.target.value)}
           className="mt-3 min-h-[220px] w-full rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm font-semibold leading-6 text-white outline-none focus:border-emerald-400"
         />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={runAdvisor}
+            disabled={loading}
+            className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? 'Đang phân tích...' : 'Tạo khuyến nghị AI'}
+          </button>
+          <button
+            onClick={copyPrompt}
+            className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-emerald-400/60 hover:text-emerald-200"
+          >
+            Copy prompt
+          </button>
+          {recommendation && (
+            <button
+              onClick={copyRecommendation}
+              className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-emerald-400/60 hover:text-emerald-200"
+            >
+              Copy draft
+            </button>
+          )}
+        </div>
+        {error && <p className="mt-3 text-xs font-semibold leading-5 text-amber-200">{error}</p>}
       </div>
       <div className="rounded-3xl border border-emerald-400/25 bg-emerald-400/10 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200">AI recommendation prompt</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-200">AI recommendation</p>
             <h3 className="mt-1 text-lg font-black text-white">Next-best-action cho PLG</h3>
           </div>
-          <button onClick={copyPrompt} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-emerald-200">
-            Copy prompt
-          </button>
+          <Rocket size={20} className="text-emerald-200" />
         </div>
         <pre className="mt-4 max-h-[420px] overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-xs font-semibold leading-6 text-slate-300">
-          {advisorPrompt}
+          {recommendation || advisorPrompt}
         </pre>
       </div>
     </section>
   );
+}
+
+function buildOfflineRecommendation(userState: string) {
+  return `**PLG NEXT-BEST-ACTION — OFFLINE FALLBACK**\n\n**User state:** ${userState}\n\n**Ưu tiên 1:** Đẩy user tới Aha Moment gần nhất: tạo 1 công trình/dự án và nhập ít nhất 5 giao dịch mẫu.\n\n**Trigger đề xuất:** Nếu user chưa tạo project sau 24–48h, hiển thị checklist 3 bước trong app và gửi activation email ngắn.\n\n**Metric cần đo:** project_created_24h, transactions_count_7d, first_report_exported_7d.\n\n**Rủi ro:** Đừng paywall quá sớm khi user chưa thấy dashboard có dữ liệu thật. Giữ bản free/trial đủ để tạo giá trị đầu tiên.\n\n**Next action:** Thêm CTA \"Tạo công trình đầu tiên\" và template dữ liệu mẫu ngay trong onboarding.`;
 }
 
 function InfoBox({ label, value, warning = false }: { label: string; value: string; warning?: boolean }) {
