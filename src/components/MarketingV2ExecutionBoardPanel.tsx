@@ -1,3 +1,4 @@
+import type React from 'react';
 import { CheckCircle2, Clock3, GitBranch, ShieldAlert } from 'lucide-react';
 import {
   MARKETING_V2_EXECUTION_BOARD,
@@ -12,7 +13,7 @@ const statusStyles: Record<MarketingV2ExecutionStatus, string> = {
   blocked: 'border-rose-400/35 bg-rose-400/10 text-rose-200',
 };
 
-const statusIcon: Record<MarketingV2ExecutionStatus, JSX.Element> = {
+const statusIcon: Record<MarketingV2ExecutionStatus, React.ReactNode> = {
   done: <CheckCircle2 size={16} />,
   wired: <GitBranch size={16} />,
   pending: <Clock3 size={16} />,
