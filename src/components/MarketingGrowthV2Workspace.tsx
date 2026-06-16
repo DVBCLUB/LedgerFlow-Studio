@@ -1,12 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CheckCircle2, Clock3, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
+import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
 import LandingPageCopyLab from './LandingPageCopyLab';
 import EmailSequenceBuilder from './EmailSequenceBuilder';
 import PLGConversionHub from './PLGConversionHub';
 import MarketingCommandCenter from './MarketingCommandCenter';
+import MarketingV2QAConsole from './MarketingV2QAConsole';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'rollout';
+type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'rollout' | 'qa';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -43,6 +44,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     label: 'Rollout Status',
     note: 'Checklist triển khai V2 và các lệnh cần chạy.',
     icon: Route,
+  },
+  {
+    id: 'qa',
+    label: 'QA Console',
+    note: 'Manual checks + lint/build commands sau khi nối UI.',
+    icon: ClipboardCheck,
   },
 ];
 
@@ -109,7 +116,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -150,6 +157,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'email' && <EmailSequenceBuilder />}
         {activeTab === 'plg' && <PLGConversionHub />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
+        {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
     </div>
   );
