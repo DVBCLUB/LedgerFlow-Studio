@@ -10,24 +10,30 @@ import {
   ShieldCheck,
   Target,
   TrendingUp,
-  Users
+  Users,
 } from 'lucide-react';
+import LeadPersonaCanvasPanel from './LeadPersonaCanvasPanel';
 import {
   BEHAVIOR_SIGNALS,
   DISQUALIFY_RULES,
-  LEAD_EXAMPLES,
   LEAD_FIT_CRITERIA,
   NEXT_ACTION_RULES,
-  QUALIFICATION_QUESTIONS
+  QUALIFICATION_QUESTIONS,
 } from '../data/leadScoringKnowledge';
 
-type LeadTab = 'criteria' | 'signals' | 'calculator' | 'queue';
+type LeadTab = 'criteria' | 'signals' | 'calculator' | 'queue' | 'persona_canvas';
+
+type RangeControl = {
+  label: string;
+  value: number;
+  setter: React.Dispatch<React.SetStateAction<number>>;
+};
 
 const sampleLeads = [
   { name: 'Kế toán trưởng SME', company: 'Công ty dịch vụ nhỏ', fit: 92, pain: 'Báo cáo sếp chậm, tạm ứng treo 300 triệu', next: 'Demo dashboard ngân sách và hoàn ứng.' },
   { name: 'Chủ doanh nghiệp sản phẩm số', company: 'Studio 30 nhân sự', fit: 85, pain: 'Không biết dự án/sản phẩm nào lãi/lỗ', next: 'Gửi brief 5 KPI cho sếp.' },
   { name: 'Ops/Admin lead', company: 'Team triển khai HCM', fit: 68, pain: 'Chứng từ và dữ liệu vận hành dễ lệch', next: 'Demo form nhập nhanh và exception board.' },
-  { name: 'Sinh viên kế toán', company: 'Cá nhân', fit: 35, pain: 'Muốn học thử', next: 'Đưa vào nhóm nuôi dưỡng, chưa bán gói công ty.' }
+  { name: 'Sinh viên kế toán', company: 'Cá nhân', fit: 35, pain: 'Muốn học thử', next: 'Đưa vào nhóm nuôi dưỡng, chưa bán gói công ty.' },
 ];
 
 export default function LeadScoringEngine() {
@@ -44,7 +50,13 @@ export default function LeadScoringEngine() {
   }, [industryFit, painLevel, authority, budget, timing]);
 
   const scoreLabel = score >= 80 ? 'Hot lead' : score >= 60 ? 'Warm lead' : score >= 40 ? 'Nurture' : 'Low fit';
-  const action = score >= 80 ? 'Hẹn demo ngay trong ngày, xin file mẫu đã ẩn thông tin.' : score >= 60 ? 'Gửi case đúng nỗi đau và hỏi 3 câu chẩn đoán.' : score >= 40 ? 'Nuôi dưỡng bằng checklist/template.' : 'Không tốn nhiều thời gian follow-up.';
+  const action = score >= 80
+    ? 'Hẹn demo ngay trong ngày, xin file mẫu đã ẩn thông tin.'
+    : score >= 60
+      ? 'Gửi case đúng nỗi đau và hỏi 3 câu chẩn đoán.'
+      : score >= 40
+        ? 'Nuôi dưỡng bằng checklist/template.'
+        : 'Không tốn nhiều thời gian follow-up.';
 
   const leadBrief = `LEAD SCORING LEDGERFLOW\n\nĐiểm lead: ${score}/100\nPhân loại: ${scoreLabel}\nHành động kế tiếp: ${action}\n\nTiêu chí: đúng ngành, nỗi đau rõ, có quyền quyết định, có khả năng trả tiền, timing phù hợp.`;
 
@@ -58,7 +70,16 @@ export default function LeadScoringEngine() {
     { id: 'criteria', label: 'Criteria' },
     { id: 'signals', label: 'Signals' },
     { id: 'calculator', label: 'Calculator' },
-    { id: 'queue', label: 'Action queue' }
+    { id: 'queue', label: 'Action queue' },
+    { id: 'persona_canvas', label: 'Persona/JTBD' },
+  ];
+
+  const controls: RangeControl[] = [
+    { label: 'Đúng ngành', value: industryFit, setter: setIndustryFit },
+    { label: 'Nỗi đau rõ', value: painLevel, setter: setPainLevel },
+    { label: 'Quyền quyết định', value: authority, setter: setAuthority },
+    { label: 'Khả năng trả tiền', value: budget, setter: setBudget },
+    { label: 'Timing', value: timing, setter: setTiming },
   ];
 
   return (
@@ -74,8 +95,7 @@ export default function LeadScoringEngine() {
               Chấm điểm lead Company OS để khỏi mất thời gian bán sai người
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp ưu tiên lead có nỗi đau thật: dữ liệu vận hành rời rạc, tạm ứng treo,
-              hồ sơ thiếu, báo cáo sếp chậm và thiếu daily brief. Điểm lead càng cao thì càng nên hẹn demo nhanh.
+              Module này giúp ưu tiên lead có nỗi đau thật: dữ liệu vận hành rời rạc, tạm ứng treo, hồ sơ thiếu, báo cáo sếp chậm và thiếu daily brief. Điểm lead càng cao thì càng nên hẹn demo nhanh.
             </p>
           </div>
 
@@ -155,21 +175,15 @@ export default function LeadScoringEngine() {
               Lead score calculator
             </h2>
             <div className="space-y-4">
-              {[
-                ['Đúng ngành', industryFit, setIndustryFit],
-                ['Nỗi đau rõ', painLevel, setPainLevel],
-                ['Quyền quyết định', authority, setAuthority],
-                ['Khả năng trả tiền', budget, setBudget],
-                ['Timing', timing, setTiming]
-              ].map(([label, value, setter]) => (
-                <label key={label as string} className="block">
-                  <span className="mb-1 block text-xs font-black text-slate-400">{label as string}: {value as number}/10</span>
+              {controls.map((control) => (
+                <label key={control.label} className="block">
+                  <span className="mb-1 block text-xs font-black text-slate-400">{control.label}: {control.value}/10</span>
                   <input
                     type="range"
                     min="1"
                     max="10"
-                    value={value as number}
-                    onChange={(e) => (setter as React.Dispatch<React.SetStateAction<number>>)(Number(e.target.value))}
+                    value={control.value}
+                    onChange={(event) => control.setter(Number(event.target.value))}
                     className="w-full accent-red-400"
                   />
                 </label>
@@ -247,14 +261,15 @@ export default function LeadScoringEngine() {
         </section>
       )}
 
+      {tab === 'persona_canvas' && <LeadPersonaCanvasPanel />}
+
       <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200">
           <CheckCircle2 className="h-4 w-4" />
           Nguyên tắc lead scoring
         </h2>
         <p className="text-xs font-semibold leading-7 text-slate-300">
-          Lead tốt không phải người khen sản phẩm hay. Lead tốt là người có nỗi đau rõ, có dữ liệu thật,
-          có quyền kéo người quyết định vào demo và có khả năng trả tiền cho việc giảm lỗi/giảm thời gian.
+          Lead tốt không phải người khen sản phẩm hay. Lead tốt là người có nỗi đau rõ, có dữ liệu thật, có quyền kéo người quyết định vào demo và có khả năng trả tiền cho việc giảm lỗi/giảm thời gian.
         </p>
       </section>
     </div>
