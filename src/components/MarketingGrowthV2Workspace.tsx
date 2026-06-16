@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, LayoutList, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
+import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, Compass, LayoutList, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
 import LandingPageCopyLab from './LandingPageCopyLab';
 import EmailSequenceBuilder from './EmailSequenceBuilder';
 import PLGConversionHub from './PLGConversionHub';
@@ -7,9 +7,10 @@ import MarketingCommandCenter from './MarketingCommandCenter';
 import MarketingV2QAConsole from './MarketingV2QAConsole';
 import MarketingV2LaunchPlaybookPanel from './MarketingV2LaunchPlaybookPanel';
 import MarketingV2ExecutionBoardPanel from './MarketingV2ExecutionBoardPanel';
+import MarketingV2AccessGuidePanel from './MarketingV2AccessGuidePanel';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'rollout' | 'qa' | 'execution';
+type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'execution' | 'access' | 'rollout' | 'qa';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -52,6 +53,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     label: 'Execution Board',
     note: 'Bảng tiến độ spec: done, wired, pending, owner.',
     icon: LayoutList,
+  },
+  {
+    id: 'access',
+    label: 'Access Guide',
+    note: 'Cách nối workspace vào app mà không phá router.',
+    icon: Compass,
   },
   {
     id: 'rollout',
@@ -130,7 +137,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-8">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-9">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -172,6 +179,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'plg' && <PLGConversionHub />}
         {activeTab === 'launch' && <MarketingV2LaunchPlaybookPanel />}
         {activeTab === 'execution' && <MarketingV2ExecutionBoardPanel />}
+        {activeTab === 'access' && <MarketingV2AccessGuidePanel />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
         {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
