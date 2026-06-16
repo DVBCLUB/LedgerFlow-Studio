@@ -10,9 +10,22 @@ import MarketingV2ExecutionBoardPanel from './MarketingV2ExecutionBoardPanel';
 import MarketingV2AccessGuidePanel from './MarketingV2AccessGuidePanel';
 import MarketingV2ExportPackPanel from './MarketingV2ExportPackPanel';
 import MarketingV2SavedArtifactsPanel from './MarketingV2SavedArtifactsPanel';
+import MarketingV2ApprovalChecklistPanel from './MarketingV2ApprovalChecklistPanel';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'execution' | 'access' | 'export' | 'artifacts' | 'rollout' | 'qa';
+type MarketingGrowthV2Tab =
+  | 'command'
+  | 'landing'
+  | 'email'
+  | 'plg'
+  | 'launch'
+  | 'execution'
+  | 'access'
+  | 'export'
+  | 'artifacts'
+  | 'approval'
+  | 'rollout'
+  | 'qa';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -73,6 +86,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     label: 'Saved Artifacts',
     note: 'Lưu draft AI, prompt và handoff note bằng localStorage.',
     icon: Archive,
+  },
+  {
+    id: 'approval',
+    label: 'Approval Checklist',
+    note: 'Các điểm cần người duyệt trước khi dùng thật.',
+    icon: ClipboardCheck,
   },
   {
     id: 'rollout',
@@ -151,7 +170,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-11">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-12">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -196,6 +215,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'access' && <MarketingV2AccessGuidePanel />}
         {activeTab === 'export' && <MarketingV2ExportPackPanel />}
         {activeTab === 'artifacts' && <MarketingV2SavedArtifactsPanel />}
+        {activeTab === 'approval' && <MarketingV2ApprovalChecklistPanel />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
         {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
