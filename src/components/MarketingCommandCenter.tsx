@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CheckCircle2, Megaphone, Target, TrendingUp } from 'lucide-react';
+import { BarChart3, CheckCircle2, Megaphone, Sparkles, Target, TrendingUp } from 'lucide-react';
 import {
   BATTLE_CARD_BRIEFS,
   CHANNEL_KPIS,
@@ -7,13 +7,22 @@ import {
   MARKETING_SCORECARD,
 } from '../data/marketingCommandKnowledge';
 
-type MarketingTab = 'daily' | 'channels' | 'scorecard' | 'battlecards';
+type MarketingTab = 'daily' | 'channels' | 'scorecard' | 'battlecards' | 'ai_brief';
+
+type AIChatResponse = {
+  success?: boolean;
+  text?: string;
+  content?: string;
+  output?: string;
+  error?: string;
+};
 
 const tabs: { id: MarketingTab; label: string }[] = [
   { id: 'daily', label: 'Daily Brief' },
   { id: 'channels', label: 'Channel KPIs' },
   { id: 'scorecard', label: 'Scorecard' },
   { id: 'battlecards', label: 'Battle Cards' },
+  { id: 'ai_brief', label: 'AI Brief' },
 ];
 
 export default function MarketingCommandCenter() {
@@ -33,11 +42,12 @@ export default function MarketingCommandCenter() {
         </p>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-5">
         <StatCard label="Channels" value={CHANNEL_KPIS.length.toString()} icon={<Megaphone size={18} />} />
         <StatCard label="Daily prompts" value={MARKETING_DAILY_BRIEF_TEMPLATE.length.toString()} icon={<CheckCircle2 size={18} />} />
         <StatCard label="Scorecards" value={MARKETING_SCORECARD.length.toString()} icon={<BarChart3 size={18} />} />
         <StatCard label="Battle cards" value={BATTLE_CARD_BRIEFS.length.toString()} icon={<Target size={18} />} />
+        <StatCard label="AI brief" value="Ready" icon={<Sparkles size={18} />} />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -60,6 +70,7 @@ export default function MarketingCommandCenter() {
       {activeTab === 'channels' && <ChannelGrid />}
       {activeTab === 'scorecard' && <Scorecard />}
       {activeTab === 'battlecards' && <BattleCards />}
+      {activeTab === 'ai_brief' && <AIBriefConsole />}
     </div>
   );
 }
@@ -163,6 +174,110 @@ function BattleCards() {
       ))}
     </div>
   );
+}
+
+function AIBriefConsole() {
+  const [context, setContext] = useState(
+    'LedgerFlow đang chuẩn bị launch Marketing V2: landing copy, email sequence, PLG hub, battle cards và persona/JTBD. Chưa có dữ liệu analytics thật, dùng static playbook trước.',
+  );
+  const [brief, setBrief] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const prompt = useMemo(
+    () => buildMarketingBriefPrompt(context),
+    [context],
+  );
+
+  const runBrief = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          systemInstruction:
+            'Bạn là Growth Marketer và Chief of Staff cho B2B SaaS Việt Nam. Trả lời ngắn, rõ, hành động được. Không bịa số liệu; nếu chưa có dữ liệu thật thì ghi rõ là giả định/offline playbook.',
+          history: [],
+          model: 'ai-assistant-pro',
+        }),
+      });
+      const data = (await response.json()) as AIChatResponse;
+      const text = data.text ?? data.content ?? data.output;
+      if (!response.ok || !text) {
+        throw new Error(data.error ?? 'AI Gateway chưa trả về nội dung.');
+      }
+      setBrief(text);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Không gọi được AI Gateway.';
+      setError(`${message} Đang dùng daily brief offline.`);
+      setBrief(buildOfflineMarketingBrief(context));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyBrief = async () => {
+    await navigator.clipboard?.writeText(brief || prompt);
+  };
+
+  return (
+    <section className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-5">
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">AI daily brief input</p>
+        <textarea
+          value={context}
+          onChange={(event) => setContext(event.target.value)}
+          className="mt-3 min-h-[220px] w-full rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm font-semibold leading-6 text-white outline-none focus:border-sky-400"
+        />
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            onClick={runBrief}
+            disabled={loading}
+            className="rounded-2xl bg-sky-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-sky-200 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? 'Đang tạo brief...' : 'Tạo AI brief'}
+          </button>
+          <button
+            onClick={copyBrief}
+            className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-sky-400/60 hover:text-sky-200"
+          >
+            Copy brief/prompt
+          </button>
+        </div>
+        {error && <p className="mt-3 text-xs font-semibold leading-5 text-amber-200">{error}</p>}
+      </div>
+      <div className="rounded-3xl border border-sky-400/25 bg-sky-400/10 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">Founder-ready output</p>
+            <h3 className="mt-1 text-lg font-black text-white">Marketing daily brief</h3>
+          </div>
+          <Sparkles size={20} className="text-sky-200" />
+        </div>
+        <pre className="mt-4 max-h-[460px] overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-xs font-semibold leading-6 text-slate-300">
+          {brief || prompt}
+        </pre>
+      </div>
+    </section>
+  );
+}
+
+function buildMarketingBriefPrompt(context: string) {
+  const questions = MARKETING_DAILY_BRIEF_TEMPLATE.map(
+    (item) => `- ${item.section} (${item.owner}): ${item.question} → ${item.output}`,
+  ).join('\n');
+  const scorecard = MARKETING_SCORECARD.map(
+    (item) => `- ${item.metric}: target ${item.target}; nếu thấp thì ${item.actionWhenLow}`,
+  ).join('\n');
+
+  return `Tạo Marketing Daily Brief cho LedgerFlow Studio.\n\nBối cảnh hiện tại:\n${context}\n\nCâu hỏi daily brief cần trả lời:\n${questions}\n\nScorecard cần xem:\n${scorecard}\n\nOutput bằng tiếng Việt, format markdown:\n1. Tình hình hôm nay\n2. 3 ưu tiên marketing hôm nay\n3. Kênh cần tập trung\n4. Rủi ro/giả định chưa có dữ liệu\n5. Next action trong 24 giờ\n\nKhông bịa số liệu. Nếu chưa có tracking thật, ghi rõ là dùng playbook offline-first.`;
+}
+
+function buildOfflineMarketingBrief(context: string) {
+  return `**MARKETING DAILY BRIEF — OFFLINE FALLBACK**\n\n**Bối cảnh:** ${context}\n\n**Tình hình hôm nay:** Marketing V2 đã có nền: Landing Copy, Email Sequence, PLG, Battle Cards, Persona/JTBD và Marketing Command Center. Dữ liệu analytics thật chưa nối, nên các quyết định đang dựa trên playbook offline-first.\n\n**3 ưu tiên:**\n1. Nối MarketingGrowthV2Workspace vào MarketingSuite để user bấm được.\n2. Tạo landing page copy đầu tiên cho kế toán xây dựng/solo founder.\n3. Chọn 1 email sequence trial → paid để chạy thử.\n\n**Kênh cần tập trung:** Facebook Group kế toán + Zalo OA + founder-led email, vì phù hợp thị trường SME Việt Nam và không cần paid API ngay.\n\n**Rủi ro:** Chưa có event tracking thật nên không kết luận conversion. Cần đánh dấu mọi số liệu là giả định hoặc benchmark.\n\n**Next action 24h:** Apply docs/CODEX_PATCH_MARKETING_SUITE_V2_TAB.md, chạy lint/build, rồi test tab V2 Growth OS.`;
 }
 
 function InfoBox({ label, value, warning = false }: { label: string; value: string; warning?: boolean }) {
