@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
+import CustomDataWorkbenchDeepDivePanel from './CustomDataWorkbenchDeepDivePanel';
 import { 
   Database, 
   Terminal, 
@@ -188,7 +189,7 @@ HD-2026-005,2026-05-25,Thuê nhân công dọn dẹp vệ sinh,11000000,KK`);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Workspace sub-tabs (PHÂN HỆ 1: RAW DATA CLEAN / PHÂN HỆ 2: RDBMS MANAGER)
-  const [workspaceMode, setWorkspaceMode] = useState<'parser' | 'rdbms'>('parser');
+  const [workspaceMode, setWorkspaceMode] = useState<'parser' | 'rdbms' | 'deepdive'>('parser');
   const [activeDbTab, setActiveDbTab] = useState<'users' | 'projects' | 'transactions' | 'assets'>('projects');
 
   // Relational Local DB
@@ -778,6 +779,17 @@ Hãy ưu tiên viết:
         </div>
       </div>
 
+      <section className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
+          <ShieldCheck className="h-4 w-4 text-amber-300" />
+          Boundary note
+        </h2>
+        <p className="text-xs font-semibold leading-7 text-slate-300">
+          Custom Data Workbench la workspace mo phong offline-first cho schema preview, query builder va pivot simulation.
+          Du lieu mau co the nam trong static data hoac localStorage; ket qua trich loc, export va RDBMS demo can duoc nguoi duyet kiem tra truoc khi dung cho so sach, bao cao hoac migrate du lieu that.
+        </p>
+      </section>
+
       {/* PHÂN HỆ TẬP TRUNG TÙY CHỌN */}
       <div className="flex bg-[#0b0f19] border border-slate-850 p-1.5 rounded-2xl shadow-inner select-none font-sans">
         <button
@@ -802,9 +814,22 @@ Hãy ưu tiên viết:
           <Database className="w-4 h-4 text-purple-400" />
           <span>Phân Hệ II: Hệ Quản Trị RDBMS &amp; Sơ Đồ ERD</span>
         </button>
+        <button
+          onClick={() => setWorkspaceMode('deepdive')}
+          className={`flex-1 py-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            workspaceMode === 'deepdive'
+              ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/10'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-950/65'
+          }`}
+        >
+          <BookOpen className="w-4 h-4 text-purple-400" />
+          <span>Deep Dive: Schema Query Pivot</span>
+        </button>
       </div>
 
-      {workspaceMode === 'parser' ? (
+      {workspaceMode === 'deepdive' && <CustomDataWorkbenchDeepDivePanel />}
+
+      {workspaceMode === 'parser' && (
         <>
           {/* QUICK PRESETS SELECTION */}
           <div className="bg-slate-900/60 p-5 rounded-xl border border-slate-800 space-y-3.5">
@@ -1134,7 +1159,9 @@ Hãy ưu tiên viết:
         </section>
       </div>
     </>
-  ) : (
+  )}
+
+  {workspaceMode === 'rdbms' && (
     /* PHÂN HỆ II: STATE-OF-THE-ART LOCAL RDBMS MANAGER SYSTEM WITH ERD DIAGRAM */
     <div className="space-y-6 font-sans">
       {/* ANALYTICS SUMMARY GRID */}

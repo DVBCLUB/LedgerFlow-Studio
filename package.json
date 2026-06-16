@@ -21,6 +21,7 @@
     "check:desktop": "node scripts/check-desktop-package.mjs",
     "check:runtime": "node scripts/check-runtime-api.mjs",
     "check:offline": "node scripts/check-offline-readiness.mjs",
+    "check:offline-vendor-assets": "node scripts/check-offline-vendor-assets.mjs",
     "check:release": "node scripts/check-release-artifacts.mjs",
     "check:env": "node scripts/check-env-config.mjs",
     "check:hybrid": "node scripts/check-hybrid-release.mjs",

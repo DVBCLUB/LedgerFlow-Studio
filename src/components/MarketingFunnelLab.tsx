@@ -40,7 +40,7 @@ export default function MarketingFunnelLab() {
     return { leads, demos, proposals, paid, mrr };
   }, [traffic, leadRate, demoRate, proposalRate, closeRate, avgPrice]);
 
-  const funnelBrief = `MARKETING FUNNEL LEDGERFLOW\n\nTraffic: ${traffic}\nLeads: ${metrics.leads}\nDemos: ${metrics.demos}\nProposals: ${metrics.proposals}\nPaid customers: ${metrics.paid}\nMRR ước tính: ${new Intl.NumberFormat('vi-VN').format(metrics.mrr)}đ\n\nƯu tiên: nội dung tạm ứng treo, hồ sơ thiếu, báo cáo sếp, kho/dầu; CTA demo 15 phút hoặc checklist miễn phí.`;
+  const funnelBrief = `MARKETING FUNNEL LEDGERFLOW\n\nTraffic: ${traffic}\nLeads: ${metrics.leads}\nDemos: ${metrics.demos}\nProposals: ${metrics.proposals}\nPaid customers: ${metrics.paid}\nMRR ước tính: ${new Intl.NumberFormat('vi-VN').format(metrics.mrr)}đ\n\nƯu tiên: nội dung Company OS, daily brief, hồ sơ thiếu, báo cáo sếp, accounting templates đa ngành; CTA demo 15 phút hoặc checklist miễn phí.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -65,11 +65,11 @@ export default function MarketingFunnelLab() {
               Marketing Funnel Lab
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Phễu marketing cho phần mềm kế toán công trình
+              Phễu marketing cho LedgerFlow Company OS
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
               Module này nối marketing với sales: traffic → lead → demo → proposal → paid.
-              Trọng tâm là nội dung đúng nỗi đau kế toán/xây dựng, CTA ít rào cản, demo ngắn và đo rò rỉ ở từng bước.
+              Trọng tâm là nội dung đúng nỗi đau solo founder/SME, CTA ít rào cản, demo ngắn và đo rò rỉ ở từng bước.
             </p>
           </div>
 
@@ -264,7 +264,7 @@ export default function MarketingFunnelLab() {
         </h2>
         <p className="text-xs font-semibold leading-7 text-slate-300">
           Funnel tốt không bắt đầu bằng “phần mềm của tôi có nhiều tính năng”. Nó bắt đầu bằng một nỗi đau rõ:
-          tạm ứng treo, hồ sơ thiếu, báo cáo sếp chậm, kho/dầu lệch. Mỗi bước phải có CTA nhỏ và đo được.
+          tạm ứng treo, hồ sơ thiếu, báo cáo sếp chậm, dữ liệu rời rạc. Mỗi bước phải có CTA nhỏ và đo được.
         </p>
       </section>
     </div>

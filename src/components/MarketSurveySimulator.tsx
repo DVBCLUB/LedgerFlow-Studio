@@ -19,8 +19,9 @@ import {
   MARKET_SCORECARD,
   SURVEY_QUESTIONS
 } from '../data/marketSurveyKnowledge';
+import { MARKET_RESEARCHER_OFFLINE_WORKFLOWS } from '../data/marketResearchFinancialModelerPlaybook';
 
-type SurveyTab = 'icp' | 'questions' | 'competitors' | 'scorecard';
+type SurveyTab = 'icp' | 'questions' | 'competitors' | 'scorecard' | 'researcher';
 
 export default function MarketSurveySimulator() {
   const [tab, setTab] = useState<SurveyTab>('icp');
@@ -36,7 +37,7 @@ export default function MarketSurveySimulator() {
     return { score, label };
   }, [painScore, willingnessScore, frequencyScore, competitionScore]);
 
-  const surveyBrief = `BẢN KHẢO SÁT THỊ TRƯỜNG LEDGERFLOW\n\nICP ưu tiên: kế toán dự án xây dựng, kế toán trưởng, thủ kho công trình, chủ doanh nghiệp xây dựng nhỏ.\nNỗi đau chính: chi phí công trình rời rạc, tạm ứng treo, thiếu chứng từ, lệch kho/dầu, báo cáo sếp chậm.\nMVP nên test: nhập chi phí + tạm ứng/hoàn ứng + hồ sơ thiếu + dashboard sếp.\nThông điệp bán hàng: giảm thời gian tổng hợp, thấy ngay rủi ro và không mất quyền kiểm soát số liệu.`;
+  const surveyBrief = `BẢN KHẢO SÁT THỊ TRƯỜNG LEDGERFLOW\n\nICP ưu tiên: solo founder, kế toán trưởng SME, kế toán dịch vụ, chủ doanh nghiệp dịch vụ/thương mại/xây dựng nhỏ.\nNỗi đau chính: dữ liệu rời rạc, tạm ứng treo, thiếu chứng từ, báo cáo sếp chậm, khó biết việc nào cần duyệt trước.\nMVP nên test: Company OS daily brief + finance/accounting template + hồ sơ thiếu + dashboard ra quyết định.\nThông điệp bán hàng: giảm thời gian tổng hợp, thấy ngay rủi ro và không mất quyền kiểm soát số liệu.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -48,7 +49,8 @@ export default function MarketSurveySimulator() {
     { id: 'icp', label: 'ICP' },
     { id: 'questions', label: 'Questions' },
     { id: 'competitors', label: 'Competitors' },
-    { id: 'scorecard', label: 'Scorecard' }
+    { id: 'scorecard', label: 'Scorecard' },
+    { id: 'researcher', label: 'AI Researcher' }
   ];
 
   return (
@@ -61,7 +63,7 @@ export default function MarketSurveySimulator() {
               Market Survey Simulator
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Khảo sát thị trường phần mềm kế toán công trình
+              Khảo sát thị trường Company OS và accounting templates
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
               Module này giúp kiểm tra thị trường trước khi code thêm: ai đau nhất, họ đang dùng gì,
@@ -229,6 +231,33 @@ export default function MarketSurveySimulator() {
               </div>
             </div>
           </div>
+        </section>
+      )}
+
+      {tab === 'researcher' && (
+        <section className="grid gap-4 lg:grid-cols-3">
+          {MARKET_RESEARCHER_OFFLINE_WORKFLOWS.map((workflow) => (
+            <article key={workflow.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+              <Search className="mb-3 h-5 w-5 text-orange-300" />
+              <p className="text-[10px] font-black uppercase tracking-wider text-orange-200">Offline researcher workflow</p>
+              <h2 className="mt-2 text-sm font-black text-white">{workflow.title}</h2>
+              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{workflow.objective}</p>
+              <div className="mt-4 rounded-xl border border-slate-800 bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-slate-500">Inputs</p>
+                <ul className="mt-2 space-y-1 text-xs font-semibold leading-5 text-slate-300">
+                  {workflow.inputs.map((input) => <li key={input}>- {input}</li>)}
+                </ul>
+              </div>
+              <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+                <p className="text-[10px] font-black uppercase text-cyan-200">Method</p>
+                <ul className="mt-2 space-y-1 text-xs font-semibold leading-5 text-cyan-50">
+                  {workflow.method.map((step) => <li key={step}>- {step}</li>)}
+                </ul>
+              </div>
+              <p className="mt-3 text-xs font-semibold leading-6 text-emerald-100">Output: {workflow.output}</p>
+              <p className="mt-2 rounded-xl border border-amber-300/25 bg-amber-400/10 p-3 text-[11px] font-bold leading-5 text-amber-100">{workflow.approvalGate}</p>
+            </article>
+          ))}
         </section>
       )}
 

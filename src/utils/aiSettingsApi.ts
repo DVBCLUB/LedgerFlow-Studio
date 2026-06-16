@@ -108,6 +108,10 @@ export interface AIPreflightReport {
 export interface AIChatResponse {
   success: boolean;
   text?: string;
+  content?: string;
+  output?: string;
+  provider?: string;
+  model?: string;
   modelUsed?: string;
   error?: string;
 }
@@ -241,7 +245,7 @@ export async function importAIKeyBackup(backup: unknown, passphrase: string, mod
 }
 
 export async function callAIFromSettings(prompt: string, model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant"): Promise<AIChatResponse> {
-  return readJson(await fetch("/api/gemini/generate", {
+  return readJson(await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, model }),
@@ -253,7 +257,7 @@ export async function streamAIFromSettings(
   onChunk: (text: string) => void,
   model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant"
 ): Promise<void> {
-  const response = await fetch("/api/gemini/stream", {
+  const response = await fetch("/api/ai/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ prompt, model }),
@@ -285,6 +289,7 @@ export async function streamAIFromSettings(
         const json = JSON.parse(payload);
         if (json.error) throw new Error(json.error);
         if (json.text) onChunk(json.text);
+        if (json.content) onChunk(json.content);
       } catch (err) {
         if (err instanceof Error && payload.startsWith("{")) throw err;
       }

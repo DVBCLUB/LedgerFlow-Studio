@@ -300,15 +300,16 @@ URL: ${context.actionsUrl}
 
 Jobs/steps:\n${jobText || 'Không có job lỗi cụ thể.'}`;
 
-  const data = await readJson<{ success: true; text: string; modelUsed?: string }>(
-    await fetch('/api/gemini/generate', {
+  const data = await readJson<{ success: true; text?: string; content?: string; output?: string; modelUsed?: string; model?: string }>(
+    await fetch('/api/ai/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prompt, model: 'ai-assistant-pro' }),
     }),
   );
 
-  const handoffPrompt = `Hãy sửa lỗi CI trong repo ${context.repo}. Không refactor ngoài phạm vi lỗi. Sau khi sửa chạy npm run lint và npm run build.\n\n${data.text}`;
+  const analysis = data.text || data.content || data.output || '';
+  const handoffPrompt = `Hãy sửa lỗi CI trong repo ${context.repo}. Không refactor ngoài phạm vi lỗi. Sau khi sửa chạy npm run lint và npm run build.\n\n${analysis}`;
   await appendIntegrationEvent('github', { type: 'handoff', level: 'success', message: `AI analyzed CI run ${context.selectedRun?.id || 'latest'}.` }).catch(() => undefined);
-  return { analysis: data.text, modelUsed: data.modelUsed, handoffPrompt };
+  return { analysis, modelUsed: data.modelUsed || data.model, handoffPrompt };
 }

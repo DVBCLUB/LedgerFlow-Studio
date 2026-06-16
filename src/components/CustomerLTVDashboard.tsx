@@ -67,12 +67,12 @@ export default function CustomerLTVDashboard() {
               Customer LTV Dashboard
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Giữ chân khách hàng phần mềm kế toán công trình
+              Giữ chân khách hàng LedgerFlow Company OS
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
               Module này giúp nhìn khách hàng theo giá trị vòng đời, chi phí có được khách, dấu hiệu sắp rời bỏ,
-              onboarding và bằng chứng ROI. Với phần mềm kế toán, giữ chân khách không nằm ở quảng cáo,
-              mà nằm ở việc khách thật sự xuất báo cáo, giảm hồ sơ thiếu và kiểm soát được công trình.
+              onboarding và bằng chứng ROI. Với Company OS/accounting templates, giữ chân khách không nằm ở quảng cáo,
+              mà nằm ở việc khách thật sự xuất báo cáo, giảm hồ sơ thiếu và kiểm soát được dự án hoặc sản phẩm.
             </p>
           </div>
 

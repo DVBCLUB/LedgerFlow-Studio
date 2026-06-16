@@ -40,7 +40,7 @@ export default function PricingStrategyLab() {
     return { monthlySavings, netMonthlyBenefit, paybackMonths, annualRoi };
   }, [monthlyHoursSaved, hourlyCost, monthlySoftwareCost, setupCost]);
 
-  const pricingBrief = `ĐỀ XUẤT ĐỊNH GIÁ LEDGERFLOW\n\n1. Gói nội bộ/offline: dùng thử trong công ty, không tính cloud.\n2. Gói team công trình: 199.000đ/tháng cho một nhóm nhỏ.\n3. Gói công ty xây dựng: 599.000đ/tháng cho nhiều công trình, có cảnh báo và báo cáo sếp.\n4. Phí triển khai riêng: từ 5.000.000đ, gồm tùy chỉnh form, báo cáo, migrate dữ liệu và đào tạo.\n5. Không bán quá rẻ nếu phải support nhiều, migrate Excel bẩn hoặc tùy chỉnh theo từng công ty.`;
+  const pricingBrief = `ĐỀ XUẤT ĐỊNH GIÁ LEDGERFLOW\n\n1. Gói nội bộ/offline: dùng thử trong công ty, không tính cloud.\n2. Gói solo founder/team nhỏ: 199.000đ/tháng cho Company OS local-first.\n3. Gói SME nhiều workspace: 599.000đ/tháng cho nhiều dự án/sản phẩm, có cảnh báo và báo cáo sếp.\n4. Phí triển khai riêng: từ 5.000.000đ, gồm tùy chỉnh form, báo cáo, migrate dữ liệu và đào tạo.\n5. Không bán quá rẻ nếu phải support nhiều, migrate Excel bẩn hoặc tùy chỉnh theo từng công ty.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -65,11 +65,11 @@ export default function PricingStrategyLab() {
               Pricing Strategy Lab
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Định giá phần mềm kế toán: không bán rẻ công sức triển khai
+              Định giá LedgerFlow Company OS: không bán rẻ công sức triển khai
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp tính giá cho phần mềm kế toán công trình theo giá trị thật: tiết kiệm thời gian,
-              giảm hồ sơ thiếu, kiểm soát tạm ứng, vật tư, quỹ dầu và báo cáo sếp. Trọng tâm là tách rõ
+              Module này giúp tính giá cho Company OS và accounting templates theo giá trị thật: tiết kiệm thời gian,
+              giảm hồ sơ thiếu, kiểm soát tạm ứng, theo dõi dự án/sản phẩm và báo cáo sếp. Trọng tâm là tách rõ
               phí phần mềm, phí triển khai, phí migrate dữ liệu và phí support.
             </p>
           </div>

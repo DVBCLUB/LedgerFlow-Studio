@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ShieldCheck } from 'lucide-react';
+import CompanyOSV2ReadinessPanel from './CompanyOSV2ReadinessPanel';
 
 type Tone = 'cyan' | 'violet' | 'emerald' | 'amber' | 'rose' | 'blue' | 'orange';
 
@@ -38,7 +40,8 @@ const tabs = [
   { id: 'product', label: 'Product Studio' },
   { id: 'marketing', label: 'Marketing & Sales' },
   { id: 'sandbox', label: 'Models & Sandbox' },
-  { id: 'finance', label: 'Tài chính' }
+  { id: 'finance', label: 'Tài chính' },
+  { id: 'v2', label: 'V2 Readiness' }
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -397,6 +400,16 @@ export default function CompanyOS() {
         <h2 className="mt-2 text-2xl font-black text-white">LedgerFlow Hub — Company OS</h2>
         <p className="mt-2 text-sm font-semibold leading-6 text-slate-400">Trung tâm điều hành công ty phần mềm: sản phẩm, marketing, sales, tài chính, thư viện tri thức, AI nhân sự, sandbox, tích hợp GitHub/VS Code/AI Gateway. Không còn đóng khung thành công ty xây dựng.</p>
       </div>
+      <section className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+        <h3 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
+          <ShieldCheck className="h-4 w-4 text-amber-300" />
+          Simulation boundary
+        </h3>
+        <p className="text-xs font-semibold leading-7 text-slate-300">
+          Company OS hien la operating dashboard offline-first: nhieu lane dung static data, localStorage va metric mo phong de dieu phoi cong viec truoc khi co backend that.
+          Cac goi y, score, brief va checklist chi ho tro ra quyet dinh; founder hoac nguoi duyet cuoi phai xac nhan bang chung that truoc khi release, chi tien, tu van khach hang hoac thay doi quy trinh van hanh.
+        </p>
+      </section>
       <div className="mb-5 flex gap-2 overflow-x-auto border-b border-slate-800 pb-2">
         {tabs.map((item) => <button key={item.id} onClick={() => setTab(item.id)} className={`shrink-0 rounded-full px-4 py-2 text-xs font-black transition ${tab === item.id ? 'bg-emerald-300 text-slate-950' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white'}`}>{item.label}</button>)}
       </div>
@@ -407,6 +420,7 @@ export default function CompanyOS() {
       {tab === 'marketing' && <MarketingSalesTab />}
       {tab === 'sandbox' && <SandboxTab />}
       {tab === 'finance' && <FinanceTab />}
+      {tab === 'v2' && <CompanyOSV2ReadinessPanel />}
     </div>
   );
 }

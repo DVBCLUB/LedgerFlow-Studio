@@ -24,9 +24,9 @@ import {
 type LeadTab = 'criteria' | 'signals' | 'calculator' | 'queue';
 
 const sampleLeads = [
-  { name: 'Kế toán trưởng công ty xây dựng', company: 'Nhà thầu dân dụng nhỏ', fit: 92, pain: 'Báo cáo sếp chậm, tạm ứng treo 300 triệu', next: 'Demo dashboard ngân sách và hoàn ứng.' },
-  { name: 'Chủ doanh nghiệp cơ điện', company: 'MEP 30 nhân sự', fit: 85, pain: 'Không biết công trình nào lãi/lỗ', next: 'Gửi brief 5 KPI cho sếp.' },
-  { name: 'Thủ kho công trường', company: 'Công trình HCM', fit: 68, pain: 'Phiếu dầu và vật tư dễ lệch', next: 'Demo form nhập nhanh và quỹ dầu.' },
+  { name: 'Kế toán trưởng SME', company: 'Công ty dịch vụ nhỏ', fit: 92, pain: 'Báo cáo sếp chậm, tạm ứng treo 300 triệu', next: 'Demo dashboard ngân sách và hoàn ứng.' },
+  { name: 'Chủ doanh nghiệp sản phẩm số', company: 'Studio 30 nhân sự', fit: 85, pain: 'Không biết dự án/sản phẩm nào lãi/lỗ', next: 'Gửi brief 5 KPI cho sếp.' },
+  { name: 'Ops/Admin lead', company: 'Team triển khai HCM', fit: 68, pain: 'Chứng từ và dữ liệu vận hành dễ lệch', next: 'Demo form nhập nhanh và exception board.' },
   { name: 'Sinh viên kế toán', company: 'Cá nhân', fit: 35, pain: 'Muốn học thử', next: 'Đưa vào nhóm nuôi dưỡng, chưa bán gói công ty.' }
 ];
 
@@ -71,11 +71,11 @@ export default function LeadScoringEngine() {
               Lead Scoring Engine
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Chấm điểm lead kế toán/xây dựng để khỏi mất thời gian bán sai người
+              Chấm điểm lead Company OS để khỏi mất thời gian bán sai người
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp ưu tiên lead có nỗi đau thật: chi phí công trình rời rạc, tạm ứng treo,
-              hồ sơ thiếu, lệch kho/dầu và báo cáo sếp chậm. Điểm lead càng cao thì càng nên hẹn demo nhanh.
+              Module này giúp ưu tiên lead có nỗi đau thật: dữ liệu vận hành rời rạc, tạm ứng treo,
+              hồ sơ thiếu, báo cáo sếp chậm và thiếu daily brief. Điểm lead càng cao thì càng nên hẹn demo nhanh.
             </p>
           </div>
 

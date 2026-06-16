@@ -23,6 +23,20 @@ type AITask = {
   updatedAt: string;
 };
 
+type ChiefBriefResult = {
+  taskId: string;
+  output: string;
+  status: 'idle' | 'loading' | 'ready' | 'error';
+};
+
+type AIChatResponse = {
+  success?: boolean;
+  text?: string;
+  content?: string;
+  output?: string;
+  error?: string;
+};
+
 const agents: AgentRole[] = ['Chief of Staff', 'AI Dev', 'AI Designer', 'AI Accountant', 'AI Auditor', 'AI Data Analyst', 'AI QA', 'AI Marketer'];
 const statuses: TaskStatus[] = ['Inbox', 'Planning', 'Waiting Approval', 'Running', 'Blocked', 'Done'];
 const risks: TaskRisk[] = ['LOW', 'MEDIUM', 'HIGH'];
@@ -104,6 +118,26 @@ function createMarkdown(task: AITask) {
   ].join('\n');
 }
 
+function createChiefOfStaffPrompt(task: AITask) {
+  return [
+    'Create a concise Chief of Staff brief for the founder.',
+    '',
+    'Use this exact structure:',
+    '## Can duyet ngay',
+    '## Viec founder nen lam hom nay',
+    '## Blocker / rui ro',
+    '## Next action',
+    '',
+    'Rules:',
+    '- Use only the task context below.',
+    '- Do not claim external actions were completed.',
+    '- Do not recommend more than 3 priorities.',
+    '- Mark anything uncertain as needs founder review.',
+    '',
+    createMarkdown(task),
+  ].join('\n');
+}
+
 function workCardFromTask(task: AITask): WorkCard {
   return {
     id: `workcard-${task.id}`,
@@ -132,6 +166,7 @@ export default function TaskQueueTab() {
   const [expectedOutput, setExpectedOutput] = useState('');
   const [context, setContext] = useState('');
   const [filter, setFilter] = useState<'ALL' | AgentRole>('ALL');
+  const [chiefBrief, setChiefBrief] = useState<ChiefBriefResult>({ taskId: '', output: '', status: 'idle' });
 
   const tasks = readLocalStorageValue<AITask[]>(TASK_QUEUE_KEY, seedTasks);
   const visibleTasks = useMemo(() => filter === 'ALL' ? tasks : tasks.filter((task) => task.agent === filter), [filter, tasks]);
@@ -197,6 +232,33 @@ export default function TaskQueueTab() {
     appendAgentOpsAudit('AI_TASK_PROMPT_COPIED', task.id, task.title);
   };
 
+  const runChiefBrief = async (task: AITask) => {
+    setChiefBrief({ taskId: task.id, output: '', status: 'loading' });
+    appendAgentOpsAudit('CHIEF_OF_STAFF_AI_REQUESTED', task.id, 'Calling /api/ai/chat for Chief of Staff brief.');
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: createChiefOfStaffPrompt(task),
+          model: 'ai-assistant',
+          systemInstruction: 'You are LedgerFlow AI Chief of Staff. Produce short, evidence-bound founder briefs. Never call tools or external services.'
+        }),
+      });
+      const data = await response.json() as AIChatResponse;
+      if (!response.ok || data.error) throw new Error(data.error || `HTTP ${response.status}`);
+      const output = String(data.text || data.content || data.output || '').trim();
+      if (!output) throw new Error('AI gateway returned empty Chief of Staff output.');
+      setChiefBrief({ taskId: task.id, output, status: 'ready' });
+      appendAgentOpsAudit('CHIEF_OF_STAFF_BRIEF_READY', task.id, `Generated ${output.length} chars through /api/ai/chat.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Chief of Staff AI call failed.';
+      setChiefBrief({ taskId: task.id, output: message, status: 'error' });
+      appendAgentOpsAudit('CHIEF_OF_STAFF_AI_ERROR', task.id, message);
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-cyan-400/30 bg-cyan-400/10 p-4 text-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -250,7 +312,18 @@ export default function TaskQueueTab() {
               <button onClick={() => pushToWorkboard(task)} className="rounded-xl border border-emerald-300/50 px-3 py-2 text-[11px] font-black text-emerald-100 hover:bg-emerald-400/10">To Workboard</button>
               <button onClick={() => requestApproval(task)} className="rounded-xl border border-amber-300/50 px-3 py-2 text-[11px] font-black text-amber-100 hover:bg-amber-400/10">Approval</button>
               <button onClick={() => copyTask(task)} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-[11px] font-black text-cyan-100 hover:bg-cyan-400/10">Copy prompt</button>
+              {task.agent === 'Chief of Staff' && (
+                <button onClick={() => runChiefBrief(task)} disabled={chiefBrief.status === 'loading' && chiefBrief.taskId === task.id} className="rounded-xl border border-violet-300/50 px-3 py-2 text-[11px] font-black text-violet-100 hover:bg-violet-400/10 disabled:cursor-not-allowed disabled:opacity-50">
+                  {chiefBrief.status === 'loading' && chiefBrief.taskId === task.id ? 'Running...' : 'Run Chief brief'}
+                </button>
+              )}
             </div>
+            {task.agent === 'Chief of Staff' && chiefBrief.taskId === task.id && chiefBrief.status !== 'idle' && (
+              <div className={`mt-3 rounded-xl border p-3 text-[11px] font-semibold leading-5 ${chiefBrief.status === 'error' ? 'border-rose-300/40 bg-rose-400/10 text-rose-100' : 'border-violet-300/40 bg-violet-400/10 text-violet-100'}`}>
+                <p className="font-black">{chiefBrief.status === 'error' ? 'Gateway error' : 'Chief of Staff draft'}</p>
+                <p className="mt-2 whitespace-pre-wrap">{chiefBrief.output}</p>
+              </div>
+            )}
           </article>
         ))}
       </div>

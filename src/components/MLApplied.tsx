@@ -216,26 +216,23 @@ export default function MLApplied() {
               <div className="flex justify-between items-center text-[10px] font-mono text-slate-500 pt-1.5">
                 <span>TypeScript SDK - Structured parsing JSON</span>
                 <button
-                  onClick={() => triggerCopy(`import { GoogleGenAI } from "@google/genai";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-async function extractInvoiceData(base64Image) {
-  const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
-    contents: [
-      {
-        inlineData: {
-          mimeType: "image/jpeg",
-          data: base64Image
-        }
-      },
-      "Extract all invoice details. Format the output STRICTLY as JSON with fields: {vendor, amount, tax_rate, date, items[]}"
-    ]
+                  onClick={() => triggerCopy(`async function extractInvoiceData(base64Image) {
+  const response = await fetch("/api/ai/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      prompt: "Extract all invoice details. Format the output STRICTLY as JSON with fields: {vendor, amount, tax_rate, date, items[]}",
+      model: "ai-assistant-pro",
+      file: {
+        mimeType: "image/jpeg",
+        data: base64Image
+      }
+    })
   });
-  
-  const cleanJson = JSON.parse(response.text.replace(/\\\`\\\`\\\`json|\\\`\\\`\\\`/g, ''));
-  return cleanJson;
+  const data = await response.json();
+  if (!response.ok || data.error) throw new Error(data.error || "AI Gateway failed");
+  const text = String(data.text || data.content || data.output || "{}").replace(/\\\`\\\`\\\`json|\\\`\\\`\\\`/g, "");
+  return JSON.parse(text);
 }`, 'ocr_ts')}
                   className="text-cyan-400 hover:text-cyan-300 font-extrabold uppercase cursor-pointer"
                 >

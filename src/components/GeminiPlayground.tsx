@@ -76,14 +76,15 @@ export default function GeminiPlayground() {
       console.error('Lỗi tải sổ tay code: ', e);
     }
     
-    fetch('/api/gemini/status')
+    fetch('/api/ai/preflight')
       .then(res => res.json())
       .then(data => {
         if (data.success) {
+          const report = data.report;
           setKeyStatus({
-            usingCustomKey: data.usingCustomKey,
-            keyName: data.keyName,
-            isProReady: data.isProReady
+            usingCustomKey: Boolean(report?.stats?.enabledKeys),
+            keyName: report?.summary || 'AI Gateway',
+            isProReady: Boolean(report?.ok)
           });
         }
       })
@@ -317,7 +318,7 @@ export default function GeminiPlayground() {
 
       setUploadedFile(null); // Clear active slot after sending
 
-      const response = await fetch('/api/gemini/stream', {
+      const response = await fetch('/api/ai/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -328,7 +329,7 @@ export default function GeminiPlayground() {
         const errorData = await response.json().catch(() => ({}));
         if (errorData.isRateLimit) {
           throw new Error("RATE_LIMIT: " + (errorData.error || "Bạn đã đạt giới hạn 15 yêu cầu/phút."));
-        } else if (errorData.isMissingKey) {
+        } else if (errorData.isMissingKey || String(errorData.error || '').toLowerCase().includes('key')) {
           throw new Error("MISSING_KEY");
         } else {
           throw new Error(errorData.error || "Lỗi xử lý luồng (SSE Stream).");
@@ -356,8 +357,9 @@ export default function GeminiPlayground() {
 
             try {
               const parsed = JSON.parse(jsonText);
-              if (parsed.text) {
-                accumText += parsed.text;
+              const chunkText = parsed.text || parsed.content;
+              if (chunkText) {
+                accumText += chunkText;
                 setMessages(prev => {
                   const updated = [...prev];
                   if (updated.length > 0) {
@@ -402,7 +404,7 @@ export default function GeminiPlayground() {
             ...updated.slice(0, -1),
             { 
               role: 'error', 
-              text: `⚠️ [Thông báo từ hệ thống]: Bạn chưa cấu hình mã khóa GEMINI_API_KEY. Để kết quả được lấy trực tiếp từ mô hình Gemini thực tế, hãy cài đặt khóa bí mật của bạn tại mục Secrets. \n\nDưới đây là câu trả lời mô phỏng chi tiết được viết bởi chuyên gia để bạn tham khảo ngay:` 
+              text: `⚠️ [Thông báo từ hệ thống]: Bạn chưa cấu hình AI Gateway/Secrets. Để lấy kết quả từ provider thật, hãy thêm khóa trong AI Vault backend. \n\nDưới đây là câu trả lời mô phỏng chi tiết được viết bởi chuyên gia để bạn tham khảo ngay:` 
             },
             { role: 'assistant', text: simTxt }
           ];
@@ -831,7 +833,7 @@ def tinh_thue_tncn_bac_thang(thu_nhap_tinh_thue):
             <span>Xác thực an toàn:</span>
           </div>
           <p className="text-[11px] leading-relaxed">
-            Mã khóa <strong className="text-slate-300">process.env.GEMINI_API_KEY</strong> được bảo mật an toàn ở backend và không lộ qua kênh truyền tải mạng trình duyệt.
+            Provider key được bảo mật an toàn trong AI Vault/backend và không lộ qua kênh truyền tải mạng trình duyệt.
           </p>
         </div>
       </div>

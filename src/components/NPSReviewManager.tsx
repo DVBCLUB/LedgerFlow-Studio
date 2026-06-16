@@ -33,9 +33,9 @@ type Feedback = {
 };
 
 const initialFeedbacks: Feedback[] = [
-  { id: 1, name: 'Kế toán dự án A', company: 'Công ty xây dựng nhỏ', score: 9, text: 'Dashboard tạm ứng và hồ sơ thiếu giúp báo cáo sếp nhanh hơn.', status: 'resolved' },
-  { id: 2, name: 'Thủ kho công trình', company: 'Công trình HCM', score: 6, text: 'Form nhập dầu còn hơi nhiều trường, muốn nhập nhanh trên điện thoại.', status: 'reviewing' },
-  { id: 3, name: 'Kế toán trưởng', company: 'Nhà thầu cơ điện', score: 8, text: 'Cảnh báo VAT tốt, nhưng cần log người sửa dữ liệu rõ hơn.', status: 'new' },
+  { id: 1, name: 'Kế toán dự án A', company: 'Công ty dịch vụ nhỏ', score: 9, text: 'Dashboard tạm ứng và hồ sơ thiếu giúp báo cáo sếp nhanh hơn.', status: 'resolved' },
+  { id: 2, name: 'Ops/Admin lead', company: 'Team triển khai HCM', score: 6, text: 'Form nhập chi phí còn hơi nhiều trường, muốn nhập nhanh trên điện thoại.', status: 'reviewing' },
+  { id: 3, name: 'Kế toán trưởng', company: 'Công ty thương mại', score: 8, text: 'Cảnh báo VAT tốt, nhưng cần log người sửa dữ liệu rõ hơn.', status: 'new' },
   { id: 4, name: 'HCNS', company: 'Văn phòng công ty', score: 5, text: 'Báo cáo chi phí hành chính chưa giống mẫu sếp đang dùng.', status: 'new' }
 ];
 
@@ -97,7 +97,7 @@ export default function NPSReviewManager() {
               Đo hài lòng khách hàng và biến góp ý thành backlog
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này dùng để gom NPS, review, khiếu nại và yêu cầu tính năng cho phần mềm kế toán công trình.
+              Module này dùng để gom NPS, review, khiếu nại và yêu cầu tính năng cho LedgerFlow Company OS.
               Mục tiêu không phải lấy điểm cho đẹp, mà là phát hiện khách sắp rời bỏ, sửa đúng điểm đau,
               và biến khách hài lòng thành testimonial/referral.
             </p>

@@ -27,7 +27,7 @@ export default function WebAccountingRoadmap() {
   const [copied, setCopied] = useState<string | null>(null);
 
   const executivePlan = useMemo(() => {
-    return `LỘ TRÌNH BUILD PHẦN MỀM KẾ TOÁN WEB\n\n1. Làm MVP nhập liệu: chi phí, tạm ứng, hoàn ứng, hóa đơn, kho, dầu.\n2. Chuẩn hóa database: công trình, NCC, vật tư, nhân sự, chứng từ, phát sinh.\n3. Thêm workflow duyệt: nháp, thiếu hồ sơ, chờ duyệt, đã duyệt, đã thanh toán.\n4. Thêm cảnh báo: vượt ngân sách, tạm ứng treo, sai VAT, lệch kho, quỹ dầu bất thường.\n5. Làm dashboard sếp: ngân sách, dòng tiền, công nợ, hồ sơ thiếu, rủi ro thuế.\n6. Đóng gói hybrid: web, PWA, desktop; chỉ bật cloud/API khi có nhu cầu thật.`;
+    return `LỘ TRÌNH BUILD ACCOUNTING TEMPLATE WEB\n\n1. Làm MVP local-first: chi phí, tạm ứng, hoàn ứng, hóa đơn, hồ sơ và phê duyệt.\n2. Chuẩn hóa database: dự án/sản phẩm, NCC/khách hàng, nhân sự, chứng từ, phát sinh.\n3. Thêm workflow duyệt: nháp, thiếu hồ sơ, chờ duyệt, đã duyệt, đã thanh toán.\n4. Thêm cảnh báo: vượt ngân sách, tạm ứng treo, sai VAT, thiếu hồ sơ hoặc ngoại lệ vượt hạn mức.\n5. Làm dashboard sếp: ngân sách, dòng tiền, công nợ, hồ sơ thiếu, rủi ro thuế.\n6. Đóng gói hybrid: web, PWA, desktop; chỉ bật cloud/API khi có nhu cầu thật.`;
   }, []);
 
   const copyPlan = async () => {
@@ -53,7 +53,7 @@ export default function WebAccountingRoadmap() {
               Web Accounting Roadmap
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Lộ trình build phần mềm kế toán web cho công trình
+              Lộ trình build accounting template web
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
               Module này không chỉ là checklist code. Nó là bản đồ sản phẩm: cần phân hệ nào, database nào,

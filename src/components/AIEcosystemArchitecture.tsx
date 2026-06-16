@@ -172,7 +172,8 @@ export default defineConfig({
 import initSqlJs from 'sql.js';
 
 const SQL = await initSqlJs({
-  locateFile: file => \`https://sql.js.org/dist/\${file}\`
+  // Ship sql-wasm.wasm inside public/vendor/sql.js for a true offline desktop build.
+  locateFile: file => \`/vendor/sql.js/\${file}\`
 });
 const db = new SQL.Database();
 // Thực thi câu lệnh tạo sổ cái hạch toán kép thực sự!
@@ -225,7 +226,7 @@ request.onsuccess = (e) => {
     cf_workers: {
       id: 'cf_workers',
       title: 'Cloudflare Workers (AI API Proxy)',
-      subtitle: 'Lớp bảo mật phi máy chủ giấu đầu khóa API Google Gemini',
+      subtitle: 'Lớp bảo mật phi máy chủ ẩn toàn bộ khóa AI phía backend',
       icon: Zap,
       details: [
         'Chạy mã JS siêu nhẹ trên V8 engine ngay sát vị trí địa lý của khách hàng với độ trễ cold start < 5ms.',
@@ -242,12 +243,16 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
   // CORS guard
   const origin = request.headers.get("Origin");
-  if (origin !== "https://your-app.pages.dev") {
+  const allowedOrigin = new URL(request.url).origin;
+  if (origin !== allowedOrigin) {
     return new Response("Unauthorized access", { status: 403 });
   }
-  // Gửi proxy bảo mật sang Google AI Studio
-  const geminiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + GEMINI_API_KEY;
-  return fetch(geminiUrl, { method: "POST", body: request.body, headers: request.headers });
+  // Frontend chỉ gọi gateway nội bộ; provider key nằm trong backend/vault.
+  return fetch("/api/ai/chat", {
+    method: "POST",
+    body: request.body,
+    headers: { "Content-Type": "application/json" }
+  });
 }`
     },
     cf_d1: {
@@ -277,7 +282,7 @@ await env.DB_BACKUP.prepare("INSERT INTO live_snapshots (email, state_json) VALU
     },
     google_gemini: {
       id: 'google_gemini',
-      title: 'Google Gemini API v2.0',
+      title: 'LedgerFlow AI Gateway',
       subtitle: 'Trí tuệ nhân tạo hạch toán & bóc tách hóa đơn cực chuẩn',
       icon: Sparkles,
       details: [
@@ -285,13 +290,15 @@ await env.DB_BACKUP.prepare("INSERT INTO live_snapshots (email, state_json) VALU
         'Khả năng đàm thoại phân tích tài chính sâu, vạch ra các rủi ro dòng tiền và gợi ý kế sách thuế Việt Nam.',
         'Sử dụng hoàn toàn miễn phí hạn mức không tốn một đồng qua cổng proxy bảo mật.'
       ],
-      costInfo: '0đ / 15 requests mỗi phút miễn phí trọn đời từ Google AI Studio.',
-      bestPractice: 'Ép cấu trúc JSON cứng bằng thuộc tính responseMimeType cấu cấu của SDK để không có rác text.',
-      codeSnippet: `// Gọi thông qua proxy bảo mật CF Worker 
-const response = await fetch("/api/gemini-proxy", {
+      costInfo: 'Chi phí phụ thuộc provider đã cấu hình trong AI Vault; frontend không giữ key.',
+      bestPractice: 'Ép cấu trúc JSON bằng systemInstruction và validate lại ở backend/client trước khi dùng.',
+      codeSnippet: `// Gọi AI qua gateway bảo mật của LedgerFlow, không gọi provider trực tiếp từ UI.
+const response = await fetch("/api/ai/chat", {
   method: "POST",
+  headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    contents: [{ parts: [{ text: "Báo cáo P&L này có rủi ro chi phí nào không sếp?" }] }]
+    prompt: "Báo cáo P&L này có rủi ro chi phí nào không?",
+    model: "ai-assistant"
   })
 });`
     }
@@ -506,7 +513,7 @@ const response = await fetch("/api/gemini-proxy", {
 
                 {/* LỚP BOTTOM: GOOGLE AI & THIRD-PARTY BACKEND (POCKETBASE/SUPABASE) */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Google Gemini API */}
+                  {/* AI Gateway */}
                   <div 
                     onClick={() => setSelectedNodeId('google_gemini')}
                     className={`p-4 rounded-xl border cursor-pointer transition-all text-left relative overflow-hidden ${
@@ -517,7 +524,7 @@ const response = await fetch("/api/gemini-proxy", {
                   >
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
-                      <span className="text-[11.5px] font-extrabold text-white">Google Gemini API (gemini-2.5-flash)</span>
+                      <span className="text-[11.5px] font-extrabold text-white">LedgerFlow AI Gateway</span>
                     </div>
                   <p className="text-[10.5px] text-slate-400 mt-1.5 leading-relaxed">
                     AI core ẩn sâu trong Worker để thực hiện bóc tách hóa đơn, đọc sao kê ròng của doanh nghiệp không sợ thất thoát dữ liệu client.

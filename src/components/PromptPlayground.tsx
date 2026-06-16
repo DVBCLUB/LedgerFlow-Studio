@@ -115,11 +115,11 @@ export default function PromptPlayground() {
 
   const handleExecutePrompt = async () => {
     setIsExecuting(true);
-    setOutputResult("⚡ Hệ thống đang thiết lập kết nối SSL nâng cao tới Cloud Run LLM Gateway...\n🚀 Đang gửi System Prompt & Injected Variables tới Gemini API...");
+    setOutputResult("⚡ Hệ thống đang thiết lập kết nối SSL nâng cao tới AI Gateway...\n🚀 Đang gửi System Prompt & Injected Variables tới /api/ai/chat...");
     const startTime = performance.now();
 
     try {
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -132,11 +132,11 @@ export default function PromptPlayground() {
       const endTime = performance.now();
       setResponseStats({
         durationMs: Math.round(endTime - startTime),
-        modelUsed: 'Gemini 2.5 Flash / AI Studio Server'
+        modelUsed: data.model || data.modelUsed || 'LedgerFlow AI Gateway'
       });
 
       if (response.ok && data.success) {
-        setOutputResult(data.text);
+        setOutputResult(data.text || data.content || data.output || '');
       } else {
         // Fallback simulation detailed if API isn't fully configured
         generateMockResponse(endTime - startTime);

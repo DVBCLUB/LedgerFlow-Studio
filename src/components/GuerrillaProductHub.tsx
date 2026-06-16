@@ -552,7 +552,7 @@ LẬP KẾ HOẠCH PHẢI GỒM 5 PHẦN TƯƠNG ĐỨNG VỚI 5 KỸ NĂNG TÔI
 
 Vui lòng viết súc tích, đanh thép bằng tiếng Việt, có chèn bình luận chuyên môn thực tế, định dạng markdown đẹp mắt với các tiêu đề rõ ràng để tôi tham khảo trực chiến triển khai.`;
 
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -565,14 +565,14 @@ Vui lòng viết súc tích, đanh thép bằng tiếng Việt, có chèn bình 
       if (response.ok && data.success) {
         const updated = ideas.map(item => {
           if (item.id === idea.id) {
-            return { ...item, aiBlueprint: data.text };
+            return { ...item, aiBlueprint: data.text || data.content || data.output || '' };
           }
           return item;
         });
         saveToStorage(updated);
       } else {
-        if (data.isMissingKey) {
-          setErrorMsg('⚠️ Chưa phát hiện khoá GEMINI_API_KEY trong cấu hình Secrets. AI đang chạy bản mô phỏng tác chiến ngoại tuyến cho bạn súc tích dưới đây.');
+        if (data.isMissingKey || String(data.error || '').toLowerCase().includes('key')) {
+          setErrorMsg('⚠️ Chưa cấu hình AI Gateway/Secrets. AI đang chạy bản mô phỏng tác chiến ngoại tuyến cho bạn súc tích dưới đây.');
           // Simulate localized response in case of missing key
           const fallback = `### 🚀 BẢN THIẾT KẾ CHIẾN THUẬT DU KÍCH MÔ PHỎNG: ${idea.title.toUpperCase()}
 
@@ -628,7 +628,7 @@ Vui lòng viết súc tích, đanh thép bằng tiếng Việt, có chèn bình 
     if (!selectedAgent) return;
 
     try {
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -639,10 +639,10 @@ Vui lòng viết súc tích, đanh thép bằng tiếng Việt, có chèn bình 
 
       const data = await response.json();
       if (response.ok && data.success) {
-        setAgentOutput(data.text);
+        setAgentOutput(data.text || data.content || data.output || '');
       } else {
-        if (data.isMissingKey) {
-          setAgentError('⚠️ Chưa phát hiện khoá GEMINI_API_KEY trong cấu hình Secrets. Agent đang kích hoạt chế độ tư duy ngoại tuyến siêu tốc.');
+        if (data.isMissingKey || String(data.error || '').toLowerCase().includes('key')) {
+          setAgentError('⚠️ Chưa cấu hình AI Gateway/Secrets. Agent đang kích hoạt chế độ tư duy ngoại tuyến siêu tốc.');
           
           let fallbackResult = '';
           if (selectedAgentId === 'agent_dev') {
@@ -678,7 +678,7 @@ async function processVietQRpayment(transactionContent, amountPaid) {
 }
 \`\`\`
 
-*Cảnh báo: Hãy thiết lập key GEMINI_API_KEY trong Secrets của Studio để cho phép AI Agent thiết kế các hệ thống code phức tạp hơn!*`;
+*Cảnh báo: Hãy thiết lập provider key trong AI Vault/Secrets của Studio để cho phép AI Agent thiết kế các hệ thống code phức tạp hơn!*`;
           } else if (selectedAgentId === 'agent_artist') {
             fallbackResult = `### 🎨 [CHẾ ĐỘ NGOẠI TUYẾN] PROMPT RECIPE MỸ THUẬT SIÊU ĐẸP
 
@@ -702,11 +702,16 @@ Yêu cầu nhận được: **"${agentUserInput}"**
 
 **2. Đoạn mã sinh QR Code động cực gọn**:
 \`\`\`javascript
-// URL sinh QR động chuẩn NAPAS không tốn phí trung gian
-function getGuerillaVietQR(bankId, accountNo, amount, info) {
-  // Thay thế khoảng trắng bằng URL Encoded
-  const cleanInfo = encodeURIComponent(info);
-  return \`https://img.vietqr.io/image/\${bankId}-\${accountNo}-compact.png?amount=\${amount}&addInfo=\${cleanInfo}\`;
+// Desktop offline: render QR locally with a bundled QR encoder.
+function buildVietQRPayload(bankId, accountNo, amount, info) {
+  const cleanInfo = String(info).replace(/[^a-zA-Z0-9_\\s]/g, "").trim();
+  return {
+    bankId,
+    accountNo,
+    amount,
+    addInfo: cleanInfo,
+    reviewRequired: true
+  };
 }
 \`\`\`
 

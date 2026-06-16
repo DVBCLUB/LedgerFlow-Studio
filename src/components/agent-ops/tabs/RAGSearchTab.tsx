@@ -9,10 +9,12 @@ type KnowledgeNote = {
   title?: string;
   source?: string;
   status?: string;
+  trust?: string;
   confidence?: string;
   summary?: string;
   content?: string;
-  tags?: string[];
+  body?: string;
+  tags?: string[] | string;
   createdAt?: string;
 };
 
@@ -23,17 +25,23 @@ type MemoryVersion = {
   title?: string;
   summary?: string;
   snapshot?: string;
+  context?: string;
   content?: string;
   rollbackNote?: string;
   createdAt?: string;
 };
+
+type RAGStatus = 'Draft' | 'Needs Review' | 'Approved' | 'Archived';
+type ConfidenceFilter = 'all' | 'Low' | 'Medium' | 'High';
+type StatusFilter = 'all' | RAGStatus;
 
 type RAGSource = {
   id: string;
   citation: string;
   title: string;
   type: 'Knowledge' | 'Memory';
-  status: string;
+  status: RAGStatus;
+  confidence: 'Low' | 'Medium' | 'High';
   source: string;
   text: string;
   score: number;
@@ -50,15 +58,32 @@ function scoreText(text: string, query: string) {
   return terms.reduce((score, term) => score + (normalized.includes(term) ? 1 : 0), 0);
 }
 
+function normalizeStatus(value: string | undefined, fallback: RAGStatus = 'Draft'): RAGStatus {
+  if (value === 'Draft' || value === 'Needs Review' || value === 'Approved' || value === 'Archived') return value;
+  return fallback;
+}
+
+function normalizeConfidence(value: string | undefined): 'Low' | 'Medium' | 'High' {
+  if (value === 'Low' || value === 'Medium' || value === 'High') return value;
+  return 'Medium';
+}
+
+function stringifyTags(tags: KnowledgeNote['tags']) {
+  if (Array.isArray(tags)) return tags.join(', ');
+  return tags || '';
+}
+
 function knowledgeToSource(note: KnowledgeNote, index: number): RAGSource {
   const title = note.title || `Knowledge note ${index + 1}`;
-  const text = [note.summary, note.content, note.tags?.join(', ')].filter(Boolean).join('\n');
+  const status = normalizeStatus(note.status || note.trust);
+  const text = [note.summary, note.content, note.body, stringifyTags(note.tags)].filter(Boolean).join('\n');
   return {
     id: note.id || `knowledge-${index}`,
     citation: `K${index + 1}`,
     title,
     type: 'Knowledge',
-    status: note.status || 'Draft',
+    status,
+    confidence: normalizeConfidence(note.confidence),
     source: note.source || 'Knowledge Base',
     text: text || title,
     score: 0,
@@ -67,13 +92,14 @@ function knowledgeToSource(note: KnowledgeNote, index: number): RAGSource {
 
 function memoryToSource(memory: MemoryVersion, index: number): RAGSource {
   const title = memory.title || memory.version || `Memory version ${index + 1}`;
-  const text = [memory.summary, memory.snapshot, memory.content, memory.rollbackNote].filter(Boolean).join('\n');
+  const text = [memory.summary, memory.snapshot, memory.context, memory.content, memory.rollbackNote].filter(Boolean).join('\n');
   return {
     id: memory.id || `memory-${index}`,
     citation: `M${index + 1}`,
     title,
     type: 'Memory',
-    status: memory.status || 'Draft',
+    status: normalizeStatus(memory.status),
+    confidence: memory.status === 'Approved' ? 'High' : 'Medium',
     source: memory.version || 'Company Memory',
     text: text || title,
     score: 0,
@@ -107,16 +133,29 @@ export default function RAGSearchTab() {
   const [query, setQuery] = useState('');
   const [includeDraft, setIncludeDraft] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [confidenceFilter, setConfidenceFilter] = useState<ConfidenceFilter>('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
 
-  const knowledge = readLocalStorageValue<KnowledgeNote[]>(KNOWLEDGE_KEY, []);
-  const memories = readLocalStorageValue<MemoryVersion[]>(MEMORY_VERSION_KEY, []);
+  const storedKnowledge = readLocalStorageValue<KnowledgeNote[]>(KNOWLEDGE_KEY, []);
+  const storedMemories = readLocalStorageValue<MemoryVersion[]>(MEMORY_VERSION_KEY, []);
+  const knowledge = Array.isArray(storedKnowledge) ? storedKnowledge : [];
+  const memories = Array.isArray(storedMemories) ? storedMemories : [];
 
   const allSources = useMemo(() => [
     ...knowledge.map(knowledgeToSource),
     ...memories.map(memoryToSource),
   ], [knowledge, memories]);
 
-  const eligibleSources = useMemo(() => allSources.filter((source) => includeDraft || source.status === 'Approved'), [allSources, includeDraft]);
+  const sourceOptions = useMemo(() => Array.from(new Set(allSources.map((source) => source.source))).sort(), [allSources]);
+
+  const eligibleSources = useMemo(() => allSources.filter((source) => {
+    const approvalMatch = includeDraft || source.status === 'Approved';
+    const statusMatch = statusFilter === 'all' || source.status === statusFilter;
+    const confidenceMatch = confidenceFilter === 'all' || source.confidence === confidenceFilter;
+    const sourceMatch = sourceFilter === 'all' || source.source === sourceFilter;
+    return approvalMatch && statusMatch && confidenceMatch && sourceMatch;
+  }), [allSources, confidenceFilter, includeDraft, sourceFilter, statusFilter]);
 
   const sources = useMemo(() => eligibleSources
     .map((source) => ({ ...source, score: scoreText(`${source.title}\n${source.text}`, query) }))
@@ -130,7 +169,16 @@ export default function RAGSearchTab() {
   const warning = evidenceWarning(query, sources, selectedSources);
 
   const toggleSource = (id: string) => {
-    setSelectedIds((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
+    const source = allSources.find((item) => item.id === id);
+    setSelectedIds((current) => {
+      const isSelected = current.includes(id);
+      appendAgentOpsAudit(
+        isSelected ? 'RAG_SOURCE_EXCLUDED' : 'RAG_SOURCE_SELECTED',
+        id,
+        `${source?.citation || id} ${source?.title || 'source'} for query: ${query || 'empty'}`
+      );
+      return isSelected ? current.filter((item) => item !== id) : [...current, id];
+    });
   };
 
   const copyContext = async () => {
@@ -139,18 +187,19 @@ export default function RAGSearchTab() {
       '',
       `Query: ${query || 'No query'}`,
       `Sources: ${selectedSources.map((source) => `[${source.citation}]`).join(', ') || 'none'}`,
+      `Approved-only: ${includeDraft ? 'off' : 'on'}`,
       warning ? `Evidence warning: ${warning}` : '',
       '',
       context,
       '',
       'Instruction: use only cited context above. If evidence is weak, say what is missing.',
     ].filter(Boolean).join('\n'));
-    appendAgentOpsAudit('RAG_CONTEXT_COPIED', 'rag-search', `${selectedSources.length} sources copied for query: ${query || 'none'}`);
+    appendAgentOpsAudit('RAG_CONTEXT_COPIED', 'rag-search', `${selectedSources.length} sources copied for query: ${query || 'none'}; approved-only=${includeDraft ? 'off' : 'on'}; selected=${selectedSources.map((source) => source.id).join(', ') || 'none'}`);
     if (warning) appendAgentOpsAudit('RAG_LOW_EVIDENCE_WARNING', 'rag-search', warning);
   };
 
   const runSearch = () => {
-    appendAgentOpsAudit('RAG_SEARCH_RUN', 'rag-search', `${sources.length} matches for query: ${query || 'empty'}`);
+    appendAgentOpsAudit('RAG_SEARCH_RUN', 'rag-search', `${sources.length} matches for query: ${query || 'empty'}; status=${statusFilter}; confidence=${confidenceFilter}; source=${sourceFilter}; approved-only=${includeDraft ? 'off' : 'on'}`);
     if (warning) appendAgentOpsAudit('RAG_LOW_EVIDENCE_WARNING', 'rag-search', warning);
   };
 
@@ -177,6 +226,26 @@ export default function RAGSearchTab() {
         <button onClick={runSearch} className="rounded-xl border border-cyan-300/50 px-3 py-2 text-xs font-black text-cyan-100 hover:bg-cyan-400/10">Audit search</button>
       </div>
 
+      <div className="mt-3 grid gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3 md:grid-cols-3">
+        <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-300">
+          <option value="all">All statuses</option>
+          <option value="Approved">Approved</option>
+          <option value="Needs Review">Needs Review</option>
+          <option value="Draft">Draft</option>
+          <option value="Archived">Archived</option>
+        </select>
+        <select value={confidenceFilter} onChange={(event) => setConfidenceFilter(event.target.value as ConfidenceFilter)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-300">
+          <option value="all">All confidence</option>
+          <option value="High">High confidence</option>
+          <option value="Medium">Medium confidence</option>
+          <option value="Low">Low confidence</option>
+        </select>
+        <select value={sourceFilter} onChange={(event) => setSourceFilter(event.target.value)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-300">
+          <option value="all">All sources</option>
+          {sourceOptions.map((source) => <option key={source} value={source}>{source}</option>)}
+        </select>
+      </div>
+
       {warning && <p className="mt-3 rounded-2xl border border-amber-300/35 bg-amber-400/10 p-3 text-xs font-bold leading-5 text-amber-100">Evidence warning: {warning}</p>}
 
       <div className="mt-4 grid gap-3 lg:grid-cols-[1.1fr_0.9fr]">
@@ -186,7 +255,7 @@ export default function RAGSearchTab() {
               <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                   <p className="text-sm font-black text-white">[{source.citation}] {source.title}</p>
-                  <p className="mt-1 text-[11px] font-bold text-slate-400">{source.type} · {source.status} · {source.source} · score {source.score}</p>
+                  <p className="mt-1 text-[11px] font-bold text-slate-400">{source.type} · {source.status} · {source.confidence} confidence · {source.source} · score {source.score}</p>
                 </div>
                 <button onClick={() => toggleSource(source.id)} className={`rounded-xl border px-3 py-2 text-[11px] font-black ${selectedIds.includes(source.id) ? 'border-emerald-300 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-cyan-300'}`}>{selectedIds.includes(source.id) ? 'Selected' : 'Select'}</button>
               </div>

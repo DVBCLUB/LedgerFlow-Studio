@@ -49,7 +49,7 @@ export default function DataScienceEngineering() {
     };
   }, [actualCost, plannedBudget, advanceAmount, settledAmount]);
 
-  const prompt = `Bạn là data analyst cho kế toán công trình. Hãy phân tích dữ liệu gồm plannedBudget=${plannedBudget}, actualCost=${actualCost}, advanceAmount=${advanceAmount}, settledAmount=${settledAmount}. Trả về: budget_used_pct, advance_settlement_pct, cảnh báo vượt ngân sách, cảnh báo tạm ứng treo, và 5 hành động ưu tiên cho kế toán.`;
+  const prompt = `Bạn là data analyst cho Company OS và accounting templates đa ngành. Hãy phân tích dữ liệu gồm plannedBudget=${plannedBudget}, actualCost=${actualCost}, advanceAmount=${advanceAmount}, settledAmount=${settledAmount}. Trả về: budget_used_pct, advance_settlement_pct, cảnh báo vượt ngân sách, cảnh báo tạm ứng treo, và 5 hành động ưu tiên cho người phụ trách.`;
 
   const copyPrompt = async () => {
     await navigator.clipboard.writeText(prompt);
@@ -73,7 +73,7 @@ export default function DataScienceEngineering() {
               Data Science & Data Engineering
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Khoa học dữ liệu cho kế toán, kiểm toán và công trình
+              Khoa học dữ liệu cho Company OS, kế toán và kiểm toán
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
               Module này giải thích cách biến dữ liệu kế toán rời rạc thành hệ thống phân tích: gom nguồn dữ liệu,
@@ -248,7 +248,7 @@ export default function DataScienceEngineering() {
                 Diễn giải cho kế toán
               </h2>
               <p className="text-xs font-semibold leading-7 text-slate-300">
-                Công trình đã dùng {labResult.budgetUsedPct}% ngân sách, còn lại {currency(plannedBudget - actualCost)} VNĐ.
+                Dự án/sản phẩm đã dùng {labResult.budgetUsedPct}% ngân sách, còn lại {currency(plannedBudget - actualCost)} VNĐ.
                 Tạm ứng đã hoàn {labResult.advanceSettledPct}%, còn treo {currency(advanceAmount - settledAmount)} VNĐ.
                 Dữ liệu này nên được đưa vào CommandCenter để sếp thấy ngay khoản nào cần chặn, khoản nào cần nhắc hoàn ứng,
                 và hồ sơ nào chưa đủ điều kiện thanh toán.
@@ -264,8 +264,8 @@ export default function DataScienceEngineering() {
           Nguyên tắc nhớ nhanh
         </h2>
         <p className="text-xs font-semibold leading-7 text-slate-300">
-          Khoa học dữ liệu không phải chỉ là AI. Với kế toán công trình, nền quan trọng nhất là dữ liệu đúng mã,
-          đúng chứng từ, đúng quan hệ giữa công trình - chi phí - tạm ứng - hóa đơn - kho - thanh toán. AI chỉ hiệu quả
+          Khoa học dữ liệu không phải chỉ là AI. Với Company OS và kế toán đa ngành, nền quan trọng nhất là dữ liệu đúng mã,
+          đúng chứng từ, đúng quan hệ giữa dự án/sản phẩm - chi phí - tạm ứng - hóa đơn - thanh toán. AI chỉ hiệu quả
           khi nền dữ liệu này sạch và có rule kiểm soát.
         </p>
       </section>

@@ -8,9 +8,12 @@ import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, 
   Legend, ReferenceLine, LineChart as RechartsLineChart, Line
 } from 'recharts';
+import { FINANCIAL_MODELER_SCENARIOS } from '../data/marketResearchFinancialModelerPlaybook';
+
+type FindsSubTab = 'ltv_cac' | 'capm_beta' | 'monte_carlo';
 
 export default function FinancialDataScienceLab() {
-  const [findsSubTab, setFindsSubTab] = useState<'ltv_cac' | 'capm_beta' | 'monte_carlo'>('ltv_cac');
+  const [findsSubTab, setFindsSubTab] = useState<FindsSubTab>('ltv_cac');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // LTV/CAC Churn States
@@ -201,14 +204,14 @@ print(f"Xác suất dự án có lời (NPV > 0): {prob_success:.2f}%")`
             <span className="text-[10px] text-slate-500 font-extrabold uppercase tracking-widest pl-2.5 block mb-2 font-mono">FINDS MODULES</span>
             
             <div className="flex flex-col gap-1.5">
-              {[
-                { id: 'ltv_cac', label: '1. Churn & LTV / CAC', desc: 'Survival math model', color: 'text-indigo-400' },
-                { id: 'capm_beta', label: '2. CAPM & Hệ số Beta', desc: 'Linear asset volatility', color: 'text-emerald-400' },
-                { id: 'monte_carlo', label: '3. Monte Carlo Cash Flow', desc: 'Investment NPV risks', color: 'text-pink-400' }
-              ].map(item => (
+              {([
+                { id: 'ltv_cac', label: 'Revenue Health: Churn & LTV/CAC', desc: 'Survival math model', color: 'text-indigo-400' },
+                { id: 'capm_beta', label: 'Risk Model: CAPM & Beta', desc: 'Linear asset volatility', color: 'text-emerald-400' },
+                { id: 'monte_carlo', label: 'Scenario Lab: Monte Carlo Cash Flow', desc: 'Investment NPV risks', color: 'text-pink-400' }
+              ] satisfies Array<{ id: FindsSubTab; label: string; desc: string; color: string }>).map(item => (
                 <button
                   key={item.id}
-                  onClick={() => setFindsSubTab(item.id as any)}
+                  onClick={() => setFindsSubTab(item.id)}
                   className={`p-3 rounded-xl border text-left transition-all flex items-center justify-between group ${
                     findsSubTab === item.id
                       ? 'bg-indigo-600/15 border-indigo-500/50 text-white'
@@ -235,6 +238,20 @@ print(f"Xác suất dự án có lời (NPV > 0): {prob_success:.2f}%")`
             <p className="text-[10.5px] text-slate-400 leading-relaxed font-semibold">
               Kinh doanh kiểu "cảm tính" rất dễ rơi vào bẫy vốn hóa. Việc kết hợp Khoa học dữ liệu vào dòng tiền cho phép kiểm định xác suất thành bại trước khi giải ngân một cách khoa học nhất.
             </p>
+          </div>
+
+          <div className="p-4 bg-slate-950 rounded-xl border border-slate-900 space-y-3">
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-mono flex items-center gap-1">
+              <BookOpen className="w-3.5 h-3.5" />
+              Financial modeler offline
+            </span>
+            {FINANCIAL_MODELER_SCENARIOS.map((scenario) => (
+              <article key={scenario.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-3">
+                <p className="text-[11px] font-black text-white">{scenario.title}</p>
+                <p className="mt-1 text-[10px] font-semibold leading-4 text-slate-400">Driver: {scenario.driver}</p>
+                <p className="mt-2 text-[10px] font-semibold leading-4 text-emerald-100">Rule: {scenario.decisionRule}</p>
+              </article>
+            ))}
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Briefcase, Calculator, CheckCircle2, Copy, Database, FileText, Layers, Receipt, ShieldCheck, Target, WalletCards } from 'lucide-react';
+import AccountingVietnamDeepDivePanel from './AccountingVietnamDeepDivePanel';
 import {
   ACCOUNTING_CONTROL_KPIS,
   ADVANCED_CONSTRUCTION_CASES,
@@ -40,6 +41,7 @@ type AccountingTab =
   | 'costs'
   | 'docs'
   | 'score'
+  | 'deepdive'
   | 'simulator'
   | 'decisions'
   | 'workorders'
@@ -91,6 +93,7 @@ const TAB_LABELS: Array<[AccountingTab, string]> = [
   ['costs', 'Thẻ chi phí'],
   ['docs', 'Quiz chứng từ'],
   ['score', 'Score lab'],
+  ['deepdive', 'VN Deep Dive'],
   ['coverage', 'Rà soát module'],
   ['casebank', 'Case nâng cao'],
   ['blueprint', 'Blueprint triển khai'],
@@ -207,6 +210,19 @@ export default function AccountingVietnam() {
         </div>
       </section>
 
+      <section className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
+          <ShieldCheck className="h-4 w-4 text-amber-300" />
+          Boundary note
+        </h2>
+        <p className="text-xs font-semibold leading-7 text-slate-300">
+          Toan bo so lieu, case va ket qua tinh trong workspace nay la du lieu mo phong offline-first, phuc vu hoc tap, thiet ke san pham va kiem thu y tuong.
+          Truoc khi ap dung vao ho so ke toan, thue, phap ly hoac quyet dinh kinh doanh that, can co ke toan/nguoi duyet chuyen mon xac nhan cuoi.
+        </p>
+      </section>
+
+      {tab === 'deepdive' && <AccountingVietnamDeepDivePanel />}
+
       {tab === 'dashboard' && (
         <section className="space-y-4">
           <div className="grid gap-4 md:grid-cols-4">
@@ -267,7 +283,7 @@ export default function AccountingVietnam() {
 
       {tab === 'backlog' && <section className="space-y-4"><div className="grid gap-4 lg:grid-cols-2">{IMPROVEMENT_BACKLOG.map((item) => <Card key={item.item}><Layers className="mb-3 h-5 w-5 text-cyan-300" /><h2 className="text-sm font-black text-white">[{item.priority}] {item.item}</h2><p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Lý do: {item.reason}</p><p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Hành động: {item.suggestedAction}</p></Card>)}</div><div className="grid gap-4 lg:grid-cols-2">{OPERATING_RHYTHM_CHECKLIST.map((item) => <Card key={item.cadence}><CheckCircle2 className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Nhịp {item.cadence}</h2><BulletList items={item.actions} className="text-emerald-100" /><p className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/5 p-3 text-xs font-bold leading-6 text-rose-100">Cảnh báo: {item.danger}</p></Card>)}</div></section>}
 
-      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab và company operating system cho solo founder: học bằng case giả lập, mô phỏng khảo sát, lập kế hoạch sản phẩm và quản lý AI agent. Nó không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
+      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là simulation lab và company operating system cho solo founder: học bằng case giả lập, mô phỏng khảo sát, lập kế hoạch sản phẩm và quản lý AI agent. Dữ liệu chạy offline-first bằng static data/localStorage, không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
     </div>
   );
 }

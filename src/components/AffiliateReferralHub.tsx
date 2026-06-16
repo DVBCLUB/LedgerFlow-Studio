@@ -67,7 +67,7 @@ export default function AffiliateReferralHub() {
     return Math.round(customerRevenue * (commissionRate / 100));
   }, [monthlyFee, months, commissionRate]);
 
-  const partnerBrief = `KẾ HOẠCH REFERRAL LEDGERFLOW\n\nĐối tác ưu tiên: kế toán dịch vụ, tư vấn thuế, kế toán trưởng, IT triển khai local.\nƯu đãi: hoa hồng một lần hoặc định kỳ theo khách thanh toán thật.\nĐiều kiện trả: khách đã thanh toán, không hoàn tiền, referral code khớp log.\nThông điệp chính: phần mềm giúp kế toán công trình giảm tạm ứng treo, hồ sơ thiếu, lệch kho/dầu và báo cáo sếp chậm.`;
+  const partnerBrief = `KẾ HOẠCH REFERRAL LEDGERFLOW\n\nĐối tác ưu tiên: kế toán dịch vụ, tư vấn thuế, kế toán trưởng, IT triển khai local.\nƯu đãi: hoa hồng một lần hoặc định kỳ theo khách thanh toán thật.\nĐiều kiện trả: khách đã thanh toán, không hoàn tiền, referral code khớp log.\nThông điệp chính: LedgerFlow giúp SME/solo founder gom daily brief, tạm ứng treo, hồ sơ thiếu, dữ liệu rời rạc và báo cáo sếp chậm trong một Company OS local-first.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -92,10 +92,10 @@ export default function AffiliateReferralHub() {
               Affiliate & Referral Hub
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Kênh giới thiệu khách hàng kế toán/xây dựng
+              Kênh giới thiệu khách hàng Company OS
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp thiết kế chương trình cộng tác viên/referral cho phần mềm kế toán công trình:
+              Module này giúp thiết kế chương trình cộng tác viên/referral cho LedgerFlow Company OS và accounting templates:
               ai nên làm đối tác, trả hoa hồng thế nào, chống gian lận ra sao, và dùng thông điệp nào để không spam.
             </p>
           </div>

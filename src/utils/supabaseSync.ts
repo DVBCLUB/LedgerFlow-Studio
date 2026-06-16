@@ -570,6 +570,8 @@ export async function pullFromSupabase(config: SupabaseConfig, email: string, pa
 
 let sqlDbInstance: any = null;
 let sqlJsLoading = false;
+const SQL_JS_LOCAL_BASE = '/vendor/sql.js';
+const SQL_JS_CDN_BASE = ['https:', '', 'cdnjs.cloudflare.com', 'ajax', 'libs', 'sql.js', '1.8.0'].join('/');
 
 /**
  * Initializes physical WebAssembly SQLite dynamically from CDN
@@ -577,12 +579,16 @@ let sqlJsLoading = false;
 export function initializeRealSqlWasm() {
   if (sqlDbInstance || sqlJsLoading) return;
   sqlJsLoading = true;
-  pushWasmSqlLog("[WASM-INIT] Đang tải WebAssembly SQLite Engine v1.8.0 từ CDN...");
+  pushWasmSqlLog("[WASM-INIT] Dang tai WebAssembly SQLite Engine v1.8.0 theo che do local-first...");
 
-  if (typeof window === 'undefined') return;
+  if (typeof window === 'undefined') {
+    sqlJsLoading = false;
+    return;
+  }
 
   const script = document.createElement('script');
-  script.src = 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js';
+  let activeSqlJsBase = SQL_JS_LOCAL_BASE;
+  script.src = `${activeSqlJsBase}/sql-wasm.js`;
   script.async = true;
   script.onload = async () => {
     try {
@@ -591,7 +597,7 @@ export function initializeRealSqlWasm() {
         throw new Error("initSqlJs không tồn tại trên đối tượng window.");
       }
       const SQL = await initSqlJs({
-        locateFile: (file: string) => `https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/${file}`
+        locateFile: (file: string) => `${activeSqlJsBase}/${file}`
       });
 
       // Mở IndexedDB để lấy tệp tin SQLite nhị phân
@@ -639,6 +645,12 @@ export function initializeRealSqlWasm() {
     }
   };
   script.onerror = () => {
+    if (activeSqlJsBase === SQL_JS_LOCAL_BASE) {
+      activeSqlJsBase = SQL_JS_CDN_BASE;
+      pushWasmSqlLog("[WASM-INIT] Local sql.js asset chua co. Thu fallback CDN cho ban web.");
+      script.src = `${activeSqlJsBase}/sql-wasm.js`;
+      return;
+    }
     pushWasmSqlLog("[WASM-LỖI] Không thể kết nối CDN để tải sql.js. Kích hoạt Sandbox giả lập.");
     sqlJsLoading = false;
   };

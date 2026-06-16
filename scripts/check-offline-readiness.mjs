@@ -9,6 +9,9 @@ const releaseRisks = [];
 const sourceDirs = ['src', 'public'];
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.html', '.css', '.json', '.svg']);
 const allowedExternalMarkers = [
+  'w3.org/2000/svg',
+  '127.0.0.1',
+  'localhost',
   'supabase.co',
   'generativelanguage.googleapis.com',
   'googleapis.com',

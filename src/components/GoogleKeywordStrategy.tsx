@@ -224,7 +224,7 @@ Bạn PHẢI trả về ĐÚNG cấu trúc mảng JSON các đối tượng mà 
   }
 ]`;
 
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -235,7 +235,7 @@ Bạn PHẢI trả về ĐÚNG cấu trúc mảng JSON các đối tượng mà 
 
       const data = await response.json();
       if (response.ok && data.success) {
-        let cleanText = data.text.trim();
+        let cleanText = String(data.text || data.content || data.output || '').trim();
         // Remove markdown wrapper if any
         if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
         if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
@@ -451,7 +451,7 @@ Yêu cầu ĐẦU RA 100% khớp lược đồ JSON sạch, tuyệt đối khôn
   ]
 }`;
 
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -462,7 +462,7 @@ Yêu cầu ĐẦU RA 100% khớp lược đồ JSON sạch, tuyệt đối khôn
 
       const data = await response.json();
       if (response.ok && data.success) {
-        let cleanText = data.text.trim();
+        let cleanText = String(data.text || data.content || data.output || '').trim();
         if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
         if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
         if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);
@@ -657,7 +657,7 @@ Hãy viết toàn bộ nội dung của trang đích SEO có cấu trúc JSON s�
   ]
 }`;
 
-      const response = await fetch('/api/gemini/generate', {
+      const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -668,7 +668,7 @@ Hãy viết toàn bộ nội dung của trang đích SEO có cấu trúc JSON s�
 
       const data = await response.json();
       if (response.ok && data.success) {
-        let cleanText = data.text.trim();
+        let cleanText = String(data.text || data.content || data.output || '').trim();
         if (cleanText.startsWith('```json')) cleanText = cleanText.substring(7);
         if (cleanText.startsWith('```')) cleanText = cleanText.substring(3);
         if (cleanText.endsWith('```')) cleanText = cleanText.substring(0, cleanText.length - 3);

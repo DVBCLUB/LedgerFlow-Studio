@@ -67,7 +67,7 @@ export default function AdvancedAIEngine() {
               AI cho kế toán: dùng đúng chỗ, kiểm soát rủi ro, không đốt quota
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này biến AI thành trợ lý kiểm tra dữ liệu kế toán công trình, không phải người thay kế toán.
+              Module này biến AI thành trợ lý kiểm tra dữ liệu Company OS và kế toán đa ngành, không phải người thay kế toán hoặc người duyệt.
               Trọng tâm là: dùng rule offline trước, ẩn dữ liệu nhạy cảm, bắt AI trả về cấu trúc rõ ràng,
               lưu log, và luôn có người duyệt cuối.
             </p>

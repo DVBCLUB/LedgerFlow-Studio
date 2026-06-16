@@ -15,6 +15,20 @@ import {
   FolderOpen
 } from 'lucide-react';
 
+type PyodideRuntime = {
+  runPythonAsync: (code: string) => Promise<unknown>;
+};
+
+type LoadPyodide = (options: {
+  stdout: (text: string) => void;
+  stderr: (text: string) => void;
+  indexURL: string;
+}) => Promise<PyodideRuntime>;
+
+const PYODIDE_LOCAL_BASE = '/vendor/pyodide/v0.26.2/full';
+const PYODIDE_CDN_BASE = ['https:', '', 'cdn.jsdelivr.net', 'pyodide', 'v0.26.2', 'full'].join('/');
+const PYODIDE_SCRIPT_ID = 'pyodide-runtime-script';
+
 // Python Forensic Templates
 const PY_TEMPLATES = {
   benford: `import math
@@ -227,37 +241,58 @@ export default function PythonSandbox() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [sysLogs, setSysLogs] = useState<string[]>([]);
 
-  const pyodideRef = useRef<any>(null);
+  const pyodideRef = useRef<PyodideRuntime | null>(null);
 
   const pushSysLog = (msg: string) => {
     setSysLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
-  // Dynamically load Pyodide from CDN in browser
+  // Dynamically load Pyodide from local assets first, then CDN fallback for web builds.
   const initPyodide = async () => {
     if (pyodideLoaded || isInitializing) return;
     setIsInitializing(true);
-    pushSysLog("Bắt đầu tải thư viện Pyodide WebAssembly Web VM từ CDN...");
+    pushSysLog("Dang tai Pyodide WebAssembly VM theo che do local-first...");
 
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined') {
+      setIsInitializing(false);
+      return;
+    }
 
     // First check if the script tag is already in head
-    let script = document.getElementById('pyodide-cdn-script') as HTMLScriptElement;
+    let activePyodideBase = PYODIDE_LOCAL_BASE;
+    let script = document.getElementById(PYODIDE_SCRIPT_ID) as HTMLScriptElement | null;
     if (!script) {
       script = document.createElement('script');
-      script.id = 'pyodide-cdn-script';
-      script.src = 'https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js';
+      script.id = PYODIDE_SCRIPT_ID;
+      script.dataset.pyodideBase = activePyodideBase;
+      script.src = `${activePyodideBase}/pyodide.js`;
       script.async = true;
+      script.onerror = () => {
+        if (!script) return;
+        if (activePyodideBase === PYODIDE_LOCAL_BASE) {
+          activePyodideBase = PYODIDE_CDN_BASE;
+          script.dataset.pyodideBase = activePyodideBase;
+          pushSysLog("Local Pyodide asset chua co. Thu fallback CDN cho ban web.");
+          script.src = `${activePyodideBase}/pyodide.js`;
+          return;
+        }
+        setIsInitializing(false);
+        pushSysLog("Khong the tai Pyodide tu local asset hoac CDN. Sandbox Python can asset runtime truoc khi chay.");
+      };
       document.head.appendChild(script);
+    } else {
+      activePyodideBase = script.dataset.pyodideBase || PYODIDE_LOCAL_BASE;
     }
 
     const checkAndInit = setInterval(async () => {
-      const loadPyodideGlobal = (window as any).loadPyodide;
+      const loadPyodideGlobal = (window as Window & { loadPyodide?: LoadPyodide }).loadPyodide;
       if (loadPyodideGlobal) {
         clearInterval(checkAndInit);
         try {
-          pushSysLog("CDN chứa tệp nhị phân pyodide.js đã nạp xong! Khởi tạo nhân Python 3.12 VM...");
+          const runtimeBase = script?.dataset.pyodideBase || activePyodideBase;
+          pushSysLog(`Pyodide runtime da nap xong tu ${runtimeBase}. Khoi tao nhan Python 3.12 VM...`);
           const py = await loadPyodideGlobal({
+            indexURL: runtimeBase,
             stdout: (text: string) => {
               setStdout(prev => prev + text + '\n');
             },
@@ -282,7 +317,7 @@ export default function PythonSandbox() {
       clearInterval(checkAndInit);
       if (!pyodideLoaded && isInitializing) {
         setIsInitializing(false);
-        pushSysLog("⚠️ Thời gian kết nối CDN kéo dài vượt hạn mức. Vui lòng kiểm tra lại đường mạng.");
+        pushSysLog("Thoi gian tai Pyodide vuot han muc. Kiem tra local asset hoac ket noi mang cho fallback web.");
       }
     }, 20000);
   };
@@ -298,7 +333,7 @@ export default function PythonSandbox() {
 
   const handleRunPython = async () => {
     if (!pyodideLoaded || !pyodideRef.current) {
-      alert("Động cơ Pyodide đang tải ngầm từ CDN. Vui lòng đợi một lát!");
+      alert("Dong co Pyodide dang tai theo che do local-first. Vui long doi mot lat!");
       return;
     }
 

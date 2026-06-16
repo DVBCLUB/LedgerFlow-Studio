@@ -13,10 +13,14 @@ import {
 } from 'lucide-react';
 import {
   COMMAND_CENTER_ALERTS,
+  COMMAND_CENTER_DECISION_QUEUE,
   COMMAND_CENTER_KPIS,
+  COMMAND_CENTER_OPERATING_RHYTHM,
   COMMAND_CENTER_REPORT_TEMPLATES,
+  COMMAND_CENTER_TODAY_PRIORITIES,
   COMMAND_CENTER_WORKFLOWS
 } from '../data/commandCenterKnowledge';
+import CommandCenterV2DailyBriefPanel from './CommandCenterV2DailyBriefPanel';
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
 
@@ -41,7 +45,7 @@ export default function CommandCenter() {
     };
   }, []);
 
-  const bossBrief = `BÁO CÁO NHANH COMMAND CENTER\n\n1. Ngân sách còn lại: ${money(dashboard.remainingBudget)} VNĐ.\n2. Tỷ lệ hoàn ứng: ${dashboard.advanceRatio}%. Số tạm ứng còn treo: ${money(dashboard.openAdvance)} VNĐ.\n3. Tỷ lệ hồ sơ thiếu: ${dashboard.missingDocRatio}%.\n4. Việc cần xử lý: chặn khoản vượt ngân sách, nhắc hoàn ứng, kiểm tra VAT, đối chiếu quỹ dầu.`;
+  const bossBrief = `BÁO CÁO NHANH COMMAND CENTER\n\n1. Ngân sách còn lại: ${money(dashboard.remainingBudget)} VNĐ.\n2. Tỷ lệ hoàn ứng: ${dashboard.advanceRatio}%. Số tạm ứng còn treo: ${money(dashboard.openAdvance)} VNĐ.\n3. Tỷ lệ hồ sơ thiếu: ${dashboard.missingDocRatio}%.\n4. Việc cần xử lý: chặn khoản vượt ngân sách, nhắc hoàn ứng, kiểm tra VAT, rà ngoại lệ vận hành cần người duyệt.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -59,11 +63,11 @@ export default function CommandCenter() {
               Command Center
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Trung tâm chỉ huy kế toán công trình
+              CEO Daily Brief cho Company OS / Simulation Lab
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này chuyển từ bảng tổng hợp rời rạc thành màn hình điều hành cho sếp và kế toán:
-              ngân sách, tạm ứng, hồ sơ thanh toán, hóa đơn VAT, vật tư, quỹ dầu và cảnh báo rủi ro.
+              Module này chuyển từ bảng tổng hợp rời rạc thành màn hình điều hành cho founder và người duyệt:
+              ngân sách, tạm ứng, hồ sơ thanh toán, hóa đơn VAT, dự án/sản phẩm, ngoại lệ vận hành và cảnh báo rủi ro.
               Dữ liệu bên dưới chạy offline để dùng được cả khi chưa nối API.
             </p>
           </div>
@@ -75,6 +79,79 @@ export default function CommandCenter() {
             <Copy className="h-4 w-4" />
             {copied === 'bossBrief' ? 'Đã copy báo cáo' : 'Copy báo cáo sếp'}
           </button>
+        </div>
+      </section>
+
+      <CommandCenterV2DailyBriefPanel />
+
+      <section className="grid gap-4 xl:grid-cols-3">
+        <div className="xl:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
+              <ClipboardList className="h-4 w-4 text-emerald-300" />
+              Ưu tiên CEO hôm nay
+            </h2>
+            <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase text-emerald-200">
+              Offline brief
+            </span>
+          </div>
+          <div className="space-y-3">
+            {COMMAND_CENTER_TODAY_PRIORITIES.map((item) => (
+              <div key={item.title} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-blue-500/10 px-2 py-1 text-[10px] font-black uppercase text-blue-200">
+                        {item.lane}
+                      </span>
+                      <span className="text-[10px] font-black uppercase text-slate-500">{item.due}</span>
+                    </div>
+                    <h3 className="mt-2 text-sm font-black text-white">{item.title}</h3>
+                    <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">{item.decision}</p>
+                  </div>
+                  <div className="shrink-0 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-bold text-slate-300 md:max-w-[180px]">
+                    Owner: {item.owner}
+                  </div>
+                </div>
+                <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-6 text-emerald-200">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                  {item.successMetric}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
+            <AlertTriangle className="h-4 w-4 text-amber-300" />
+            Hàng đợi quyết định
+          </h2>
+          <div className="space-y-3">
+            {COMMAND_CENTER_DECISION_QUEUE.map((item) => (
+              <div key={item.decision} className="rounded-xl border border-amber-500/20 bg-slate-950/70 p-4">
+                <h3 className="text-sm font-black text-white">{item.decision}</h3>
+                <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">{item.why}</p>
+                <p className="mt-3 text-xs font-bold leading-6 text-emerald-200">Mặc định: {item.defaultAction}</p>
+                <p className="mt-1 text-xs font-semibold leading-6 text-amber-200">Rủi ro: {item.risk}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-500/20 bg-blue-500/5 p-5">
+        <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-blue-100">
+          <Gauge className="h-4 w-4 text-blue-300" />
+          Nhịp vận hành trong ngày
+        </h2>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {COMMAND_CENTER_OPERATING_RHYTHM.map((item) => (
+            <div key={item} className="flex gap-3 rounded-xl border border-blue-500/10 bg-slate-950/70 p-4">
+              <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
+              <p className="text-xs font-semibold leading-6 text-slate-300">{item}</p>
+            </div>
+          ))}
         </div>
       </section>
 
@@ -103,8 +180,8 @@ export default function CommandCenter() {
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-5">
           <AlertTriangle className="mb-3 h-5 w-5 text-rose-300" />
           <p className="text-[10px] font-black uppercase text-rose-300">Cảnh báo chính</p>
-          <p className="mt-2 text-xl font-black text-white">Quỹ dầu</p>
-          <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Đối chiếu phiếu cấp dầu, nhật trình xe/máy và định mức trước khi duyệt.</p>
+          <p className="mt-2 text-xl font-black text-white">Ngoại lệ vận hành</p>
+          <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Rà các khoản lệch ngân sách, thiếu hồ sơ hoặc vượt hạn mức trước khi duyệt.</p>
         </div>
       </section>
 

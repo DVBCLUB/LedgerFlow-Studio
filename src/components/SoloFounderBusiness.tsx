@@ -740,7 +740,7 @@ export default function SoloFounderBusiness() {
         </div>
       )}
 
-      {/* 5. COURSE PROGRESS TRACKER SECTION */}
+      {/* Company OS capability tracker */}
       {activeTab === 'tracker' && (
         <div className="space-y-6">
           <div className="bg-gradient-to-tr from-slate-950/40 via-slate-900/40 to-slate-950/20 border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden">
@@ -750,26 +750,26 @@ export default function SoloFounderBusiness() {
               {/* Introduction & Checker list */}
               <div className="lg:col-span-7 space-y-4">
                 <div>
-                  <span className="text-[10px] font-black text-indigo-405 uppercase font-mono block tracking-widest">MASTER SYSTEM PLATFORM</span>
+                  <span className="text-[10px] font-black text-indigo-405 uppercase font-mono block tracking-widest">COMPANY OS CAPABILITY MAP</span>
                   <h2 className="text-sm font-black uppercase text-slate-100 mt-1 flex items-center gap-1.5 font-sans">
                     🎯 Bản Đồ & Trình Đánh Giá Năng Lực AI-Solo Founder
                   </h2>
                   <p className="text-xs text-slate-400 mt-1 font-semibold leading-relaxed">
-                    Đánh dấu các học phần bạn đã rèn luyện thành thục qua 8 đề mục lớn của LedgerFlow Studio để vẽ biểu đồ mạng nhện kỹ năng trực quan hóa ngay bên cạnh:
+                    Đánh dấu các lane/phòng ban bạn đã rèn luyện thành thục trong LedgerFlow Studio để vẽ biểu đồ năng lực trực quan ngay bên cạnh:
                   </p>
                 </div>
 
                 <div className="grid sm:grid-cols-2 gap-3">
                   {[
-                    { id: 'mod_1_ideas', label: '1A. Ý tưởng Solo Business', desc: 'Phân tích 10 ý tưởng khởi nghiệp ngách thu MRR đơn giản', color: 'border-purple-500/20' },
-                    { id: 'mod_2_financials', label: '1B. Tài chính & Pháp lý', desc: 'Cân đối dòng tiền, bẻ CAC & Pháp lý/Thuế hộ kinh doanh', color: 'border-purple-500/20' },
-                    { id: 'mod_3_roadmap', label: '2. Tuần tự A-Z Web Roadmap', desc: '12 tuần lập trình Flask, SQLite, hạch toán, JWT & Deploy Render/0đ', color: 'border-purple-500/20' },
-                    { id: 'mod_4_datascience', label: '3. Đa ngành Data Science & FinLab', desc: 'Xử lý hóa đơn ETL, Schema sao SQL & định giá CAPM/NPV', color: 'border-emerald-500/20' },
-                    { id: 'mod_5_prompts', label: '4. Bộ Kỹ Sư Prompt Chuyên Sâu', desc: 'Làm chủ nghệ thuật viết prompt bóc tách XML/PDF mộc cực lẹ', color: 'border-emerald-500/20' },
-                    { id: 'mod_6_gemini', label: '5. Trợ Lý AI Gemini Chatbot', desc: 'Tích hợp API Gemini bóc hóa đơn trực tiếp trên Frontend/Backend', color: 'border-indigo-500/20' },
-                    { id: 'mod_7_sandbox', label: '6. Không Gian Dữ Liệu Tự Do', desc: 'Chuẩn hóa định dạng CSV/JSON & Truy vấn SQLite Sandbox rảnh tay', color: 'border-indigo-500/20' },
-                    { id: 'mod_8_ecosystem', label: '7. Sơ đồ AI & Quy trình thực hiện', desc: 'Bản mẫu kiến trúc dòng chảy AI Agent hạch toán chuẩn Thông tư 200/133', color: 'border-indigo-500/20' },
-                    { id: 'mod_9_game_ml', label: '8. Game Mobile & ML Labs', desc: 'Cơ chế Idle game realistic, lượng tử hóa INT8 & CNN/Transformer', color: 'border-sky-500/20' },
+                    { id: 'mod_1_ideas', label: 'Product Studio: Idea Lab', desc: 'Phân tích ý tưởng sản phẩm ngách có khả năng tạo MRR', color: 'border-purple-500/20' },
+                    { id: 'mod_2_financials', label: 'Finance & Legal Control', desc: 'Cân đối dòng tiền, CAC và pháp lý/thuế cho mô hình nhỏ', color: 'border-purple-500/20' },
+                    { id: 'mod_3_roadmap', label: 'Engineering Roadmap', desc: 'Lộ trình build web app, dữ liệu, bảo mật và deploy chi phí thấp', color: 'border-purple-500/20' },
+                    { id: 'mod_4_datascience', label: 'Analytics & FinLab', desc: 'Xử lý hóa đơn ETL, schema sao SQL và định giá CAPM/NPV', color: 'border-emerald-500/20' },
+                    { id: 'mod_5_prompts', label: 'AI Ops: Prompt Engineering', desc: 'Viết prompt bóc tách XML/PDF và kiểm tra output AI', color: 'border-emerald-500/20' },
+                    { id: 'mod_6_gemini', label: 'AI Gateway Assistant', desc: 'Thiết kế trợ lý AI qua backend gateway, không gọi provider trực tiếp từ UI', color: 'border-indigo-500/20' },
+                    { id: 'mod_7_sandbox', label: 'Data Workbench', desc: 'Chuẩn hóa CSV/JSON và truy vấn SQLite Sandbox', color: 'border-indigo-500/20' },
+                    { id: 'mod_8_ecosystem', label: 'AI Staff Workflow', desc: 'Kiến trúc dòng chảy AI Agent, kiểm tra và bàn giao việc', color: 'border-indigo-500/20' },
+                    { id: 'mod_9_game_ml', label: 'Learning Games & ML Lab', desc: 'Game learning, mô phỏng và machine learning thử nghiệm', color: 'border-sky-500/20' },
                   ].map(mod => {
                     const isDone = completedModules[mod.id];
                     return (

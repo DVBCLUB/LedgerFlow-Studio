@@ -44,7 +44,7 @@ function downloadText(filename: string, content: string) {
 export default function DevHandoffCenter() {
   const [title, setTitle] = useState('');
   const [goal, setGoal] = useState('');
-  const [constraints, setConstraints] = useState('Không làm vỡ AI Gateway, Integration Hub, endpoint cũ /api/gemini/*; không commit .env hoặc file vault/log local.');
+  const [constraints, setConstraints] = useState('Không làm vỡ AI Gateway, Integration Hub, endpoint AI legacy/backend; không commit .env hoặc file vault/log local.');
   const [files, setFiles] = useState('src/components/\nserver/services/\nserver.ts\ndocs/');
   const [acceptance, setAcceptance] = useState('npm run lint xanh\nnpm run build xanh\nGitHub Actions xanh\nCó mô tả file đã sửa và cách test');
   const [copied, setCopied] = useState(false);

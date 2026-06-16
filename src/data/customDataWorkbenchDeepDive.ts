@@ -42,6 +42,33 @@ export interface PivotSimulationTemplate {
   insights: string[];
 }
 
+export interface QueryBuilderExplanationStep {
+  id: string;
+  step: string;
+  userQuestion: string;
+  builderAction: string;
+  reviewerCheck: string;
+};
+
+export interface PivotSimulationExample {
+  id: string;
+  title: string;
+  sourceDataset: string;
+  matrix: Array<{
+    rowLabel: string;
+    values: Array<{ columnLabel: string; amount: number; note: string }>;
+  }>;
+  interpretation: string[];
+};
+
+export interface ExportSafetyChecklist {
+  format: 'CSV' | 'Excel' | 'PDF';
+  safeWhen: string[];
+  mustCheck: string[];
+  avoidWhen: string[];
+  existingSurface: string;
+};
+
 export const CUSTOM_DATA_SCHEMA_PREVIEWS: WorkbenchSchemaPreview[] = [
   {
     id: 'project_costs',
@@ -92,6 +119,30 @@ export const CUSTOM_DATA_SCHEMA_PREVIEWS: WorkbenchSchemaPreview[] = [
       'customer_code không được trống.',
       'direct_cost cần cùng đơn vị tiền với revenue_amount.'
     ]
+  }
+];
+
+export const QUERY_BUILDER_EXPLANATION_STEPS: QueryBuilderExplanationStep[] = [
+  {
+    id: 'question-to-source',
+    step: '1. Map business question to dataset',
+    userQuestion: 'Founder hoi: cong trinh nao dang vuot ngan sach hoac thieu ho so?',
+    builderAction: 'Chon source table co project_code, amount, budget/document_status va ky bao cao.',
+    reviewerCheck: 'Nguoi duyet xac nhan dataset dung pham vi, khong tron du lieu that voi du lieu demo.'
+  },
+  {
+    id: 'select-filter-group',
+    step: '2. Select, filter, group',
+    userQuestion: 'Can hien cot nao va gom theo truc nao?',
+    builderAction: 'Chon fields can hien, filter theo ngay/trang thai, group theo project/customer/cost_type.',
+    reviewerCheck: 'Kiem tra filter khong loai mat exception quan trong va groupBy dung voi cau hoi.'
+  },
+  {
+    id: 'sort-interpret',
+    step: '3. Sort and interpret',
+    userQuestion: 'Dong nao can xem truoc?',
+    builderAction: 'Sort theo amount, age, missing_docs_count hoac risk_score de uu tien review.',
+    reviewerCheck: 'Ket qua chi la hang doi review; khong tu ket luan sai pham neu chua doi chieu chung tu.'
   }
 ];
 
@@ -154,6 +205,85 @@ export const PIVOT_SIMULATION_TEMPLATES: PivotSimulationTemplate[] = [
     values: ['SUM(revenue_amount)'],
     filters: ['invoice_date'],
     insights: ['Khách hàng doanh thu cao', 'Doanh thu chưa thu tiền', 'Tỷ trọng doanh thu theo trạng thái']
+  }
+];
+
+export const PIVOT_SIMULATION_EXAMPLES: PivotSimulationExample[] = [
+  {
+    id: 'project-cost-mini-matrix',
+    title: 'Mini pivot: project cost by cost type',
+    sourceDataset: 'project_costs',
+    matrix: [
+      {
+        rowLabel: 'CT-001',
+        values: [
+          { columnLabel: 'Vat tu', amount: 12500000, note: 'Can doi chieu phieu nhap/xuat.' },
+          { columnLabel: 'Nhan cong', amount: 8200000, note: 'Can bang cham cong/nghiem thu.' }
+        ]
+      },
+      {
+        rowLabel: 'CT-002',
+        values: [
+          { columnLabel: 'Vat tu', amount: 18800000, note: 'Gia tri cao hon, uu tien review.' },
+          { columnLabel: 'May thi cong', amount: 4300000, note: 'Can nhat trinh may/ca may.' }
+        ]
+      }
+    ],
+    interpretation: [
+      'CT-002 co vat tu cao hon nen dung lam dong uu tien trong risk review.',
+      'Cot chi phi khong thay the chung tu; no chi chi ra noi can drill-down.',
+      'Neu document_status khac Du ho so, dua vao exception list truoc khi bao cao.'
+    ]
+  },
+  {
+    id: 'receivable-status-mini-matrix',
+    title: 'Mini pivot: receivables by customer and payment status',
+    sourceDataset: 'sales_receivables',
+    matrix: [
+      {
+        rowLabel: 'KH-001',
+        values: [
+          { columnLabel: 'Da thu', amount: 32000000, note: 'Dong tien da khop sao ke.' },
+          { columnLabel: 'Chua thu', amount: 13000000, note: 'Can follow-up cong no.' }
+        ]
+      },
+      {
+        rowLabel: 'KH-002',
+        values: [
+          { columnLabel: 'Da thu', amount: 0, note: 'Chua co thu tien.' },
+          { columnLabel: 'Chua thu', amount: 45000000, note: 'Gia tri lon, can owner.' }
+        ]
+      }
+    ],
+    interpretation: [
+      'KH-002 la diem can kiem tra cong no vi chua thu toan bo.',
+      'Pivot giup uu tien follow-up, khong ket luan kha nang thu hoi neu chua lien he khach hang.',
+      'Nen export danh sach exception kem owner/deadline thay vi export toan bo data neu dang demo.'
+    ]
+  }
+];
+
+export const EXPORT_SAFETY_CHECKLIST: ExportSafetyChecklist[] = [
+  {
+    format: 'CSV',
+    safeWhen: ['du lieu da an danh hoac la du lieu demo', 'can chuyen sang spreadsheet de reviewer loc nhanh', 'khong can layout bao cao'],
+    mustCheck: ['encoding UTF-8', 'header ro nghia', 'khong co secret/API key/token', 'khong co PII neu chua duoc phep'],
+    avoidWhen: ['du lieu that chua co pham vi duyet', 'cot cong thuc co the bi spreadsheet injection'],
+    existingSurface: 'Parser tab da co nut Tai CSV cho bang parse sach.'
+  },
+  {
+    format: 'Excel',
+    safeWhen: ['can xuat nhieu bang lien ket', 'reviewer can filter/pivot them', 'du lieu nam trong localStorage demo'],
+    mustCheck: ['sheet name de hieu', 'khong tron demo va production', 'cot tien/ngay dung format', 'co README/notes neu gui ra ngoai'],
+    avoidWhen: ['file qua lon lam trinh duyet treo', 'du lieu nhay cam chua an danh'],
+    existingSurface: 'RDBMS tab da co nut Xuat Excel cho 4 bang local.'
+  },
+  {
+    format: 'PDF',
+    safeWhen: ['can snapshot bao cao de doc nhanh', 'khong can sua du lieu sau export', 'can gui founder review'],
+    mustCheck: ['so lieu la snapshot', 'co ngay xuat', 'co boundary note', 'khong xem PDF la bang chung goc'],
+    avoidWhen: ['can audit trail chi tiet', 'can reviewer drill-down tung dong'],
+    existingSurface: 'RDBMS tab da co nut Xuat PDF cho bao cao tom tat.'
   }
 ];
 

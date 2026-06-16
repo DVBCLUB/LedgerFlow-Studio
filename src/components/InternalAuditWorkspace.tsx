@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { AlertTriangle, CheckCircle2, ClipboardList, Copy, FileText, Search, ShieldCheck, Target, Users } from 'lucide-react';
 import { AUDIT_AREAS, AUDIT_PROGRAM, FINDING_TEMPLATES, FOLLOW_UP_TRACKER, RISK_CONTROL_MATRIX, SAMPLING_GUIDE } from '../data/internalAuditKnowledge';
+import InternalAuditDeepDivePanel from './InternalAuditDeepDivePanel';
 
-type AuditTab = 'scenarios' | 'matrix' | 'program' | 'findings' | 'followup';
+type AuditTab = 'scenarios' | 'matrix' | 'program' | 'findings' | 'followup' | 'deepdive';
 
 export default function InternalAuditWorkspace() {
   const [tab, setTab] = useState<AuditTab>('scenarios');
@@ -21,7 +22,8 @@ export default function InternalAuditWorkspace() {
     { id: 'matrix', label: 'Risk-control' },
     { id: 'program', label: 'Audit program' },
     { id: 'findings', label: 'Finding lab' },
-    { id: 'followup', label: 'Follow-up' }
+    { id: 'followup', label: 'Follow-up' },
+    { id: 'deepdive', label: 'Audit Deep Dive' }
   ];
 
   return (
@@ -40,6 +42,17 @@ export default function InternalAuditWorkspace() {
         </div>
       </section>
 
+      <section className="rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
+        <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
+          <ShieldCheck className="h-4 w-4 text-amber-300" />
+          Boundary note
+        </h2>
+        <p className="text-xs font-semibold leading-7 text-slate-300">
+          Workspace nay chi dung du lieu mo phong va checklist static/offline-first de luyen chuong trinh kiem toan, chon mau va nhan dien ngoai le kiem soat.
+          Ket qua trong man hinh la diem can kiem tra, khong phai ket luan kiem toan. Reviewer hoac nguoi duyet cuoi phai xac minh bang chung that truoc khi ghi nhan finding.
+        </p>
+      </section>
+
       {tab === 'scenarios' && <section className="grid gap-4 lg:grid-cols-2">{AUDIT_AREAS.map((item) => <div key={item.area} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Target className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Tình huống mô phỏng: {item.area}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Mục tiêu học: {item.objective}</p><div className="mt-4 grid gap-3 md:grid-cols-2"><div className="rounded-xl border border-rose-500/20 bg-rose-500/5 p-4"><p className="mb-2 text-[10px] font-black uppercase text-rose-200">Rủi ro để người học tìm</p>{item.keyRisks.map((risk) => <p key={risk} className="text-xs font-semibold leading-6 text-slate-300">• {risk}</p>)}</div><div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4"><p className="mb-2 text-[10px] font-black uppercase text-emerald-200">Gợi ý kiểm soát</p>{item.controls.map((control) => <p key={control} className="text-xs font-semibold leading-6 text-slate-300">• {control}</p>)}</div></div></div>)}</section>}
 
       {tab === 'matrix' && <section className="space-y-4">{RISK_CONTROL_MATRIX.map((item) => <div key={item.risk} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><div className="grid gap-4 lg:grid-cols-4"><div><AlertTriangle className="mb-3 h-5 w-5 text-amber-300" /><h2 className="text-sm font-black text-white">{item.risk}</h2><p className="mt-2 text-xs font-semibold leading-6 text-slate-400">Process: {item.process}</p></div><div><p className="mb-2 text-[10px] font-black uppercase text-emerald-300">Control gợi ý</p><p className="text-xs font-semibold leading-6 text-slate-300">{item.control}</p></div><div><p className="mb-2 text-[10px] font-black uppercase text-cyan-300">Bài test mô phỏng</p><p className="text-xs font-semibold leading-6 text-slate-300">{item.test}</p></div><div><p className="mb-2 text-[10px] font-black uppercase text-purple-300">Evidence giả lập</p><p className="text-xs font-semibold leading-6 text-slate-300">{item.evidence}</p></div></div></div>)}</section>}
@@ -50,7 +63,8 @@ export default function InternalAuditWorkspace() {
 
       {tab === 'followup' && <section className="grid gap-4 lg:grid-cols-2">{FOLLOW_UP_TRACKER.map((item) => <div key={item.finding} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><Users className="mb-3 h-5 w-5 text-emerald-300" /><h2 className="text-sm font-black text-white">Follow-up mô phỏng: {item.finding}</h2><p className="text-xs font-semibold leading-6 text-slate-400">Owner mẫu: {item.owner}</p><p className="text-xs font-semibold leading-6 text-slate-400">Deadline mẫu: {item.deadline}</p><p className="mt-2 text-xs font-semibold leading-6 text-emerald-200">Evidence cần nộp: {item.evidence}</p></div>)}</section>}
 
-      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là phòng lab mô phỏng kiểm toán nội bộ. Nội dung dùng để luyện tư duy, không thay quy trình kiểm toán hoặc phê duyệt thực tế.</p></section>
+      <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-slate-300">Đây là phòng lab mô phỏng kiểm toán nội bộ, dùng static data/offline-first để luyện tư duy. Nội dung chỉ nêu điểm cần kiểm tra và ngoại lệ kiểm soát, không thay quy trình kiểm toán, bằng chứng thật hoặc phê duyệt thực tế của người duyệt cuối.</p></section>
+      {tab === 'deepdive' && <InternalAuditDeepDivePanel />}
     </div>
   );
 }

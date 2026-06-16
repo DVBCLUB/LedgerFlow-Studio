@@ -652,6 +652,13 @@ jobs:
                   </p>
                 </div>
                 
+                <div className="flex items-start gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-[10.5px] font-semibold leading-relaxed text-amber-100">
+                  <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-300" />
+                  <p>
+                    Boundary note: preview QR ben duoi dung dich vu VietQR online de minh hoa nhanh. Ban desktop offline-first can renderer QR local va nguoi duyet doi chieu tai khoan, so tien, memo truoc khi dung that.
+                  </p>
+                </div>
+
                 <div className="bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-[10px] font-mono text-slate-400 flex items-center gap-2">
                   <span className="text-emerald-400 font-bold">Standard format:</span>
                   <span>NAPAS-247 QR Code API v2</span>
@@ -765,6 +772,9 @@ jobs:
                         referrerPolicy="no-referrer"
                       />
                     </div>
+                    <p className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-[9.5px] font-bold leading-relaxed text-amber-100">
+                      Online preview only. Khi dong goi offline, thay bang QR renderer local va giu buoc human approval.
+                    </p>
 
                     <div className="space-y-2 text-center text-xs">
                       <div>

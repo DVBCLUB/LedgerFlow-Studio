@@ -35,7 +35,7 @@ export default function OutboundSalesHub() {
   const demos = Math.round(replies * demoRate / 100);
   const wins = Math.round(demos * closeRate / 100);
 
-  const outboundBrief = `KỊCH BẢN OUTBOUND LEDGERFLOW\n\nICP: kế toán trưởng, kế toán dự án, chủ doanh nghiệp xây dựng nhỏ, kế toán dịch vụ có khách xây dựng.\nThông điệp: không thay phần mềm kế toán hiện tại; chỉ thêm lớp quản trị công trình để thấy tạm ứng treo, hồ sơ thiếu, chi phí vượt ngân sách, kho/dầu lệch.\nCTA: xin demo 15 phút bằng dữ liệu mẫu hoặc file đã ẩn thông tin.`;
+  const outboundBrief = `KỊCH BẢN OUTBOUND LEDGERFLOW\n\nICP: solo founder, kế toán trưởng SME, kế toán dịch vụ, chủ doanh nghiệp dịch vụ/thương mại/xây dựng nhỏ.\nThông điệp: không thay phần mềm kế toán hiện tại; LedgerFlow thêm lớp Company OS để thấy daily brief, tạm ứng treo, hồ sơ thiếu, chi phí vượt ngân sách và việc cần duyệt.\nCTA: xin demo 15 phút bằng dữ liệu mẫu hoặc file đã ẩn thông tin.`;
 
   const copyText = async (id: string, text: string) => {
     await navigator.clipboard.writeText(text);
@@ -60,11 +60,11 @@ export default function OutboundSalesHub() {
               Outbound Sales Hub
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
-              Kịch bản bán hàng cho phần mềm kế toán công trình
+              Kịch bản bán hàng cho LedgerFlow Company OS
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp tiếp cận đúng khách: kế toán trưởng, kế toán dự án, chủ doanh nghiệp xây dựng nhỏ,
-              kế toán dịch vụ và thủ kho/chỉ huy trưởng. Trọng tâm là nói đúng nỗi đau, xin demo ngắn,
+              Module này giúp tiếp cận đúng khách: solo founder, kế toán trưởng SME, kế toán dịch vụ và chủ doanh nghiệp có dữ liệu vận hành rời rạc.
+              Trọng tâm là nói đúng nỗi đau, xin demo ngắn,
               xử lý phản đối và ghi lại lý do thắng/thua.
             </p>
           </div>
@@ -249,7 +249,7 @@ export default function OutboundSalesHub() {
         </h2>
         <p className="text-xs font-semibold leading-7 text-slate-300">
           Đừng bán phần mềm ngay. Hãy bán một buổi demo giải quyết đúng một nỗi đau:
-          báo cáo sếp chậm, tạm ứng treo, hồ sơ thiếu, hoặc lệch kho/dầu. Sau demo mới nói giá.
+          báo cáo sếp chậm, tạm ứng treo, hồ sơ thiếu, hoặc dữ liệu rời rạc. Sau demo mới nói giá.
         </p>
       </section>
     </div>
