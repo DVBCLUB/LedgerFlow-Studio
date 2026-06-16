@@ -10,18 +10,25 @@ import {
   Send,
   Target,
   TrendingUp,
-  Users
+  Users,
 } from 'lucide-react';
+import OutboundBattleCardsPanel from './OutboundBattleCardsPanel';
 import {
   COLD_MESSAGES,
   DISCOVERY_QUESTIONS,
   OBJECTIONS,
   OUTBOUND_ICP,
   PIPELINE_STAGES,
-  SALES_SEQUENCE
+  SALES_SEQUENCE,
 } from '../data/outboundSalesKnowledge';
 
-type SalesTab = 'icp' | 'sequence' | 'objections' | 'pipeline';
+type SalesTab = 'icp' | 'sequence' | 'objections' | 'pipeline' | 'battle_cards';
+
+type NumericControl = {
+  label: string;
+  value: number;
+  setter: React.Dispatch<React.SetStateAction<number>>;
+};
 
 export default function OutboundSalesHub() {
   const [tab, setTab] = useState<SalesTab>('icp');
@@ -31,9 +38,9 @@ export default function OutboundSalesHub() {
   const [demoRate, setDemoRate] = useState(35);
   const [closeRate, setCloseRate] = useState(22);
 
-  const replies = Math.round(leads * replyRate / 100);
-  const demos = Math.round(replies * demoRate / 100);
-  const wins = Math.round(demos * closeRate / 100);
+  const replies = Math.round((leads * replyRate) / 100);
+  const demos = Math.round((replies * demoRate) / 100);
+  const wins = Math.round((demos * closeRate) / 100);
 
   const outboundBrief = `KỊCH BẢN OUTBOUND LEDGERFLOW\n\nICP: solo founder, kế toán trưởng SME, kế toán dịch vụ, chủ doanh nghiệp dịch vụ/thương mại/xây dựng nhỏ.\nThông điệp: không thay phần mềm kế toán hiện tại; LedgerFlow thêm lớp Company OS để thấy daily brief, tạm ứng treo, hồ sơ thiếu, chi phí vượt ngân sách và việc cần duyệt.\nCTA: xin demo 15 phút bằng dữ liệu mẫu hoặc file đã ẩn thông tin.`;
 
@@ -47,7 +54,15 @@ export default function OutboundSalesHub() {
     { id: 'icp', label: 'ICP' },
     { id: 'sequence', label: 'Sequence' },
     { id: 'objections', label: 'Objections' },
-    { id: 'pipeline', label: 'Pipeline' }
+    { id: 'pipeline', label: 'Pipeline' },
+    { id: 'battle_cards', label: 'Battle cards' },
+  ];
+
+  const metricControls: NumericControl[] = [
+    { label: 'Số lead', value: leads, setter: setLeads },
+    { label: 'Reply rate %', value: replyRate, setter: setReplyRate },
+    { label: 'Demo rate %', value: demoRate, setter: setDemoRate },
+    { label: 'Close rate %', value: closeRate, setter: setCloseRate },
   ];
 
   return (
@@ -63,9 +78,7 @@ export default function OutboundSalesHub() {
               Kịch bản bán hàng cho LedgerFlow Company OS
             </h1>
             <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
-              Module này giúp tiếp cận đúng khách: solo founder, kế toán trưởng SME, kế toán dịch vụ và chủ doanh nghiệp có dữ liệu vận hành rời rạc.
-              Trọng tâm là nói đúng nỗi đau, xin demo ngắn,
-              xử lý phản đối và ghi lại lý do thắng/thua.
+              Module này giúp tiếp cận đúng khách: solo founder, kế toán trưởng SME, kế toán dịch vụ và chủ doanh nghiệp có dữ liệu vận hành rời rạc. Trọng tâm là nói đúng nỗi đau, xin demo ngắn, xử lý phản đối và ghi lại lý do thắng/thua.
             </p>
           </div>
 
@@ -96,26 +109,10 @@ export default function OutboundSalesHub() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <Users className="mb-3 h-5 w-5 text-sky-300" />
-          <p className="text-[10px] font-black uppercase text-slate-500">Leads</p>
-          <p className="mt-2 text-3xl font-black text-white">{leads}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <Mail className="mb-3 h-5 w-5 text-cyan-300" />
-          <p className="text-[10px] font-black uppercase text-slate-500">Replies</p>
-          <p className="mt-2 text-3xl font-black text-white">{replies}</p>
-        </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <PhoneCall className="mb-3 h-5 w-5 text-emerald-300" />
-          <p className="text-[10px] font-black uppercase text-slate-500">Demos</p>
-          <p className="mt-2 text-3xl font-black text-white">{demos}</p>
-        </div>
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-          <TrendingUp className="mb-3 h-5 w-5 text-emerald-300" />
-          <p className="text-[10px] font-black uppercase text-emerald-200">Wins</p>
-          <p className="mt-2 text-3xl font-black text-white">{wins}</p>
-        </div>
+        <StatCard icon={<Users className="mb-3 h-5 w-5 text-sky-300" />} label="Leads" value={leads} />
+        <StatCard icon={<Mail className="mb-3 h-5 w-5 text-cyan-300" />} label="Replies" value={replies} />
+        <StatCard icon={<PhoneCall className="mb-3 h-5 w-5 text-emerald-300" />} label="Demos" value={demos} />
+        <StatCard icon={<TrendingUp className="mb-3 h-5 w-5 text-emerald-300" />} label="Wins" value={wins} highlight />
       </section>
 
       {tab === 'icp' && (
@@ -124,7 +121,9 @@ export default function OutboundSalesHub() {
             <div key={item.target} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
               <Target className="mb-3 h-5 w-5 text-sky-300" />
               <h2 className="text-sm font-black text-white">{item.target}</h2>
-              <p className="mt-2 text-xs font-semibold leading-6 text-slate-400"><span className="font-black text-slate-200">Nỗi đau:</span> {item.pain}</p>
+              <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">
+                <span className="font-black text-slate-200">Nỗi đau:</span> {item.pain}
+              </p>
               <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-semibold leading-6 text-emerald-100">
                 Hook: {item.hook}
               </div>
@@ -205,18 +204,13 @@ export default function OutboundSalesHub() {
               Funnel calculator
             </h2>
             <div className="space-y-4">
-              {[
-                ['Số lead', leads, setLeads],
-                ['Reply rate %', replyRate, setReplyRate],
-                ['Demo rate %', demoRate, setDemoRate],
-                ['Close rate %', closeRate, setCloseRate]
-              ].map(([label, value, setter]) => (
-                <label key={label as string} className="block">
-                  <span className="mb-1 block text-xs font-black text-slate-400">{label as string}</span>
+              {metricControls.map((control) => (
+                <label key={control.label} className="block">
+                  <span className="mb-1 block text-xs font-black text-slate-400">{control.label}</span>
                   <input
                     type="number"
-                    value={value as number}
-                    onChange={(e) => (setter as React.Dispatch<React.SetStateAction<number>>)(Number(e.target.value) || 0)}
+                    value={control.value}
+                    onChange={(event) => control.setter(Number(event.target.value) || 0)}
                     className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-sky-400"
                   />
                 </label>
@@ -233,8 +227,12 @@ export default function OutboundSalesHub() {
               {PIPELINE_STAGES.map((item) => (
                 <div key={item.stage} className="rounded-xl border border-slate-800 bg-slate-950/70 p-4">
                   <h3 className="text-sm font-black text-white">{item.stage}</h3>
-                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-400"><span className="font-black text-slate-200">Tiêu chí:</span> {item.criteria}</p>
-                  <p className="mt-1 text-xs font-semibold leading-6 text-emerald-200"><span className="font-black">Bước kế:</span> {item.next}</p>
+                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">
+                    <span className="font-black text-slate-200">Tiêu chí:</span> {item.criteria}
+                  </p>
+                  <p className="mt-1 text-xs font-semibold leading-6 text-emerald-200">
+                    <span className="font-black">Bước kế:</span> {item.next}
+                  </p>
                 </div>
               ))}
             </div>
@@ -242,16 +240,27 @@ export default function OutboundSalesHub() {
         </section>
       )}
 
+      {tab === 'battle_cards' && <OutboundBattleCardsPanel />}
+
       <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-emerald-200">
           <CheckCircle2 className="h-4 w-4" />
           Nguyên tắc outbound
         </h2>
         <p className="text-xs font-semibold leading-7 text-slate-300">
-          Đừng bán phần mềm ngay. Hãy bán một buổi demo giải quyết đúng một nỗi đau:
-          báo cáo sếp chậm, tạm ứng treo, hồ sơ thiếu, hoặc dữ liệu rời rạc. Sau demo mới nói giá.
+          Đừng bán phần mềm ngay. Hãy bán một buổi demo giải quyết đúng một nỗi đau: báo cáo sếp chậm, tạm ứng treo, hồ sơ thiếu, hoặc dữ liệu rời rạc. Sau demo mới nói giá.
         </p>
       </section>
+    </div>
+  );
+}
+
+function StatCard({ icon, label, value, highlight = false }: { icon: React.ReactNode; label: string; value: number; highlight?: boolean }) {
+  return (
+    <div className={`rounded-2xl border p-5 ${highlight ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-slate-800 bg-slate-900/70'}`}>
+      {icon}
+      <p className={`text-[10px] font-black uppercase ${highlight ? 'text-emerald-200' : 'text-slate-500'}`}>{label}</p>
+      <p className="mt-2 text-3xl font-black text-white">{value}</p>
     </div>
   );
 }
