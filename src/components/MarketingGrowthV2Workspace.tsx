@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
+import { BarChart3, CheckCircle2, ClipboardCheck, Clock3, LayoutList, LayoutTemplate, Mail, Rocket, Route, Wrench } from 'lucide-react';
 import LandingPageCopyLab from './LandingPageCopyLab';
 import EmailSequenceBuilder from './EmailSequenceBuilder';
 import PLGConversionHub from './PLGConversionHub';
 import MarketingCommandCenter from './MarketingCommandCenter';
 import MarketingV2QAConsole from './MarketingV2QAConsole';
 import MarketingV2LaunchPlaybookPanel from './MarketingV2LaunchPlaybookPanel';
+import MarketingV2ExecutionBoardPanel from './MarketingV2ExecutionBoardPanel';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'rollout' | 'qa' | 'launch';
+type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'launch' | 'rollout' | 'qa' | 'execution';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -45,6 +46,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     label: 'Launch Playbook',
     note: 'Thứ tự đưa Marketing V2 vào vận hành thật.',
     icon: Rocket,
+  },
+  {
+    id: 'execution',
+    label: 'Execution Board',
+    note: 'Bảng tiến độ spec: done, wired, pending, owner.',
+    icon: LayoutList,
   },
   {
     id: 'rollout',
@@ -123,7 +130,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
+      <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-8">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -164,6 +171,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'email' && <EmailSequenceBuilder />}
         {activeTab === 'plg' && <PLGConversionHub />}
         {activeTab === 'launch' && <MarketingV2LaunchPlaybookPanel />}
+        {activeTab === 'execution' && <MarketingV2ExecutionBoardPanel />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
         {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
