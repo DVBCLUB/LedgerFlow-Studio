@@ -41,3 +41,70 @@ export const DISCOVERY_QUESTIONS = [
   'Ai là người nhập dữ liệu đầu tiên ở công trường/văn phòng?',
   'Nếu demo chỉ giải quyết một việc, anh/chị muốn thấy việc gì trước?'
 ];
+
+export interface OutboundBattleCard {
+  competitor: string;
+  theirStrength: string;
+  weakSpot: string;
+  ledgerFlowAngle: string;
+  messageHook: string;
+}
+
+export const BATTLE_CARDS: OutboundBattleCard[] = [
+  {
+    competitor: 'Excel / Google Sheets',
+    theirStrength: 'Quen tay, miễn phí, sửa nhanh.',
+    weakSpot: 'Dễ lệch version, thiếu audit trail, khó tổng hợp nhiều nguồn.',
+    ledgerFlowAngle: 'Không bắt bỏ Excel; thêm lớp daily brief, checklist và cảnh báo điểm thiếu.',
+    messageHook: 'Nếu Excel vẫn dùng được nhưng báo cáo sếp vẫn mất giờ, em có demo lớp điều hành nằm trên Excel.',
+  },
+  {
+    competitor: 'MISA / Fast / AMIS',
+    theirStrength: 'Mạnh về sổ sách và compliance kế toán.',
+    weakSpot: 'Không giải quyết trọn luồng vận hành trước hạch toán: marketing, sales, dự án, hồ sơ, AI staff.',
+    ledgerFlowAngle: 'LedgerFlow là operating layer, không thay phần mềm kế toán.',
+    messageHook: 'Anh/chị cứ giữ MISA cho sổ sách; em demo lớp gom việc cần quyết định trước khi số liệu vào kế toán.',
+  },
+  {
+    competitor: 'AppSheet / No-code',
+    theirStrength: 'Tạo form nhập liệu nhanh, mobile-friendly.',
+    weakSpot: 'Dễ thành nhiều tool rời rạc, thiếu playbook nghiệp vụ và daily review.',
+    ledgerFlowAngle: 'Có sẵn playbook, lane Company OS và module marketing/kế toán/audit cùng một nơi.',
+    messageHook: 'Nếu AppSheet đang là form nhập liệu, LedgerFlow giúp biết dữ liệu đó phục vụ quyết định nào.',
+  },
+];
+
+export interface AIMessageVariable {
+  key: string;
+  label: string;
+  example: string;
+  guidance: string;
+}
+
+export const AI_MESSAGE_VARIABLES: AIMessageVariable[] = [
+  { key: 'persona', label: 'Persona', example: 'Kế toán trưởng công ty xây dựng 30 người', guidance: 'Nêu vai trò thật, không dùng mô tả chung chung.' },
+  { key: 'pain', label: 'Pain chính', example: 'Mất 2 ngày gom báo cáo chi phí công trình', guidance: 'Một nỗi đau cụ thể hơn là danh sách dài.' },
+  { key: 'current_tool', label: 'Công cụ hiện tại', example: 'Excel + Zalo + MISA', guidance: 'Dùng để định vị LedgerFlow là lớp bổ sung, không thay thế bừa.' },
+  { key: 'proof_asset', label: 'Tài sản gửi kèm', example: 'Checklist hồ sơ thiếu hoặc screenshot daily brief', guidance: 'Gửi giá trị nhỏ trước khi xin demo.' },
+  { key: 'cta', label: 'CTA', example: 'Anh/chị có muốn xem demo 15 phút bằng dữ liệu mẫu không?', guidance: 'CTA nhẹ, rõ, không ép mua.' },
+];
+
+export const AI_OUTBOUND_MESSAGE_PROMPT = (params: {
+  persona: string;
+  pain: string;
+  currentTool: string;
+  proofAsset: string;
+  cta: string;
+}) => `Bạn là outbound sales copywriter B2B Việt Nam.
+
+Viết tin nhắn ngắn cho persona: ${params.persona}
+Pain chính: ${params.pain}
+Công cụ hiện tại: ${params.currentTool}
+Tài sản gửi kèm: ${params.proofAsset}
+CTA: ${params.cta}
+
+Yêu cầu:
+- Tiếng Việt tự nhiên, dưới 120 từ
+- Không spam, không hứa quá mức
+- Định vị LedgerFlow là lớp điều hành/Company OS nhẹ, không bắt thay phần mềm hiện có
+- Có 1 câu mở đầu cá nhân hóa và 1 CTA rõ.`;
