@@ -5,9 +5,10 @@ import EmailSequenceBuilder from './EmailSequenceBuilder';
 import PLGConversionHub from './PLGConversionHub';
 import MarketingCommandCenter from './MarketingCommandCenter';
 import MarketingV2QAConsole from './MarketingV2QAConsole';
+import MarketingV2LaunchPlaybookPanel from './MarketingV2LaunchPlaybookPanel';
 import { MARKETING_V2_NEXT_CHECKS, MARKETING_V2_ROLLOUT_STATUS } from '../data/marketingV2RolloutStatus';
 
-type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'rollout' | 'qa';
+type MarketingGrowthV2Tab = 'command' | 'landing' | 'email' | 'plg' | 'rollout' | 'qa' | 'launch';
 
 const MARKETING_GROWTH_V2_TABS: Array<{
   id: MarketingGrowthV2Tab;
@@ -37,6 +38,12 @@ const MARKETING_GROWTH_V2_TABS: Array<{
     id: 'plg',
     label: 'PLG Hub',
     note: 'Aha moment, activation path, free-to-paid playbook.',
+    icon: Rocket,
+  },
+  {
+    id: 'launch',
+    label: 'Launch Playbook',
+    note: 'Thứ tự đưa Marketing V2 vào vận hành thật.',
     icon: Rocket,
   },
   {
@@ -116,7 +123,7 @@ export default function MarketingGrowthV2Workspace() {
         </div>
       </section>
 
-      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-3 md:grid-cols-3 xl:grid-cols-7">
         {MARKETING_GROWTH_V2_TABS.map((tab) => {
           const Icon = tab.icon;
           const active = activeTab === tab.id;
@@ -156,6 +163,7 @@ export default function MarketingGrowthV2Workspace() {
         {activeTab === 'landing' && <LandingPageCopyLab />}
         {activeTab === 'email' && <EmailSequenceBuilder />}
         {activeTab === 'plg' && <PLGConversionHub />}
+        {activeTab === 'launch' && <MarketingV2LaunchPlaybookPanel />}
         {activeTab === 'rollout' && <RolloutStatusPanel />}
         {activeTab === 'qa' && <MarketingV2QAConsole />}
       </div>
