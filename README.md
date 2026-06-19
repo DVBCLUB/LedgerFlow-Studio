@@ -1,94 +1,90 @@
-# LedgerFlow Studio
+# LedgerFlow Hub
 
-LedgerFlow Studio là phần mềm mô phỏng / học / lab cho kế toán, dữ liệu, AI, kiểm toán nội bộ, growth và triển khai sản phẩm.
+LedgerFlow Hub la phan mem desktop-first cho mot chu so huu/solo founder quan ly company OS: san pham, marketing, sales/CRM, tai chinh, du an, AI nhan su, sandbox, tich hop va DevOps handoff.
 
-## Dùng như phần mềm Windows
+Ban Windows desktop la ban duy nhat de su dung hang ngay. React/Express van ton tai trong source code vi Electron can chung de render giao dien va chay API noi bo; khong phat hanh hay van hanh mot ban web rieng.
 
-Bấm file ở thư mục gốc:
+## Dung nhu phan mem Windows
+
+Chay:
 
 ```bat
-BUILD_WINDOWS_INSTALLER.bat
+tools\windows\BUILD_WINDOWS_INSTALLER.bat
 ```
 
-Build xong, mở thư mục:
+Build xong, mo thu muc:
 
 ```text
 release/
 ```
 
-Bấm file `.exe` để cài **LedgerFlow Hub**.
+Bam file `.exe` de cai dat **LedgerFlow Hub**.
 
-## Chạy dev local
+Neu da co ban unpacked trong `release/win-unpacked`, co the bam:
 
-Dành cho người sửa code/test:
-
-```text
-tools/windows/RUN_LOCAL_DEV.bat
+```bat
+KHOI_DONG_PHAN_MEM.cmd
 ```
 
-Hoặc:
+## Chay dev local
+
+Danh cho nguoi sua code/test. Che do nay chi la ha tang noi bo de lap trinh, khong phai ban web rieng cho nguoi dung:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Rồi mở `http://localhost:3000`.
-
 ## AI Gateway
 
-LedgerFlow Studio đã có màn hình **AI Gateway** để nhập nhiều API key trực tiếp trong phần mềm, không cần sửa `.env` trên từng máy.
+LedgerFlow Hub co man hinh **AI Gateway** de nhap nhieu API key truc tiep trong phan mem, khong can sua `.env` tren tung may.
 
-Mở app rồi bấm nút nổi **AI Gateway** ở góc phải dưới, hoặc mở trực tiếp:
+Mo app Windows roi bam nut noi **AI Gateway** o goc phai duoi.
 
-```text
-http://127.0.0.1:3000/#/ai_settings
-```
-
-AI Gateway hỗ trợ nhiều key/provider và tự fallback khi hết quota:
+AI Gateway ho tro nhieu key/provider va tu fallback khi het quota:
 
 ```text
-Gemini nhiều tài khoản → Groq → OpenRouter → Claude → Ollama local
+Gemini nhieu tai khoan -> Groq -> OpenRouter -> Claude -> Ollama local
 ```
 
-Tài liệu chi tiết:
+Tai lieu chi tiet:
 
 ```text
 docs/AI_GATEWAY.md
 ```
 
-## Kiểm tra chất lượng code
+## Kiem tra chat luong code
 
-Trước khi build hoặc push:
+Truoc khi build hoac push:
 
 ```bash
 npm run lint
 npm run build
 ```
 
-Repo đã có GitHub Actions CI để tự chạy type-check và build khi push/pull request.
+Repo co GitHub Actions CI de tu chay type-check va build khi push/pull request.
 
-## Tài liệu
+## Tai lieu
 
-Tài liệu chi tiết đã gom vào thư mục:
+Tai lieu chi tiet nam trong:
 
 ```text
 docs/
 ```
 
-Script phụ đã gom vào:
+Script phu nam trong:
 
 ```text
 tools/windows/
 ```
 
-## Cấu trúc không nên đổi tùy tiện
+## Cau truc khong nen doi tuy tien
 
-- `src/`: giao diện, module, mô phỏng, dashboard
-- `desktop/`: app desktop Electron
-- `build/`: icon/logo và asset đóng gói
-- `scripts/`: kiểm tra build/CI
-- `server.ts`: server local/API
-- `package.json`: cấu hình build và installer
+- `src/`: giao dien, module, mo phong, dashboard cho app desktop
+- `desktop/`: vo app desktop Electron
+- `build/`: icon/logo va asset dong goi
+- `scripts/`: kiem tra build/CI
+- `server.ts`: server local/API noi bo
+- `package.json`: cau hinh build va installer
 
-Mục tiêu là giữ nguyên phần mềm hiện tại, chỉ gom tài liệu và script phụ cho thư mục gốc dễ nhìn hơn.
+Muc tieu la giu mot phan mem Windows duy nhat, khong tach thanh hai ban web/desktop khac nhau.

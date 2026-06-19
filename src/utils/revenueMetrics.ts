@@ -57,7 +57,7 @@ async function getRevenueClient(): Promise<{ client: any | null; userId?: string
   const config = getSupabaseConfig();
   if (!config?.url || !config?.anonKey) return { client: null, error: 'Chưa cấu hình Supabase URL/anon key.' };
 
-  const client = getSupabaseClientInstance(config.url, config.anonKey);
+  const client = await getSupabaseClientInstance(config.url, config.anonKey);
   if (!client) return { client: null, error: 'Không khởi tạo được Supabase client.' };
 
   const { data, error } = await client.auth.getUser();

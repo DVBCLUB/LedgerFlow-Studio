@@ -65,11 +65,14 @@ for (const file of [
   'server.ts',
   'vite.config.ts',
   'desktop/main.cjs',
-  'src/App.tsx',
+  'src/main.tsx',
+  'src/app/ErpApp.tsx',
+  'src/app/WorkspaceRenderer.tsx',
+  'src/app/companyNavigation.ts',
   'src/data/simulationRegistry.ts',
-  'HYBRID_APP_STANDARD.md',
-  'SIMULATION_MODEL_MAP.md',
-  'CI_FAILURE_GUIDE.md'
+  'docs/PROJECT_STRUCTURE.md',
+  'docs/SIMULATION_MODEL_MAP.md',
+  'docs/CI_FAILURE_GUIDE.md'
 ]) {
   line(`- ${exists(file) ? 'OK' : 'MISSING'} ${file}`);
 }
@@ -90,7 +93,7 @@ for (const script of [
   'check:build',
   'check:runtime',
   'check:release',
-  'check:hybrid',
+  'check:desktop-release',
   'release:notes'
 ]) {
   line(`- ${pkg?.scripts?.[script] ? 'OK' : 'MISSING'} ${script}`);
@@ -123,7 +126,7 @@ line('');
 line('```bash');
 line('npm install');
 line('npm run desktop:dist');
-line('npm run check:hybrid');
+line('npm run check:desktop-release');
 line('```');
 line('');
 

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import GitHubConnectorPanel from './GitHubConnectorPanel';
 import LocalToolsPanel from './LocalToolsPanel';
+import WebAiSyncPanel from './WebAiSyncPanel';
 import {
   fetchIntegrations,
   testIntegrationConnector,
@@ -69,6 +70,7 @@ const iconById: Record<string, ConnectorIcon> = {
   'document-vault': FileText,
   automation: Workflow,
   'data-hub': Database,
+  'web-ai-sync': Bot,
 };
 
 const fallbackIconByCategory: Record<HubCategory, ConnectorIcon> = {
@@ -151,6 +153,7 @@ export default function IntegrationHub() {
 
   const githubConnector = connectors.find((item) => item.id === 'github');
   const localToolsConnector = connectors.find((item) => item.id === 'vscode-cursor');
+  const webAiSyncConnector = connectors.find((item) => item.id === 'web-ai-sync');
 
   async function handleTest(id: string) {
     setBusyId(id);
@@ -230,6 +233,7 @@ export default function IntegrationHub() {
 
       {githubConnector?.enabled && <GitHubConnectorPanel repoUrl={githubConnector.url} onChanged={() => void loadHub()} />}
       {localToolsConnector?.enabled && <LocalToolsPanel onChanged={() => void loadHub()} />}
+      {webAiSyncConnector?.enabled && <WebAiSyncPanel onChanged={() => void loadHub()} />}
 
       <section className="grid gap-4 lg:grid-cols-[260px_1fr]">
         <aside className="rounded-3xl border border-slate-800 bg-slate-950/80 p-4">

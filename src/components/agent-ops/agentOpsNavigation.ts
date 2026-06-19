@@ -4,6 +4,7 @@ export type AgentOpsHubTab =
   | 'notifications'
   | 'founder'
   | 'workboard'
+  | 'controlPlane'
   | 'tasks'
   | 'factory'
   | 'devroom'
@@ -51,6 +52,7 @@ export const agentOpsTabGroups: AgentOpsTabGroup[] = [
       { id: 'notifications', label: 'Notifications' },
       { id: 'founder', label: 'Founder OS' },
       { id: 'workboard', label: 'Workboard' },
+      { id: 'controlPlane', label: 'Control Plane' },
       { id: 'tasks', label: 'Task Queue' }
     ]
   },

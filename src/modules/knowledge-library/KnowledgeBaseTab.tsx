@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { WorkCard } from '../../../types/agentOps';
-import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../storage';
+import type { WorkCard } from '../../types/agentOps';
+import { appendAgentOpsAudit, appendLocalStorageArrayItem, readLocalStorageValue, useLocalStorageVersion, writeLocalStorageValue } from '../../components/agent-ops/storage';
 
 const KNOWLEDGE_KEY = 'ledgerflow_company_knowledge_v1';
 const WORKBOARD_KEY = 'ledgerflow_aiops_cards_v1';

@@ -26,7 +26,6 @@ type LoadPyodide = (options: {
 }) => Promise<PyodideRuntime>;
 
 const PYODIDE_LOCAL_BASE = '/vendor/pyodide/v0.26.2/full';
-const PYODIDE_CDN_BASE = ['https:', '', 'cdn.jsdelivr.net', 'pyodide', 'v0.26.2', 'full'].join('/');
 const PYODIDE_SCRIPT_ID = 'pyodide-runtime-script';
 
 // Python Forensic Templates
@@ -247,11 +246,11 @@ export default function PythonSandbox() {
     setSysLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${msg}`]);
   };
 
-  // Dynamically load Pyodide from local assets first, then CDN fallback for web builds.
+  // Dynamically load Pyodide from vendored local assets for offline desktop builds.
   const initPyodide = async () => {
     if (pyodideLoaded || isInitializing) return;
     setIsInitializing(true);
-    pushSysLog("Dang tai Pyodide WebAssembly VM theo che do local-first...");
+    pushSysLog("Đang tải Pyodide WebAssembly VM theo chế độ local-first...");
 
     if (typeof window === 'undefined') {
       setIsInitializing(false);
@@ -269,15 +268,8 @@ export default function PythonSandbox() {
       script.async = true;
       script.onerror = () => {
         if (!script) return;
-        if (activePyodideBase === PYODIDE_LOCAL_BASE) {
-          activePyodideBase = PYODIDE_CDN_BASE;
-          script.dataset.pyodideBase = activePyodideBase;
-          pushSysLog("Local Pyodide asset chua co. Thu fallback CDN cho ban web.");
-          script.src = `${activePyodideBase}/pyodide.js`;
-          return;
-        }
         setIsInitializing(false);
-        pushSysLog("Khong the tai Pyodide tu local asset hoac CDN. Sandbox Python can asset runtime truoc khi chay.");
+        pushSysLog("Không thể tải Pyodide từ local asset. Kiểm tra public/vendor/pyodide/v0.26.2/full trước khi chạy sandbox.");
       };
       document.head.appendChild(script);
     } else {
@@ -317,7 +309,7 @@ export default function PythonSandbox() {
       clearInterval(checkAndInit);
       if (!pyodideLoaded && isInitializing) {
         setIsInitializing(false);
-        pushSysLog("Thoi gian tai Pyodide vuot han muc. Kiem tra local asset hoac ket noi mang cho fallback web.");
+        pushSysLog("Thoi gian tai Pyodide vuot han muc. Kiem tra local asset trong public/vendor/pyodide/v0.26.2/full.");
       }
     }, 20000);
   };

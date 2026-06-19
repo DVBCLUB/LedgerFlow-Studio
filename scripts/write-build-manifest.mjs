@@ -75,6 +75,16 @@ const manifest = {
     workflow: process.env.GITHUB_WORKFLOW || null,
     runId: process.env.GITHUB_RUN_ID || null
   },
+  desktop: {
+    desktopEntry: pkg.main,
+    releaseTargets: {
+      windows: pkg.build?.win?.target || [],
+      mac: pkg.build?.mac?.target || null,
+      linux: pkg.build?.linux?.target || null
+    },
+    offlineStorage: 'Electron userData/db_storage.json',
+    browserDistribution: false
+  },
   hybrid: {
     desktopEntry: pkg.main,
     releaseTargets: {
@@ -83,7 +93,7 @@ const manifest = {
       linux: pkg.build?.linux?.target || null
     },
     offlineStorage: 'Electron userData/db_storage.json',
-    pwa: true
+    pwa: false
   },
   simulations: {
     count: simulations.length,

@@ -49,12 +49,15 @@ if (pkg) {
     errors.push('build.artifactName must be LedgerFlow-Hub-${version}-${arch}.${ext}.');
   }
 
-  const requiredFiles = ['dist/**/*', 'desktop/**/*', 'build/**/*', 'package.json', 'node_modules/**/*'];
+  const requiredFiles = ['dist/**/*', 'desktop/**/*', 'build/**/*', 'package.json'];
   const configuredFiles = Array.isArray(build.files) ? build.files : [];
   for (const requiredFile of requiredFiles) {
     if (!configuredFiles.includes(requiredFile)) {
       errors.push(`build.files is missing ${requiredFile}.`);
     }
+  }
+  if (configuredFiles.includes('node_modules/**/*')) {
+    errors.push('build.files must not include node_modules/**/* because electron-builder already collects production dependencies and copying all modules makes the desktop release too large.');
   }
 
   if (!build.directories || build.directories.output !== 'release') {
@@ -108,7 +111,7 @@ if (pkg) {
   }
 
   const scripts = pkg.scripts || {};
-  for (const scriptName of ['build', 'desktop:dev', 'desktop:pack', 'desktop:dist', 'check:simulations', 'check:build', 'check:desktop', 'check:hybrid', 'check:hybrid:release']) {
+  for (const scriptName of ['build', 'desktop:dev', 'desktop:pack', 'desktop:dist', 'check:simulations', 'check:build', 'check:desktop', 'check:desktop-release', 'check:desktop-release:full']) {
     if (!scripts[scriptName]) {
       errors.push(`package.json scripts is missing ${scriptName}.`);
     }

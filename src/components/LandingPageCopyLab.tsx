@@ -6,6 +6,7 @@ import {
   FileText,
   LayoutTemplate,
   Lightbulb,
+  LineChart,
   Loader2,
   MousePointerClick,
   RefreshCw,
@@ -174,7 +175,7 @@ export default function LandingPageCopyLab() {
       const fallback = fallbackCopy(copyForm);
       setGeneratedCopy(fallback);
       persistCopy(fallback);
-      setErrorText(error instanceof Error ? error.message : 'Khong the goi AI Gateway, da dung fallback offline.');
+      setErrorText(error instanceof Error ? error.message : 'Không thể gọi AI Gateway, đã dùng fallback offline.');
     } finally {
       setGenerating(false);
     }
@@ -278,7 +279,7 @@ export default function LandingPageCopyLab() {
               className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-400 px-4 py-3 text-sm font-black text-slate-950 disabled:opacity-60"
             >
               {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-              {generating ? 'Dang tao copy...' : 'Viet copy voi AI Gateway'}
+              {generating ? 'Đang tạo copy...' : 'Viết copy với AI Gateway'}
             </button>
           </div>
 
@@ -291,7 +292,7 @@ export default function LandingPageCopyLab() {
             <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-5">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                  <SparklineIcon />
+                  <LineChart className="h-4 w-4 text-cyan-300" />
                   Generated copy
                 </h2>
                 <button onClick={() => copyText('generated', generatedCopy)} disabled={!generatedCopy} className="inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-xs font-black text-slate-300 disabled:opacity-40">
@@ -311,7 +312,7 @@ export default function LandingPageCopyLab() {
               </h2>
               <div className="space-y-3">
                 {savedCopies.length === 0 ? (
-                  <p className="text-sm font-semibold text-slate-500">Chua co ban copy nao duoc luu.</p>
+                  <p className="text-sm font-semibold text-slate-500">Chưa có bản copy nào được lưu.</p>
                 ) : savedCopies.slice(0, 5).map((item) => (
                   <details key={item.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-4">
                     <summary className="cursor-pointer text-sm font-black text-white">{item.section} - {new Date(item.createdAt).toLocaleString('vi-VN')}</summary>
@@ -402,5 +403,4 @@ export default function LandingPageCopyLab() {
     </div>
   );
 }
-
 

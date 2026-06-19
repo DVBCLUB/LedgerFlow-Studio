@@ -89,12 +89,12 @@ try {
     throw new Error('/api/db/load did not return success true.');
   }
 
-  const geminiStatus = await fetchJson('/api/gemini/status');
-  if (!geminiStatus.response.ok || geminiStatus.json?.success !== true) {
-    throw new Error('/api/gemini/status did not return success true.');
+  const aiHealth = await fetchJson('/api/ai/health');
+  if (!aiHealth.response.ok || aiHealth.json?.success !== true) {
+    throw new Error('/api/ai/health did not return success true.');
   }
 
-  console.log('LedgerFlow runtime API smoke test passed: health, local db and Gemini status endpoints responded.');
+  console.log('LedgerFlow runtime API smoke test passed: health, local db and AI health endpoints responded.');
 } catch (error) {
   console.error('\nLedgerFlow runtime API smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));

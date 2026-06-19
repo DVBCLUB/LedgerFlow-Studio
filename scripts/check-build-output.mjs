@@ -23,7 +23,6 @@ function listFiles(dir) {
 const requiredFiles = [
   'dist/index.html',
   'dist/server.cjs',
-  'dist/manifest.webmanifest',
   'dist/ledgerflow-build-manifest.json'
 ];
 
@@ -66,7 +65,6 @@ if (exists('dist/ledgerflow-build-manifest.json')) {
 const allDistFiles = listFiles(distDir).map((file) => path.relative(distDir, file).replaceAll(path.sep, '/'));
 const jsFiles = allDistFiles.filter((file) => file.endsWith('.js'));
 const cssFiles = allDistFiles.filter((file) => file.endsWith('.css'));
-const serviceWorkerFiles = allDistFiles.filter((file) => file === 'sw.js' || file.includes('workbox'));
 const chartChunks = allDistFiles.filter((file) => file.includes('vendor-charts'));
 
 if (jsFiles.length < 5) {
@@ -75,10 +73,6 @@ if (jsFiles.length < 5) {
 
 if (cssFiles.length < 1) {
   errors.push('No CSS output detected in dist.');
-}
-
-if (serviceWorkerFiles.length < 1) {
-  errors.push('PWA service worker/workbox output was not detected.');
 }
 
 if (chartChunks.length < 1) {
@@ -107,8 +101,8 @@ if (errors.length > 0) {
   for (const error of errors) {
     console.error(`- ${error}`);
   }
-  console.error('\nFix the production output before shipping desktop/web releases.\n');
+  console.error('\nFix the production output before shipping desktop releases.\n');
   process.exit(1);
 }
 
-console.log(`LedgerFlow build smoke check passed: ${jsFiles.length} JS chunks, ${cssFiles.length} CSS files, ${serviceWorkerFiles.length} PWA files verified.`);
+console.log(`LedgerFlow desktop build smoke check passed: ${jsFiles.length} JS chunks and ${cssFiles.length} CSS files verified.`);

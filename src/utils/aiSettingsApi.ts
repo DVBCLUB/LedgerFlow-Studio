@@ -1,4 +1,5 @@
-export type AIProviderId = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama";
+export type AIProviderId = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek";
+export type AIPromptTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding";
 
 export interface AIProviderDefinition {
   id: AIProviderId;
@@ -71,6 +72,51 @@ export interface AIUsageLogEntry {
   promptChars?: number;
   outputChars?: number;
   error?: string;
+}
+
+export interface AIPromptVersion {
+  version: number;
+  content: string;
+  createdAt: string;
+  createdBy: string;
+  note?: string;
+}
+
+export interface AIPromptTemplate {
+  task: AIPromptTask;
+  label: string;
+  description: string;
+  activeVersion: number;
+  versions: AIPromptVersion[];
+}
+
+export interface AIUsageProviderMetrics {
+  provider: string;
+  total: number;
+  ok: number;
+  quota: number;
+  error: number;
+  successRate: number;
+  avgLatencyMs: number;
+  estimatedCostUsd: number;
+}
+
+export interface AIUsageMetricsReport {
+  generatedAt: string;
+  windowHours: number;
+  totals: {
+    total: number;
+    ok: number;
+    quota: number;
+    error: number;
+    successRate: number;
+    avgLatencyMs: number;
+    p95LatencyMs: number;
+    estimatedCostUsd: number;
+    promptChars: number;
+    outputChars: number;
+  };
+  providers: AIUsageProviderMetrics[];
 }
 
 export interface AIDiagnosticResult {
@@ -220,11 +266,52 @@ export async function runAIPreflight(): Promise<AIPreflightReport> {
 
 export async function fetchAIUsageLogs(): Promise<AIUsageLogEntry[]> {
   const data = await readJson<{ logs: AIUsageLogEntry[] }>(await fetch("/api/ai/logs"));
-  return data.logs;
+  return data.logs.map((item: any) => ({
+    ...item,
+    timestamp: item.timestamp || item.at,
+    keyLabel: item.keyLabel || item.label,
+    operation: item.operation || item.mode,
+  }));
 }
 
 export async function clearAIUsageLogs(): Promise<void> {
   await readJson(await fetch("/api/ai/logs", { method: "DELETE" }));
+}
+
+export async function fetchAIUsageMetrics(hours = 24): Promise<AIUsageMetricsReport> {
+  const data = await readJson<{ report: AIUsageMetricsReport }>(await fetch(`/api/ai/metrics?hours=${encodeURIComponent(String(hours))}`));
+  return data.report;
+}
+
+export async function fetchPromptTemplates(): Promise<AIPromptTemplate[]> {
+  const data = await readJson<{ templates: AIPromptTemplate[] }>(await fetch("/api/ai/prompts"));
+  return data.templates;
+}
+
+export async function createPromptTemplateVersion(payload: {
+  task: AIPromptTask;
+  content: string;
+  note?: string;
+  createdBy?: string;
+  activate?: boolean;
+  label?: string;
+  description?: string;
+}): Promise<AIPromptTemplate> {
+  const data = await readJson<{ template: AIPromptTemplate }>(await fetch("/api/ai/prompts/version", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }));
+  return data.template;
+}
+
+export async function activatePromptTemplateVersion(task: AIPromptTask, version: number): Promise<AIPromptTemplate> {
+  const data = await readJson<{ template: AIPromptTemplate }>(await fetch("/api/ai/prompts/activate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ task, version }),
+  }));
+  return data.template;
 }
 
 export async function exportAIKeyBackup(passphrase: string): Promise<unknown> {
@@ -244,23 +331,24 @@ export async function importAIKeyBackup(backup: unknown, passphrase: string, mod
   }));
 }
 
-export async function callAIFromSettings(prompt: string, model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant"): Promise<AIChatResponse> {
+export async function callAIFromSettings(prompt: string, model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant", task: AIPromptTask = "general"): Promise<AIChatResponse> {
   return readJson(await fetch("/api/ai/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, model }),
+    body: JSON.stringify({ prompt, model, task }),
   }));
 }
 
 export async function streamAIFromSettings(
   prompt: string,
   onChunk: (text: string) => void,
-  model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant"
+  model: "ai-assistant" | "ai-assistant-pro" = "ai-assistant",
+  task: AIPromptTask = "general"
 ): Promise<void> {
   const response = await fetch("/api/ai/chat/stream", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt, model }),
+    body: JSON.stringify({ prompt, model, task }),
   });
 
   if (!response.ok || !response.body) {

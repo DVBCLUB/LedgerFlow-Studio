@@ -4,13 +4,15 @@ NEU BAN CHI MUON DUNG PHAN MEM:
 - DUNG TAI source code ZIP tu nut Code -> Download ZIP.
 - Hay vao GitHub Actions artifact va tai goi: LedgerFlow-Hub-Windows-Download.
 - Giai nen goi do, bam file .exe de mo LedgerFlow Hub.
+- Day la ban duy nhat de su dung hang ngay. Khong dung trinh duyet/localhost nhu mot ban web rieng.
 
 DANG NHAP BAN DESKTOP/LOCAL:
-- User: admin
-- Pass: ledgerflow2026
+- Email: nhap email local cua ban, vi du founder@ledgerflow.local
+- Pass mac dinh local/dev: admin123
+- Production: dat VITE_LOCAL_AUTH_PASSWORD trong env de doi mat khau.
 
 Ghi chu:
-- Day la dang nhap local de mo app tren may tinh.
+- Day la dang nhap local de mo app tren may tinh. Mat khau mac dinh chi dung cho local/dev.
 - Supabase/GitHub/AI Gateway la cau hinh tich hop ben trong app, khong phai tai khoan de mo app.
 - Sau nay se nang cap Auth/Role Center cho Admin, Ke toan, Thu kho, HCNS, Sep, Dev.
 
@@ -22,6 +24,7 @@ NEU BAN DANG CAM BO SOURCE CODE NAY VA MUON TU TAO FILE .EXE:
 5. Bam file .exe de cai dat LedgerFlow Hub.
 
 KHONG CAN BAM cac file trong src, scripts, desktop, tools neu ban chi muon dung phan mem.
+KHONG CAN mo http://127.0.0.1:3000 bang trinh duyet. Desktop se tu mo server noi bo khi can.
 
 NEU BUILD LOI:
 - Chup man hinh doan loi dau tien den dong [LOI]

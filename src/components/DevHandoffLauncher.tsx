@@ -3,7 +3,11 @@ import { Code2, Loader2, X } from 'lucide-react';
 
 const DevHandoffCenter = React.lazy(() => import('./DevHandoffCenter'));
 
-export default function DevHandoffLauncher() {
+interface DevHandoffLauncherProps {
+  hideTrigger?: boolean;
+}
+
+export default function DevHandoffLauncher({ hideTrigger = false }: DevHandoffLauncherProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -27,14 +31,16 @@ export default function DevHandoffLauncher() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-[152px] right-5 z-[79] inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-slate-950/95 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-100 shadow-2xl shadow-emerald-950/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-950"
-        title="Mở Dev Handoff Center"
-      >
-        <Code2 className="h-4 w-4" /> Dev Handoff
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="fixed bottom-[152px] right-5 z-[79] inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-slate-950/95 px-4 py-3 text-xs font-black uppercase tracking-[0.16em] text-emerald-100 shadow-2xl shadow-emerald-950/40 backdrop-blur transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-950"
+          title="Mở Dev Handoff Center"
+        >
+          <Code2 className="h-4 w-4" /> Dev Handoff
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[95] bg-slate-950/95 backdrop-blur-xl">

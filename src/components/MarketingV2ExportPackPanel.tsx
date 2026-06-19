@@ -15,12 +15,12 @@ function buildMarketingV2Markdown(): string {
   ];
 
   for (const item of MARKETING_V2_ROLLOUT_STATUS) {
-    lines.push(`### ${item.label}`);
+    lines.push(`### ${item.title}`);
     lines.push(`- Status: ${item.status}`);
     lines.push(`- Area: ${item.area}`);
     lines.push(`- Summary: ${item.summary}`);
     lines.push(`- Next action: ${item.nextAction}`);
-    lines.push(`- Files: ${item.files.join(', ')}`);
+    lines.push(`- Files: ${item.filePaths.join(', ')}`);
     lines.push('');
   }
 
@@ -29,7 +29,7 @@ function buildMarketingV2Markdown(): string {
     lines.push(`### ${item.title}`);
     lines.push(`- Status: ${item.status}`);
     lines.push(`- Owner: ${item.owner}`);
-    lines.push(`- Summary: ${item.summary}`);
+    lines.push(`- Why it matters: ${item.whyItMatters}`);
     lines.push(`- Next action: ${item.nextAction}`);
     lines.push(`- Related files: ${item.relatedFiles.join(', ')}`);
     lines.push('');

@@ -143,6 +143,18 @@ const defaultConnectors: IntegrationConnector[] = [
     capabilities: ["Import Excel/CSV", "Chuẩn hóa cột", "Mapping nguồn dữ liệu", "Audit log dữ liệu vào/ra"],
     quickActions: [{ label: "Chuẩn hóa dữ liệu", hash: "/integration_hub?focus=data-hub" }],
   },
+  {
+    id: "web-ai-sync",
+    title: "ChatGPT & Gemini Web Sync",
+    subtitle: "Đồng bộ hội thoại từ giao diện Web ChatGPT/Gemini (không cần API key).",
+    category: "ai",
+    status: "manual",
+    priority: "P1",
+    enabled: false,
+    notes: "Giải pháp đồng bộ cục bộ bảo mật, hỗ trợ kéo thả file xuất dữ liệu (Data Export JSON) hoặc chạy script tự động bằng Chrome cookies.",
+    capabilities: ["Nhập file JSON/ZIP từ ChatGPT", "Nhập dữ liệu hội thoại Gemini", "Quản lý và lưu trữ hội thoại", "Trích xuất làm giàu thư viện Prompt"],
+    quickActions: [{ label: "Đồng bộ dữ liệu", hash: "/integration_hub?focus=web-ai-sync" }],
+  },
 ];
 
 function nowIso(): string {
@@ -215,6 +227,9 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
   } else if (["document-vault", "data-hub"].includes(connector.id)) {
     status = "local";
     message = "Local-first connector is ready inside LedgerFlow.";
+  } else if (connector.id === "web-ai-sync") {
+    status = "manual";
+    message = "Web Sync Connector đang chạy chế độ thủ công: Sẵn sàng nhập file conversations.json từ ChatGPT/Gemini.";
   } else {
     status = connector.status === "planned" ? "planned" : connector.status;
     message = "Connector is in roadmap mode; configure credentials/workflow before enabling real sync.";

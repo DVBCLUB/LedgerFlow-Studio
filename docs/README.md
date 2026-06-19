@@ -21,6 +21,7 @@ AI_AGENT_PLAYBOOK.md
 | `AI_GATEWAY.md` | AI Gateway, provider fallback, vault, diagnostics |
 | `INTEGRATION_HUB.md` | Connector registry, platform hub, local tools, GitHub connector |
 | `CI_DOCTOR.md` | GitHub Actions failure analysis workflow |
+| `DESKTOP_RELEASE_GUIDE.md` | Canonical Windows build, download, and release guide |
 
 ## Product direction
 

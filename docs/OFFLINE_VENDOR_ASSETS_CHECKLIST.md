@@ -7,9 +7,9 @@ Use this checklist before calling the Windows desktop build "fully offline".
 
 | Feature | Runtime file | Local asset path | Current fallback |
 |---|---|---|---|
-| SQLite WASM sync sandbox | `src/utils/supabaseSync.ts` | `public/vendor/sql.js/` | CDN fallback kept for web builds |
-| Python data science sandbox | `src/components/PythonSandbox.tsx` | `public/vendor/pyodide/v0.26.2/full/` | CDN fallback kept for web builds |
-| VietQR preview | `src/components/DeployBusiness.tsx` | Not implemented yet | Online VietQR image preview |
+| SQLite WASM sync sandbox | `src/utils/supabaseSync.ts` | `public/vendor/sql.js/` | Local asset required |
+| Python data science sandbox | `src/components/PythonSandbox.tsx` | `public/vendor/pyodide/v0.26.2/full/` | Local asset required |
+| VietQR preview | `src/components/DeployBusiness.tsx` | Local EMV payload + QR renderer | Local asset/runtime only |
 
 ## Required sql.js assets
 
@@ -24,7 +24,7 @@ After adding them:
 2. Run `npm.cmd run check:offline-vendor-assets`.
 3. Run `npm.cmd run lint`.
 4. Manually open the SQLite/WASM query UI and run a simple `select` query.
-5. Remove the CDN fallback in `src/utils/supabaseSync.ts` only after the local asset path is verified.
+5. Keep the local asset path verified before packaging desktop releases.
 
 ## Required Pyodide assets
 
@@ -40,6 +40,7 @@ At minimum, this folder must include the runtime files needed by `loadPyodide`, 
 - `pyodide.asm.js`
 - `pyodide.asm.wasm`
 - `python_stdlib.zip`
+- `pyodide-lock.json`
 - package metadata files shipped with the same Pyodide release
 
 After adding them:
@@ -48,7 +49,7 @@ After adding them:
 2. Run `npm.cmd run check:offline-vendor-assets`.
 3. Run `npm.cmd run lint`.
 4. Open Python Sandbox and run the Benford template.
-5. Remove the CDN fallback in `src/components/PythonSandbox.tsx` only after the local runtime can initialize without internet.
+5. Keep the local runtime verified before packaging desktop releases.
 
 ## VietQR offline renderer
 

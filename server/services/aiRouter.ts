@@ -15,10 +15,11 @@ const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "sk-ledgerflow-local-2026"
 
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
   const entries = await getEnabledAIKeyEntries();
+  const orderedEntries = orderEntriesByPolicy(entries, options);
   const errors: string[] = [];
   const promptChars = countPromptChars(messages);
 
-  for (const entry of entries) {
+  for (const entry of orderedEntries) {
     const started = Date.now();
     try {
       const result = await callProvider(entry, messages, options);
@@ -51,10 +52,11 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
 
 export async function* streamAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): AsyncGenerator<string, void, unknown> {
   const entries = await getEnabledAIKeyEntries();
+  const orderedEntries = orderEntriesByPolicy(entries, options);
   const errors: string[] = [];
   const promptChars = countPromptChars(messages);
 
-  for (const entry of entries) {
+  for (const entry of orderedEntries) {
     let yielded = false;
     let outputChars = 0;
     const started = Date.now();
@@ -151,6 +153,8 @@ export async function testAIKey(input: { provider: AIProviderName; apiKey?: stri
 
 async function callProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): Promise<ProviderCallResult> {
   if (entry.provider === "gemini") return callGemini(entry, messages, options);
+  if (entry.provider === "openai") return callOpenAICompatible(entry, messages, options, "https://api.openai.com/v1/chat/completions");
+  if (entry.provider === "deepseek") return callOpenAICompatible(entry, messages, options, "https://api.deepseek.com/chat/completions");
   if (entry.provider === "groq") return callOpenAICompatible(entry, messages, options, "https://api.groq.com/openai/v1/chat/completions");
   if (entry.provider === "openrouter") return callOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return callAnthropic(entry, messages, options);
@@ -159,6 +163,8 @@ async function callProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[],
 }
 function streamProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
   if (entry.provider === "gemini") return streamGemini(entry, messages, options);
+  if (entry.provider === "openai") return streamOpenAICompatible(entry, messages, options, "https://api.openai.com/v1/chat/completions");
+  if (entry.provider === "deepseek") return streamOpenAICompatible(entry, messages, options, "https://api.deepseek.com/chat/completions");
   if (entry.provider === "groq") return streamOpenAICompatible(entry, messages, options, "https://api.groq.com/openai/v1/chat/completions");
   if (entry.provider === "openrouter") return streamOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return streamAnthropic(entry, messages, options);
@@ -262,7 +268,52 @@ async function logEntry(entry: DecryptedAIKeyEntry, mode: AIUsageMode, status: "
   await appendAIUsageLog({ provider: entry.provider, keyId: entry.id, label: entry.label, model, mode, status, latencyMs: Date.now() - started, promptChars, outputChars, error });
 }
 function countPromptChars(messages: ChatMessage[]): number { return messages.reduce((sum, msg) => sum + msg.content.length, 0); }
-function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions["model"]): string { const pro = requested === "ai-assistant-pro"; if (provider === "gemini") return pro ? "gemini-2.0-flash" : "gemini-2.0-flash"; if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant"; if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free"; if (provider === "anthropic") return pro ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest"; return "qwen2.5:7b"; }
+function orderEntriesByPolicy(entries: DecryptedAIKeyEntry[], options: CallAIOptions): DecryptedAIKeyEntry[] {
+  if (entries.length <= 1) return entries;
+  const model = options.model ?? "ai-assistant";
+  const task = options.task ?? "general";
+  return entries
+    .slice()
+    .sort((a, b) => {
+      const rankA = getProviderRank(a.provider, model, task);
+      const rankB = getProviderRank(b.provider, model, task);
+      if (rankA !== rankB) return rankA - rankB;
+      return a.priority - b.priority || a.createdAt.localeCompare(b.createdAt);
+    });
+}
+function getProviderRank(provider: AIProviderName, model: NonNullable<CallAIOptions["model"]>, task: NonNullable<CallAIOptions["task"]>): number {
+  const fastModelOrder: AIProviderName[] = ["groq", "gemini", "deepseek", "openrouter", "openai", "anthropic", "ollama"];
+  const proModelOrder: AIProviderName[] = ["anthropic", "openai", "gemini", "deepseek", "openrouter", "groq", "ollama"];
+  const rank = (order: AIProviderName[]): number => {
+    const idx = order.indexOf(provider);
+    return idx >= 0 ? idx : 999;
+  };
+
+  if (task === "coding") {
+    const order: AIProviderName[] = ["anthropic", "openai", "deepseek", "openrouter", "gemini", "groq", "ollama"];
+    return rank(order);
+  }
+  if (task === "analytics" || task === "accounting") {
+    const order: AIProviderName[] = ["anthropic", "openai", "gemini", "deepseek", "openrouter", "groq", "ollama"];
+    return rank(order);
+  }
+  if (task === "marketing" || task === "sales") {
+    const order: AIProviderName[] = ["openai", "anthropic", "gemini", "openrouter", "groq", "deepseek", "ollama"];
+    return rank(order);
+  }
+
+  return rank(model === "ai-assistant-pro" ? proModelOrder : fastModelOrder);
+}
+function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions["model"]): string {
+  const pro = requested === "ai-assistant-pro";
+  if (provider === "gemini") return pro ? "gemini-2.0-flash" : "gemini-2.0-flash";
+  if (provider === "openai") return pro ? "gpt-4o" : "gpt-4o-mini";
+  if (provider === "deepseek") return pro ? "deepseek-reasoner" : "deepseek-chat";
+  if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
+  if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free";
+  if (provider === "anthropic") return pro ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest";
+  return "qwen2.5:7b";
+}
 function isQuotaLikeError(err: any): boolean { const text = `${err?.status || ""} ${err?.message || ""} ${JSON.stringify(err?.body || {})}`.toLowerCase(); return text.includes("429") || text.includes("quota") || text.includes("rate limit") || text.includes("too many requests") || text.includes("resource_exhausted"); }
 function providerHttpError(provider: AIProviderName | "litellm-proxy", status: number, body: unknown): ProviderError { return new ProviderError(extractErrorMessage(body) || `${provider} returned HTTP ${status}`, status, body, provider); }
 function extractErrorMessage(body: any): string | undefined { return body?.error?.message || body?.error || body?.message || body?.detail; }

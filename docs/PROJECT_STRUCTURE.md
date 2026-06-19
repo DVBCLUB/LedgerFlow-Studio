@@ -1,6 +1,6 @@
 # LedgerFlow Studio Project Structure
 
-LedgerFlow Studio is organized as a hybrid React + Express + Electron application. The product direction is to become a company operating hub: accounting workflows, AI Gateway, Integration Hub, development handoff, and local automation.
+LedgerFlow Studio is organized as a desktop-first React + Express + Electron application. Electron is the only user-facing app target; React and Express remain as the shared renderer/API runtime loaded by the desktop shell.
 
 ## Top-level folders
 
@@ -26,28 +26,34 @@ Root should stay lean. Keep only files that must be at the project root for Node
 
 | Runtime | Entry |
 |---|---|
-| Local web/dev | `npm run dev` → `server.ts` |
+| Local developer runtime | `npm run dev` → `server.ts` |
 | Production server | `npm run build` then `npm start` → `dist/server.cjs` |
 | Desktop | `desktop/main.cjs` loads the production app |
 | Windows installer local build | `tools/windows/BUILD_WINDOWS_INSTALLER.bat` / `npm run desktop:dist` |
 | Windows user download | GitHub Actions artifact `LedgerFlow-Hub-Windows-Download` |
 
+The local server is not a separate product edition. It exists so the Windows app can run one internal API/UI runtime and so developers can test changes.
+
 ## Frontend organization
 
 ```text
 src/
-├── components/              # Main React feature components and launchers
-│   └── agent-ops/           # AgentOpsHub shell, launcher, hooks, helpers, and tabs
+├── app/                     # Company OS shell, navigation registry, workspace renderer
+├── components/              # Shared feature panels and overlay launchers
+│   └── agent-ops/           # AgentOpsHub shell, hooks, helpers, and tabs
+├── context/                 # Cross-app React providers such as local auth
+├── modules/                 # Business workspaces grouped by company function
 ├── types/                   # Shared frontend TypeScript type sources
 │   └── agentOps.ts          # Single source for AgentOps records/status/risk types
 ├── utils/                   # Frontend API clients and shared helpers
-├── App.tsx                  # Main application shell
-└── main.tsx                 # React mount point + overlay launchers
+└── main.tsx                 # React mount point; loads app/ErpApp.tsx
 ```
 
 Important frontend patterns:
 
-- Large feature overlays use `*Launcher.tsx` so they can be mounted without rewriting `App.tsx`.
+- `src/app/ErpApp.tsx` owns the shell; `WorkspaceRenderer.tsx` owns lazy workspace loading.
+- Add navigation metadata in `src/app/companyNavigation.ts` instead of duplicating sidebar definitions.
+- Large feature overlays use `*Launcher.tsx` when they must be mounted outside the workspace renderer.
 - API calls should be wrapped in `src/utils/*Api.ts` instead of being scattered across components.
 - New connector panels should be composed into `IntegrationHub.tsx` or mounted as a launcher if they are large.
 - Agent / AI Ops / Approval UI belongs under `src/components/agent-ops/`; shared AgentOps records belong in `src/types/agentOps.ts`.
@@ -169,11 +175,19 @@ These files are intentionally local-only:
 ai_keys.vault.json
 ai_usage.log.json
 .ai_vault_session.json
+agent_role_prompts.json
+ai_prompt_registry.json
 integration_registry.json
 integration_events.log.json
+ledgerflow_audit.log.json
+company_os_control_plane.json
+web_ai_profiles.json
+db_storage.json
 release/
 dist/
 node_modules/
+.chrome_profiles/
+.local-cleanup/
 ```
 
 ## Recommended module boundaries

@@ -7,6 +7,7 @@ const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
 const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
 const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.md');
 const mainPath = path.join(root, 'src', 'main.tsx');
+const analyticsWorkspacePath = path.join(componentDir, 'AnalyticsWorkspace.tsx');
 
 const requiredBackupOnlyKeys = ['ledgerflow-founder-labs-last-backup-v1'];
 
@@ -74,9 +75,10 @@ const dockContent = readFile('src/components/FounderLabsDock.tsx');
 const backupContent = readFile('src/components/LabsBackupRestore.tsx');
 const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
 const mainContent = readFile('src/main.tsx');
+const analyticsWorkspaceContent = readFile('src/components/AnalyticsWorkspace.tsx');
 
-if (!mainContent.includes('FounderLabsDock')) {
-  errors.push('src/main.tsx does not render FounderLabsDock. Founder Labs would be hidden from the app.');
+if (!mainContent.includes('ErpApp') || !analyticsWorkspaceContent.includes('FounderLabsDock embedded')) {
+  errors.push('ERP runtime does not expose FounderLabsDock through the embedded Analytics workspace.');
 }
 
 if (!mainContent.includes('SimulationGuard')) {

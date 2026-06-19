@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 
-export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama";
+export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek";
 
 export interface AIProviderDefinition {
   id: AIProviderName;
@@ -122,6 +122,22 @@ const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
     defaultModel: "gemini-2.0-flash",
     docsUrl: "https://aistudio.google.com/app/apikey",
     note: "Có thể thêm nhiều key từ nhiều tài khoản Google; hết quota key này sẽ tự qua key kế tiếp.",
+  },
+  {
+    id: "openai",
+    label: "OpenAI ChatGPT",
+    requiresApiKey: true,
+    defaultModel: "gpt-4o-mini",
+    docsUrl: "https://platform.openai.com/api-keys",
+    note: "Dùng API key từ OpenAI. Hỗ trợ gpt-4o, gpt-4o-mini, o1,...",
+  },
+  {
+    id: "deepseek",
+    label: "DeepSeek",
+    requiresApiKey: true,
+    defaultModel: "deepseek-chat",
+    docsUrl: "https://platform.deepseek.com/api_keys",
+    note: "Dùng API key từ DeepSeek. Hỗ trợ các model deepseek-chat, deepseek-reasoner.",
   },
   {
     id: "groq",

@@ -59,7 +59,7 @@ async function getMemoryClient(): Promise<{ client: any | null; userId?: string;
     };
   }
 
-  const client = getSupabaseClientInstance(config.url, config.anonKey);
+  const client = await getSupabaseClientInstance(config.url, config.anonKey);
   if (!client) {
     return {
       client: null,

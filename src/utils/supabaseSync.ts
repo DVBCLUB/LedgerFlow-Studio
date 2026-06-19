@@ -1,5 +1,5 @@
 import { SYNC_KEYS } from './dbSync';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 export interface SupabaseConfig {
   url: string;
@@ -22,15 +22,26 @@ export interface SyncResult {
 // Global cached client instance
 let cachedSupabaseClient: SupabaseClient | null = null;
 let cachedSupabaseUrl: string | null = null;
+type CreateSupabaseClient = (url: string, key: string, options?: any) => SupabaseClient;
+let cachedCreateClient: CreateSupabaseClient | null = null;
+
+async function loadCreateClient(): Promise<CreateSupabaseClient> {
+  if (!cachedCreateClient) {
+    const module = await import('@supabase/supabase-js');
+    cachedCreateClient = module.createClient as CreateSupabaseClient;
+  }
+  return cachedCreateClient;
+}
 
 /**
  * Khởi tạo hoặc tái sử dụng Supabase Client duy nhất (Singleton Pattern).
  */
-export function getSupabaseClientInstance(url: string, anonKey: string): SupabaseClient | null {
+export async function getSupabaseClientInstance(url: string, anonKey: string): Promise<SupabaseClient | null> {
   if (!url || !anonKey) return null;
   const cleanUrl = url.replace(/\/+$/, '');
   if (!cachedSupabaseClient || cachedSupabaseUrl !== cleanUrl) {
     try {
+      const createClient = await loadCreateClient();
       cachedSupabaseClient = createClient(cleanUrl, anonKey, {
         auth: {
           persistSession: true,
@@ -320,7 +331,7 @@ export function mergeOfflineData(localData: Record<string, any>, cloudData: Reco
  */
 export async function authenticateSupabaseUser(config: SupabaseConfig, email: string, password?: string, isSignUp = false): Promise<{ success: boolean; message: string; userId?: string; error?: SyncErrorResponse }> {
   try {
-    const client = getSupabaseClientInstance(config.url, config.anonKey);
+    const client = await getSupabaseClientInstance(config.url, config.anonKey);
     if (!client) {
       return { 
         success: false, 
@@ -366,7 +377,7 @@ export async function authenticateSupabaseUser(config: SupabaseConfig, email: st
 export async function syncToSupabase(config: SupabaseConfig, email: string, password?: string): Promise<SyncResult> {
   try {
     const { url, anonKey, tableName } = config;
-    const client = getSupabaseClientInstance(url, anonKey);
+    const client = await getSupabaseClientInstance(url, anonKey);
     if (!client) {
       return {
         success: false,
@@ -479,7 +490,7 @@ export async function syncToSupabase(config: SupabaseConfig, email: string, pass
 export async function pullFromSupabase(config: SupabaseConfig, email: string, password?: string): Promise<{ success: boolean; found: boolean; message: string; error?: SyncErrorResponse }> {
   try {
     const { url, anonKey, tableName } = config;
-    const client = getSupabaseClientInstance(url, anonKey);
+    const client = await getSupabaseClientInstance(url, anonKey);
     if (!client) {
       return {
         success: false,
@@ -571,15 +582,14 @@ export async function pullFromSupabase(config: SupabaseConfig, email: string, pa
 let sqlDbInstance: any = null;
 let sqlJsLoading = false;
 const SQL_JS_LOCAL_BASE = '/vendor/sql.js';
-const SQL_JS_CDN_BASE = ['https:', '', 'cdnjs.cloudflare.com', 'ajax', 'libs', 'sql.js', '1.8.0'].join('/');
 
 /**
- * Initializes physical WebAssembly SQLite dynamically from CDN
+ * Initializes physical WebAssembly SQLite dynamically from vendored local assets.
  */
 export function initializeRealSqlWasm() {
   if (sqlDbInstance || sqlJsLoading) return;
   sqlJsLoading = true;
-  pushWasmSqlLog("[WASM-INIT] Dang tai WebAssembly SQLite Engine v1.8.0 theo che do local-first...");
+  pushWasmSqlLog("[WASM-INIT] Đang tải WebAssembly SQLite Engine v1.8.0 theo chế độ local-first...");
 
   if (typeof window === 'undefined') {
     sqlJsLoading = false;
@@ -645,13 +655,7 @@ export function initializeRealSqlWasm() {
     }
   };
   script.onerror = () => {
-    if (activeSqlJsBase === SQL_JS_LOCAL_BASE) {
-      activeSqlJsBase = SQL_JS_CDN_BASE;
-      pushWasmSqlLog("[WASM-INIT] Local sql.js asset chua co. Thu fallback CDN cho ban web.");
-      script.src = `${activeSqlJsBase}/sql-wasm.js`;
-      return;
-    }
-    pushWasmSqlLog("[WASM-LỖI] Không thể kết nối CDN để tải sql.js. Kích hoạt Sandbox giả lập.");
+    pushWasmSqlLog("[WASM-LỖI] Không thể tải local sql.js asset. Kích hoạt Sandbox giả lập.");
     sqlJsLoading = false;
   };
   document.head.appendChild(script);

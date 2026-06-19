@@ -22,7 +22,7 @@ const checks = mode === 'release' ? releaseChecks : prebuildChecks;
 
 function runCheck(check) {
   return new Promise((resolve) => {
-    console.log(`\n=== LedgerFlow hybrid check: ${check.name} ===\n`);
+    console.log(`\n=== LedgerFlow desktop release check: ${check.name} ===\n`);
 
     const child = spawn(check.command, check.args, {
       stdio: 'inherit',
@@ -52,18 +52,18 @@ for (const check of checks) {
 
 const failed = results.filter((result) => !result.ok);
 
-console.log(`\n=== LedgerFlow hybrid ${mode} checklist summary ===\n`);
+console.log(`\n=== LedgerFlow desktop ${mode} checklist summary ===\n`);
 for (const result of results) {
   console.log(`${result.ok ? 'PASS' : 'FAIL'} - ${result.name}`);
 }
 
 if (failed.length > 0) {
-  console.error('\nHybrid checklist failed. Fix the first failed check before continuing.\n');
+  console.error('\nDesktop release checklist failed. Fix the first failed check before continuing.\n');
   process.exit(1);
 }
 
 if (mode === 'release') {
-  console.log('\nHybrid release checklist passed. Build is ready for manual install testing and artifact upload.\n');
+  console.log('\nDesktop release checklist passed. Build is ready for manual install testing and artifact upload.\n');
 } else {
-  console.log('\nHybrid prebuild checklist passed. You can now run npm run desktop:dist.\n');
+  console.log('\nDesktop prebuild checklist passed. You can now run npm run desktop:dist.\n');
 }

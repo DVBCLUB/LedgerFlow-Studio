@@ -1,31 +1,32 @@
-import { useEffect, useState } from 'react';
-import BrowserSimulationPlanner from '../BrowserSimulationPlanner';
-import ProjectMemoryDecisionLog from '../ProjectMemoryDecisionLog';
-import ConfigHealthMonitor from '../ConfigHealthMonitor';
-import SecurityControlCenter from '../SecurityControlCenter';
-import ToolExecutionLayerPanel from '../ToolExecutionLayerPanel';
-import RuntimeToolBridge from '../RuntimeToolBridge';
-import RuntimeQueueAssistantBridge from '../RuntimeQueueAssistantBridge';
-import RuntimeInboxBridge from '../RuntimeInboxBridge';
-import SessionWorkboardBridge from '../SessionWorkboardBridge';
-import SessionResultBridge from '../SessionResultBridge';
-import SandboxApprovalBridge from '../SandboxApprovalBridge';
-import ReleaseDraftSyncBridge from '../ReleaseDraftSyncBridge';
-import LocalHandoffCenter from '../LocalHandoffCenter';
-import PRControlCenter from '../PRControlCenter';
-import PRDigestSyncBridge from '../PRDigestSyncBridge';
-import MergeReadinessCenter from '../MergeReadinessCenter';
-import SandboxPatchWorkspace from '../SandboxPatchWorkspace';
-import PatchDiffReviewCenter from '../PatchDiffReviewCenter';
-import FounderReviewChecklist from '../FounderReviewChecklist';
-import RollbackCenter from '../RollbackCenter';
-import ReleaseArtifactCenter from '../ReleaseArtifactCenter';
-import ArtifactInspectorPanel from '../ArtifactInspectorPanel';
-import AuditTrailPanel from '../AuditTrailPanel';
-import CIRunInspectorPanel from '../CIRunInspectorPanel';
-import CIRecoveryQueue from '../CIRecoveryQueue';
-import BuildMonitorPanel from '../BuildMonitorPanel';
-import ToolPolicyRegistry from '../ToolPolicyRegistry';
+import { Suspense, lazy, useEffect, useState } from 'react';
+
+const BrowserSimulationPlanner = lazy(() => import('../BrowserSimulationPlanner'));
+const ProjectMemoryDecisionLog = lazy(() => import('../ProjectMemoryDecisionLog'));
+const ConfigHealthMonitor = lazy(() => import('../ConfigHealthMonitor'));
+const SecurityControlCenter = lazy(() => import('../SecurityControlCenter'));
+const ToolExecutionLayerPanel = lazy(() => import('../ToolExecutionLayerPanel'));
+const RuntimeToolBridge = lazy(() => import('../RuntimeToolBridge'));
+const RuntimeQueueAssistantBridge = lazy(() => import('../RuntimeQueueAssistantBridge'));
+const RuntimeInboxBridge = lazy(() => import('../RuntimeInboxBridge'));
+const SessionWorkboardBridge = lazy(() => import('../SessionWorkboardBridge'));
+const SessionResultBridge = lazy(() => import('../SessionResultBridge'));
+const SandboxApprovalBridge = lazy(() => import('../SandboxApprovalBridge'));
+const ReleaseDraftSyncBridge = lazy(() => import('../ReleaseDraftSyncBridge'));
+const LocalHandoffCenter = lazy(() => import('../LocalHandoffCenter'));
+const PRControlCenter = lazy(() => import('../PRControlCenter'));
+const PRDigestSyncBridge = lazy(() => import('../PRDigestSyncBridge'));
+const MergeReadinessCenter = lazy(() => import('../MergeReadinessCenter'));
+const SandboxPatchWorkspace = lazy(() => import('../SandboxPatchWorkspace'));
+const PatchDiffReviewCenter = lazy(() => import('../PatchDiffReviewCenter'));
+const FounderReviewChecklist = lazy(() => import('../FounderReviewChecklist'));
+const RollbackCenter = lazy(() => import('../RollbackCenter'));
+const ReleaseArtifactCenter = lazy(() => import('../ReleaseArtifactCenter'));
+const ArtifactInspectorPanel = lazy(() => import('../ArtifactInspectorPanel'));
+const AuditTrailPanel = lazy(() => import('../AuditTrailPanel'));
+const CIRunInspectorPanel = lazy(() => import('../CIRunInspectorPanel'));
+const CIRecoveryQueue = lazy(() => import('../CIRecoveryQueue'));
+const BuildMonitorPanel = lazy(() => import('../BuildMonitorPanel'));
+const ToolPolicyRegistry = lazy(() => import('../ToolPolicyRegistry'));
 
 type OpsToolsView = 'tools' | 'local' | 'pr' | 'readiness' | 'memory' | 'config' | 'security' | 'browser' | 'sandbox' | 'diff' | 'founder' | 'rollback' | 'release' | 'artifacts' | 'audit' | 'ci' | 'recovery' | 'build' | 'policy';
 
@@ -55,7 +56,11 @@ function isOpsToolsRoute() {
   return window.location.hash === '#/ops_tools' || window.location.hash === '#/misc_ops';
 }
 
-export default function OpsToolsLauncher() {
+interface OpsToolsLauncherProps {
+  hideTrigger?: boolean;
+}
+
+export default function OpsToolsLauncher({ hideTrigger = false }: OpsToolsLauncherProps) {
   const [open, setOpen] = useState(() => isOpsToolsRoute());
   const [view, setView] = useState<OpsToolsView>('tools');
 
@@ -77,18 +82,24 @@ export default function OpsToolsLauncher() {
 
   return (
     <>
-      {open && <RuntimeInboxBridge />}
-      {open && <RuntimeQueueAssistantBridge />}
-      {open && <RuntimeToolBridge />}
-      {open && <SessionWorkboardBridge />}
-      {open && <SessionResultBridge />}
-      {open && <SandboxApprovalBridge />}
-      {open && <ReleaseDraftSyncBridge />}
-      {open && <PRDigestSyncBridge />}
-      <button onClick={openPanel} className="fixed bottom-72 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80" title="Open Ops Tools">
-        <span className="block text-[10px] uppercase tracking-[0.18em] text-violet-300">Ops Tools</span>
-        <span className="block">Panels</span>
-      </button>
+      {open && (
+        <Suspense fallback={null}>
+          <RuntimeInboxBridge />
+          <RuntimeQueueAssistantBridge />
+          <RuntimeToolBridge />
+          <SessionWorkboardBridge />
+          <SessionResultBridge />
+          <SandboxApprovalBridge />
+          <ReleaseDraftSyncBridge />
+          <PRDigestSyncBridge />
+        </Suspense>
+      )}
+      {!hideTrigger && (
+        <button onClick={openPanel} className="fixed bottom-72 right-5 z-40 rounded-2xl border border-violet-400/40 bg-slate-950/95 px-4 py-3 text-left text-xs font-black text-violet-100 shadow-2xl shadow-violet-950/40 backdrop-blur transition hover:border-violet-300 hover:bg-violet-950/80" title="Open Ops Tools">
+          <span className="block text-[10px] uppercase tracking-[0.18em] text-violet-300">Ops Tools</span>
+          <span className="block">Panels</span>
+        </button>
+      )}
       {open && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 p-4 backdrop-blur">
           <div className="mx-auto max-w-6xl">
@@ -105,25 +116,27 @@ export default function OpsToolsLauncher() {
                 {views.map((item) => <button key={item.id} onClick={() => setView(item.id)} className={`rounded-2xl border px-4 py-2 text-xs font-black ${view === item.id ? 'border-violet-300 bg-violet-400/10 text-violet-100' : 'border-slate-700 text-slate-300 hover:border-violet-300'}`}>{item.label}</button>)}
               </div>
             </div>
-            {view === 'tools' && <ToolExecutionLayerPanel />}
-            {view === 'local' && <LocalHandoffCenter />}
-            {view === 'pr' && <PRControlCenter />}
-            {view === 'readiness' && <MergeReadinessCenter />}
-            {view === 'memory' && <ProjectMemoryDecisionLog />}
-            {view === 'config' && <ConfigHealthMonitor />}
-            {view === 'security' && <SecurityControlCenter />}
-            {view === 'browser' && <BrowserSimulationPlanner />}
-            {view === 'sandbox' && <SandboxPatchWorkspace />}
-            {view === 'diff' && <PatchDiffReviewCenter />}
-            {view === 'founder' && <FounderReviewChecklist />}
-            {view === 'rollback' && <RollbackCenter />}
-            {view === 'release' && <ReleaseArtifactCenter />}
-            {view === 'artifacts' && <ArtifactInspectorPanel />}
-            {view === 'audit' && <AuditTrailPanel />}
-            {view === 'ci' && <CIRunInspectorPanel />}
-            {view === 'recovery' && <CIRecoveryQueue />}
-            {view === 'build' && <BuildMonitorPanel />}
-            {view === 'policy' && <ToolPolicyRegistry />}
+            <Suspense fallback={<div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-sm font-bold text-slate-400">Đang tải panel...</div>}>
+              {view === 'tools' && <ToolExecutionLayerPanel />}
+              {view === 'local' && <LocalHandoffCenter />}
+              {view === 'pr' && <PRControlCenter />}
+              {view === 'readiness' && <MergeReadinessCenter />}
+              {view === 'memory' && <ProjectMemoryDecisionLog />}
+              {view === 'config' && <ConfigHealthMonitor />}
+              {view === 'security' && <SecurityControlCenter />}
+              {view === 'browser' && <BrowserSimulationPlanner />}
+              {view === 'sandbox' && <SandboxPatchWorkspace />}
+              {view === 'diff' && <PatchDiffReviewCenter />}
+              {view === 'founder' && <FounderReviewChecklist />}
+              {view === 'rollback' && <RollbackCenter />}
+              {view === 'release' && <ReleaseArtifactCenter />}
+              {view === 'artifacts' && <ArtifactInspectorPanel />}
+              {view === 'audit' && <AuditTrailPanel />}
+              {view === 'ci' && <CIRunInspectorPanel />}
+              {view === 'recovery' && <CIRecoveryQueue />}
+              {view === 'build' && <BuildMonitorPanel />}
+              {view === 'policy' && <ToolPolicyRegistry />}
+            </Suspense>
           </div>
         </div>
       )}

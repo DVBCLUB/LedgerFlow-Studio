@@ -4,9 +4,12 @@ import path from 'path';
 const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
 const registryPath = path.join(root, 'src', 'data', 'simulationRegistry.ts');
-const appPath = path.join(root, 'src', 'App.tsx');
+const appPath = path.join(root, 'src', 'app', 'ErpApp.tsx');
 const mainPath = path.join(root, 'src', 'main.tsx');
 const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
+const workspaceRendererPath = path.join(root, 'src', 'app', 'WorkspaceRenderer.tsx');
+const companyNavPath = path.join(root, 'src', 'app', 'companyNavigation.ts');
+const analyticsWorkspacePath = path.join(componentDir, 'AnalyticsWorkspace.tsx');
 
 function parseRegistryComponents() {
   if (!fs.existsSync(registryPath)) {
@@ -42,7 +45,9 @@ const registry = parseRegistryComponents();
 const criticalModules = registry.components;
 
 const requiredRuntimeFiles = [
-  'src/App.tsx',
+  'src/app/ErpApp.tsx',
+  'src/app/WorkspaceRenderer.tsx',
+  'src/app/companyNavigation.ts',
   'src/main.tsx',
   'src/store/useStore.ts',
   'src/utils/dbSync.ts',
@@ -86,6 +91,9 @@ for (const moduleName of criticalModules) {
 const appContent = fs.existsSync(appPath) ? fs.readFileSync(appPath, 'utf8') : '';
 const mainContent = fs.existsSync(mainPath) ? fs.readFileSync(mainPath, 'utf8') : '';
 const dockContent = fs.existsSync(dockPath) ? fs.readFileSync(dockPath, 'utf8') : '';
+const workspaceRendererContent = fs.existsSync(workspaceRendererPath) ? fs.readFileSync(workspaceRendererPath, 'utf8') : '';
+const companyNavContent = fs.existsSync(companyNavPath) ? fs.readFileSync(companyNavPath, 'utf8') : '';
+const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? fs.readFileSync(analyticsWorkspacePath, 'utf8') : '';
 
 const dockHostedRoutes = new Set([
   '/strategic_labs',
@@ -105,7 +113,10 @@ const dockHostedComponents = new Set([
   'ExperimentDashboard'
 ]);
 
-const rendersFounderLabsDock = appContent.includes('FounderLabsDock') || mainContent.includes('FounderLabsDock');
+const rendersFounderLabsDock =
+  appContent.includes('FounderLabsDock') ||
+  mainContent.includes('FounderLabsDock') ||
+  (workspaceRendererContent.includes('AnalyticsWorkspace') && analyticsWorkspaceContent.includes('FounderLabsDock'));
 
 if (dockHostedComponents.size > 0 && !rendersFounderLabsDock) {
   errors.push('App/main runtime does not render FounderLabsDock. Dock-hosted simulation modules would be hidden from the app.');
@@ -116,29 +127,39 @@ if (mainContent.includes('FounderLabsDock') && !mainContent.includes("./componen
 }
 
 for (const moduleName of criticalModules) {
-  const appLoadsModule = appContent.includes(`./components/${moduleName}`);
+  // Check App.tsx OR WorkspaceRenderer.tsx (extracted lazy-load host)
+  const appOrRendererLoadsModule =
+    appContent.includes(`./components/${moduleName}`) ||
+    workspaceRendererContent.includes(`./components/${moduleName}`) ||
+    workspaceRendererContent.includes(`'../components/${moduleName}'`) ||
+    workspaceRendererContent.includes(`"../components/${moduleName}"`) ||
+    analyticsWorkspaceContent.includes(`./${moduleName}`);
   const dockLoadsModule = dockContent.includes(`import('./${moduleName}')`);
 
-  if (!appLoadsModule && !dockLoadsModule) {
-    errors.push(`Registry module is not lazy-loaded by App.tsx or FounderLabsDock.tsx: ${moduleName}`);
+  if (!appOrRendererLoadsModule && !dockLoadsModule) {
+    errors.push(`Registry module is not lazy-loaded by the app runtime or FounderLabsDock.tsx: ${moduleName}`);
   }
 
   if (dockHostedComponents.has(moduleName) && !dockLoadsModule) {
     errors.push(`Dock-hosted registry module is missing from FounderLabsDock.tsx: ${moduleName}`);
   }
 
-  if (!dockHostedComponents.has(moduleName) && !appLoadsModule) {
-    errors.push(`App.tsx does not lazy-load routed registry module: ${moduleName}`);
+  if (!dockHostedComponents.has(moduleName) && !appOrRendererLoadsModule) {
+    errors.push(`WorkspaceRenderer.tsx does not lazy-load routed registry module: ${moduleName}`);
   }
 }
 
 for (const route of registry.routes) {
   const routeKey = route.replace(/^\//, '');
-  const appHasRoute = appContent.includes(`'${routeKey}'`) || appContent.includes(`"${routeKey}"`);
+  const appHasRoute =
+    appContent.includes(`'${routeKey}'`) ||
+    appContent.includes(`"${routeKey}"`) ||
+    companyNavContent.includes(`'${routeKey}'`) ||
+    companyNavContent.includes(`"${routeKey}"`);
   const isDockHosted = dockHostedRoutes.has(route);
 
   if (!appHasRoute && !isDockHosted) {
-    errors.push(`App.tsx may not include route/tab key for registry route: ${route}`);
+    errors.push(`Company navigation may not include route/tab key for registry route: ${route}`);
   }
 
   if (isDockHosted && !dockContent) {
@@ -162,7 +183,7 @@ if (errors.length > 0) {
   for (const error of errors) {
     console.error(`- ${error}`);
   }
-  console.error('\nFix the missing or broken modules before building desktop/web releases.\n');
+  console.error('\nFix the missing or broken modules before building desktop releases.\n');
   process.exit(1);
 }
 

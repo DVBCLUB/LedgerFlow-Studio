@@ -1,0 +1,80 @@
+# n8n, Telegram, and OpenClaw Contracts
+
+## Event-Driven Rule
+
+Agents never call each other directly. Every external entrypoint writes one of:
+
+- `lf_agent_events`
+- `lf_agent_tasks`
+- `lf_tool_runs`
+
+n8n reads new rows or receives route responses, then decides the next workflow branch.
+
+## n8n Workflow Skeletons
+
+### Daily Founder Brief
+
+1. Cron trigger at 08:00.
+2. HTTP POST `/api/company-os/n8n/webhook` with `createTask: true`.
+3. Query Supabase for open tasks, waiting approvals, and yesterday revenue.
+4. Call `/api/pipelines/start` with `pipelineType: daily_brief`.
+5. Send Telegram summary draft.
+6. Write final event `daily_brief.sent`.
+
+### OpenClaw Safe Browser QA
+
+1. n8n receives QA request.
+2. HTTP POST `/api/company-os/openclaw/simulate` with `action: browser_check`.
+3. If response `approvalRequired = true`, create Approval Gate row.
+4. Founder marks the related task `ready`, `done`, or `blocked` through `PATCH /api/company-os/tasks/:id`.
+5. Only after founder approval, hand off to a future sandbox connector.
+
+### Lead Follow-Up
+
+1. Telegram `/task Follow up lead...`.
+2. LedgerFlow creates `lf_agent_tasks` row.
+3. n8n routes to AI Sales pipeline.
+4. Draft reply is sent back to Telegram for founder approval.
+
+### Task Approval Loop
+
+1. Any connector creates a task in `waiting_approval`.
+2. Founder reviews the task in AgentOps Control Plane.
+3. Dashboard calls `PATCH /api/company-os/tasks/:id`.
+4. LedgerFlow writes `task.status_updated` to the audit event log.
+5. n8n only advances tasks with `status = ready`.
+
+### Audit Export
+
+1. Founder clicks `Export audit JSON` in AgentOps Control Plane.
+2. Dashboard calls `GET /api/company-os/audit/export?limit=500`.
+3. LedgerFlow returns tasks, tool runs, and events with schema `ledgerflow_company_os_audit_v1`.
+4. The JSON file can be attached to release notes, QA evidence, or an AI handoff prompt.
+
+## OpenClaw Least-Privilege Model
+
+OpenClaw is treated as a connector, not as a trusted root agent.
+
+P0 capabilities:
+
+- simulate a plan;
+- simulate a browser check;
+- draft a patch description;
+- write audit rows.
+
+Blocked by default:
+
+- real shell execution;
+- real file writes;
+- direct browser control;
+- reading arbitrary folders;
+- sending Telegram messages;
+- changing Supabase schema.
+
+## Telegram Bot Commands
+
+- `/task <text>`: create task.
+- `/approve <text>`: log high-risk approval event only.
+- `/status`: should call `/api/company-os/control-plane/status`.
+
+Keep bot token only in n8n credentials or backend env. Never store it in frontend code.

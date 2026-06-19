@@ -8,7 +8,11 @@ function isIntegrationHubHash() {
   return hash === 'integration_hub' || hash === 'integration-hub';
 }
 
-export default function IntegrationHubLauncher() {
+interface IntegrationHubLauncherProps {
+  hideTrigger?: boolean;
+}
+
+export default function IntegrationHubLauncher({ hideTrigger = false }: IntegrationHubLauncherProps) {
   const [isOpen, setIsOpen] = useState(() => isIntegrationHubHash());
 
   useEffect(() => {
@@ -32,15 +36,17 @@ export default function IntegrationHubLauncher() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openHub}
-        className="fixed bottom-20 right-5 z-40 inline-flex items-center gap-2 rounded-2xl border border-cyan-700/70 bg-slate-950/90 px-4 py-3 text-xs font-black text-cyan-100 shadow-2xl shadow-cyan-950/40 backdrop-blur transition-all hover:border-cyan-400 hover:bg-cyan-950/90"
-        title="Integration Hub: trung tâm đầu mối kết nối GitHub, VS Code, Google Workspace, ERP, chứng từ, automation"
-      >
-        <Network className="h-4 w-4 text-cyan-300" />
-        Integration Hub
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={openHub}
+          className="fixed bottom-20 right-5 z-40 inline-flex items-center gap-2 rounded-2xl border border-cyan-700/70 bg-slate-950/90 px-4 py-3 text-xs font-black text-cyan-100 shadow-2xl shadow-cyan-950/40 backdrop-blur transition-all hover:border-cyan-400 hover:bg-cyan-950/90"
+          title="Integration Hub: trung tâm đầu mối kết nối GitHub, VS Code, Google Workspace, ERP, chứng từ, automation"
+        >
+          <Network className="h-4 w-4 text-cyan-300" />
+          Integration Hub
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl">

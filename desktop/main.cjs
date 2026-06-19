@@ -1,9 +1,9 @@
-const { app, BrowserWindow, shell, dialog, Menu } = require('electron');
+const { app, BrowserWindow, shell, dialog, Menu, session } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const APP_PORT = Number(process.env.LEDGERFLOW_DESKTOP_PORT || process.env.PORT || 32123);
+const APP_PORT = Number(process.env.LEDGERFLOW_DESKTOP_PORT || 32123);
 const APP_URL = `http://127.0.0.1:${APP_PORT}`;
 let mainWindow;
 let logFilePath;
@@ -130,6 +130,19 @@ function installApplicationMenu() {
   Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
+async function clearLegacyWebRuntimeCache() {
+  try {
+    await session.defaultSession.clearStorageData({
+      origins: [APP_URL],
+      storages: ['serviceworkers', 'cachestorage']
+    });
+    await session.defaultSession.clearCache();
+    logDesktop('Cleared legacy PWA service worker and renderer cache.');
+  } catch (error) {
+    logDesktop('Could not clear legacy renderer cache; continuing startup.', error);
+  }
+}
+
 function startEmbeddedServer() {
   process.env.NODE_ENV = 'production';
   process.env.ELECTRON_DESKTOP = 'true';
@@ -187,34 +200,6 @@ function waitForServer(url, timeoutMs = 30000) {
   });
 }
 
-function startupHtml() {
-  return `<!doctype html>
-<html>
-  <head>
-    <meta charset="utf-8" />
-    <title>LedgerFlow Hub</title>
-    <style>
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #020617; color: #e5e7eb; font-family: Segoe UI, Arial, sans-serif; }
-      .card { width: min(560px, calc(100vw - 48px)); padding: 32px; border: 1px solid rgba(148,163,184,.25); border-radius: 24px; background: rgba(15,23,42,.92); box-shadow: 0 24px 80px rgba(0,0,0,.35); }
-      .badge { display: inline-flex; padding: 6px 10px; border-radius: 999px; background: rgba(59,130,246,.16); color: #bfdbfe; font-size: 12px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
-      h1 { margin: 16px 0 8px; font-size: 28px; }
-      p { color: #94a3b8; line-height: 1.6; }
-      .loader { width: 36px; height: 36px; border-radius: 999px; border: 4px solid rgba(148,163,184,.25); border-top-color: #38bdf8; animation: spin 1s linear infinite; margin-top: 20px; }
-      code { color: #bae6fd; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
-  </head>
-  <body>
-    <main class="card">
-      <span class="badge">LedgerFlow Hub</span>
-      <h1>Đang khởi động phần mềm...</h1>
-      <p>Ứng dụng desktop đang mở server nội bộ tại <code>${APP_URL}</code>. Nếu có lỗi, LedgerFlow sẽ hiện thông báo và ghi log vào thư mục dữ liệu local.</p>
-      <div class="loader"></div>
-    </main>
-  </body>
-</html>`;
-}
-
 async function createMainWindow() {
   const icon = getDesktopIconPath();
 
@@ -225,7 +210,7 @@ async function createMainWindow() {
     minHeight: 760,
     title: 'LedgerFlow Hub',
     backgroundColor: '#020617',
-    show: true,
+    show: false,
     ...(icon ? { icon } : {}),
     webPreferences: {
       contextIsolation: true,
@@ -241,23 +226,47 @@ async function createMainWindow() {
   });
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith(APP_URL) && !url.startsWith('data:text/html')) {
+    if (!url.startsWith(APP_URL)) {
       event.preventDefault();
       shell.openExternal(url);
     }
   });
 
-  await mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(startupHtml())}`);
-  mainWindow.focus();
+  mainWindow.webContents.on('console-message', (_event, details) => {
+    const message = typeof details === 'object'
+      ? `[renderer:${details.level}] ${details.message} (${details.sourceId || 'unknown'}:${details.lineNumber || 0})`
+      : `[renderer] ${String(details)}`;
+    logDesktop(message);
+  });
+
+  mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
+    if (isMainFrame !== false) {
+      logDesktop(`Renderer failed to load ${validatedURL}: ${errorCode} ${errorDescription}`);
+    }
+  });
+
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    logDesktop(`Renderer process exited: ${details.reason} (code ${details.exitCode})`);
+  });
 
   try {
     await waitForServer(APP_URL);
     logDesktop('Embedded server is ready. Loading app window.');
     await mainWindow.loadURL(APP_URL);
+    const rendererState = await mainWindow.webContents.executeJavaScript(`({
+      url: location.href,
+      title: document.title,
+      rootChildren: document.getElementById('root')?.childElementCount ?? -1,
+      bodyTextLength: document.body?.innerText?.length ?? 0
+    })`);
+    logDesktop(`Renderer loaded: ${JSON.stringify(rendererState)}`);
+    mainWindow.show();
+    mainWindow.focus();
   } catch (error) {
     showStartupError('LedgerFlow Hub startup error', error);
   }
 }
+
 
 app.setName('LedgerFlow Hub');
 app.setAppUserModelId('com.ledgerflow.hub');
@@ -269,10 +278,41 @@ app.on('second-instance', () => {
   }
 });
 
-app.whenReady().then(() => {
+function checkAlreadyRunning(url) {
+  return new Promise((resolve) => {
+    const req = http.get(`${url}/api/health`, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          resolve(json && json.status === 'ok' && json.desktop === true);
+        } catch {
+          resolve(false);
+        }
+      });
+    });
+    req.on('error', () => resolve(false));
+    req.setTimeout(800, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+app.whenReady().then(async () => {
+  await clearLegacyWebRuntimeCache();
   installApplicationMenu();
-  createMainWindow();
-  startEmbeddedServer();
+
+  const alreadyRunning = await checkAlreadyRunning(APP_URL);
+  if (alreadyRunning) {
+    logDesktop(`LedgerFlow server already running at ${APP_URL}. Reusing existing instance.`);
+    createMainWindow();
+  } else {
+    logDesktop(`No running server detected at ${APP_URL}. Starting embedded server.`);
+    createMainWindow();
+    startEmbeddedServer();
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

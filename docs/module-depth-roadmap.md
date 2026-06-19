@@ -54,4 +54,4 @@ Mỗi module cần có:
 
 - `RUN_LOCAL.bat` — chạy app local.
 - `BUILD_DESKTOP_WINDOWS.bat` — build bản desktop Windows.
-- `README_RUN_WINDOWS.md` — hướng dẫn chạy.
+- `DESKTOP_RELEASE_GUIDE.md` — hướng dẫn build, tải và chạy bản Windows.

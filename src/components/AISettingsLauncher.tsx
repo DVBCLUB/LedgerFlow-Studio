@@ -10,7 +10,11 @@ function isAISettingsHash() {
   return hash === 'ai_settings' || hash === 'ai-settings';
 }
 
-export default function AISettingsLauncher() {
+interface AISettingsLauncherProps {
+  hideTrigger?: boolean;
+}
+
+export default function AISettingsLauncher({ hideTrigger = false }: AISettingsLauncherProps) {
   const [isOpen, setIsOpen] = useState(() => isAISettingsHash());
 
   useEffect(() => {
@@ -34,15 +38,17 @@ export default function AISettingsLauncher() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openSettings}
-        className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-2xl border border-purple-700/70 bg-slate-950/90 px-4 py-3 text-xs font-black text-purple-100 shadow-2xl shadow-purple-950/40 backdrop-blur hover:bg-purple-950/90 hover:border-purple-500 transition-all"
-        title="Cài đặt AI Gateway: nhập nhiều API key, fallback provider, backup/import key"
-      >
-        <KeyRound className="h-4 w-4 text-amber-300" />
-        AI Gateway
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={openSettings}
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-2xl border border-purple-700/70 bg-slate-950/90 px-4 py-3 text-xs font-black text-purple-100 shadow-2xl shadow-purple-950/40 backdrop-blur hover:bg-purple-950/90 hover:border-purple-500 transition-all"
+          title="Cài đặt AI Gateway: nhập nhiều API key, fallback provider, backup/import key"
+        >
+          <KeyRound className="h-4 w-4 text-amber-300" />
+          AI Gateway
+        </button>
+      )}
 
       {isOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/95 backdrop-blur-xl">

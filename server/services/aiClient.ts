@@ -17,6 +17,7 @@
 import { callAIWithFallback, checkAIRouterHealth, streamAIWithFallback } from "./aiRouter";
 
 export type ChatRole = "system" | "user" | "assistant";
+export type AIRoutingTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding";
 
 export interface ChatMessage {
   role: ChatRole;
@@ -26,6 +27,8 @@ export interface ChatMessage {
 export interface CallAIOptions {
   /** "ai-assistant" (default rotation) or "ai-assistant-pro" */
   model?: "ai-assistant" | "ai-assistant-pro";
+  /** Optional task hint so router can prefer the most suitable provider stack. */
+  task?: AIRoutingTask;
   temperature?: number;
   maxTokens?: number;
 }

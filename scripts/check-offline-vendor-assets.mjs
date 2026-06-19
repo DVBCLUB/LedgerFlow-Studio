@@ -19,7 +19,8 @@ const requiredGroups = [
       'public/vendor/pyodide/v0.26.2/full/pyodide.js',
       'public/vendor/pyodide/v0.26.2/full/pyodide.asm.js',
       'public/vendor/pyodide/v0.26.2/full/pyodide.asm.wasm',
-      'public/vendor/pyodide/v0.26.2/full/python_stdlib.zip'
+      'public/vendor/pyodide/v0.26.2/full/python_stdlib.zip',
+      'public/vendor/pyodide/v0.26.2/full/pyodide-lock.json'
     ]
   }
 ];

@@ -15,9 +15,9 @@ type RealtimeInsertPayload = {
   new: Record<string, unknown>;
 };
 
-type SupabaseClientInstance = ReturnType<typeof getSupabaseClientInstance>;
+type SupabaseClientInstance = Awaited<ReturnType<typeof getSupabaseClientInstance>>;
 
-function getClient(): SupabaseClientInstance | null {
+async function getClient(): Promise<SupabaseClientInstance | null> {
   const config = getSupabaseConfig();
   if (!config?.url || !config?.anonKey) return null;
   return getSupabaseClientInstance(config.url, config.anonKey);
@@ -37,7 +37,7 @@ function normalizeNotification(raw: Record<string, unknown>): AppNotification {
 }
 
 export async function fetchNotifications(limit = 20): Promise<AppNotification[]> {
-  const supabase = getClient();
+  const supabase = await getClient();
   if (!supabase) return [];
   const { data, error } = await supabase
     .from('notifications')
@@ -50,13 +50,13 @@ export async function fetchNotifications(limit = 20): Promise<AppNotification[]>
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
-  const supabase = getClient();
+  const supabase = await getClient();
   if (!supabase) return;
   await supabase.from('notifications').update({ is_read: true }).eq('id', notificationId);
 }
 
 export async function markAllAsRead(): Promise<void> {
-  const supabase = getClient();
+  const supabase = await getClient();
   if (!supabase) return;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
@@ -64,16 +64,23 @@ export async function markAllAsRead(): Promise<void> {
 }
 
 export function subscribeToNotifications(onNew: (notification: AppNotification) => void): () => void {
-  const supabase = getClient();
-  if (!supabase) return () => undefined;
-  const channel = supabase
-    .channel('notifications-realtime')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload: RealtimeInsertPayload) => {
-      onNew(normalizeNotification(payload.new));
-    })
-    .subscribe();
+  let active = true;
+  let supabase: SupabaseClientInstance | null = null;
+  let channel: any = null;
+
+  void getClient().then((client) => {
+    if (!active || !client) return;
+    supabase = client;
+    channel = supabase
+      .channel('notifications-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload: RealtimeInsertPayload) => {
+        onNew(normalizeNotification(payload.new));
+      })
+      .subscribe();
+  });
 
   return () => {
-    void supabase.removeChannel(channel);
+    active = false;
+    if (supabase && channel) void supabase.removeChannel(channel);
   };
 }

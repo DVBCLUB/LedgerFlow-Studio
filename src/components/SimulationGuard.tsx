@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldCheck, X } from 'lucide-react';
 import {
   CT1_ALWAYS_VISIBLE_MODEL_SHORTCUTS,
@@ -36,11 +36,21 @@ const openModel = (tab: string) => {
   }, 120);
 };
 
-export default function SimulationGuard() {
+interface SimulationGuardProps {
+  hideTrigger?: boolean;
+}
+
+export default function SimulationGuard({ hideTrigger = false }: SimulationGuardProps) {
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    const toggle = () => setOpen((value) => !value);
+    window.addEventListener('lf:toggle-simulation-guard', toggle);
+    return () => window.removeEventListener('lf:toggle-simulation-guard', toggle);
+  }, []);
+
   return (
-    <div className="fixed bottom-4 right-4 z-50 max-w-[calc(100vw-2rem)] text-slate-100 print:hidden">
+    <div className={`fixed z-50 max-w-[calc(100vw-2rem)] text-slate-100 print:hidden ${hideTrigger ? 'bottom-5 left-5' : 'bottom-4 right-4'}`}>
       {open && (
         <div className="mb-3 max-h-[80vh] w-[22rem] overflow-y-auto rounded-2xl border border-cyan-500/30 bg-slate-950/95 p-4 shadow-2xl backdrop-blur">
           <div className="flex items-start justify-between gap-3">
@@ -129,9 +139,11 @@ export default function SimulationGuard() {
         </div>
       )}
 
-      <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-400 px-4 py-3 text-xs font-black text-slate-950 shadow-2xl hover:bg-cyan-300">
-        <ShieldCheck className="h-4 w-4" /> Guard
-      </button>
+      {!hideTrigger && (
+        <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-400 px-4 py-3 text-xs font-black text-slate-950 shadow-2xl hover:bg-cyan-300">
+          <ShieldCheck className="h-4 w-4" /> Guard
+        </button>
+      )}
     </div>
   );
 }

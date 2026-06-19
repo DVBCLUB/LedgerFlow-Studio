@@ -3,7 +3,11 @@ import { Activity, Loader2, X } from 'lucide-react';
 
 const GitHubCIDoctorPanel = React.lazy(() => import('./GitHubCIDoctorPanel'));
 
-export default function GitHubCIDoctorLauncher() {
+interface GitHubCIDoctorLauncherProps {
+  hideTrigger?: boolean;
+}
+
+export default function GitHubCIDoctorLauncher({ hideTrigger = false }: GitHubCIDoctorLauncherProps) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
@@ -30,14 +34,16 @@ export default function GitHubCIDoctorLauncher() {
 
   return (
     <>
-      <button
-        type="button"
-        onClick={openPanel}
-        className="fixed bottom-44 right-4 z-[60] inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/90 px-4 py-3 text-xs font-black text-amber-100 shadow-2xl shadow-black/40 backdrop-blur transition hover:bg-amber-900"
-        title="Mở GitHub CI Doctor"
-      >
-        <Activity className="h-4 w-4" /> CI Doctor
-      </button>
+      {!hideTrigger && (
+        <button
+          type="button"
+          onClick={openPanel}
+          className="fixed bottom-44 right-4 z-[60] inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-950/90 px-4 py-3 text-xs font-black text-amber-100 shadow-2xl shadow-black/40 backdrop-blur transition hover:bg-amber-900"
+          title="Mở GitHub CI Doctor"
+        >
+          <Activity className="h-4 w-4" /> CI Doctor
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/95 p-4 text-slate-100 backdrop-blur md:p-8">

@@ -48,24 +48,25 @@ const files = sourceDirs.flatMap(listFiles).filter(isSourceFile);
 for (const file of files) {
   const relative = path.relative(root, file).replaceAll(path.sep, '/');
   const content = fs.readFileSync(file, 'utf8');
+  const isVendoredThirdParty = relative.startsWith('public/vendor/');
 
-  const externalMatches = [...content.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((match) => match[0]);
-  for (const url of externalMatches) {
-    const isAllowed = allowedExternalMarkers.some((marker) => url.includes(marker));
-    if (!isAllowed) {
-      warnings.push(`${relative} references external URL: ${url}`);
+  if (!isVendoredThirdParty) {
+    const externalMatches = [...content.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((match) => match[0]);
+    for (const url of externalMatches) {
+      const isAllowed = allowedExternalMarkers.some((marker) => url.includes(marker));
+      if (!isAllowed) {
+        warnings.push(`${relative} references external URL: ${url}`);
+      }
     }
   }
 
-  if (blockingRuntimePatterns.some((pattern) => pattern.test(content))) {
+  if (!isVendoredThirdParty && blockingRuntimePatterns.some((pattern) => pattern.test(content))) {
     releaseRisks.push(`${relative} references CDN/font dependency. Desktop build can still ship, but that feature may need internet unless converted to local assets.`);
   }
 }
 
 const requiredOfflineFiles = [
   'vite.config.ts',
-  'public/pwa-192x192.svg',
-  'public/pwa-512x512.svg',
   'public/favicon.svg',
   'src/data/simulationRegistry.ts'
 ];
@@ -73,17 +74,6 @@ const requiredOfflineFiles = [
 for (const file of requiredOfflineFiles) {
   if (!fs.existsSync(path.join(root, file))) {
     errors.push(`Missing offline/PWA support file: ${file}`);
-  }
-}
-
-const viteConfigPath = path.join(root, 'vite.config.ts');
-if (fs.existsSync(viteConfigPath)) {
-  const viteConfig = fs.readFileSync(viteConfigPath, 'utf8');
-  if (!viteConfig.includes('VitePWA')) {
-    errors.push('vite.config.ts does not include VitePWA.');
-  }
-  if (!viteConfig.includes('manifest')) {
-    errors.push('vite.config.ts does not define a PWA manifest.');
   }
 }
 
@@ -106,12 +96,12 @@ if (releaseRisks.length > 0) {
 }
 
 if (errors.length > 0) {
-  console.error('\nLedgerFlow offline readiness check failed:\n');
+  console.error('\nLedgerFlow desktop offline readiness check failed:\n');
   for (const error of errors) {
     console.error(`- ${error}`);
   }
-  console.error('\nFix missing offline/PWA support files before shipping desktop builds.\n');
+  console.error('\nFix missing desktop offline support files before shipping desktop builds.\n');
   process.exit(1);
 }
 
-console.log(`LedgerFlow offline readiness check passed with warnings allowed: ${files.length} source/public files scanned.`);
+console.log(`LedgerFlow desktop offline readiness check passed with warnings allowed: ${files.length} source/public files scanned.`);

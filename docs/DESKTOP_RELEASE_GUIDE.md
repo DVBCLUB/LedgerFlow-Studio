@@ -26,7 +26,7 @@ Cach de nhat:
 2. Bam dup file:
 
 ```txt
-BUILD_WINDOWS_INSTALLER.bat
+tools\windows\BUILD_WINDOWS_INSTALLER.bat
 ```
 
 3. Doi build xong.
@@ -65,10 +65,10 @@ Repo co workflow build desktop:
 
 Workflow nay se build artifact cho Windows, macOS va Linux khi push len `main` hoac khi bam chay thu cong.
 
-Artifact Windows:
+Artifact Windows dành cho người dùng cuối:
 
 ```txt
-LedgerFlow-Hub-Windows
+LedgerFlow-Hub-Windows-Download
 ```
 
 Luu y: artifact cua GitHub Actions chi giu tam thoi theo thoi gian cau hinh.

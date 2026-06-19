@@ -128,23 +128,29 @@ function renderLab(active: LabId) {
   return <StartHereLab />;
 }
 
-export default function FounderLabsDock() {
-  const [open, setOpen] = useState(false);
+interface FounderLabsDockProps {
+  embedded?: boolean;
+}
+
+export default function FounderLabsDock({ embedded = false }: FounderLabsDockProps) {
+  const [open, setOpen] = useState(embedded);
   const [active, setActive] = useState<LabId>('start_here');
 
   return (
-    <div className="fixed bottom-4 left-4 z-50 print:hidden">
-      {open && (
-        <div className="mb-3 flex max-h-[84vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-3xl border border-emerald-500/25 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur">
+    <div className={embedded ? 'print:hidden' : 'fixed bottom-4 left-4 z-50 print:hidden'}>
+      {(open || embedded) && (
+        <div className={embedded ? 'flex min-h-[680px] w-full flex-col overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-slate-100' : 'mb-3 flex max-h-[84vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-3xl border border-emerald-500/25 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur'}>
           <div className="flex items-start justify-between gap-4 border-b border-slate-800 p-4">
             <div>
               <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Founder Labs</p>
               <h2 className="mt-1 text-lg font-black text-white">Bảng lab thương mại hóa</h2>
               <p className="mt-1 text-xs font-semibold text-slate-400">Mở nhanh các lab mới mà không cần sửa route chính.</p>
             </div>
-            <button onClick={() => setOpen(false)} className="rounded-xl border border-slate-800 p-2 text-slate-400 hover:text-white" aria-label="Đóng Founder Labs">
-              <X className="h-4 w-4" />
-            </button>
+            {!embedded && (
+              <button onClick={() => setOpen(false)} className="rounded-xl border border-slate-800 p-2 text-slate-400 hover:text-white" aria-label="Đóng Founder Labs">
+                <X className="h-4 w-4" />
+              </button>
+            )}
           </div>
 
           <div className="grid min-h-0 flex-1 md:grid-cols-[16rem_1fr]">
@@ -182,9 +188,11 @@ export default function FounderLabsDock() {
         </div>
       )}
 
-      <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 shadow-2xl hover:bg-emerald-300">
-        <FlaskConical className="h-4 w-4" /> Labs
-      </button>
+      {!embedded && (
+        <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 shadow-2xl hover:bg-emerald-300">
+          <FlaskConical className="h-4 w-4" /> Labs
+        </button>
+      )}
     </div>
   );
 }

@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export type AgentGroup = 'Executive' | 'Finance' | 'Product' | 'Growth' | 'Legal' | 'Support' | 'Data';
 
 export type AgentRoleId =
@@ -24,6 +27,10 @@ export interface AgentRoleDefinition {
   emoji: string;
   group: AgentGroup;
   systemPrompt: string;
+}
+
+interface AgentRolePromptsOverrideFile {
+  prompts?: Partial<Record<AgentRoleId, string>>;
 }
 
 export const AGENT_SYSTEM_PROMPTS: Record<AgentRoleId, string> = {
@@ -186,10 +193,47 @@ export const AGENT_ROLES: AgentRoleDefinition[] = [
   { id: 'AI Analyst', emoji: '📊', group: 'Data', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Analyst'] },
 ];
 
+const AGENT_ROLE_PROMPTS_FILE = process.env.AGENT_ROLE_PROMPTS_FILE
+  ? path.resolve(process.env.AGENT_ROLE_PROMPTS_FILE)
+  : path.resolve(process.cwd(), 'agent_role_prompts.json');
+
+let runtimeRoleCache: AgentRoleDefinition[] = AGENT_ROLES;
+let runtimeRoleCacheMtimeMs = -1;
+
+function resolveRuntimeRoles(): AgentRoleDefinition[] {
+  try {
+    if (!fs.existsSync(AGENT_ROLE_PROMPTS_FILE)) {
+      runtimeRoleCache = AGENT_ROLES;
+      runtimeRoleCacheMtimeMs = -1;
+      return runtimeRoleCache;
+    }
+
+    const stat = fs.statSync(AGENT_ROLE_PROMPTS_FILE);
+    if (stat.mtimeMs === runtimeRoleCacheMtimeMs) {
+      return runtimeRoleCache;
+    }
+
+    const raw = fs.readFileSync(AGENT_ROLE_PROMPTS_FILE, 'utf-8');
+    const parsed = JSON.parse(raw) as AgentRolePromptsOverrideFile;
+    const overrides = parsed.prompts ?? {};
+
+    runtimeRoleCache = AGENT_ROLES.map((role) => ({
+      ...role,
+      systemPrompt: overrides[role.id] ?? role.systemPrompt,
+    }));
+    runtimeRoleCacheMtimeMs = stat.mtimeMs;
+    return runtimeRoleCache;
+  } catch {
+    runtimeRoleCache = AGENT_ROLES;
+    runtimeRoleCacheMtimeMs = -1;
+    return runtimeRoleCache;
+  }
+}
+
 export function listAgentRoles() {
-  return AGENT_ROLES.map(({ id, emoji, group }) => ({ id, emoji, group }));
+  return resolveRuntimeRoles().map(({ id, emoji, group }) => ({ id, emoji, group }));
 }
 
 export function getAgentRole(id: string) {
-  return AGENT_ROLES.find((role) => role.id === id);
+  return resolveRuntimeRoles().find((role) => role.id === id);
 }

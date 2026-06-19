@@ -10,7 +10,8 @@ export const SYNC_KEYS = [
   'fastrack_checked_tasks',
   'ledgerflow_gamified_progress',
   'ledgerflow_advisory_actions',
-  'fastrack_saved_snippets'
+  'fastrack_saved_snippets',
+  'lf_imported_conversations'
 ];
 
 export interface SyncStatus {

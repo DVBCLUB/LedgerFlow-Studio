@@ -1,18 +1,25 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, KeyRound, Loader2, MessageCircle, RefreshCw, ShieldCheck, Trash2, Upload, Zap } from "lucide-react";
 import {
+  activatePromptTemplateVersion,
   AIKeyPayload,
   AIKeySummary,
   AIPreflightReport,
+  AIPromptTask,
+  AIPromptTemplate,
   AIProviderDefinition,
   AIUsageLogEntry,
+  AIUsageMetricsReport,
   callAIFromSettings,
   clearAIUsageLogs,
+  createPromptTemplateVersion,
   createAIKey,
   deleteAIKey,
   exportAIKeyBackup,
   fetchAIKeys,
+  fetchAIUsageMetrics,
   fetchAIProviders,
+  fetchPromptTemplates,
   fetchAIUsageLogs,
   importAIKeyBackup,
   runAIDiagnostics,
@@ -40,10 +47,21 @@ const defaultForm: AIKeyPayload = {
   enabled: true,
 };
 
+const taskLabels: Record<AIPromptTask, string> = {
+  general: "General",
+  accounting: "Accounting",
+  analytics: "Analytics",
+  marketing: "Marketing",
+  sales: "Sales",
+  coding: "Coding",
+};
+
 export default function AISettingsManager() {
   const [providers, setProviders] = useState<AIProviderDefinition[]>([]);
   const [keys, setKeys] = useState<AIKeySummary[]>([]);
   const [logs, setLogs] = useState<AIUsageLogEntry[]>([]);
+  const [metrics, setMetrics] = useState<AIUsageMetricsReport | null>(null);
+  const [templates, setTemplates] = useState<AIPromptTemplate[]>([]);
   const [preflight, setPreflight] = useState<AIPreflightReport | null>(null);
   const [form, setForm] = useState<AIKeyPayload>(defaultForm);
   const [busy, setBusy] = useState(false);
@@ -51,7 +69,11 @@ export default function AISettingsManager() {
   const [testResult, setTestResult] = useState("");
   const [prompt, setPrompt] = useState("Bạn đang dùng provider/key nào? Trả lời ngắn gọn bằng tiếng Việt.");
   const [chatOutput, setChatOutput] = useState("");
+  const [chatTask, setChatTask] = useState<AIPromptTask>("general");
   const [chatMode, setChatMode] = useState<"ai-assistant" | "ai-assistant-pro">("ai-assistant");
+  const [promptEditorTask, setPromptEditorTask] = useState<AIPromptTask>("general");
+  const [promptEditorContent, setPromptEditorContent] = useState("");
+  const [promptEditorNote, setPromptEditorNote] = useState("");
   const [backupPassword, setBackupPassword] = useState("");
   const [importMode, setImportMode] = useState<"merge" | "replace">("merge");
   const [backupFileText, setBackupFileText] = useState("");
@@ -62,14 +84,18 @@ export default function AISettingsManager() {
   );
 
   async function reload() {
-    const [nextProviders, nextKeys, nextLogs] = await Promise.all([
+    const [nextProviders, nextKeys, nextLogs, nextMetrics, nextTemplates] = await Promise.all([
       fetchAIProviders(),
       fetchAIKeys(),
       fetchAIUsageLogs().catch(() => []),
+      fetchAIUsageMetrics(24).catch(() => null),
+      fetchPromptTemplates().catch(() => []),
     ]);
     setProviders(nextProviders);
     setKeys(nextKeys);
     setLogs(nextLogs.slice(0, 40));
+    setMetrics(nextMetrics);
+    setTemplates(nextTemplates);
 
     if (nextProviders.length && !form.model) {
       const provider = nextProviders.find((item) => item.id === form.provider) ?? nextProviders[0];
@@ -173,14 +199,52 @@ export default function AISettingsManager() {
     setChatOutput("");
     try {
       if (stream) {
-        await streamAIFromSettings(prompt, (chunk) => setChatOutput((prev) => prev + chunk), chatMode);
+        await streamAIFromSettings(prompt, (chunk) => setChatOutput((prev) => prev + chunk), chatMode, chatTask);
       } else {
-        const result = await callAIFromSettings(prompt, chatMode);
+        const result = await callAIFromSettings(prompt, chatMode, chatTask);
         setChatOutput(result.text || result.error || "Không có phản hồi.");
       }
       await reload();
     } catch (err: any) {
       setChatOutput(`Lỗi chat: ${err.message || err}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleCreatePromptVersion() {
+    if (!promptEditorContent.trim()) {
+      setMessage("Prompt version không được để trống.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await createPromptTemplateVersion({
+        task: promptEditorTask,
+        content: promptEditorContent,
+        note: promptEditorNote,
+        createdBy: "local-admin",
+        activate: true,
+      });
+      setPromptEditorContent("");
+      setPromptEditorNote("");
+      await reload();
+      setMessage(`Đã tạo version mới và kích hoạt cho task ${taskLabels[promptEditorTask]}.`);
+    } catch (err: any) {
+      setMessage(`Lỗi tạo prompt version: ${err.message || err}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleActivatePromptVersion(task: AIPromptTask, version: number) {
+    setBusy(true);
+    try {
+      await activatePromptTemplateVersion(task, version);
+      await reload();
+      setMessage(`Đã chuyển task ${taskLabels[task]} sang version ${version}.`);
+    } catch (err: any) {
+      setMessage(`Lỗi kích hoạt prompt version: ${err.message || err}`);
     } finally {
       setBusy(false);
     }
@@ -340,6 +404,9 @@ export default function AISettingsManager() {
         <div className="rounded-2xl border border-slate-900 bg-slate-950/60 p-5 space-y-4">
           <h3 className="flex items-center gap-2 text-sm font-black text-white"><MessageCircle className="w-4 h-4 text-purple-400" /> Test chat fallback</h3>
           <textarea className="min-h-[120px] w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-100" value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+          <select value={chatTask} onChange={(e) => setChatTask(e.target.value as AIPromptTask)} className="w-full rounded-xl border border-slate-800 bg-slate-950 p-2 text-xs font-bold text-slate-100">
+            {Object.entries(taskLabels).map(([task, label]) => <option key={task} value={task}>{label} routing</option>)}
+          </select>
           <select value={chatMode} onChange={(e) => setChatMode(e.target.value as "ai-assistant" | "ai-assistant-pro")} className="w-full rounded-xl border border-slate-800 bg-slate-950 p-2 text-xs font-bold text-slate-100">
             <option value="ai-assistant">Nhanh / tiết kiệm</option>
             <option value="ai-assistant-pro">Pro / ưu tiên model mạnh</option>
@@ -361,6 +428,86 @@ export default function AISettingsManager() {
             <option value="replace">Thay thế toàn bộ danh sách hiện tại</option>
           </select>
           <button onClick={handleImportBackup} disabled={busy} className="w-full rounded-xl border border-amber-800 bg-amber-950/30 px-3 py-2 text-xs font-black text-amber-200 hover:bg-amber-900/30"><Upload className="inline w-3.5 h-3.5 mr-1" /> Nhập backup</button>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl border border-slate-900 bg-slate-950/60 p-5 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-black text-white">AI Ops Metrics (24h)</h3>
+            <button
+              onClick={async () => setMetrics(await fetchAIUsageMetrics(24))}
+              className="rounded-xl border border-slate-800 px-3 py-1.5 text-[10px] font-black text-slate-300 hover:bg-slate-900"
+            >
+              Làm mới
+            </button>
+          </div>
+          {metrics ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-2"><div className="text-[9px] text-slate-500 uppercase font-black">Requests</div><div className="text-sm text-white font-black">{metrics.totals.total}</div></div>
+                <div className="rounded-xl border border-emerald-900 bg-emerald-950/20 p-2"><div className="text-[9px] text-emerald-400 uppercase font-black">Success</div><div className="text-sm text-white font-black">{metrics.totals.successRate}%</div></div>
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-2"><div className="text-[9px] text-slate-500 uppercase font-black">Avg Latency</div><div className="text-sm text-white font-black">{metrics.totals.avgLatencyMs}ms</div></div>
+                <div className="rounded-xl border border-slate-800 bg-slate-950 p-2"><div className="text-[9px] text-slate-500 uppercase font-black">Est. Cost</div><div className="text-sm text-white font-black">${metrics.totals.estimatedCostUsd.toFixed(4)}</div></div>
+              </div>
+              <div className="text-[11px] text-slate-400">P95 latency: <span className="font-bold text-slate-200">{metrics.totals.p95LatencyMs}ms</span> · OK/Quota/Error: <span className="font-bold text-slate-200">{metrics.totals.ok}/{metrics.totals.quota}/{metrics.totals.error}</span></div>
+              <div className="overflow-auto rounded-xl border border-slate-900">
+                <table className="w-full min-w-[560px] text-left text-[11px]">
+                  <thead className="bg-slate-950 text-slate-500 uppercase font-black">
+                    <tr><th className="p-2">Provider</th><th className="p-2">Req</th><th className="p-2">Success</th><th className="p-2">Avg</th><th className="p-2">Cost</th></tr>
+                  </thead>
+                  <tbody>
+                    {metrics.providers.map((item) => (
+                      <tr key={item.provider} className="border-t border-slate-900 text-slate-300">
+                        <td className="p-2">{item.provider}</td>
+                        <td className="p-2">{item.total}</td>
+                        <td className="p-2">{item.successRate}%</td>
+                        <td className="p-2">{item.avgLatencyMs}ms</td>
+                        <td className="p-2">${item.estimatedCostUsd.toFixed(4)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          ) : (
+            <div className="text-xs text-slate-500">Chưa có dữ liệu metrics.</div>
+          )}
+        </div>
+
+        <div className="rounded-2xl border border-slate-900 bg-slate-950/60 p-5 space-y-4">
+          <h3 className="text-sm font-black text-white">Prompt Registry (Versioned)</h3>
+          <select value={promptEditorTask} onChange={(e) => setPromptEditorTask(e.target.value as AIPromptTask)} className="w-full rounded-xl border border-slate-800 bg-slate-950 p-2 text-xs font-bold text-slate-100">
+            {Object.entries(taskLabels).map(([task, label]) => <option key={task} value={task}>{label}</option>)}
+          </select>
+          <textarea className="min-h-[110px] w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-100" placeholder="Nội dung system prompt version mới..." value={promptEditorContent} onChange={(e) => setPromptEditorContent(e.target.value)} />
+          <input className="w-full rounded-xl border border-slate-800 bg-slate-950 p-2 text-xs text-slate-100" placeholder="Ghi chú version (optional)" value={promptEditorNote} onChange={(e) => setPromptEditorNote(e.target.value)} />
+          <button onClick={handleCreatePromptVersion} disabled={busy} className="w-full rounded-xl border border-indigo-800 bg-indigo-950/30 px-3 py-2 text-xs font-black text-indigo-200 hover:bg-indigo-900/30">Tạo version mới và kích hoạt</button>
+
+          <div className="max-h-[220px] overflow-auto space-y-2 pr-1">
+            {templates.map((template) => (
+              <div key={template.task} className="rounded-xl border border-slate-900 bg-slate-950/70 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-xs font-black text-white">{taskLabels[template.task]} · v{template.activeVersion}</div>
+                    <div className="text-[10px] text-slate-500">{template.description}</div>
+                  </div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {template.versions.slice().reverse().map((version) => (
+                    <button
+                      key={`${template.task}-${version.version}`}
+                      onClick={() => handleActivatePromptVersion(template.task, version.version)}
+                      className={`rounded-full border px-2 py-1 text-[10px] font-black ${version.version === template.activeVersion ? "border-emerald-700 bg-emerald-950/30 text-emerald-300" : "border-slate-700 text-slate-300 hover:bg-slate-900"}`}
+                    >
+                      v{version.version}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+            {templates.length === 0 && <div className="text-xs text-slate-500">Chưa có prompt template.</div>}
+          </div>
         </div>
       </div>
 
