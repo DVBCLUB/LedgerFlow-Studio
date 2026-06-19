@@ -63,30 +63,31 @@ POST http://127.0.0.1:3001/api/read
 
 # AI đề xuất sửa file
 POST http://127.0.0.1:3001/api/edit
-{ "file": "src/App.tsx", "instruction": "Thêm error boundary" }
+{ "file": "src/app/ErpApp.tsx", "instruction": "Thêm error boundary" }
 
 # Apply đề xuất AI (tạo backup trước)
 POST http://127.0.0.1:3001/api/apply
-{ "file": "src/App.tsx", "backupStrategy": "auto" }
+{ "file": "src/app/ErpApp.tsx", "backupStrategy": "auto" }
 
 # Rollback về backup trước
 POST http://127.0.0.1:3001/api/rollback
-{ "file": "src/App.tsx" }
+{ "file": "src/app/ErpApp.tsx" }
 
-# Tạo file mới bằng AI
+# Chuẩn bị bản xem trước cho file mới (chưa ghi xuống đĩa)
 POST http://127.0.0.1:3001/api/create
 { "file": "src/utils/logger.ts", "instruction": "Tạo logger module" }
+# Sau khi review, gọi /api/apply với cùng đường dẫn để tạo file.
 
 # Xem backups của file
-GET http://127.0.0.1:3001/api/backups?file=src/App.tsx
+GET http://127.0.0.1:3001/api/backups?file=src/app/ErpApp.tsx
 
 # Tạo unified diff
 POST http://127.0.0.1:3001/api/diff
-{ "file": "src/App.tsx", "original": "...", "suggested": "..." }
+{ "file": "src/app/ErpApp.tsx", "original": "...", "suggested": "..." }
 
 # Export context cho VS Code/Cursor
 POST http://127.0.0.1:3001/api/export
-{ "file": "src/App.tsx", "format": "cursor|copilot|continue|generic" }
+{ "file": "src/app/ErpApp.tsx", "format": "cursor|copilot|continue|generic" }
 ```
 
 ## Telegram Commands

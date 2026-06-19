@@ -27,6 +27,7 @@ import {
   readFileForAI,
   readDirectoryForAI,
   backupAndWrite,
+  createFile,
   rollbackFile,
   resolveAndValidate,
 } from "./safeFileManager";
@@ -156,7 +157,7 @@ export function createTelegramHandler(ctx: TelegramHandlerContext) {
         case "/create": {
           const file = args[0];
           const instruction = args.slice(1).join(" ");
-          await handleCreate(chatId, file, instruction);
+          await handleCreate(chatId, file, instruction, ctx);
           break;
         }
 
@@ -383,12 +384,21 @@ async function handleApply(
 
     await sendMessage(chatId, `💾 Đang tạo backup và áp dụng thay đổi...`);
 
-    const writeResult = await backupAndWrite(filePath, pending.suggestedContent, "auto");
+    const exists = fs.existsSync(absolutePath);
+    const writeResult = exists
+      ? await backupAndWrite(filePath, pending.suggestedContent, "auto")
+      : {
+          ok: true,
+          backup: { id: "new-file-creation", strategy: "file-creation" as const, createdAt: new Date().toISOString() },
+          bytesWritten: Buffer.byteLength(pending.suggestedContent, "utf-8"),
+        };
+    if (!exists) await createFile(filePath, pending.suggestedContent);
     ctx.pendingSuggestions.delete(absolutePath);
 
-    const backupInfo =
-      writeResult.backup.strategy === "git-commit"
-        ? `Git commit: \`${writeResult.backup.commitHash?.slice(0, 7)}\``
+    const backupInfo = writeResult.backup.strategy === "git-commit"
+      ? `Git commit: \`${writeResult.backup.commitHash?.slice(0, 7)}\``
+      : writeResult.backup.strategy === "file-creation"
+        ? "New file (no previous content)"
         : `File backup: \`${writeResult.backup.backupCopyPath}\``;
 
     await sendMessage(
@@ -422,7 +432,8 @@ async function handleRollback(chatId: number, filePath: string): Promise<void> {
 async function handleCreate(
   chatId: number,
   filePath: string,
-  instruction: string
+  instruction: string,
+  ctx: TelegramHandlerContext
 ): Promise<void> {
   if (!filePath || !instruction) {
     return sendMessage(
@@ -448,15 +459,25 @@ async function handleCreate(
       return sendMessage(chatId, `⚠️ AI không trả về code. Thử hướng dẫn cụ thể hơn.`);
     }
 
-    const { createFile } = await import("./safeFileManager");
-    await createFile(filePath, parsed.primaryCode.code);
+    const absolutePath = resolveAndValidate(filePath);
+    if (fs.existsSync(absolutePath)) {
+      return sendMessage(chatId, `File already exists: \`${filePath}\`. Use \`/edit\` instead.`);
+    }
+    ctx.pendingSuggestions.set(absolutePath, {
+      filePath: absolutePath,
+      originalContent: "",
+      suggestedContent: parsed.primaryCode.code,
+      explanation: parsed.explanation,
+      modelUsed: result.modelUsed,
+      createdAt: new Date().toISOString(),
+    });
 
     await sendMessage(
       chatId,
-      `✅ *Đã tạo file thành công!*\n\n` +
+      `✅ *Đã tạo bản xem trước!*\n\n` +
         `📄 \`${filePath}\`\n` +
         `🤖 ${result.modelUsed ?? "AI"}\n\n` +
-        parsed.explanation,
+        `${parsed.explanation}\n\nDùng \`/apply ${filePath}\` để tạo file.`,
       { parse_mode: "Markdown" }
     );
   } catch (err: any) {

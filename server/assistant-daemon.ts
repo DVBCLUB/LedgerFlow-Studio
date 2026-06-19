@@ -291,25 +291,24 @@ app.post("/api/edit", async (req: Request, res: Response) => {
   }
 });
 
-/** POST /api/apply — Apply pending suggestions or explicit content to one or more files */
+/** POST /api/apply — Apply reviewed pending suggestions to one or more files */
 app.post("/api/apply", async (req: Request, res: Response) => {
-  const { file, files, content, backupStrategy, autoRepair, originalPrompt } = req.body as {
+  const { file, files, backupStrategy, autoRepair, originalPrompt } = req.body as {
     file?: string | string[];
-    files?: { file: string; content?: string }[];
-    content?: string;
+    files?: string[];
     backupStrategy?: "auto" | "git-commit" | "file-copy";
     autoRepair?: boolean;
     originalPrompt?: string;
   };
 
-  const targets: { file: string; content?: string }[] = [];
+  const targets: string[] = [];
   if (files && Array.isArray(files)) {
     targets.push(...files);
   } else if (file) {
     if (Array.isArray(file)) {
-      targets.push(...file.map(f => ({ file: f, content })));
+      targets.push(...file);
     } else {
-      targets.push({ file, content });
+      targets.push(file);
     }
   }
 
@@ -322,23 +321,19 @@ app.post("/api/apply", async (req: Request, res: Response) => {
     const newJobs: { filePath: string; relativePath: string; newContent: string }[] = [];
 
     for (const target of targets) {
-      const absolutePath = resolveAndValidate(target.file);
-      let targetContent = target.content;
-      if (!targetContent) {
-        const pending = pendingSuggestions.get(absolutePath);
-        if (!pending) {
-          return res.status(404).json({
-            ok: false,
-            error: `No pending AI suggestion for "${target.file}". Call /api/edit first.`,
-          });
-        }
-        targetContent = pending.suggestedContent;
+      const absolutePath = resolveAndValidate(target);
+      const pending = pendingSuggestions.get(absolutePath);
+      if (!pending) {
+        return res.status(404).json({
+          ok: false,
+          error: `No reviewed AI suggestion for "${target}". Create or edit a preview first.`,
+        });
       }
       
       const job = {
         filePath: absolutePath,
-        relativePath: target.file,
-        newContent: targetContent,
+        relativePath: target,
+        newContent: pending.suggestedContent,
       };
 
       if (fs.existsSync(absolutePath)) {
@@ -490,15 +485,21 @@ app.post("/api/ide/selection", async (req: Request, res: Response) => {
     }
 
     const newFileContent = [...beforeLines, parsed.primaryCode.code, ...afterLines].join("\n");
-    const writeResult = await backupAndWrite(file, newFileContent, "auto");
+    pendingSuggestions.set(fileCtx.absolutePath, {
+      filePath: fileCtx.absolutePath,
+      originalContent: fileCtx.content,
+      suggestedContent: newFileContent,
+      explanation: parsed.explanation,
+      modelUsed: result.modelUsed,
+      createdAt: new Date().toISOString(),
+    });
 
     res.json({
       ok: true,
       file,
-      bytesWritten: writeResult.bytesWritten,
-      backup: writeResult.backup,
       suggestedCode: parsed.primaryCode.code,
       explanation: parsed.explanation,
+      hasPendingSuggestion: true,
     });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -566,14 +567,26 @@ app.post("/api/create", async (req: Request, res: Response) => {
       });
     }
 
-    await createFile(file, parsed.primaryCode.code);
+    const absolutePath = resolveAndValidate(file);
+    if (fs.existsSync(absolutePath)) {
+      return res.status(409).json({ ok: false, error: `File already exists: ${file}. Use /api/edit instead.` });
+    }
+    pendingSuggestions.set(absolutePath, {
+      filePath: absolutePath,
+      originalContent: "",
+      suggestedContent: parsed.primaryCode.code,
+      explanation: parsed.explanation,
+      modelUsed: result.modelUsed,
+      createdAt: new Date().toISOString(),
+    });
 
     res.json({
       ok: true,
       file,
       modelUsed: result.modelUsed,
       explanation: parsed.explanation,
-      message: `âœ… Created file "${file}".`,
+      hasPendingSuggestion: true,
+      message: `Prepared "${file}" for review. Apply the pending suggestion to create it.`,
     });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -765,6 +778,3 @@ if (isEntryPoint) {
 }
 
 export default app;
-
-
-
