@@ -30,6 +30,7 @@ const projectMemory = file('src/modules/analytics-sandbox/ProjectMemoryDecisionL
 const gitPanel = file('src/modules/dev-ops/GitAssistantDaemonPanel.tsx');
 const ciDoctor = file('src/modules/dev-ops/GitHubCIDoctorPanel.tsx');
 const devOpsReleaseHub = file('src/modules/dev-ops/DevOpsReleaseHubPanel.tsx');
+const developerIntelligence = file('src/modules/dev-ops/DeveloperIntelligenceHubPanel.tsx');
 const releaseArtifact = file('src/modules/dev-ops/ReleaseArtifactCenter.tsx');
 const securityHub = file('src/modules/dev-ops/SecuritySystemHubPanel.tsx');
 const securityControl = file('src/modules/dev-ops/SecurityControlCenter.tsx');
@@ -86,6 +87,15 @@ const requiredRoutes = [
   '/api/deploy/configs',
   '/api/deploy/runs',
   '/api/snapshot',
+  '/api/architecture/graphs',
+  '/api/architecture/generate',
+  '/api/testgen/suites',
+  '/api/testgen/generate',
+  '/api/docs',
+  '/api/docs/generate',
+  '/api/review/reviewers',
+  '/api/review/runs',
+  '/api/refactor/scan',
   '/api/plugins',
   '/api/drift/reports',
   '/api/deps/reports',
@@ -116,7 +126,8 @@ addCheck('Project Memory delegates to Knowledge Content hub', projectMemory.incl
 addCheck('Git Assistant uses daemon routes', gitPanel.includes('/api/git/status') && gitPanel.includes('/api/git/pr-desc'), 'GitAssistantDaemonPanel should use daemon git routes.');
 addCheck('CI Doctor uses daemon routes', ciDoctor.includes('/api/ci-doctor/context') && ciDoctor.includes('/api/ci-doctor/analyze'), 'GitHubCIDoctorPanel should use daemon ci-doctor routes.');
 addCheck('DevOps release hub uses release pipeline routes', devOpsReleaseHub.includes('/api/deploy/configs') && devOpsReleaseHub.includes('/api/snapshot') && devOpsReleaseHub.includes('/api/ci-doctor/context'), 'DevOpsReleaseHubPanel should aggregate Git, CI, deploy and snapshot routes.');
-addCheck('Release Artifacts delegates to DevOps hub', releaseArtifact.includes('DevOpsReleaseHubPanel'), 'ReleaseArtifactCenter should delegate to the DevOps release hub.');
+addCheck('Developer Intelligence hub uses dev support routes', developerIntelligence.includes('/api/architecture/graphs') && developerIntelligence.includes('/api/testgen/suites') && developerIntelligence.includes('/api/docs') && developerIntelligence.includes('/api/review/runs') && developerIntelligence.includes('/api/refactor/scan'), 'DeveloperIntelligenceHubPanel should aggregate architecture, tests, docs, review and refactor routes.');
+addCheck('Release Artifacts renders DevOps and Developer Intelligence hubs', releaseArtifact.includes('DevOpsReleaseHubPanel') && releaseArtifact.includes('DeveloperIntelligenceHubPanel'), 'ReleaseArtifactCenter should render DevOps release and Developer Intelligence hub panels.');
 addCheck('Security System hub uses risk/health routes', securityHub.includes('/api/plugins') && securityHub.includes('/api/sast/reports') && securityHub.includes('/api/logs/analyses') && securityHub.includes('/api/perf/profiles'), 'SecuritySystemHubPanel should aggregate plugin, SAST, logs and perf routes.');
 addCheck('Security Control delegates to Security System hub', securityControl.includes('SecuritySystemHubPanel'), 'SecurityControlCenter should delegate to the Security System hub.');
 addCheck('Config Health delegates to system overview', configHealth.includes('SystemOverviewDaemonPanel'), 'ConfigHealthMonitor should use the daemon-backed system overview.');
