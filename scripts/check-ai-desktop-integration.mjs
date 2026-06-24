@@ -20,6 +20,7 @@ const app = file('src/App.tsx');
 const subNavigation = file('src/components/shared/WorkspaceSubNavigation.tsx');
 const aiOps = file('src/modules/ai-hr/AIOperationsCenter.tsx');
 const aiCommandHub = file('src/modules/ai-hr/AICommandCenterHubPanel.tsx');
+const aiGovernance = file('src/modules/ai-hr/AIGovernanceQualityHubPanel.tsx');
 const robotLab = file('src/modules/ai-hr/RobotLabPanel.tsx');
 const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
 const automationHub = file('src/modules/ai-hr/AutomationRobotControlHubPanel.tsx');
@@ -70,6 +71,13 @@ const requiredRoutes = [
   '/api/swarm/missions',
   '/api/telemetry/latest',
   '/api/telemetry/history',
+  '/api/telemetry/metrics',
+  '/api/intent/classify',
+  '/api/validate',
+  '/api/validate/rules',
+  '/api/explain/traces',
+  '/api/finetune/pairs',
+  '/api/finetune/datasets',
   '/api/agent-memory/search',
   '/api/vectors/search',
   '/api/vectors/namespaces',
@@ -115,7 +123,8 @@ addCheck('assistantApi keeps legacy agent runtime exports', assistantApi.include
 
 addCheck('Hub labels are surfaced in subnavigation', subNavigation.includes('INTEGRATED_HUB_LABELS') && subNavigation.includes('AI Command Center') && subNavigation.includes('Automation & Robot Control') && subNavigation.includes('Knowledge & Content Studio') && subNavigation.includes('DevOps & Release Center') && subNavigation.includes('Security & System Health'), 'WorkspaceSubNavigation should show user-facing hub labels while keeping old route ids.');
 addCheck('AI Command Center hub uses command routes', aiCommandHub.includes('/api/agent-runtime/metrics') && aiCommandHub.includes('/api/roles') && aiCommandHub.includes('/api/ai-fabric/health') && aiCommandHub.includes('/api/control-plane/runs'), 'AICommandCenterHubPanel should aggregate runtime, roles, fabric and control plane routes.');
-addCheck('AI Operations delegates to AI Command Center hub', aiOps.includes('AICommandCenterHubPanel'), 'AIOperationsCenter should delegate to AICommandCenterHubPanel.');
+addCheck('AI Governance hub uses quality routes', aiGovernance.includes('/api/intent/classify') && aiGovernance.includes('/api/validate') && aiGovernance.includes('/api/explain/traces') && aiGovernance.includes('/api/finetune/pairs') && aiGovernance.includes('/api/telemetry/metrics'), 'AIGovernanceQualityHubPanel should aggregate intent, validation, explainability, fine-tune and telemetry routes.');
+addCheck('AI Operations renders command and governance hubs', aiOps.includes('AICommandCenterHubPanel') && aiOps.includes('AIGovernanceQualityHubPanel'), 'AIOperationsCenter should render both AI Command Center and Governance panels.');
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
 addCheck('Automation Robot hub uses control routes', automationHub.includes('/api/robot-simulation/status') && automationHub.includes('/api/automation-rules') && automationHub.includes('/api/agent-workflows') && automationHub.includes('/api/notify/events'), 'AutomationRobotControlHubPanel should aggregate robot, automation, workflow, stream and notification routes.');
 addCheck('Automation Bridge hub uses bridge routes', automationBridge.includes('/api/webhooks/rules') && automationBridge.includes('/api/tools') && automationBridge.includes('/api/swarm/agents') && automationBridge.includes('/api/telemetry/latest'), 'AutomationBridgeHubPanel should aggregate webhook, tool router, swarm and telemetry routes.');
