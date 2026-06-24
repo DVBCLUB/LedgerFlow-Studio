@@ -10,6 +10,9 @@
     "dev:app": "tsx server.ts",
     "dev:daemon": "tsx server/assistant-daemon.ts",
     "ai:doctor": "node scripts/ai-doctor.mjs",
+    "ai:openclaw-plus": "node scripts/openclaw-plus-doctor.mjs",
+    "ai:openclaw-plus:full": "node scripts/openclaw-plus-doctor.mjs --full",
+    "ai:openclaw-plus:check": "node scripts/openclaw-plus-doctor.mjs --skip-patch",
     "ai:patch-daemon-tools": "node scripts/patch-agent-daemon-tool-schema.mjs",
     "ai:patch-telegram-missions": "node scripts/patch-telegram-mission-commands.mjs",
     "prepare:icons": "node scripts/prepare-desktop-icons.mjs",
@@ -117,25 +120,6 @@
     "directories": {
       "output": "release",
       "buildResources": "build"
-    },
-    "files": [
-      "dist/**/*",
-      "desktop/**/*",
-      "build/**/*",
-      "package.json"
-    ],
-    "asar": false,
-    "win": {
-      "icon": "build/icon.ico",
-      "target": [
-        "dir"
-      ]
-    },
-    "mac": {
-      "target": "dmg"
-    },
-    "linux": {
-      "target": "AppImage"
     }
   }
 }
