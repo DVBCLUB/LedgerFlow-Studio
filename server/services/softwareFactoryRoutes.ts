@@ -72,6 +72,7 @@ import {
   type SoftwareFactoryAuditLevel,
 } from "./softwareFactoryAuditLogService";
 import { listSoftwareFactoryConnectors, getSoftwareFactoryConnectorStats } from "./softwareFactoryConnectorCatalog";
+import { getSoftwareFactoryConnectorConfigStats, getSoftwareFactoryConnectorEnvTemplate, listSoftwareFactoryConnectorConfigChecks } from "./softwareFactoryConnectorConfig";
 import { getSoftwareFactoryHealthSummary } from "./softwareFactoryHealthService";
 
 const router = Router();
@@ -92,7 +93,15 @@ router.get("/health-summary", (_req, res) => {
 });
 
 router.get("/connectors", (_req, res) => {
-  res.json({ ok: true, connectors: listSoftwareFactoryConnectors(), stats: getSoftwareFactoryConnectorStats() });
+  res.json({ ok: true, connectors: listSoftwareFactoryConnectors(), stats: getSoftwareFactoryConnectorStats(), configStats: getSoftwareFactoryConnectorConfigStats() });
+});
+
+router.get("/connectors/config", (_req, res) => {
+  res.json({ ok: true, checks: listSoftwareFactoryConnectorConfigChecks(), stats: getSoftwareFactoryConnectorConfigStats() });
+});
+
+router.get("/connectors/env-template", (_req, res) => {
+  res.type("text/plain").send(getSoftwareFactoryConnectorEnvTemplate());
 });
 
 router.get("/runs", (_req, res) => {
@@ -354,7 +363,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), connectorStats: getSoftwareFactoryConnectorStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats(), health: getSoftwareFactoryHealthSummary() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), connectorStats: getSoftwareFactoryConnectorStats(), connectorConfigStats: getSoftwareFactoryConnectorConfigStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats(), health: getSoftwareFactoryHealthSummary() });
 });
 
 router.post("/seed", (_req, res) => {
