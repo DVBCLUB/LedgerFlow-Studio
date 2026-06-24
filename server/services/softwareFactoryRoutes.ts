@@ -56,6 +56,7 @@ import {
 import {
   getSoftwareFactoryCommandRun,
   getSoftwareFactoryCommandStats,
+  linkSoftwareFactoryCommandResult,
   listSoftwareFactoryCommandCatalog,
   listSoftwareFactoryCommandRuns,
   runSoftwareFactoryCommand,
@@ -201,6 +202,14 @@ router.get("/commands/:id", (req, res) => {
   const run = getSoftwareFactoryCommandRun(req.params.id);
   if (!run) return res.status(404).json({ ok: false, error: "command run not found" });
   return res.json({ ok: true, run });
+});
+
+router.post("/commands/:id/link", (req, res) => {
+  const { executionId } = req.body || {};
+  const result = linkSoftwareFactoryCommandResult(req.params.id, executionId);
+  if (!result) return res.status(404).json({ ok: false, error: "command run not found" });
+  recordSoftwareFactoryAuditEvent({ area: "command", level: "success", title: "Command result linked", detail: `Command ${result.command.id} linked to asset ${result.asset.id}`, entityId: result.command.id });
+  return res.json({ ok: true, ...result, stats: getSoftwareFactoryCommandStats(), assetStats: getSoftwareFactoryAssetStats() });
 });
 
 router.get("/providers", (_req, res) => {
