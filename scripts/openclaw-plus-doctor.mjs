@@ -8,6 +8,7 @@ const skipPatch = process.argv.includes('--skip-patch');
 
 const patchSteps = skipPatch ? [] : [
   ['patch local AI Workforce', process.execPath, ['scripts/patch-ai-workforce-local.mjs']],
+  ['patch OpenClaw skill routes', process.execPath, ['scripts/patch-daemon-openclaw-skill-routes.mjs']],
   ['patch robot automation UI panel', process.execPath, ['scripts/patch-ai-ops-robot-automation-panel.mjs']],
 ];
 
