@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Bot, Cable, Database, PlayCircle, Rocket, Terminal, Zap } from 'lucide-react';
 import FactoryCatalogStatusPanel from './FactoryCatalogStatusPanel';
 import FactoryHealthSummaryPanel from './FactoryHealthSummaryPanel';
+import FactoryConnectorMatrixPanel from './FactoryConnectorMatrixPanel';
 import FactoryBackendRuntimePanel from './FactoryBackendRuntimePanel';
 import FactoryExecutionDecisionPanel from './FactoryExecutionDecisionPanel';
 import FactoryCommandRunnerPanel from './FactoryCommandRunnerPanel';
@@ -92,14 +93,15 @@ function SoftwareFactoryAutomationBrief() {
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.32em] text-violet-200"><Rocket className="mr-2 inline h-4 w-4" />AI Software Factory</p>
           <h2 className="mt-2 text-2xl font-black text-white">Factory runtime cho app, game, tool và video workflow</h2>
-          <p className="mt-3 max-w-5xl text-sm font-semibold leading-6 text-slate-400">Workspace này gom intake, provider routing, execution, command runner, asset store, release kit, audit log và health summary vào một luồng có review gate.</p>
+          <p className="mt-3 max-w-5xl text-sm font-semibold leading-6 text-slate-400">Workspace này gom intake, provider routing, execution, command runner, asset store, release kit, audit log, health summary và connector matrix vào một luồng có review gate.</p>
         </div>
-        <div className="flex flex-wrap gap-2"><Pill tone="emerald">API first</Pill><Pill tone="violet">Catalog connected</Pill><Pill tone="cyan">GitHub + IDE</Pill><Pill tone="amber">Review gated</Pill></div>
+        <div className="flex flex-wrap gap-2"><Pill tone="emerald">API first</Pill><Pill tone="violet">Connector matrix</Pill><Pill tone="cyan">GitHub + IDE</Pill><Pill tone="amber">Review gated</Pill></div>
       </div>
     </section>
 
     <FactoryCatalogStatusPanel />
     <FactoryHealthSummaryPanel />
+    <FactoryConnectorMatrixPanel />
     <FactoryBackendRuntimePanel />
     <FactoryExecutionDecisionPanel />
     <FactoryCommandRunnerPanel />
@@ -108,7 +110,7 @@ function SoftwareFactoryAutomationBrief() {
 
     <section className="grid gap-3 md:grid-cols-4">
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Goal</p><p className="mt-2 text-2xl font-black text-white">Idea to release</p><p className="mt-1 text-[11px] font-bold text-slate-500">Tập trung tạo sản phẩm có thể review và đóng gói.</p></Card>
-      <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Routing</p><p className="mt-2 text-2xl font-black text-white">Hybrid</p><p className="mt-1 text-[11px] font-bold text-slate-500">Profile, connector, IDE capacity, agent API.</p></Card>
+      <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Routing</p><p className="mt-2 text-2xl font-black text-white">18 connectors</p><p className="mt-1 text-[11px] font-bold text-slate-500">AI platforms, agents, IDEs, repo, local runtime.</p></Card>
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Control</p><p className="mt-2 text-2xl font-black text-white">Human gated</p><p className="mt-1 text-[11px] font-bold text-slate-500">High-impact actions cần duyệt.</p></Card>
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Outputs</p><p className="mt-2 text-2xl font-black text-white">Code + media</p><p className="mt-1 text-[11px] font-bold text-slate-500">App/game/tool/video/assets.</p></Card>
     </section>
