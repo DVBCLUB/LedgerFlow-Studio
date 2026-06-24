@@ -4,6 +4,7 @@ import FactoryCatalogStatusPanel from './FactoryCatalogStatusPanel';
 import FactoryBackendRuntimePanel from './FactoryBackendRuntimePanel';
 import FactoryExecutionDecisionPanel from './FactoryExecutionDecisionPanel';
 import FactoryCommandRunnerPanel from './FactoryCommandRunnerPanel';
+import FactoryAuditLogPanel from './FactoryAuditLogPanel';
 import AutomationRobotControlHubPanel from './AutomationRobotControlHubPanel';
 import AutomationBridgeHubPanel from './AutomationBridgeHubPanel';
 
@@ -99,6 +100,7 @@ function SoftwareFactoryAutomationBrief() {
     <FactoryBackendRuntimePanel />
     <FactoryExecutionDecisionPanel />
     <FactoryCommandRunnerPanel />
+    <FactoryAuditLogPanel />
 
     <section className="grid gap-3 md:grid-cols-4">
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Goal</p><p className="mt-2 text-2xl font-black text-white">Idea to revenue</p><p className="mt-1 text-[11px] font-bold text-slate-500">Tập trung tạo sản phẩm có khả năng bán.</p></Card>
