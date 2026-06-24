@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Network, ShieldCheck, Play, HelpCircle, Activity, Key } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Activity, CheckCircle2, Network, RefreshCw, ShieldCheck, XCircle } from 'lucide-react';
+import { daemonFetch } from '../../../utils/assistantApi';
 
 interface Connection {
   id: string;
@@ -9,108 +10,121 @@ interface Connection {
   quota: string;
   expiry: string;
   latency: string;
+  endpoint: string;
+  mode: 'main' | 'assistant';
 }
 
-const INITIAL_CONNECTIONS: Connection[] = [
-  { id: 'gemini', name: 'Google Gemini API', provider: 'Google AI Studio', status: 'active', quota: '95% (Free Tier)', expiry: 'Không giới hạn', latency: '124ms' },
-  { id: 'openai', name: 'OpenAI API (GPT-4o)', provider: 'OpenAI Developer', status: 'warning', quota: '$12.50 / $100', expiry: 'Còn 14 ngày', latency: '185ms' },
-  { id: 'github', name: 'GitHub Actions & Issues API', provider: 'GitHub', status: 'active', quota: '4.250 / 5.000 requests', expiry: 'N/A', latency: '98ms' },
-  { id: 'supabase', name: 'Supabase Database', provider: 'Supabase Cloud', status: 'active', quota: '12.5 MB / 500 MB', expiry: 'Không giới hạn', latency: '65ms' }
+const CONNECTIONS: Connection[] = [
+  { id: 'main-health', name: 'Desktop backend', provider: 'LedgerFlow server', status: 'warning', quota: 'local', expiry: 'always on', latency: '-', endpoint: '/api/health', mode: 'main' },
+  { id: 'assistant-health', name: 'Assistant service', provider: 'AI daemon', status: 'warning', quota: 'local', expiry: 'port 3001', latency: '-', endpoint: '/health', mode: 'assistant' },
+  { id: 'ai-router', name: 'AI router status', provider: 'AI gateway', status: 'warning', quota: 'vault based', expiry: 'local vault', latency: '-', endpoint: '/api/status', mode: 'assistant' },
+  { id: 'agent-runtime', name: 'Agent runtime', provider: 'AgentOps', status: 'warning', quota: 'runs and approvals', expiry: 'local runtime', latency: '-', endpoint: '/api/agent-runtime/metrics', mode: 'assistant' },
+  { id: 'robot-sim', name: 'Robot simulator', provider: 'Digital twin', status: 'warning', quota: 'simulation only', expiry: 'local runtime', latency: '-', endpoint: '/api/robot-simulation/status', mode: 'assistant' },
+  { id: 'automation-rules', name: 'Automation rules', provider: 'Rule engine', status: 'warning', quota: 'local rules', expiry: 'local runtime', latency: '-', endpoint: '/api/automation-rules', mode: 'assistant' },
 ];
 
+async function checkConnection(item: Connection): Promise<Connection> {
+  const start = performance.now();
+  try {
+    if (item.mode === 'assistant') {
+      await daemonFetch<any>(item.endpoint, undefined, 8000);
+    } else {
+      const response = await fetch(item.endpoint, { signal: AbortSignal.timeout(8000) });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      await response.json().catch(() => null);
+    }
+    return { ...item, status: 'active', latency: `${Math.round(performance.now() - start)}ms` };
+  } catch {
+    return { ...item, status: 'error', latency: 'failed' };
+  }
+}
+
 export default function ApiConnectionHealthMatrix() {
-  const [connections, setConnections] = useState<Connection[]>(INITIAL_CONNECTIONS);
+  const [connections, setConnections] = useState<Connection[]>(CONNECTIONS);
   const [pinging, setPinging] = useState<string | null>(null);
 
-  const handlePing = (id: string) => {
+  const handlePing = async (id: string) => {
     setPinging(id);
-    setTimeout(() => {
-      setConnections(prev => prev.map(c => {
-        if (c.id === id) {
-          const randLatency = Math.round(50 + Math.random() * 150) + 'ms';
-          return { ...c, latency: randLatency, status: 'active' };
-        }
-        return c;
-      }));
-      setPinging(null);
-    }, 1000);
+    const current = connections.find((item) => item.id === id);
+    if (current) {
+      const next = await checkConnection(current);
+      setConnections((prev) => prev.map((item) => item.id === id ? next : item));
+    }
+    setPinging(null);
   };
+
+  const checkAll = async () => {
+    setPinging('all');
+    const next = await Promise.all(CONNECTIONS.map(checkConnection));
+    setConnections(next);
+    setPinging(null);
+  };
+
+  useEffect(() => {
+    void checkAll();
+  }, []);
+
+  const healthy = connections.filter((item) => item.status === 'active').length;
 
   return (
     <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-        <div className="p-2 bg-slate-500/10 text-slate-300 border border-slate-500/25 rounded-xl">
-          <Network className="w-5 h-5" />
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-slate-500/25 bg-slate-500/10 p-2 text-slate-300">
+            <Network className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black uppercase tracking-wider text-white">API Connection Health Matrix</h3>
+            <p className="text-[11px] font-semibold leading-relaxed text-slate-400">Real checks for desktop backend, assistant service, AI, robot and automation routes.</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">API Connection Health Matrix</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Giám sát sức khỏe, tốc độ phản hồi và thời hạn các cổng kết nối API bên thứ ba.</p>
-        </div>
+        <button onClick={() => void checkAll()} disabled={pinging === 'all'} className="inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-[10px] font-black text-slate-300 hover:text-white disabled:opacity-50">
+          <RefreshCw className={`h-3.5 w-3.5 ${pinging === 'all' ? 'animate-spin' : ''}`} /> Check all
+        </button>
+      </div>
+
+      <div className="mb-4 rounded-xl border border-cyan-500/10 bg-cyan-500/5 p-3 text-xs font-bold text-cyan-100">
+        Connected: {healthy}/{connections.length}. If assistant routes fail, the EXE opens but AI Workforce panels cannot load live robot/automation data.
       </div>
 
       <div className="space-y-4">
         {connections.map((c) => {
-          let dotColor = 'bg-emerald-500';
-          let borderColor = 'border-emerald-500/20';
-          let textColor = 'text-emerald-300';
-          
-          if (c.status === 'warning') {
-            dotColor = 'bg-amber-500';
-            borderColor = 'border-amber-500/20';
-            textColor = 'text-amber-300';
-          } else if (c.status === 'error') {
-            dotColor = 'bg-rose-500';
-            borderColor = 'border-rose-500/20';
-            textColor = 'text-rose-300';
-          }
+          const isOk = c.status === 'active';
+          const isLoading = pinging === c.id;
+          const dotColor = isOk ? 'bg-emerald-500' : 'bg-rose-500';
+          const borderColor = isOk ? 'border-emerald-500/20' : 'border-rose-500/20';
+          const textColor = isOk ? 'text-emerald-300' : 'text-rose-300';
 
           return (
-            <div key={c.id} className="p-4 rounded-xl border border-slate-850 bg-slate-950/40 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={c.id} className={`flex flex-col justify-between gap-4 rounded-xl border bg-slate-950/40 p-4 md:flex-row md:items-center ${borderColor}`}>
               <div className="flex items-start gap-3">
-                <div className="mt-1 relative">
-                  <span className={`w-3.5 h-3.5 rounded-full block ${dotColor} ${c.status === 'active' ? 'animate-pulse' : ''}`} />
+                <div className="relative mt-1">
+                  <span className={`block h-3.5 w-3.5 rounded-full ${dotColor} ${isOk ? 'animate-pulse' : ''}`} />
                 </div>
                 <div>
                   <h4 className="text-xs font-black text-white">{c.name}</h4>
-                  <p className="text-[10px] text-slate-500 mt-1 font-semibold leading-none">
-                    Provider: {c.provider}
-                  </p>
+                  <p className="mt-1 text-[10px] font-semibold leading-none text-slate-500">Provider: {c.provider}</p>
+                  <p className="mt-2 text-[10px] font-mono text-slate-600">{c.endpoint}</p>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-6 text-xs text-left">
-                <div>
-                  <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider block">Dung lượng sử dụng</span>
-                  <span className="text-slate-300 font-bold block mt-1">{c.quota}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider block">Thời hạn key</span>
-                  <span className={`font-bold block mt-1 ${c.status === 'warning' ? 'text-amber-300' : 'text-slate-300'}`}>{c.expiry}</span>
-                </div>
-                <div>
-                  <span className="text-[9px] text-slate-500 font-black uppercase tracking-wider block">Độ trễ (Latency)</span>
-                  <span className="text-slate-300 font-mono block mt-1">{c.latency}</span>
-                </div>
+              <div className="grid grid-cols-3 gap-6 text-left text-xs">
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Scope</span><span className="mt-1 block font-bold text-slate-300">{c.quota}</span></div>
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Runtime</span><span className="mt-1 block font-bold text-slate-300">{c.expiry}</span></div>
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Latency</span><span className={`mt-1 block font-mono font-bold ${textColor}`}>{isLoading ? 'checking...' : c.latency}</span></div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={pinging === c.id}
-                  onClick={() => handlePing(c.id)}
-                  className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-slate-800 hover:border-slate-700 bg-slate-900 px-3 py-1.5 text-[10px] font-black text-slate-350 hover:text-white cursor-pointer transition-all disabled:opacity-50"
-                >
-                  <Activity className="w-3.5 h-3.5" />
-                  {pinging === c.id ? 'Đang ping...' : 'Ping test'}
-                </button>
-              </div>
+              <button disabled={isLoading} onClick={() => void handlePing(c.id)} className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-[10px] font-black text-slate-350 transition-all hover:border-slate-700 hover:text-white disabled:opacity-50">
+                <Activity className="h-3.5 w-3.5" /> {isLoading ? 'Checking...' : 'Check'} {isOk ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" /> : <XCircle className="h-3.5 w-3.5 text-rose-300" />}
+              </button>
             </div>
           );
         })}
       </div>
 
-      <div className="mt-5 flex items-center gap-1.5 text-[9px] font-black text-emerald-400/90 border border-emerald-500/10 bg-emerald-500/5 p-2.5 rounded-lg">
-        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-        <span>Mô phỏng an toàn hệ thống, tự động gỡ lỗi cổng kết nối offline.</span>
+      <div className="mt-5 flex items-center gap-1.5 rounded-lg border border-emerald-500/10 bg-emerald-500/5 p-2.5 text-[9px] font-black text-emerald-400/90">
+        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+        <span>These checks are safe read-only diagnostics.</span>
       </div>
     </div>
   );
