@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Bot, ClipboardCopy, MessageSquare, ShieldAlert, Smartphone, StopCircle, Terminal, Zap } from 'lucide-react';
 
 type CommandSpec = {
@@ -8,7 +8,7 @@ type CommandSpec = {
   command: string;
   purpose: string;
   safety: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 const commands: CommandSpec[] = [
