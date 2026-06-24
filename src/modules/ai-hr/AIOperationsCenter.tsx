@@ -1,4 +1,5 @@
 import AIWorkforceMissionControl from './AIWorkforceMissionControl';
+import AIWorkforceMissionTrace from './AIWorkforceMissionTrace';
 import AIWorkforceMissionTemplates from './AIWorkforceMissionTemplates';
 import AIWorkforceToolCatalog from './AIWorkforceToolCatalog';
 import AICommandCenterHubPanel from './AICommandCenterHubPanel';
@@ -8,6 +9,7 @@ export default function AIOperationsCenter() {
   return (
     <div className="space-y-6">
       <AIWorkforceMissionControl />
+      <AIWorkforceMissionTrace />
       <AIWorkforceMissionTemplates />
       <AIWorkforceToolCatalog />
 
