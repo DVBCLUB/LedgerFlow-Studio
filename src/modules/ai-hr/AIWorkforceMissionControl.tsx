@@ -9,6 +9,7 @@ type AgentRun = { id: string; goal: string; status: string; planner?: string; pl
 type MemoryHit = { id?: string; title?: string; body?: string; summary?: string; citation?: string; tags?: string[] | string };
 type Role = { id: string; emoji?: string; group?: string };
 type HubData = { status: Record<string, unknown> | null; metrics: Metrics; runs: AgentRun[]; roles: Role[]; memoryHits: MemoryHit[]; fabricHealth: Record<string, unknown> | null; controlPlane: Record<string, unknown> | null };
+type CreateRunResponse = { run?: { id?: string }; id?: string };
 
 const DEFAULT_GOAL = 'Review LedgerFlow AI workforce, produce a safe implementation plan, and list approvals needed before any external action.';
 const DEFAULT_QUERY = 'LedgerFlow AI operations memory safety runtime approval';
@@ -16,13 +17,25 @@ const APPROVAL_PHRASE = 'APPROVE AGENT STEP';
 
 function readArray<T>(value: unknown, key: string): T[] {
   if (Array.isArray(value)) return value as T[];
-  if (value && typeof value === 'object' && Array.isArray((value as any)[key])) return (value as any)[key] as T[];
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const candidate = record[key];
+    if (Array.isArray(candidate)) return candidate as T[];
+  }
   return [];
 }
 
 function readMetrics(value: unknown): Metrics {
-  if (value && typeof value === 'object' && (value as any).metrics) return (value as any).metrics as Metrics;
-  return (value || {}) as Metrics;
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    if (record.metrics && typeof record.metrics === 'object') return record.metrics as Metrics;
+    return record as Metrics;
+  }
+  return {};
+}
+
+function errorMessage(err: unknown, fallback: string) {
+  return err instanceof Error ? err.message : fallback;
 }
 
 function toneForStatus(status?: string): Tone {
@@ -93,8 +106,8 @@ export default function AIWorkforceMissionControl() {
       });
       const failed = results.filter((item) => item.status === 'rejected').length;
       setMessage(failed ? `Mission Control loaded with ${failed} degraded source(s).` : 'Mission Control loaded.');
-    } catch (err: any) {
-      setError(err?.message || 'Cannot load AI Workforce Mission Control.');
+    } catch (err: unknown) {
+      setError(errorMessage(err, 'Cannot load AI Workforce Mission Control.'));
     } finally { setBusy(false); }
   };
 
@@ -111,10 +124,10 @@ export default function AIWorkforceMissionControl() {
     if (!goal.trim() || emergency) return;
     setBusy(true); setError(''); setMessage('');
     try {
-      const created = await daemonFetch<any>('/api/agent-runtime/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: goal.trim(), maxSteps: 5, plannerMode: 'auto' }) }, 60000);
-      setMessage(`Created mission: ${created?.run?.id || created?.id || 'agent run'}`);
+      const created = await daemonFetch<CreateRunResponse>('/api/agent-runtime/runs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ goal: goal.trim(), maxSteps: 5, plannerMode: 'auto' }) }, 60000);
+      setMessage(`Created mission: ${created.run?.id || created.id || 'agent run'}`);
       await load(query);
-    } catch (err: any) { setError(err?.message || 'Cannot create agent mission.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot create agent mission.')); }
     finally { setBusy(false); }
   };
 
@@ -124,7 +137,7 @@ export default function AIWorkforceMissionControl() {
       await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(runId)}/advance`, { method: 'POST' }, 60000);
       setMessage(`Advanced mission ${runId}.`);
       await load(query);
-    } catch (err: any) { setError(err?.message || 'Cannot advance mission.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot advance mission.')); }
     finally { setBusy(false); }
   };
 
@@ -134,7 +147,7 @@ export default function AIWorkforceMissionControl() {
       await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(runId)}/stop`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Founder stopped from AI Workforce Mission Control.' }) }, 10000);
       setMessage(`Stopped mission ${runId}.`);
       await load(query);
-    } catch (err: any) { setError(err?.message || 'Cannot stop mission.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot stop mission.')); }
     finally { setBusy(false); }
   };
 
@@ -145,7 +158,7 @@ export default function AIWorkforceMissionControl() {
       await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(run.id)}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stepId: step.id, fingerprint: step.approvalFingerprint, signature: step.approvalSignature, phrase: APPROVAL_PHRASE }) }, 60000);
       setMessage(`Approved ${step.toolId || 'step'} for ${run.id}.`);
       await load(query);
-    } catch (err: any) { setError(err?.message || 'Cannot approve step.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot approve step.')); }
     finally { setBusy(false); }
   };
 
@@ -155,7 +168,7 @@ export default function AIWorkforceMissionControl() {
       await daemonFetch('/api/agent-runtime/emergency-stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active, reason: active ? 'Founder enabled AI Workforce emergency stop.' : 'Founder released AI Workforce emergency stop.' }) }, 10000);
       setMessage(active ? 'AI Workforce emergency stop enabled.' : 'AI Workforce emergency stop released.');
       await load(query);
-    } catch (err: any) { setError(err?.message || 'Cannot update emergency stop.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot update emergency stop.')); }
     finally { setBusy(false); }
   };
 
@@ -166,7 +179,7 @@ export default function AIWorkforceMissionControl() {
       const context = `LedgerFlow AI Workforce context:\n- Emergency stop: ${emergency}\n- Active runs: ${activeRuns}\n- Waiting approval: ${waitingRuns.length}\n- Recent goals: ${data.runs.slice(0, 5).map((run) => `${run.status}: ${run.goal}`).join(' | ')}\n\nFounder command: ${chatPrompt.trim()}`;
       const result = await askAI(context, 'general');
       setChatAnswer(result.answer || 'No answer returned.');
-    } catch (err: any) { setError(err?.message || 'Command chat failed.'); }
+    } catch (err: unknown) { setError(errorMessage(err, 'Command chat failed.')); }
     finally { setBusy(false); }
   };
 
