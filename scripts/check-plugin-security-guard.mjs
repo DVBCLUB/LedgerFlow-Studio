@@ -4,6 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const pluginSystemFile = path.join(root, 'server/services/pluginExtensionSystem.ts');
+const pluginPolicyFile = path.join(root, 'server/services/pluginSecurityPolicy.ts');
 const pluginPanelFile = path.join(root, 'src/modules/ai-hr/AIWorkforcePluginSecurityGuard.tsx');
 
 let failed = false;
@@ -11,6 +12,11 @@ let failed = false;
 if (!fs.existsSync(pluginSystemFile)) {
   console.error('Missing server/services/pluginExtensionSystem.ts');
   process.exit(1);
+}
+
+if (!fs.existsSync(pluginPolicyFile)) {
+  console.error('Missing server/services/pluginSecurityPolicy.ts');
+  failed = true;
 }
 
 const source = fs.readFileSync(pluginSystemFile, 'utf8');
@@ -36,6 +42,27 @@ const expectedGuardConcepts = [
 for (const token of expectedGuardConcepts) {
   if (!source.includes(token)) {
     console.warn(`Warning: plugin system does not yet expose guard concept: ${token}`);
+  }
+}
+
+if (fs.existsSync(pluginPolicyFile)) {
+  const policy = fs.readFileSync(pluginPolicyFile, 'utf8');
+  for (const token of [
+    'assessPluginSecurity',
+    'allowedForSimulation',
+    'allowedForHostInvocation',
+    'simulate:tool',
+    'read:knowledge',
+    'write:artifact',
+    'notify:founder',
+    'signature',
+    'sandbox',
+    'entryPoint',
+  ]) {
+    if (!policy.includes(token)) {
+      console.error(`Plugin security policy missing token: ${token}`);
+      failed = true;
+    }
   }
 }
 
