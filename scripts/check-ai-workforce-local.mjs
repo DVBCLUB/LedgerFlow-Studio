@@ -10,6 +10,7 @@ const checks = [
   [process.execPath, [path.join(root, 'scripts/check-patch-review-guard.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-plugin-security-guard.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-plugin-invocation-boundary.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-plugin-runtime-boundary-patcher.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-ai-workforce-ui-wiring.mjs')]],
 ];
 
