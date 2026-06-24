@@ -122,6 +122,21 @@ export function getSoftwareFactoryExecution(id: string) {
   return executions.get(id) || null;
 }
 
+export function appendSoftwareFactoryExecutionLog(id: string, entry: string) {
+  hydrateExecutions();
+  const execution = executions.get(id);
+  if (!execution) return null;
+  const timestamp = now();
+  const updated: SoftwareFactoryExecution = {
+    ...execution,
+    log: [...execution.log, `${timestamp} ${entry}`],
+    updatedAt: timestamp,
+  };
+  executions.set(id, updated);
+  persistExecutions();
+  return updated;
+}
+
 export function attachProviderDecisionToExecution(id: string, workKind?: SoftwareFactoryWorkKind) {
   hydrateExecutions();
   const execution = executions.get(id);
