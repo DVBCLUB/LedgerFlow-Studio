@@ -17,6 +17,14 @@ interface WorkspaceSubNavigationProps<T extends string = string> {
   eyebrow?: string;
 }
 
+const INTEGRATED_HUB_LABELS: Record<string, { label: string; badge?: string }> = {
+  ai_ops: { label: 'AI Command Center', badge: 'HUB' },
+  automation_rules: { label: 'Automation & Robot Control', badge: 'HUB' },
+  project_memory: { label: 'Knowledge & Content Studio', badge: 'HUB' },
+  release_artifact: { label: 'DevOps & Release Center', badge: 'HUB' },
+  security: { label: 'Security & System Health', badge: 'HUB' },
+};
+
 export default function WorkspaceSubNavigation<T extends string = string>({
   tabs,
   activeTab,
@@ -46,11 +54,16 @@ export default function WorkspaceSubNavigation<T extends string = string>({
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
+          const hub = INTEGRATED_HUB_LABELS[String(tab.id)];
+          const displayLabel = hub?.label ?? tab.label;
+          const displayBadge = tab.badge ?? hub?.badge;
+          const displayBadgeColor = tab.badgeColor ?? (hub ? 'bg-cyan-500/20 text-cyan-200' : undefined);
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
+              title={hub ? `${displayLabel} — tích hợp từ ${tab.label}` : tab.label}
               className={`py-2 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 border cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-indigo-950/40 via-slate-950 to-indigo-950/40 text-indigo-300 border-indigo-500/35 shadow-lg shadow-indigo-500/5'
@@ -58,10 +71,10 @@ export default function WorkspaceSubNavigation<T extends string = string>({
               }`}
             >
               {Icon && <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-400' : 'text-slate-400'}`} />}
-              <span>{tab.label}</span>
-              {tab.badge && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${tab.badgeColor || 'bg-indigo-500/20 text-indigo-300'}`}>
-                  {tab.badge}
+              <span>{displayLabel}</span>
+              {displayBadge && (
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${displayBadgeColor || 'bg-indigo-500/20 text-indigo-300'}`}>
+                  {displayBadge}
                 </span>
               )}
             </button>
