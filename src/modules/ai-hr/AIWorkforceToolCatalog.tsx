@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Bot, CheckCircle2, Database, FileText, Globe, Lock, Megaphone, MousePointer2, ShieldAlert, Terminal, Wrench, Zap } from 'lucide-react';
 
 type ToolCard = {
@@ -8,7 +9,7 @@ type ToolCard = {
   execution: 'simulation' | 'sandbox' | 'connector';
   approval: boolean;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 const tools: ToolCard[] = [
