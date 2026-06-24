@@ -16,6 +16,7 @@ const groups = [
   ['Robot adapter boundary', 'server/services/robotAdapterBoundary.ts', ['Robot Adapter Boundary', 'acceptRobotCommand', 'RobotSafetyEnvelope', 'replayRunbook']],
   ['Automation scheduler loop', 'server/services/automationSchedulerLoop.ts', ['runAutomationSchedulerTick', 'startAutomationScheduler', 'stopAutomationScheduler', 'getAutomationSchedulerStatus']],
   ['Automation rule engine', 'server/services/automationRuleEngine.ts', ['fireAutomationEvent', 'requiresApproval', 'executionLog', 'robot.emergency_stop']],
+  ['Robot automation UI panel', 'src/modules/ai-hr/AIWorkforceRobotAutomationBridge.tsx', ['Robot + Automation Bridge', '/api/robot-capabilities', '/api/automation-scheduler/status', 'schedulerAction']],
   ['Local orchestration', 'scripts/patch-ai-workforce-local.mjs', ['patch-daemon-agent-reject-route.mjs', 'patch-plugin-runtime-boundary.mjs', 'patch-ai-ops-safety-runbook-panel.mjs']],
   ['AI Workforce UI shell', 'src/modules/ai-hr/AIOperationsCenter.tsx', ['AIWorkforceMissionControl', 'AIWorkforcePatchReviewSessions', 'AIWorkforcePluginSecurityGuard']],
 ];
