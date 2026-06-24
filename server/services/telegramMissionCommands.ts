@@ -4,6 +4,7 @@ import {
   createAgentRun,
   getAgentRun,
   listAgentRuns,
+  rejectAgentRunStep,
   setAgentRuntimeEmergencyStop,
   stopAgentRun,
 } from './agentRuntime';
@@ -29,7 +30,7 @@ function parseCommand(text: string): ParsedMissionCommand | null {
 }
 
 function stripQuotes(value: string) {
-  return value.trim().replace(/^['"]|['"]$/g, '').trim();
+  return value.trim().replace(/^[ '"]|[ '"]$/g, '').trim();
 }
 
 function latestRunIdFromArgs(args: string[]) {
@@ -130,6 +131,18 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
       return true;
     }
 
+    case 'reject': {
+      const [runId, stepId, fingerprint, ...reasonParts] = parsed.args;
+      if (!runId || !stepId) {
+        await send(chatId, '❓ Usage: `/mission reject <runId> <stepId> [fingerprint] [reason]`', { parse_mode: 'Markdown' });
+        return true;
+      }
+      const reason = reasonParts.join(' ').trim() || 'Rejected from Telegram.';
+      const run = await rejectAgentRunStep(runId, { stepId, fingerprint, reason });
+      await send(chatId, `🚫 Rejected step \`${stepId}\` for mission \`${run.id}\`.\nStatus: \`${run.status}\``, { parse_mode: 'Markdown' });
+      return true;
+    }
+
     case 'stop': {
       const runId = latestRunIdFromArgs(parsed.args) || (await getLatestRun())?.id;
       if (!runId) {
@@ -164,6 +177,7 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
         '`/mission advance latest`',
         '`/mission approvals`',
         '`/mission approve <runId> <stepId> <fingerprint>`',
+        '`/mission reject <runId> <stepId> [fingerprint] [reason]`',
         '`/mission stop <runId>`',
         '`/mission artifact latest`',
         '`/ai emergency-stop on|off`',
