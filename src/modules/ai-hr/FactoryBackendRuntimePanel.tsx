@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Activity, GitBranch, Loader2, PlayCircle, PlusCircle, RefreshCw, Server, Terminal } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { Activity, GitBranch, Loader2, Network, PlayCircle, PlusCircle, RefreshCw, Server, Terminal } from 'lucide-react';
 
 type BackendState = 'idle' | 'loading' | 'online' | 'offline';
 
@@ -25,11 +26,24 @@ interface FactoryStats {
   byStatus: Record<string, number>;
 }
 
+interface ProviderProfile {
+  id: string;
+  label: string;
+  kind: string;
+  priority: number;
+  health: string;
+  supportedWork: string[];
+  reviewRequired: boolean;
+  note: string;
+}
+
 interface RuntimePayload {
   runs?: FactoryRun[];
   stats?: FactoryStats;
   executionStats?: Record<string, number>;
   executions?: FactoryExecution[];
+  providerStats?: Record<string, number>;
+  providers?: ProviderProfile[];
 }
 
 interface GitPayload {
@@ -59,7 +73,7 @@ function StatusPill({ state }: { state: BackendState }) {
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${className}`}>{state}</span>;
 }
 
-function ActionButton({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
+function ActionButton({ children, onClick, disabled }: { children: ReactNode; onClick: () => void; disabled?: boolean }) {
   return <button onClick={onClick} disabled={disabled} className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-black text-slate-200 hover:border-emerald-400/40 disabled:opacity-60">{children}</button>;
 }
 
@@ -80,20 +94,38 @@ export default function FactoryBackendRuntimePanel() {
     return response.json();
   };
 
+  const patchJson = async (url: string, body?: unknown) => {
+    const response = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!response.ok) throw new Error(`Backend returned ${response.status}`);
+    return response.json();
+  };
+
   const refresh = async () => {
     setState('loading');
     setError(null);
     try {
-      const [runsResponse, executionsResponse, gitResponse] = await Promise.all([
+      const [runsResponse, executionsResponse, providersResponse, gitResponse] = await Promise.all([
         fetch(`${API_BASE}/runs`),
         fetch(`${API_BASE}/executions`).catch(() => null),
+        fetch(`${API_BASE}/providers`).catch(() => null),
         fetch(`${API_BASE}/git/status`).catch(() => null),
       ]);
       if (!runsResponse.ok) throw new Error(`Backend returned ${runsResponse.status}`);
       const runsJson = await runsResponse.json();
       const executionsJson = executionsResponse && executionsResponse.ok ? await executionsResponse.json() : null;
+      const providersJson = providersResponse && providersResponse.ok ? await providersResponse.json() : null;
       const gitJson = gitResponse && gitResponse.ok ? await gitResponse.json() : null;
-      setPayload({ ...runsJson, executions: executionsJson?.executions || [], executionStats: executionsJson?.stats || runsJson.executionStats });
+      setPayload({
+        ...runsJson,
+        executions: executionsJson?.executions || [],
+        executionStats: executionsJson?.stats || runsJson.executionStats,
+        providers: providersJson?.profiles || [],
+        providerStats: providersJson?.stats || runsJson.providerStats,
+      });
       setGitPayload(gitJson);
       setState('online');
     } catch (err) {
@@ -124,6 +156,8 @@ export default function FactoryBackendRuntimePanel() {
   const latestExecution = useMemo(() => (payload?.executions || [])[0], [payload]);
   const stats = payload?.stats;
   const executionStats = payload?.executionStats;
+  const providerStats = payload?.providerStats;
+  const providers = payload?.providers || [];
   const git = gitPayload?.runner;
   const changedFiles = git ? git.status.modified.length + git.status.staged.length + git.status.untracked.length + git.status.deleted.length : 0;
   const busy = state === 'loading' || Boolean(actionState);
@@ -133,7 +167,7 @@ export default function FactoryBackendRuntimePanel() {
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200"><Server className="mr-2 inline h-4 w-4" />Backend runtime</p>
         <h3 className="mt-2 text-xl font-black text-white">Software Factory daemon connection</h3>
-        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-400">UI này gọi daemon cục bộ ở port 3011 để đọc runs, executions, Git runner status và kích hoạt các bước runtime cơ bản.</p>
+        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-400">UI này gọi daemon cục bộ ở port 3011 để đọc runs, executions, provider profiles, Git runner status và kích hoạt các bước runtime cơ bản.</p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <StatusPill state={state} />
@@ -144,11 +178,12 @@ export default function FactoryBackendRuntimePanel() {
     {error && <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold leading-6 text-amber-100">Daemon chưa online hoặc thao tác chưa chạy được: {error}. Chạy server/software-factory-daemon.ts để bật runtime API.</div>}
     {actionState && <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-100"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Đang chạy: {actionState}</div>}
 
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
       <SmallStat label="runs" value={stats?.total ?? 0} note="factory run records" />
       <SmallStat label="queued" value={stats?.byStatus?.queued ?? 0} note="waiting for execution" />
       <SmallStat label="review" value={stats?.byStatus?.review ?? 0} note="needs founder check" />
       <SmallStat label="executions" value={executionStats?.total ?? 0} note={`${executionStats?.running ?? 0} running`} />
+      <SmallStat label="providers" value={providerStats?.total ?? providers.length} note={`${providerStats?.healthy ?? 0} healthy / ${providerStats?.limited ?? 0} limited`} />
       <SmallStat label="git files" value={changedFiles} note={git ? `branch ${git.branch || 'unknown'}` : 'no git status'} />
     </div>
 
@@ -159,13 +194,14 @@ export default function FactoryBackendRuntimePanel() {
         <ActionButton disabled={busy} onClick={() => runAction('Create sample run', () => postJson(`${API_BASE}/runs`, { title: 'Founder idea to prototype', workType: 'planning', owner: 'Product Architect', input: 'Create product brief, build plan and launch checklist.' }))}>Create run</ActionButton>
         <ActionButton disabled={busy || !latestRun} onClick={() => latestRun && runAction('Start latest run execution', () => postJson(`${API_BASE}/runs/${latestRun.id}/executions`))}>Start latest run</ActionButton>
         <ActionButton disabled={busy || !latestExecution} onClick={() => latestExecution && runAction('Advance latest execution', () => postJson(`${API_BASE}/executions/${latestExecution.id}/advance`))}>Advance execution</ActionButton>
+        <ActionButton disabled={busy} onClick={() => runAction('Choose planning provider', () => postJson(`${API_BASE}/providers/choose`, { workKind: 'planning' }))}>Choose provider</ActionButton>
         <ActionButton disabled={busy} onClick={() => runAction('Prepare commit draft', () => postJson(`${API_BASE}/git/commit-draft`))}>Commit draft</ActionButton>
         <ActionButton disabled={busy} onClick={() => runAction('Prepare PR draft', () => postJson(`${API_BASE}/git/pr-draft`, { base: 'main' }))}>PR draft</ActionButton>
       </div>
-      <p className="mt-3 text-[11px] font-semibold leading-5 text-slate-500">Các nút này chỉ gọi API runtime cục bộ, tạo dữ liệu mẫu, khởi chạy execution, advance từng bước và tạo draft Git review. Các hành động public release hoặc merge vẫn giữ ở review gate.</p>
+      <p className="mt-3 text-[11px] font-semibold leading-5 text-slate-500">Các nút này chỉ gọi API runtime cục bộ, tạo dữ liệu mẫu, chọn provider profile, khởi chạy execution, advance từng bước và tạo draft Git review. Các hành động public release hoặc merge vẫn giữ ở review gate.</p>
     </div>
 
-    <div className="grid gap-4 xl:grid-cols-2">
+    <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
       <div className="space-y-2">
         <div className="mb-2 flex items-center gap-2"><PlayCircle className="h-5 w-5 text-emerald-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Latest runs</p></div>
         {latestRuns.length === 0 ? <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-500">No backend runs yet. Click Seed runs or Create run.</p> : latestRuns.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
@@ -173,12 +209,30 @@ export default function FactoryBackendRuntimePanel() {
           <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{run.workType} / {run.owner}</p>
         </div>)}
       </div>
+
       <div className="space-y-2">
-        <div className="mb-2 flex items-center gap-2"><GitBranch className="h-5 w-5 text-cyan-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Git runner & execution</p></div>
+        <div className="mb-2 flex items-center gap-2"><Network className="h-5 w-5 text-violet-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Provider runtime</p></div>
+        {providers.length === 0 ? <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-500">Provider runtime chưa trả dữ liệu.</p> : providers.slice(0, 4).map((profile) => <div key={profile.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{profile.label}</p><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-violet-100">{profile.health}</span></div>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{profile.kind} / priority {profile.priority} / {profile.supportedWork.join(', ')}</p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <ActionButton disabled={busy} onClick={() => runAction(`Set ${profile.label} healthy`, () => patchJson(`${API_BASE}/providers/${profile.id}/health`, { health: 'healthy' }))}>Healthy</ActionButton>
+            <ActionButton disabled={busy} onClick={() => runAction(`Set ${profile.label} limited`, () => patchJson(`${API_BASE}/providers/${profile.id}/health`, { health: 'limited' }))}>Limited</ActionButton>
+            <ActionButton disabled={busy} onClick={() => runAction(`Pause ${profile.label}`, () => patchJson(`${API_BASE}/providers/${profile.id}/health`, { health: 'paused' }))}>Pause</ActionButton>
+          </div>
+        </div>)}
+      </div>
+    </div>
+
+    <div className="grid gap-4 xl:grid-cols-2">
+      <div className="space-y-2">
+        <div className="mb-2 flex items-center gap-2"><GitBranch className="h-5 w-5 text-cyan-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Git runner</p></div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <p className="text-xs font-black text-white">Current branch: {git?.branch || 'unknown'}</p>
           <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">Diff: {git?.diff.filesChanged ?? 0} files, {git?.diff.insertions ?? 0} insertions, {git?.diff.deletions ?? 0} deletions.</p>
         </div>
+      </div>
+      <div className="space-y-2">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-violet-300" /><p className="text-xs font-black text-white">Execution stats</p></div>
           <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">pending {executionStats?.pending ?? 0} / running {executionStats?.running ?? 0} / review {executionStats?.review ?? 0} / complete {executionStats?.complete ?? 0}</p>
