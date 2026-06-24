@@ -19,6 +19,7 @@
     "check:ai-desktop-integration": "node scripts/check-ai-desktop-integration.mjs",
     "check:new-features-brief": "node scripts/check-new-features-brief.mjs",
     "check:company-os": "npm run lint && npm run check:agentops-contracts",
+    "check:software-factory": "node scripts/check-software-factory.mjs",
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",
     "check:desktop": "node scripts/check-desktop-package.mjs",
