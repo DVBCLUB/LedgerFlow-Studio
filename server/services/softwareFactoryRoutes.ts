@@ -71,6 +71,7 @@ import {
   type SoftwareFactoryAuditArea,
   type SoftwareFactoryAuditLevel,
 } from "./softwareFactoryAuditLogService";
+import { listSoftwareFactoryConnectors, getSoftwareFactoryConnectorStats } from "./softwareFactoryConnectorCatalog";
 import { getSoftwareFactoryHealthSummary } from "./softwareFactoryHealthService";
 
 const router = Router();
@@ -88,6 +89,10 @@ const validAuditLevels: SoftwareFactoryAuditLevel[] = ["info", "success", "warni
 
 router.get("/health-summary", (_req, res) => {
   res.json({ ok: true, health: getSoftwareFactoryHealthSummary() });
+});
+
+router.get("/connectors", (_req, res) => {
+  res.json({ ok: true, connectors: listSoftwareFactoryConnectors(), stats: getSoftwareFactoryConnectorStats() });
 });
 
 router.get("/runs", (_req, res) => {
@@ -349,7 +354,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats(), health: getSoftwareFactoryHealthSummary() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), connectorStats: getSoftwareFactoryConnectorStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats(), health: getSoftwareFactoryHealthSummary() });
 });
 
 router.post("/seed", (_req, res) => {
