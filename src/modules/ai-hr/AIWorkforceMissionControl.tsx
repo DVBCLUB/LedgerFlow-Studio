@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Activity, AlertTriangle, Archive, Bot, Brain, CheckCircle2, ClipboardList, Database, FileText, MessageSquare, PlayCircle, RefreshCw, Search, ShieldAlert, Sparkles, StopCircle, Zap } from 'lucide-react';
 import { askAI, daemonFetch } from '../../utils/assistantApi';
 
+type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
 type Metrics = { emergencyStop?: boolean; totalRuns?: number; activeRuns?: number; waitingApproval?: number; completedRuns?: number; failedRuns?: number; artifactCount?: number };
 type AgentStep = { id: string; title?: string; toolId?: string; status?: string; observation?: string };
 type AgentRun = { id: string; goal: string; status: string; planner?: string; plannerSummary?: string; createdAt: string; updatedAt?: string; steps?: AgentStep[]; artifacts?: Array<{ id: string; type: string; summary: string; createdAt: string }> };
@@ -23,7 +24,7 @@ function readMetrics(value: unknown): Metrics {
   return (value || {}) as Metrics;
 }
 
-function toneForStatus(status?: string) {
+function toneForStatus(status?: string): Tone {
   const value = String(status || '').toLowerCase();
   if (value.includes('completed') || value.includes('clear') || value.includes('ok')) return 'emerald';
   if (value.includes('waiting') || value.includes('planned') || value.includes('running')) return 'amber';
@@ -31,12 +32,12 @@ function toneForStatus(status?: string) {
   return 'slate';
 }
 
-function Badge({ children, tone = 'slate' }: { children: string; tone?: 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet' }) {
+function Badge({ children, tone = 'slate' }: { children: string; tone?: Tone }) {
   const cls = tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : tone === 'emerald' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'violet' ? 'border-violet-500/30 bg-violet-500/10 text-violet-200' : 'border-slate-700 bg-slate-900 text-slate-300';
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${cls}`}>{children}</span>;
 }
 
-function StatCard({ label, value, hint, icon, tone = 'slate' }: { label: string; value: string | number; hint: string; icon: React.ReactNode; tone?: 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet' }) {
+function StatCard({ label, value, hint, icon, tone = 'slate' }: { label: string; value: string | number; hint: string; icon: ReactNode; tone?: Tone }) {
   const cls = tone === 'cyan' ? 'text-cyan-300' : tone === 'emerald' ? 'text-emerald-300' : tone === 'amber' ? 'text-amber-300' : tone === 'rose' ? 'text-rose-300' : tone === 'violet' ? 'text-violet-300' : 'text-white';
   return <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
     <div className="flex items-center justify-between gap-3"><p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p><span className={cls}>{icon}</span></div>
@@ -45,7 +46,7 @@ function StatCard({ label, value, hint, icon, tone = 'slate' }: { label: string;
   </div>;
 }
 
-function Section({ title, subtitle, icon, children }: { title: string; subtitle?: string; icon: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, subtitle, icon, children }: { title: string; subtitle?: string; icon: ReactNode; children: ReactNode }) {
   return <section className="rounded-3xl border border-slate-800 bg-slate-950/55 p-4 text-left">
     <div className="mb-4 flex items-start gap-3"><div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-2 text-cyan-200">{icon}</div><div><h3 className="text-sm font-black text-white">{title}</h3>{subtitle && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{subtitle}</p>}</div></div>
     {children}
@@ -171,7 +172,7 @@ export default function AIWorkforceMissionControl() {
 
     <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
       <Section title="Mission Queue" subtitle="Các agent run đang planned/running/waiting approval." icon={<Bot className="h-4 w-4" />}>
-        <div className="space-y-2">{missionQueue.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><Badge tone={toneForStatus(run.status) as any}>{run.status}</Badge><Badge>{run.planner || 'planner'}</Badge></div><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{run.plannerSummary && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{run.plannerSummary}</p>}<div className="mt-3 grid gap-2 sm:grid-cols-2">{(run.steps || []).slice(0, 4).map((step) => <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2"><p className="text-[10px] font-black uppercase text-cyan-300">{step.status || 'queued'} • {step.toolId || 'tool'}</p><p className="mt-1 line-clamp-2 text-xs font-bold text-slate-300">{step.title || step.observation || 'Step pending'}</p></div>)}</div></div>)}{missionQueue.length === 0 && <EmptyState>No active mission. Create one from Mission Builder.</EmptyState>}</div>
+        <div className="space-y-2">{missionQueue.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><Badge tone={toneForStatus(run.status)}>{run.status}</Badge><Badge>{run.planner || 'planner'}</Badge></div><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{run.plannerSummary && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{run.plannerSummary}</p>}<div className="mt-3 grid gap-2 sm:grid-cols-2">{(run.steps || []).slice(0, 4).map((step) => <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2"><p className="text-[10px] font-black uppercase text-cyan-300">{step.status || 'queued'} • {step.toolId || 'tool'}</p><p className="mt-1 line-clamp-2 text-xs font-bold text-slate-300">{step.title || step.observation || 'Step pending'}</p></div>)}</div></div>)}{missionQueue.length === 0 && <EmptyState>No active mission. Create one from Mission Builder.</EmptyState>}</div>
       </Section>
 
       <Section title="Approval Gate" subtitle="Tách riêng các mission cần founder review trước khi có side effect." icon={<ShieldAlert className="h-4 w-4" />}>
