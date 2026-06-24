@@ -1,3 +1,4 @@
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
 import {
   getSoftwareFactoryRun,
   updateSoftwareFactoryRunStatus,
@@ -25,7 +26,19 @@ export interface SoftwareFactoryExecution {
   updatedAt: string;
 }
 
+const EXECUTION_STORE_NAME = "executions";
 const executions = new Map<string, SoftwareFactoryExecution>();
+
+function hydrateExecutions() {
+  if (executions.size > 0) return;
+  for (const execution of readSoftwareFactoryStore<SoftwareFactoryExecution>(EXECUTION_STORE_NAME)) {
+    executions.set(execution.id, execution);
+  }
+}
+
+function persistExecutions() {
+  writeSoftwareFactoryStore(EXECUTION_STORE_NAME, Array.from(executions.values()));
+}
 
 function now() {
   return new Date().toISOString();
@@ -47,6 +60,7 @@ function createDefaultSteps(run: SoftwareFactoryRun): SoftwareFactoryExecutionSt
 }
 
 export function createSoftwareFactoryExecution(runId: string) {
+  hydrateExecutions();
   const run = getSoftwareFactoryRun(runId);
   if (!run) return null;
 
@@ -61,19 +75,23 @@ export function createSoftwareFactoryExecution(runId: string) {
     updatedAt: timestamp,
   };
   executions.set(execution.id, execution);
+  persistExecutions();
   updateSoftwareFactoryRunStatus(runId, "running");
   return execution;
 }
 
 export function listSoftwareFactoryExecutions() {
+  hydrateExecutions();
   return Array.from(executions.values()).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export function getSoftwareFactoryExecution(id: string) {
+  hydrateExecutions();
   return executions.get(id) || null;
 }
 
 export function advanceSoftwareFactoryExecution(id: string) {
+  hydrateExecutions();
   const execution = executions.get(id);
   if (!execution) return null;
 
@@ -87,6 +105,7 @@ export function advanceSoftwareFactoryExecution(id: string) {
       updatedAt: timestamp,
     };
     executions.set(id, completeExecution);
+    persistExecutions();
     updateSoftwareFactoryRunStatus(execution.runId, "complete", "Execution completed successfully.");
     return completeExecution;
   }
@@ -106,11 +125,13 @@ export function advanceSoftwareFactoryExecution(id: string) {
     updatedAt: timestamp,
   };
   executions.set(id, updated);
+  persistExecutions();
   if (status === "review") updateSoftwareFactoryRunStatus(execution.runId, "review", "Execution is ready for review.");
   return updated;
 }
 
 export function blockSoftwareFactoryExecution(id: string, reason: string) {
+  hydrateExecutions();
   const execution = executions.get(id);
   if (!execution) return null;
   const timestamp = now();
@@ -121,6 +142,7 @@ export function blockSoftwareFactoryExecution(id: string, reason: string) {
     updatedAt: timestamp,
   };
   executions.set(id, updated);
+  persistExecutions();
   updateSoftwareFactoryRunStatus(execution.runId, "blocked", reason);
   return updated;
 }
