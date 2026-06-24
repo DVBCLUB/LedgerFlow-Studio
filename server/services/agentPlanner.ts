@@ -1,21 +1,5 @@
 import { z } from 'zod';
-
-export const AGENT_TOOL_IDS = [
-  'read_knowledge',
-  'draft_plan',
-  'draft_patch',
-  'browser_check',
-  'terminal_check',
-  'external_connector',
-  'analyse_data',
-  'generate_report',
-  'send_notification',
-  'search_web_context',
-  'robot_inspect',
-  'robot_move',
-] as const;
-
-export type AgentToolId = typeof AGENT_TOOL_IDS[number];
+import { AGENT_TOOL_IDS, type AgentToolId } from './agentToolIds.ts';
 
 const planSchema = z.object({
   summary: z.string().min(3).max(1_000),
@@ -26,6 +10,7 @@ const planSchema = z.object({
   })).min(1).max(12),
 });
 
+export type { AgentToolId };
 export type AgentPlan = z.infer<typeof planSchema> & { planner: 'ai' | 'deterministic'; fallbackReason?: string };
 
 function deterministicPlan(goal: string, requestedTools: AgentToolId[], fallbackReason?: string): AgentPlan {
