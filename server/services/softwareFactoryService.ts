@@ -1,3 +1,5 @@
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+
 export type SoftwareFactoryRunStatus = "draft" | "queued" | "running" | "review" | "complete" | "blocked";
 export type SoftwareFactoryWorkType = "planning" | "coding" | "qa" | "media" | "launch";
 
@@ -21,7 +23,19 @@ export interface SoftwareFactoryCreateInput {
   output?: string;
 }
 
+const RUN_STORE_NAME = "runs";
 const runs = new Map<string, SoftwareFactoryRun>();
+
+function hydrateRuns() {
+  if (runs.size > 0) return;
+  for (const run of readSoftwareFactoryStore<SoftwareFactoryRun>(RUN_STORE_NAME)) {
+    runs.set(run.id, run);
+  }
+}
+
+function persistRuns() {
+  writeSoftwareFactoryStore(RUN_STORE_NAME, Array.from(runs.values()));
+}
 
 function now() {
   return new Date().toISOString();
@@ -32,6 +46,7 @@ function createId(prefix = "sfr") {
 }
 
 export function createSoftwareFactoryRun(input: SoftwareFactoryCreateInput): SoftwareFactoryRun {
+  hydrateRuns();
   const timestamp = now();
   const run: SoftwareFactoryRun = {
     id: createId(),
@@ -45,18 +60,22 @@ export function createSoftwareFactoryRun(input: SoftwareFactoryCreateInput): Sof
     updatedAt: timestamp,
   };
   runs.set(run.id, run);
+  persistRuns();
   return run;
 }
 
 export function listSoftwareFactoryRuns() {
+  hydrateRuns();
   return Array.from(runs.values()).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
 
 export function getSoftwareFactoryRun(id: string) {
+  hydrateRuns();
   return runs.get(id) || null;
 }
 
 export function updateSoftwareFactoryRunStatus(id: string, status: SoftwareFactoryRunStatus, output?: string) {
+  hydrateRuns();
   const run = runs.get(id);
   if (!run) return null;
   const updated: SoftwareFactoryRun = {
@@ -66,6 +85,7 @@ export function updateSoftwareFactoryRunStatus(id: string, status: SoftwareFacto
     updatedAt: now(),
   };
   runs.set(id, updated);
+  persistRuns();
   return updated;
 }
 
@@ -84,6 +104,7 @@ export function getSoftwareFactoryStats() {
 }
 
 export function seedSoftwareFactoryRuns() {
+  hydrateRuns();
   if (runs.size > 0) return listSoftwareFactoryRuns();
   createSoftwareFactoryRun({ title: "Draft product brief", workType: "planning", owner: "Product Architect", input: "Founder idea", output: "PRD draft" });
   createSoftwareFactoryRun({ title: "Prepare repository work plan", workType: "coding", owner: "Coding Swarm", input: "PRD draft", output: "Repo work plan" });
