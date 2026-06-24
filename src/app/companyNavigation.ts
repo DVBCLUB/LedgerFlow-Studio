@@ -104,7 +104,7 @@ export const DEPARTMENTS: DeptConfig[] = [
   },
   {
     key: 'aiops',
-    label: 'AI Workforce & Labs',
+    label: 'AI Workforce & Factory',
     color: 'text-violet-400',
     dotColor: 'bg-violet-500',
     chevronColor: 'text-violet-400',
@@ -145,7 +145,7 @@ export const MODULES: ModuleEntry[] = [
   { tab: 'product_studio', dept: 'product', label: 'Product Studio', badge: 'STUDIO', badgeColor: 'bg-emerald-500/15 text-emerald-400', desc: 'R&D, roadmap và bàn giao sản phẩm.' },
   { tab: 'growth_sales', dept: 'growth', label: 'Growth & Sales', badge: 'GROWTH', badgeColor: 'bg-sky-500/15 text-sky-400', desc: 'Marketing campaigns, phễu chuyển đổi và sales B2B.' },
   { tab: 'finance_accounting', dept: 'finance', label: 'Finance & Accounting', badge: 'FIN', badgeColor: 'bg-emerald-500/15 text-emerald-400', desc: 'Sổ cái, báo cáo tài chính và phê duyệt.' },
-  { tab: 'ai_staff_sandbox', dept: 'aiops', label: 'AI Workforce & Labs', badge: 'AI', badgeColor: 'bg-violet-500/15 text-violet-300', desc: 'Nhân sự AI, prompts và sandbox phân tích.' },
+  { tab: 'ai_staff_sandbox', dept: 'aiops', label: 'AI Workforce & Factory', badge: 'AI', badgeColor: 'bg-violet-500/15 text-violet-300', desc: 'AI agents, software factory automation, prompt, context và sandbox.' },
   { tab: 'system_settings', dept: 'control', label: 'Cài đặt hệ thống', badge: 'CFG', badgeColor: 'bg-slate-700 text-slate-300', desc: 'Cài đặt và tích hợp.' },
 ];
 
@@ -187,7 +187,7 @@ export const COMPANY_WORKSPACES: WorkspaceNavigationItem[] = [
   { tab: 'product_studio', laneId: 'product-studio', label: 'Product Studio', shortLabel: 'Sản phẩm', description: 'Ý tưởng, định giá, roadmap và delivery', iconName: 'PackageOpen', group: 'Build', status: 'core', owner: 'Product' },
   { tab: 'growth_sales', laneId: 'marketing-growth', label: 'Growth & Sales', shortLabel: 'Tăng trưởng', description: 'Marketing campaigns, CRM và sales B2B', iconName: 'BarChart3', group: 'Sell', status: 'core', owner: 'Growth' },
   { tab: 'finance_accounting', laneId: 'finance-accounting', label: 'Finance & Accounting', shortLabel: 'Tài chính', description: 'Sổ cái VAS, báo cáo và phê duyệt chứng từ', iconName: 'CircleDollarSign', group: 'Control', status: 'core', owner: 'Finance' },
-  { tab: 'ai_staff_sandbox', laneId: 'ai-workforce', label: 'AI Workforce & Labs', shortLabel: 'AI & Labs', description: 'AI Staff, prompts và sandbox dữ liệu', iconName: 'Bot', group: 'Build', status: 'core', owner: 'AgentOps' },
+  { tab: 'ai_staff_sandbox', laneId: 'ai-workforce', label: 'AI Workforce & Factory', shortLabel: 'AI Factory', description: 'AI agents, software factory automation, prompt, context và sandbox', iconName: 'Bot', group: 'Build', status: 'core', owner: 'AgentOps' },
   { tab: 'system_settings', laneId: 'system-settings', label: 'Cài đặt & Tích hợp', shortLabel: 'Hệ thống', description: 'AI Gateway, bảo mật và kết nối platform', iconName: 'Settings', group: 'Control', status: 'next', owner: 'Admin' },
 ];
 
