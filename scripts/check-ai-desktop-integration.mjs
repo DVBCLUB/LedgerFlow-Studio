@@ -21,6 +21,8 @@ const aiOps = file('src/modules/ai-hr/AIOperationsCenter.tsx');
 const robotLab = file('src/modules/ai-hr/RobotLabPanel.tsx');
 const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
 const memoryPanel = file('src/modules/ai-hr/AIMemoryRagPanel.tsx');
+const knowledgeHub = file('src/modules/ai-hr/KnowledgeContentHubPanel.tsx');
+const projectMemory = file('src/modules/analytics-sandbox/ProjectMemoryDecisionLog.tsx');
 const gitPanel = file('src/modules/dev-ops/GitAssistantDaemonPanel.tsx');
 const ciDoctor = file('src/modules/dev-ops/GitHubCIDoctorPanel.tsx');
 const devOpsReleaseHub = file('src/modules/dev-ops/DevOpsReleaseHubPanel.tsx');
@@ -47,6 +49,13 @@ const requiredRoutes = [
   '/api/automation-rules/logs',
   '/api/agent-memory/search',
   '/api/vectors/search',
+  '/api/vectors/namespaces',
+  '/api/document/structure',
+  '/api/prompts/templates',
+  '/api/prompts/runs',
+  '/api/content/assets',
+  '/api/kb/search',
+  '/api/context/windows',
   '/api/git/status',
   '/api/git/diff',
   '/api/git/commit-msg',
@@ -76,6 +85,8 @@ addCheck('AI Operations uses daemon-backed panel', aiOps.includes('AIOperationsD
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
 addCheck('Automation Rules uses health panel', automationPanel.includes('AutomationRulesHealthPanel'), 'AutomationRulesPanel should delegate to daemon-backed health panel.');
 addCheck('Memory/RAG panel uses daemon routes', memoryPanel.includes('/api/agent-memory/search') && memoryPanel.includes('/api/vectors/search'), 'AIMemoryRagPanel should use daemon memory/vector routes.');
+addCheck('Knowledge Content hub uses knowledge routes', knowledgeHub.includes('/api/agent-memory/search') && knowledgeHub.includes('/api/prompts/templates') && knowledgeHub.includes('/api/content/assets') && knowledgeHub.includes('/api/context/windows'), 'KnowledgeContentHubPanel should aggregate memory, prompt, content and context routes.');
+addCheck('Project Memory delegates to Knowledge Content hub', projectMemory.includes('KnowledgeContentHubPanel'), 'ProjectMemoryDecisionLog should delegate to the Knowledge Content hub.');
 addCheck('Git Assistant uses daemon routes', gitPanel.includes('/api/git/status') && gitPanel.includes('/api/git/pr-desc'), 'GitAssistantDaemonPanel should use daemon git routes.');
 addCheck('CI Doctor uses daemon routes', ciDoctor.includes('/api/ci-doctor/context') && ciDoctor.includes('/api/ci-doctor/analyze'), 'GitHubCIDoctorPanel should use daemon ci-doctor routes.');
 addCheck('DevOps release hub uses release pipeline routes', devOpsReleaseHub.includes('/api/deploy/configs') && devOpsReleaseHub.includes('/api/snapshot') && devOpsReleaseHub.includes('/api/ci-doctor/context'), 'DevOpsReleaseHubPanel should aggregate Git, CI, deploy and snapshot routes.');
