@@ -27,6 +27,21 @@ npm run ai:openclaw-plus:check
 
 Use this after you already ran `node scripts/patch-ai-workforce-local.mjs` and want to verify the current working tree.
 
+## GitHub Actions
+
+The `OpenClaw Plus` workflow runs on pull requests, pushes to `main`, and manual dispatch when AI Workforce, plugin, script, docs, package, or workflow files change.
+
+It runs:
+
+```bash
+npm ci
+node scripts/check-openclaw-plus-package-scripts.mjs
+npm run ai:openclaw-plus:check
+node scripts/report-openclaw-plus-readiness.mjs
+```
+
+The CI job intentionally uses check-only mode so it does not mutate the GitHub Actions working tree. Run the full local doctor before merging larger AI Workforce changes.
+
 ## Direct node commands
 
 ```bash
