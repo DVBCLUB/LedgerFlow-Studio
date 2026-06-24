@@ -3,6 +3,8 @@ import path from 'node:path';
 
 const root = process.cwd();
 const requiredFiles = [
+  '.env.software-factory.example',
+  'docs/software-factory-connectors.md',
   'server/software-factory-daemon.ts',
   'server/services/softwareFactoryService.ts',
   'server/services/softwareFactoryRoutes.ts',
@@ -115,8 +117,10 @@ const missingConnectorIds = requiredConnectorIds.filter((id) => !connectorCatalo
 if (missingConnectorIds.length > 0) fail('Missing Software Factory connector ids:', missingConnectorIds);
 
 const connectorConfig = read('server/services/softwareFactoryConnectorConfig.ts');
-const missingEnvKeys = requiredEnvKeys.filter((key) => !connectorConfig.includes(key));
-if (missingEnvKeys.length > 0) fail('Missing Software Factory env keys:', missingEnvKeys);
+const envExample = read('.env.software-factory.example');
+const docs = read('docs/software-factory-connectors.md');
+const missingEnvKeys = requiredEnvKeys.filter((key) => !connectorConfig.includes(key) || !envExample.includes(key) || !docs.includes(key));
+if (missingEnvKeys.length > 0) fail('Missing Software Factory env keys in config/example/docs:', missingEnvKeys);
 
 console.log('Software Factory checks passed.');
 console.log(`Validated ${requiredFiles.length} files, ${requiredRouteMarkers.length} routes, ${requiredPanels.length} UI panels, ${requiredConnectorIds.length} connectors and ${requiredEnvKeys.length} env keys.`);
