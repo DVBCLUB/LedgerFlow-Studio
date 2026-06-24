@@ -20,4 +20,4 @@ for (const patcher of patchers) {
 }
 
 console.log('\n✅ AI Workforce local daemon patches completed.');
-console.log('Next: npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run lint && npm run build');
+console.log('Next: node scripts/check-ai-workforce-local.mjs && npm run lint && npm run build');
