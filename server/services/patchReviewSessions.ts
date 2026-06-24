@@ -52,14 +52,18 @@ function safeManifestPath(runId: string, stepId: string) {
   return file;
 }
 
+function stringArray(value: unknown) {
+  return Array.isArray(value) ? value.filter((item): item is string => typeof item === 'string') : [];
+}
+
 function extractTargetFiles(evidence: Record<string, unknown> | undefined) {
   const artifact = evidence?.artifact;
-  if (artifact && typeof artifact === 'object' && Array.isArray((artifact as any).targetFiles)) {
-    return (artifact as any).targetFiles.filter((item: unknown): item is string => typeof item === 'string');
+  if (artifact && typeof artifact === 'object') {
+    const record = artifact as Record<string, unknown>;
+    const files = stringArray(record.targetFiles);
+    if (files.length) return files;
   }
-  const targetFiles = evidence?.targetFiles;
-  if (Array.isArray(targetFiles)) return targetFiles.filter((item): item is string => typeof item === 'string');
-  return [];
+  return stringArray(evidence?.targetFiles);
 }
 
 export async function createPatchReviewSessionsFromRun(runId: string) {
