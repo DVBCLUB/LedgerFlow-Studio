@@ -35,9 +35,17 @@ if (!failed) {
     'rejectAgentRunStep',
     'stopAgentRun',
     'setAgentRuntimeEmergencyStop',
+    'listRobotCapabilities',
+    'getRobotCapability',
+    'getAutomationSchedulerStatus',
+    'runAutomationSchedulerTick',
+    'startAutomationScheduler',
+    'stopAutomationScheduler',
     "'/mission create",
     "'/mission approve",
     "'/mission reject",
+    "'/robot capabilities",
+    "'/automation scheduler status",
     "'/ai emergency-stop",
   ];
   for (const token of required) {
@@ -56,4 +64,4 @@ if (exists(botFile)) {
 }
 
 if (failed) process.exit(1);
-console.log('Telegram mission command service is present. If telegramBot.ts warning appears, run npm run ai:patch-telegram-missions.');
+console.log('Telegram mission, robot and automation command service is present. If telegramBot.ts warning appears, run npm run ai:patch-telegram-missions.');
