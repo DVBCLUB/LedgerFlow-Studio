@@ -23,6 +23,7 @@ const aiCommandHub = file('src/modules/ai-hr/AICommandCenterHubPanel.tsx');
 const robotLab = file('src/modules/ai-hr/RobotLabPanel.tsx');
 const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
 const automationHub = file('src/modules/ai-hr/AutomationRobotControlHubPanel.tsx');
+const automationBridge = file('src/modules/ai-hr/AutomationBridgeHubPanel.tsx');
 const memoryPanel = file('src/modules/ai-hr/AIMemoryRagPanel.tsx');
 const knowledgeHub = file('src/modules/ai-hr/KnowledgeContentHubPanel.tsx');
 const projectMemory = file('src/modules/analytics-sandbox/ProjectMemoryDecisionLog.tsx');
@@ -61,6 +62,13 @@ const requiredRoutes = [
   '/api/streams/events',
   '/api/notify/templates',
   '/api/notify/events',
+  '/api/webhooks/rules',
+  '/api/webhooks/events',
+  '/api/tools',
+  '/api/swarm/agents',
+  '/api/swarm/missions',
+  '/api/telemetry/latest',
+  '/api/telemetry/history',
   '/api/agent-memory/search',
   '/api/vectors/search',
   '/api/vectors/namespaces',
@@ -100,7 +108,8 @@ addCheck('AI Command Center hub uses command routes', aiCommandHub.includes('/ap
 addCheck('AI Operations delegates to AI Command Center hub', aiOps.includes('AICommandCenterHubPanel'), 'AIOperationsCenter should delegate to AICommandCenterHubPanel.');
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
 addCheck('Automation Robot hub uses control routes', automationHub.includes('/api/robot-simulation/status') && automationHub.includes('/api/automation-rules') && automationHub.includes('/api/agent-workflows') && automationHub.includes('/api/notify/events'), 'AutomationRobotControlHubPanel should aggregate robot, automation, workflow, stream and notification routes.');
-addCheck('Automation Rules delegates to Automation Robot hub', automationPanel.includes('AutomationRobotControlHubPanel'), 'AutomationRulesPanel should delegate to the Automation Robot control hub.');
+addCheck('Automation Bridge hub uses bridge routes', automationBridge.includes('/api/webhooks/rules') && automationBridge.includes('/api/tools') && automationBridge.includes('/api/swarm/agents') && automationBridge.includes('/api/telemetry/latest'), 'AutomationBridgeHubPanel should aggregate webhook, tool router, swarm and telemetry routes.');
+addCheck('Automation Rules renders automation and bridge hubs', automationPanel.includes('AutomationRobotControlHubPanel') && automationPanel.includes('AutomationBridgeHubPanel'), 'AutomationRulesPanel should render both automation control and bridge hub panels.');
 addCheck('Memory/RAG panel uses daemon routes', memoryPanel.includes('/api/agent-memory/search') && memoryPanel.includes('/api/vectors/search'), 'AIMemoryRagPanel should use daemon memory/vector routes.');
 addCheck('Knowledge Content hub uses knowledge routes', knowledgeHub.includes('/api/agent-memory/search') && knowledgeHub.includes('/api/prompts/templates') && knowledgeHub.includes('/api/content/assets') && knowledgeHub.includes('/api/context/windows'), 'KnowledgeContentHubPanel should aggregate memory, prompt, content and context routes.');
 addCheck('Project Memory delegates to Knowledge Content hub', projectMemory.includes('KnowledgeContentHubPanel'), 'ProjectMemoryDecisionLog should delegate to the Knowledge Content hub.');
