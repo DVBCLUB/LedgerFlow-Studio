@@ -6,8 +6,13 @@ const root = process.cwd();
 const full = process.argv.includes('--full');
 const skipPatch = process.argv.includes('--skip-patch');
 
+const patchSteps = skipPatch ? [] : [
+  ['patch local AI Workforce', process.execPath, ['scripts/patch-ai-workforce-local.mjs']],
+  ['patch robot automation UI panel', process.execPath, ['scripts/patch-ai-ops-robot-automation-panel.mjs']],
+];
+
 const steps = [
-  ...(skipPatch ? [] : [['patch local AI Workforce', process.execPath, ['scripts/patch-ai-workforce-local.mjs']]]),
+  ...patchSteps,
   ['check AI Workforce contracts', process.execPath, ['scripts/check-ai-workforce-local.mjs']],
   ['check rejection governance', process.execPath, ['scripts/check-agent-runtime-rejection.mjs']],
   ['check OpenClaw plus parity', process.execPath, ['scripts/check-openclaw-plus-parity.mjs']],
