@@ -26,7 +26,11 @@ type GuardRow = {
 
 function readArray<T>(value: unknown, key: string): T[] {
   if (Array.isArray(value)) return value as T[];
-  if (value && typeof value === 'object' && Array.isArray((value as any)[key])) return (value as any)[key] as T[];
+  if (value && typeof value === 'object') {
+    const record = value as Record<string, unknown>;
+    const candidate = record[key];
+    if (Array.isArray(candidate)) return candidate as T[];
+  }
   return [];
 }
 
@@ -87,8 +91,8 @@ export default function AIWorkforcePluginSecurityGuard() {
     try {
       const result = await daemonFetch<unknown>('/api/plugins', undefined, 10000);
       setPlugins([...readArray<Plugin>(result, 'plugins'), ...readArray<Plugin>(result, 'items')]);
-    } catch (err: any) {
-      setError(err?.message || 'Cannot load plugin security state. Plugin endpoint may not be available yet.');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Cannot load plugin security state. Plugin endpoint may not be available yet.');
       setPlugins([]);
     } finally { setBusy(false); }
   };
