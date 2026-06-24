@@ -8,11 +8,13 @@ import {
   setAgentRuntimeEmergencyStop,
   stopAgentRun,
 } from './agentRuntime';
+import { getRobotCapability, listRobotCapabilities } from './robotCapabilityRegistry';
+import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './automationSchedulerLoop';
 
 type TelegramSend = (chatId: number, text: string, options?: Record<string, unknown>) => Promise<void>;
 
 type ParsedMissionCommand = {
-  group: 'mission' | 'ai';
+  group: 'mission' | 'ai' | 'robot' | 'automation';
   action: string;
   args: string[];
   rawArgs: string;
@@ -22,9 +24,15 @@ const APPROVAL_PHRASE = 'APPROVE AGENT STEP';
 
 function parseCommand(text: string): ParsedMissionCommand | null {
   const trimmed = text.trim();
-  if (!trimmed.startsWith('/mission') && !trimmed.startsWith('/ai')) return null;
+  const allowed = ['/mission', '/ai', '/robot', '/automation'];
+  const firstToken = trimmed.split(/\s+/)[0]?.toLowerCase() || '';
+  if (!allowed.some((prefix) => firstToken.startsWith(prefix))) return null;
   const [first, action = '', ...args] = trimmed.split(/\s+/);
-  const group = first.toLowerCase().startsWith('/mission') ? 'mission' : 'ai';
+  const lower = first.toLowerCase();
+  const group = lower.startsWith('/mission') ? 'mission'
+    : lower.startsWith('/ai') ? 'ai'
+      : lower.startsWith('/robot') ? 'robot'
+        : 'automation';
   const rawArgs = trimmed.split(/\s+/).slice(2).join(' ');
   return { group, action: action.toLowerCase(), args, rawArgs };
 }
@@ -54,6 +62,29 @@ function runSummary(run: Awaited<ReturnType<typeof getAgentRun>> | undefined | n
   ].filter(Boolean).join('\n');
 }
 
+function schedulerSummary() {
+  const status = getAutomationSchedulerStatus();
+  return [
+    '⏱️ *Automation Scheduler*',
+    `Status: \`${status.running ? 'running' : 'stopped'}\``,
+    `Interval: \`${status.intervalMs || 0}ms\``,
+    `Ticks: \`${status.tickCount || 0}\``,
+    `Last tick: ${status.lastTickAt || 'never'}`,
+    `Daily key: ${status.lastDailyKey || 'none'}`,
+    `Weekly key: ${status.lastWeeklyKey || 'none'}`,
+  ].join('\n');
+}
+
+function robotCapabilityLines(includeBlocked = false) {
+  const capabilities = listRobotCapabilities({ includeBlocked }).slice(0, 12);
+  if (!capabilities.length) return 'No robot capabilities registered.';
+  return capabilities.map((capability) => [
+    `• \`${capability.id}\``,
+    `  ${capability.name} — ${capability.mode}/${capability.risk}`,
+    `  Command: \`${capability.command}\` Approval: \`${capability.requiresApproval ? 'required' : 'not required'}\``,
+  ].join('\n')).join('\n\n');
+}
+
 async function getLatestRun() {
   const result = await listAgentRuns(1);
   return result.runs[0] || null;
@@ -68,6 +99,88 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
     await setAgentRuntimeEmergencyStop(active, `Founder ${active ? 'enabled' : 'released'} AI emergency stop from Telegram.`);
     await send(chatId, active ? '🛑 AI Workforce emergency stop enabled.' : '✅ AI Workforce emergency stop released.');
     return true;
+  }
+
+  if (parsed.group === 'robot') {
+    switch (parsed.action) {
+      case 'capabilities': {
+        const includeBlocked = parsed.args.includes('all');
+        await send(chatId, `🤖 *Robot Capabilities*\n\n${robotCapabilityLines(includeBlocked)}`, { parse_mode: 'Markdown' });
+        return true;
+      }
+      case 'capability': {
+        const id = parsed.args[0];
+        if (!id) {
+          await send(chatId, '❓ Usage: `/robot capability <capabilityId>`', { parse_mode: 'Markdown' });
+          return true;
+        }
+        const capability = getRobotCapability(id);
+        if (!capability) {
+          await send(chatId, `Robot capability not found: \`${id}\``, { parse_mode: 'Markdown' });
+          return true;
+        }
+        await send(chatId, [
+          `🤖 *${capability.name}*`,
+          `ID: \`${capability.id}\``,
+          `Mode: \`${capability.mode}\` Risk: \`${capability.risk}\``,
+          `Command: \`${capability.command}\``,
+          `Approval: \`${capability.requiresApproval ? 'required' : 'not required'}\``,
+          capability.description,
+          capability.safetyNotes.length ? `Safety: ${capability.safetyNotes.join(' • ')}` : '',
+        ].filter(Boolean).join('\n'), { parse_mode: 'Markdown' });
+        return true;
+      }
+      default:
+        await send(chatId, [
+          '❓ Unknown robot command.',
+          '',
+          '*Available:*',
+          '`/robot capabilities`',
+          '`/robot capabilities all`',
+          '`/robot capability <capabilityId>`',
+        ].join('\n'), { parse_mode: 'Markdown' });
+        return true;
+    }
+  }
+
+  if (parsed.group === 'automation') {
+    switch (parsed.action) {
+      case 'scheduler': {
+        const subAction = parsed.args[0] || 'status';
+        if (subAction === 'status') {
+          await send(chatId, schedulerSummary(), { parse_mode: 'Markdown' });
+          return true;
+        }
+        if (subAction === 'tick') {
+          const result = await runAutomationSchedulerTick();
+          await send(chatId, `⚡ Scheduler tick completed. Fired: \`${result.fired.join(', ') || 'none'}\`\n\n${schedulerSummary()}`, { parse_mode: 'Markdown' });
+          return true;
+        }
+        if (subAction === 'start') {
+          startAutomationScheduler({ intervalMs: 60 * 60 * 1000 });
+          await send(chatId, `▶️ Scheduler started.\n\n${schedulerSummary()}`, { parse_mode: 'Markdown' });
+          return true;
+        }
+        if (subAction === 'stop') {
+          stopAutomationScheduler();
+          await send(chatId, `⏹️ Scheduler stopped.\n\n${schedulerSummary()}`, { parse_mode: 'Markdown' });
+          return true;
+        }
+        await send(chatId, '❓ Usage: `/automation scheduler status|tick|start|stop`', { parse_mode: 'Markdown' });
+        return true;
+      }
+      default:
+        await send(chatId, [
+          '❓ Unknown automation command.',
+          '',
+          '*Available:*',
+          '`/automation scheduler status`',
+          '`/automation scheduler tick`',
+          '`/automation scheduler start`',
+          '`/automation scheduler stop`',
+        ].join('\n'), { parse_mode: 'Markdown' });
+        return true;
+    }
   }
 
   if (parsed.group !== 'mission') return false;
@@ -180,6 +293,8 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
         '`/mission reject <runId> <stepId> [fingerprint] [reason]`',
         '`/mission stop <runId>`',
         '`/mission artifact latest`',
+        '`/robot capabilities`',
+        '`/automation scheduler status`',
         '`/ai emergency-stop on|off`',
       ].join('\n'), { parse_mode: 'Markdown' });
       return true;
