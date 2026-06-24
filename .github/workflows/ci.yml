@@ -26,13 +26,19 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Type-check
         run: npm run lint
 
+      - name: Unit tests
+        run: npm test
+
       - name: Build web/server bundle
         run: npm run build
+
+      - name: Runtime API smoke test
+        run: npm run check:runtime
 
       - name: Upload dist artifact
         if: success()

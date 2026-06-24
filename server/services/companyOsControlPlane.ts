@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
+import { getAgentToolContract, listAgentToolContracts } from './agentToolRegistry';
 
 export type CompanyOsSource = 'founder' | 'n8n' | 'telegram' | 'openclaw' | 'dashboard' | 'system';
 export type CompanyOsRisk = 'low' | 'medium' | 'high' | 'blocked';
@@ -83,17 +84,15 @@ async function writeLocalStore(store: { events: any[]; tasks: any[]; toolRuns: a
 }
 
 export function classifyOpenClawRisk(action: OpenClawActionInput['action']): CompanyOsRisk {
-  if (action === 'read_knowledge' || action === 'draft_plan') return 'low';
-  if (action === 'draft_patch' || action === 'browser_check' || action === 'terminal_check') return 'medium';
-  if (action === 'external_connector') return 'high';
-  return 'blocked';
+  return getAgentToolContract(action)?.risk || 'blocked';
 }
 
 export function isOpenClawActionAllowed(input: OpenClawActionInput) {
   const risk = classifyOpenClawRisk(input.action);
+  const contract = getAgentToolContract(input.action);
   const simulated = input.simulate !== false;
-  const allowed = simulated && risk !== 'blocked';
-  const approvalRequired = risk === 'medium' || risk === 'high';
+  const allowed = Boolean(contract) && simulated && risk !== 'blocked';
+  const approvalRequired = contract?.requiresApproval ?? true;
   const reason = allowed
     ? 'Action accepted in simulation mode. Real execution requires a separate approved connector.'
     : 'OpenClaw gateway only accepts simulated allowlisted actions.';
@@ -334,6 +333,14 @@ export async function exportCompanyOsAuditLog(limit = 500) {
 
 export function getCompanyOsContracts() {
   return {
+    tools: listAgentToolContracts(),
+    toolExecution: {
+      preview: 'POST /api/company-os/tools/preview',
+      approve: 'POST /api/company-os/tools/approve',
+      execute: 'POST /api/company-os/tools/execute',
+      executionMode: 'simulation-only',
+      approvalToken: 'one-time, expires in two minutes',
+    },
     n8nWebhook: {
       method: 'POST',
       path: '/api/company-os/n8n/webhook',

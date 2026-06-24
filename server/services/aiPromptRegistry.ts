@@ -1,7 +1,32 @@
 import fs from "fs";
 import path from "path";
+import { AGENT_SYSTEM_PROMPTS, AgentRoleId } from "./agentRoles";
 
-export const AI_PROMPT_TASKS = ["general", "accounting", "analytics", "marketing", "sales", "coding"] as const;
+export const AI_PROMPT_TASKS = [
+  "general",
+  "accounting",
+  "analytics",
+  "marketing",
+  "sales",
+  "coding",
+  "Chief of Staff",
+  "AI CFO",
+  "AI Dev",
+  "AI DevOps",
+  "AI PM",
+  "AI Designer",
+  "AI Game Dev",
+  "AI QA",
+  "AI Marketer",
+  "AI Research",
+  "AI Sales",
+  "AI Accountant",
+  "AI Auditor",
+  "AI Legal",
+  "AI Onboarding",
+  "AI Support",
+  "AI Analyst"
+] as const;
 export type AIPromptTask = (typeof AI_PROMPT_TASKS)[number];
 
 export interface AIPromptVersion {
@@ -145,18 +170,19 @@ async function writeRegistry(registry: PromptRegistryFile): Promise<void> {
 function ensureTemplate(registry: PromptRegistryFile, task: AIPromptTask): AIPromptTemplate {
   let template = registry.templates.find((item) => item.task === task);
   if (!template) {
+    const defaultContent = AGENT_SYSTEM_PROMPTS[task as AgentRoleId] || "";
     template = {
       task,
       label: task,
-      description: "Custom prompt template",
+      description: defaultContent ? `System prompt cho vai trò ${task}` : `Custom prompt template cho ${task}`,
       activeVersion: 1,
       versions: [
         {
           version: 1,
-          content: "",
+          content: defaultContent,
           createdAt: new Date().toISOString(),
           createdBy: "system",
-          note: "Auto-created",
+          note: "Baseline",
         },
       ],
     };
@@ -167,6 +193,17 @@ function ensureTemplate(registry: PromptRegistryFile, task: AIPromptTask): AIPro
 
 export async function listPromptTemplates(): Promise<AIPromptTemplate[]> {
   const registry = await readRegistry();
+  let modified = false;
+  for (const task of AI_PROMPT_TASKS) {
+    const existing = registry.templates.find((item) => item.task === task);
+    if (!existing) {
+      ensureTemplate(registry, task);
+      modified = true;
+    }
+  }
+  if (modified) {
+    await writeRegistry(registry);
+  }
   return registry.templates.slice().sort((a, b) => a.task.localeCompare(b.task));
 }
 

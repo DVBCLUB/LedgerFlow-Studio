@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
 const EMAIL_KEY = 'lf_user_email';
 const SESSION_KEY = 'lf_auth_session';
-export const DEV_PASSWORD = 'admin123';
 
 export interface LocalSession {
   email: string;
@@ -57,12 +56,6 @@ async function requestLocalSession(email: string, password: string): Promise<{ s
       usesDevPassword: Boolean(data.usesDevPassword),
     };
   } catch (error: unknown) {
-    if (!(error instanceof BackendAuthError) && password === DEV_PASSWORD) {
-      return {
-        session: { email, loggedInAt: new Date().toISOString() },
-        usesDevPassword: true,
-      };
-    }
     throw error;
   }
 }
@@ -76,6 +69,22 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState('');
   const [usesDevPassword, setUsesDevPassword] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!initialSession) return;
+    fetch('/api/auth/session')
+      .then((response) => {
+        if (!response.ok) throw new Error('Session expired');
+        return response.json();
+      })
+      .then((data) => {
+        if (data?.session) setSession(data.session);
+      })
+      .catch(() => {
+        localStorage.removeItem(SESSION_KEY);
+        setSession(null);
+      });
+  }, [initialSession]);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -95,14 +104,15 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
       setUsesDevPassword(result.usesDevPassword);
       setError('');
       setPassword('');
-    } catch {
-      setError('Email hoặc mật khẩu không đúng.');
+    } catch (loginError: unknown) {
+      setError(loginError instanceof Error ? loginError.message : 'Email hoặc mật khẩu không đúng.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const logout = () => {
+    void fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined);
     localStorage.removeItem(SESSION_KEY);
     setSession(null);
     setPassword('');

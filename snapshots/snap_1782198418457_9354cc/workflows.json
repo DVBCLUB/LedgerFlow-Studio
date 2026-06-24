@@ -1,0 +1,60 @@
+[
+  {
+    "id": "wf_1782190836461_5dd332",
+    "name": "Test Workflow",
+    "description": "Agent test pipeline",
+    "steps": [
+      {
+        "name": "Check system",
+        "type": "agent_task",
+        "goal": "Is the system healthy? Reply YES or NO.",
+        "domain": "general",
+        "dependsOn": [],
+        "retries": 1,
+        "timeoutMs": 30000,
+        "id": "wstep_1782190836461_f4d7"
+      },
+      {
+        "name": "Report",
+        "type": "agent_task",
+        "goal": "Summarize the previous check result.",
+        "domain": "general",
+        "dependsOn": [
+          "wstep_1782190836461_f4d7"
+        ],
+        "retries": 1,
+        "timeoutMs": 30000,
+        "id": "wstep_1782190836461_13b2"
+      }
+    ],
+    "enabled": true,
+    "maxRetries": 3,
+    "tags": [],
+    "createdAt": "2026-06-23T05:00:36.461Z",
+    "updatedAt": "2026-06-23T05:00:36.461Z",
+    "lastRunAt": "2026-06-23T05:00:36.699Z",
+    "lastRunStatus": "failed"
+  },
+  {
+    "id": "wf_1782190912253_638af0",
+    "name": "Test Pipeline",
+    "description": "",
+    "steps": [
+      {
+        "name": "Step1",
+        "type": "agent_task",
+        "goal": "Say hello",
+        "domain": "general",
+        "dependsOn": [],
+        "retries": 1,
+        "timeoutMs": 10000,
+        "id": "wstep_1782190912355_0875"
+      }
+    ],
+    "enabled": true,
+    "maxRetries": 3,
+    "tags": [],
+    "createdAt": "2026-06-23T05:01:52.253Z",
+    "updatedAt": "2026-06-23T05:01:52.355Z"
+  }
+]

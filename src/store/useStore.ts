@@ -33,6 +33,7 @@ interface SupabaseSyncState {
   
   // Active business idea chosen in Step 1.4 or default
   activeIdea: UnexpectedIdea;
+  agentPromptHandoff?: { agentId: string; prompt: string };
 
   setSupabaseUrl: (url: string) => void;
   setSupabaseAnonKey: (key: string) => void;
@@ -45,6 +46,7 @@ interface SupabaseSyncState {
   updateSupabaseConfig: (config: SupabaseConfig, email: string) => void;
   toggleOfflineMode: () => void;
   setActiveIdea: (idea: UnexpectedIdea) => void;
+  setAgentPromptHandoff: (handoff: { agentId: string; prompt: string } | undefined) => void;
 }
 
 export const useStore = create<SupabaseSyncState>((set) => {
@@ -85,6 +87,7 @@ export const useStore = create<SupabaseSyncState>((set) => {
     supabaseMessage: null,
     supabaseLastSynced: null,
     activeIdea: initialIdea,
+    agentPromptHandoff: undefined,
 
     setSupabaseUrl: (url) => set({ supabaseUrl: url }),
     setSupabaseAnonKey: (key) => set({ supabaseAnonKey: key }),
@@ -119,6 +122,7 @@ export const useStore = create<SupabaseSyncState>((set) => {
       localStorage.setItem('guerrilla_active_idea', JSON.stringify(idea));
       set({ activeIdea: idea });
     },
+    setAgentPromptHandoff: (handoff) => set({ agentPromptHandoff: handoff }),
   };
 });
 

@@ -3,10 +3,34 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 
-const APP_PORT = Number(process.env.LEDGERFLOW_DESKTOP_PORT || 32123);
-const APP_URL = `http://127.0.0.1:${APP_PORT}`;
+const net = require('net');
+
+let APP_PORT = Number(process.env.LEDGERFLOW_DESKTOP_PORT || 32123);
+let APP_URL = `http://127.0.0.1:${APP_PORT}`;
 let mainWindow;
 let logFilePath;
+
+function checkPortFree(port) {
+  return new Promise((resolve) => {
+    const server = net.createServer();
+    server.once('error', () => resolve(false));
+    server.once('listening', () => {
+      server.close(() => resolve(true));
+    });
+    server.listen(port, '127.0.0.1');
+  });
+}
+
+async function getFirstFreePort(startPort) {
+  let port = startPort;
+  while (port < startPort + 100) {
+    if (await checkPortFree(port)) {
+      return port;
+    }
+    port++;
+  }
+  return startPort;
+}
 
 const gotTheLock = app.requestSingleInstanceLock();
 
@@ -63,6 +87,7 @@ function getDesktopIconPath() {
 
 function redirectRuntimeStorageToUserData() {
   const userDataDir = app.getPath('userData');
+  const appRoot = app.getAppPath();
   const runtimeFiles = new Map([
     ['db_storage.json', path.join(userDataDir, 'db_storage.json')],
     ['ai_keys.vault.json', path.join(userDataDir, 'ai_keys.vault.json')],
@@ -74,6 +99,10 @@ function redirectRuntimeStorageToUserData() {
   ]);
 
   const originalExistsSync = fs.existsSync.bind(fs);
+  const originalReadFileSync = fs.readFileSync.bind(fs);
+  const originalWriteFileSync = fs.writeFileSync.bind(fs);
+  const originalAppendFileSync = fs.appendFileSync.bind(fs);
+  
   const originalReadFile = fs.promises.readFile.bind(fs.promises);
   const originalWriteFile = fs.promises.writeFile.bind(fs.promises);
   const originalAppendFile = fs.promises.appendFile.bind(fs.promises);
@@ -81,11 +110,58 @@ function redirectRuntimeStorageToUserData() {
 
   const mapRuntimePath = (targetPath) => {
     if (typeof targetPath !== 'string') return targetPath;
-    const fileName = path.basename(targetPath);
-    return runtimeFiles.get(fileName) || targetPath;
+    
+    // Quick check to bypass node_modules, dist, and desktop paths
+    if (targetPath.includes('node_modules') || targetPath.includes('dist') || targetPath.includes('desktop')) {
+      return targetPath;
+    }
+    
+    const absPath = path.resolve(targetPath);
+    const fileName = path.basename(absPath);
+    
+    if (runtimeFiles.has(fileName)) {
+      return runtimeFiles.get(fileName);
+    }
+    
+    const relativeToRoot = path.relative(appRoot, absPath);
+    const isUnderRoot = !relativeToRoot.startsWith('..') && !path.isAbsolute(relativeToRoot);
+    
+    if (isUnderRoot) {
+      const parts = relativeToRoot.split(path.sep);
+      const isSystemSubfolder = parts[0] === 'dist' || parts[0] === 'desktop' || parts[0] === 'node_modules';
+      
+      if (!isSystemSubfolder) {
+        const ext = path.extname(fileName).toLowerCase();
+        const isWritablePattern = 
+          ext === '.json' || 
+          ext === '.log' || 
+          ext === '.secret' || 
+          fileName.startsWith('.') ||
+          fileName.includes('_storage') ||
+          fileName.includes('_registry');
+          
+        if (isWritablePattern && fileName !== 'package.json') {
+          const redirectedPath = path.join(userDataDir, fileName);
+          logDesktop(`Dynamically redirecting runtime path: ${targetPath} -> ${redirectedPath}`);
+          return redirectedPath;
+        }
+      }
+    }
+    
+    return targetPath;
   };
 
   fs.existsSync = (targetPath) => originalExistsSync(mapRuntimePath(targetPath));
+  fs.readFileSync = (targetPath, ...args) => originalReadFileSync(mapRuntimePath(targetPath), ...args);
+  fs.writeFileSync = (targetPath, data, ...args) => {
+    fs.mkdirSync(userDataDir, { recursive: true });
+    return originalWriteFileSync(mapRuntimePath(targetPath), data, ...args);
+  };
+  fs.appendFileSync = (targetPath, data, ...args) => {
+    fs.mkdirSync(userDataDir, { recursive: true });
+    return originalAppendFileSync(mapRuntimePath(targetPath), data, ...args);
+  };
+
   fs.promises.readFile = (targetPath, ...args) => originalReadFile(mapRuntimePath(targetPath), ...args);
   fs.promises.writeFile = async (targetPath, data, ...args) => {
     await originalMkdir(userDataDir, { recursive: true });
@@ -165,6 +241,19 @@ function startEmbeddedServer() {
   }
 
   require(serverEntry);
+
+  // Also start the AI Assistant Daemon on port 3001
+  const daemonEntry = path.join(appRoot, 'dist', 'assistant-daemon.cjs');
+  if (fs.existsSync(daemonEntry)) {
+    logDesktop(`Starting AI daemon from ${daemonEntry} on port 3001`);
+    try {
+      require(daemonEntry);
+    } catch (err) {
+      logDesktop('AI daemon failed to start (non-critical)', err);
+    }
+  } else {
+    logDesktop('AI daemon not found — AI assistant features unavailable. Run npm run build to include it.');
+  }
 }
 
 function waitForServer(url, timeoutMs = 30000) {
@@ -200,6 +289,170 @@ function waitForServer(url, timeoutMs = 30000) {
   });
 }
 
+function startupHtml() {
+  return `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>LedgerFlow Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #020617;
+        color: #f8fafc;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        overflow: hidden;
+        position: relative;
+      }
+      .glow-bg {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 100%);
+        border-radius: 50%;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        filter: blur(80px);
+        animation: pulseGlow 8s ease-in-out infinite alternate;
+      }
+      @keyframes pulseGlow {
+        0% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.8; }
+        100% { transform: translate(-50%, -50%) scale(1.1); opacity: 1.2; }
+      }
+      .card {
+        position: relative;
+        z-index: 2;
+        width: min(500px, calc(100vw - 40px));
+        padding: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        text-align: center;
+        animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      @keyframes slideUp {
+        0% { opacity: 0; transform: translateY(20px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+      .logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 24px;
+      }
+      .logo-icon {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #38bdf8 0%, #6366f1 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+        font-weight: 800;
+        font-size: 32px;
+        color: #ffffff;
+        letter-spacing: -1px;
+        animation: float 4s ease-in-out infinite;
+      }
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-8px) rotate(3deg); }
+      }
+      .badge {
+        display: inline-flex;
+        padding: 6px 14px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        color: #38bdf8;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-bottom: 16px;
+      }
+      h1 {
+        margin: 0 0 12px;
+        font-size: 24px;
+        font-weight: 700;
+        background: linear-gradient(to right, #ffffff, #cbd5e1);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      p {
+        color: #94a3b8;
+        font-size: 14px;
+        line-height: 1.6;
+        margin: 0 0 28px;
+      }
+      .progress-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 999px;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 12px;
+      }
+      .progress-bar {
+        height: 100%;
+        width: 35%;
+        background: linear-gradient(90deg, #38bdf8, #6366f1);
+        border-radius: 999px;
+        position: absolute;
+        animation: progressAnim 2s ease-in-out infinite;
+      }
+      @keyframes progressAnim {
+        0% { left: -35%; }
+        100% { left: 100%; }
+      }
+      .status-text {
+        font-size: 12px;
+        color: #64748b;
+        font-weight: 500;
+      }
+      code {
+        color: #bae6fd;
+        font-family: Consolas, Monaco, monospace;
+        background: rgba(186, 230, 253, 0.08);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow-bg"></div>
+    <main class="card">
+      <div class="logo-container">
+        <div class="logo-icon">LF</div>
+      </div>
+      <span class="badge">LedgerFlow Hub</span>
+      <h1>Đang khởi động hệ thống...</h1>
+      <p>Thiết lập máy chủ cục bộ an toàn tại <code>${APP_URL}</code></p>
+      <div class="progress-container">
+        <div class="progress-bar"></div>
+      </div>
+      <div class="status-text">Đang tải cấu hình và kiểm tra hệ thống...</div>
+    </main>
+  </body>
+</html>`;
+}
+
 async function createMainWindow() {
   const icon = getDesktopIconPath();
 
@@ -210,7 +463,7 @@ async function createMainWindow() {
     minHeight: 760,
     title: 'LedgerFlow Hub',
     backgroundColor: '#020617',
-    show: false,
+    show: true,
     ...(icon ? { icon } : {}),
     webPreferences: {
       contextIsolation: true,
@@ -226,7 +479,7 @@ async function createMainWindow() {
   });
 
   mainWindow.webContents.on('will-navigate', (event, url) => {
-    if (!url.startsWith(APP_URL)) {
+    if (!url.startsWith(APP_URL) && !url.startsWith('data:text/html')) {
       event.preventDefault();
       shell.openExternal(url);
     }
@@ -249,6 +502,10 @@ async function createMainWindow() {
     logDesktop(`Renderer process exited: ${details.reason} (code ${details.exitCode})`);
   });
 
+  // Load premium visual startup screen instantly
+  mainWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(startupHtml())}`).catch(() => {});
+  mainWindow.focus();
+
   try {
     await waitForServer(APP_URL);
     logDesktop('Embedded server is ready. Loading app window.');
@@ -258,10 +515,10 @@ async function createMainWindow() {
       title: document.title,
       rootChildren: document.getElementById('root')?.childElementCount ?? -1,
       bodyTextLength: document.body?.innerText?.length ?? 0
-    })`);
-    logDesktop(`Renderer loaded: ${JSON.stringify(rendererState)}`);
-    mainWindow.show();
-    mainWindow.focus();
+    })`).catch(() => null);
+    if (rendererState) {
+      logDesktop(`Renderer loaded: ${JSON.stringify(rendererState)}`);
+    }
   } catch (error) {
     showStartupError('LedgerFlow Hub startup error', error);
   }
@@ -301,7 +558,9 @@ function checkAlreadyRunning(url) {
 }
 
 app.whenReady().then(async () => {
-  await clearLegacyWebRuntimeCache();
+  // Clear legacy cache in the background without blocking startup
+  clearLegacyWebRuntimeCache().catch((err) => logDesktop('Cache clear failed', err));
+  
   installApplicationMenu();
 
   const alreadyRunning = await checkAlreadyRunning(APP_URL);
@@ -309,6 +568,13 @@ app.whenReady().then(async () => {
     logDesktop(`LedgerFlow server already running at ${APP_URL}. Reusing existing instance.`);
     createMainWindow();
   } else {
+    const freePort = await getFirstFreePort(APP_PORT);
+    if (freePort !== APP_PORT) {
+      logDesktop(`Default port ${APP_PORT} is not free. Selected free port: ${freePort}`);
+      APP_PORT = freePort;
+      APP_URL = `http://127.0.0.1:${APP_PORT}`;
+    }
+
     logDesktop(`No running server detected at ${APP_URL}. Starting embedded server.`);
     createMainWindow();
     startEmbeddedServer();

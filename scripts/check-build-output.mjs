@@ -63,9 +63,11 @@ if (exists('dist/ledgerflow-build-manifest.json')) {
 }
 
 const allDistFiles = listFiles(distDir).map((file) => path.relative(distDir, file).replaceAll(path.sep, '/'));
-const jsFiles = allDistFiles.filter((file) => file.endsWith('.js'));
+const jsFiles = allDistFiles.filter((file) => file.startsWith('assets/') && file.endsWith('.js'));
 const cssFiles = allDistFiles.filter((file) => file.endsWith('.css'));
 const chartChunks = allDistFiles.filter((file) => file.includes('vendor-charts'));
+const MAX_CHUNK_BYTES = 800 * 1024;
+const MAX_INITIAL_JS_BYTES = 900 * 1024;
 
 if (jsFiles.length < 5) {
   errors.push(`Expected multiple JavaScript chunks for lazy-loaded simulations, found only ${jsFiles.length}.`);
@@ -77,6 +79,25 @@ if (cssFiles.length < 1) {
 
 if (chartChunks.length < 1) {
   warnings.push('No vendor-charts chunk detected. Recharts may have been bundled differently.');
+}
+
+for (const file of jsFiles) {
+  const size = fs.statSync(path.join(distDir, file)).size;
+  if (size > MAX_CHUNK_BYTES) {
+    errors.push(`JavaScript chunk exceeds 800 KB budget: ${file} (${Math.ceil(size / 1024)} KB).`);
+  }
+}
+
+if (exists('dist/index.html')) {
+  const html = fs.readFileSync(path.join(root, 'dist', 'index.html'), 'utf8');
+  const initialAssets = [...html.matchAll(/(?:src|href)="\.\/assets\/([^"]+\.js)"/g)].map((match) => `assets/${match[1]}`);
+  const initialBytes = [...new Set(initialAssets)].reduce((total, file) => {
+    const absolutePath = path.join(distDir, file);
+    return total + (fs.existsSync(absolutePath) ? fs.statSync(absolutePath).size : 0);
+  }, 0);
+  if (initialBytes > MAX_INITIAL_JS_BYTES) {
+    errors.push(`Initial JavaScript exceeds 900 KB budget (${Math.ceil(initialBytes / 1024)} KB).`);
+  }
 }
 
 if (exists('dist/server.cjs')) {

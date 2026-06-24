@@ -73,33 +73,26 @@ if (pkg) {
   }
 
   if (!build.win || !Array.isArray(build.win.target)) {
-    errors.push('build.win.target must include nsis and portable.');
+    errors.push('build.win.target must include dir for the single unpacked Windows app folder.');
   } else {
-    for (const target of ['nsis', 'portable']) {
+    for (const target of ['dir']) {
       if (!build.win.target.includes(target)) {
         errors.push(`build.win.target is missing ${target}.`);
       }
     }
+    for (const removedTarget of ['nsis', 'portable']) {
+      if (build.win.target.includes(removedTarget)) {
+        errors.push(`build.win.target must not include ${removedTarget}; LedgerFlow ships one unpacked Windows app folder.`);
+      }
+    }
   }
 
-  if (!build.nsis) {
-    errors.push('build.nsis config is required for Windows shortcut creation.');
-  } else {
-    if (build.nsis.installerIcon !== 'build/icon.ico') {
-      errors.push('build.nsis.installerIcon must be build/icon.ico.');
-    }
-    if (build.nsis.uninstallerIcon !== 'build/icon.ico') {
-      errors.push('build.nsis.uninstallerIcon must be build/icon.ico.');
-    }
-    if (build.nsis.createDesktopShortcut !== 'always') {
-      errors.push('build.nsis.createDesktopShortcut must be always.');
-    }
-    if (build.nsis.createStartMenuShortcut !== true) {
-      errors.push('build.nsis.createStartMenuShortcut must be true.');
-    }
-    if (build.nsis.shortcutName !== 'LedgerFlow Hub') {
-      errors.push('build.nsis.shortcutName must be LedgerFlow Hub.');
-    }
+  if (build.nsis) {
+    errors.push('build.nsis must be removed; the Windows release is release/win-unpacked/LedgerFlow Hub.exe.');
+  }
+
+  if (build.portable) {
+    errors.push('build.portable must be removed; do not create a second Windows EXE artifact.');
   }
 
   if (!build.mac || build.mac.target !== 'dmg') {
@@ -163,4 +156,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log('LedgerFlow desktop package check passed: Electron shell, shortcuts, icon assets, artifact naming and release targets verified.');
+console.log('LedgerFlow desktop package check passed: Electron shell, icon assets and single unpacked Windows app folder verified.');

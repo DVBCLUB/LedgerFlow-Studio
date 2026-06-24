@@ -1,0 +1,74 @@
+{
+  "plugins": [
+    {
+      "manifest": {
+        "name": "code-formatter",
+        "version": "1.0.0",
+        "type": "tool",
+        "description": "Auto-format code files",
+        "author": "system",
+        "capabilities": [
+          {
+            "name": "format_code",
+            "description": "Format TypeScript/JavaScript code",
+            "params": {
+              "filePath": {
+                "type": "string",
+                "description": "File to format",
+                "required": true
+              }
+            },
+            "returns": {
+              "type": "string",
+              "description": "Formatted code"
+            }
+          }
+        ],
+        "dependencies": [],
+        "entryPoint": "index.ts",
+        "enabled": true,
+        "id": "plugin_1782200194267_bc59b2"
+      },
+      "loadedAt": "2026-06-23T07:36:34.270Z",
+      "status": "loaded",
+      "invokeCount": 1,
+      "metrics": {
+        "avgLatencyMs": 0,
+        "successRate": 100
+      },
+      "lastInvoked": "2026-06-23T07:36:34.270Z"
+    },
+    {
+      "manifest": {
+        "name": "quick-test",
+        "type": "tool",
+        "description": "Test plugin",
+        "author": "e2e",
+        "capabilities": [
+          {
+            "name": "ping",
+            "description": "Ping test",
+            "params": {},
+            "returns": {
+              "type": "string",
+              "description": "pong"
+            }
+          }
+        ],
+        "dependencies": [],
+        "entryPoint": "index.ts",
+        "version": "1.0.0",
+        "id": "plugin_1782200258341_448517",
+        "enabled": true
+      },
+      "loadedAt": "2026-06-23T07:37:38.342Z",
+      "status": "loaded",
+      "invokeCount": 0,
+      "metrics": {
+        "avgLatencyMs": 0,
+        "successRate": 100
+      }
+    }
+  ],
+  "updatedAt": "2026-06-23T07:37:38.342Z"
+}

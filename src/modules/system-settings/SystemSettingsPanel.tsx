@@ -41,8 +41,9 @@ import {
 } from '../../utils/aiSettingsApi';
 
 // ─── Lazy sub-panels ─────────────────────────────────────────────────────────
-const AISettingsManager = React.lazy(() => import('../../components/AISettingsManager'));
+const AISettingsManager = React.lazy(() => import('../ai-hr/AISettingsManager'));
 const LabsBackupRestore = React.lazy(() => import('../../components/LabsBackupRestore'));
+import ApiConnectionHealthMatrix from './components/ApiConnectionHealthMatrix';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 type SettingsTab = 'ai_gateway' | 'vault' | 'integrations' | 'preferences' | 'backup' | 'about';
@@ -547,6 +548,7 @@ function IntegrationsTab() {
 
   return (
     <div className="space-y-5">
+      <ApiConnectionHealthMatrix />
       {/* Supabase config */}
       <div className="rounded-2xl border border-emerald-800/30 bg-emerald-950/10 p-5">
         <div className="mb-4 flex items-center gap-3">

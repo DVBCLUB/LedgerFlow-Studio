@@ -142,7 +142,7 @@ export async function runAISystemReadiness(): Promise<AISystemReadinessReport> {
     nextAction: connectors.length > 0 ? undefined : "Open Integration Hub and seed connector registry.",
   });
 
-  for (const check of preflight.checks.slice(0, 4)) {
+  for (const check of preflight.checks) {
     checks.push({
       id: `preflight-${check.id}`,
       label: `Preflight: ${check.label}`,

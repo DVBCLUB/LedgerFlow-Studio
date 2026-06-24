@@ -1,34 +1,80 @@
+# Dependencies
 node_modules/
-build/
+
+# Build outputs
 dist/
-coverage/
 release/
 release-clean/
 release-erp/
 release-final/
-.venv/
-.local-cleanup/
-.ai_backups/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
 .DS_Store
-*.log
+Thumbs.db
+
+# Environment
 .env*
 !.env.example
 !.env.assistant.example
-ai_keys.vault.json
-ai_usage.log.json
-.ai_vault_session.json
+.ledgerflow_signing_secret
 .ledgerflow_secret
-agent_role_prompts.json
-ai_prompt_registry.json
-integration_registry.json
-integration_events.log.json
-ledgerflow_audit.log.json
-company_os_control_plane.json
+
+# Logs
+*.log
+*.err
+.tmp-runtime.err.log
+.tmp-runtime.out.log
+browser_logs*.txt
+
+# Local data files - ALL runtime generated data
+# All JSON files in data/ directory are ignored
+data/
+
+# Legacy single file ignores (kept for backward compatibility)
+ai_keys.vault.json
+.ai_vault_session.json
+.agent_sandbox/
 .chrome_profile
 .chrome_profiles/
-web_ai_profiles.json
-db_storage.json
-browser_logs*.txt
+company_os_control_plane.json
+agent_pipelines.local.json
+agent_memory.local.json
+agent_runtime.local.enc
+agent_runtime.local.enc.key
+integration_events.log.json
 firebase-applet-config.json
 MO_LEDGERFLOW_HUB*.cmd
 MO_LEDGERFLOW_HUB_README.txt
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Coverage
+coverage/
+
+# Test artifacts
+.nyc_output/
+
+# Local storage
+localStorage.json
+
+# Database files
+db_storage.json
+
+# Cache
+.cache/
+
+# Venv
+.venv/
+.local-cleanup/
+
+# AI Backups
+.ai_backups/

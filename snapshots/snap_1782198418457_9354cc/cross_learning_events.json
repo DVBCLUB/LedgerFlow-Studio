@@ -1,0 +1,113 @@
+[
+  {
+    "id": "learn_1782189851214_96e7",
+    "sourceAgent": "fabric",
+    "domain": "coding",
+    "kind": "success",
+    "title": "Sort function pattern",
+    "content": "Always use generic types for sort functions",
+    "confidence": 0.8,
+    "tags": [
+      "fabric",
+      "coding",
+      "success"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.215Z"
+  },
+  {
+    "id": "learn_1782189851221_c767",
+    "sourceAgent": "code",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ fabric",
+    "content": "Đã học 0 pattern từ fabric trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "code",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.221Z"
+  },
+  {
+    "id": "learn_1782189851221_c4c4",
+    "sourceAgent": "test",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ fabric",
+    "content": "Đã học 2 pattern từ fabric trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "test",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.221Z"
+  },
+  {
+    "id": "learn_1782189851222_e934",
+    "sourceAgent": "fabric",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ code",
+    "content": "Đã học 3 pattern từ code trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "fabric",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.222Z"
+  },
+  {
+    "id": "learn_1782189851222_d442",
+    "sourceAgent": "test",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ code",
+    "content": "Đã học 3 pattern từ code trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "test",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.222Z"
+  },
+  {
+    "id": "learn_1782189851222_5984",
+    "sourceAgent": "fabric",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ test",
+    "content": "Đã học 3 pattern từ test trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "fabric",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.223Z"
+  }
+]  {
+    "id": "learn_1782189851223_e4c8",
+    "sourceAgent": "code",
+    "domain": "general",
+    "kind": "insight",
+    "title": "Học từ test",
+    "content": "Đã học 3 pattern từ test trong domain general.",
+    "confidence": 0.7,
+    "tags": [
+      "cross-learning",
+      "code",
+      "general",
+      "insight"
+    ],
+    "recordedAt": "2026-06-23T04:44:11.223Z"
+  }
+]

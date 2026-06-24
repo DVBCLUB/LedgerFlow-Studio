@@ -1,6 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { callAI } from './aiClient';
 import { getAgentRole } from './agentRoles';
+import { createApprovalFingerprint } from './agentToolRegistry';
+import { getLocalPipeline, saveLocalPipeline } from './pipelineStore';
 
 export type PipelineType =
   | 'software_product'
@@ -22,6 +24,10 @@ export interface PipelineStep {
   output?: string;
   requiresApproval: boolean;
   approvedAt?: string;
+  approval?: {
+    fingerprint: string;
+    phrase: 'APPROVE PIPELINE STEP';
+  };
   startedAt?: string;
   completedAt?: string;
   error?: string;
@@ -239,6 +245,7 @@ async function executeAgentPrompt(agentRole: string, prompt: string): Promise<st
 }
 
 async function persistPipeline(pipeline: Pipeline) {
+  await saveLocalPipeline(pipeline);
   const sb = getSupabaseServiceClient();
   if (!sb) return;
   await sb.from('agent_pipelines').upsert({
@@ -287,7 +294,7 @@ export async function startPipeline(
     updatedAt: now,
   };
 
-  await persistPipeline(pipeline).catch(() => undefined);
+  await persistPipeline(pipeline);
   await executePipelineSteps(pipeline, template, 0);
   return pipeline;
 }
@@ -322,7 +329,7 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
     pipeline.status = 'running';
     pipeline.currentStepIndex = index;
     pipeline.updatedAt = new Date().toISOString();
-    await persistPipeline(pipeline).catch(() => undefined);
+    await persistPipeline(pipeline);
 
     try {
       const output = await executeAgentPrompt(step.agentRole, step.prompt);
@@ -334,21 +341,25 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
         step.completedAt = new Date().toISOString();
         pipeline.status = 'waiting_approval';
         pipeline.output = output;
+        step.approval = {
+          fingerprint: createApprovalFingerprint({ pipelineId: pipeline.id, stepId: step.id, output }),
+          phrase: 'APPROVE PIPELINE STEP',
+        };
         pipeline.updatedAt = new Date().toISOString();
-        await persistPipeline(pipeline).catch(() => undefined);
+        await persistPipeline(pipeline);
         return;
       }
 
       step.status = 'done';
       step.completedAt = new Date().toISOString();
       pipeline.updatedAt = new Date().toISOString();
-      await persistPipeline(pipeline).catch(() => undefined);
+      await persistPipeline(pipeline);
     } catch (err: any) {
       step.status = 'failed';
       step.error = err?.message || String(err);
       pipeline.status = 'failed';
       pipeline.updatedAt = new Date().toISOString();
-      await persistPipeline(pipeline).catch(() => undefined);
+      await persistPipeline(pipeline);
       return;
     }
   }
@@ -356,10 +367,14 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
   pipeline.status = 'completed';
   pipeline.output = prevOutputs[prevOutputs.length - 1] || pipeline.output || '';
   pipeline.updatedAt = new Date().toISOString();
-  await persistPipeline(pipeline).catch(() => undefined);
+  await persistPipeline(pipeline);
 }
 
-export async function resumePipeline(pipelineId: string, userId = 'local'): Promise<Pipeline> {
+export async function resumePipeline(
+  pipelineId: string,
+  userId = 'local',
+  approval?: { stepId?: string; fingerprint?: string; phrase?: string },
+): Promise<Pipeline> {
   const pipeline = await getPipelineById(pipelineId);
   if (!pipeline) throw new Error('Pipeline not found or Supabase service key is not configured.');
   if (pipeline.userId !== userId && userId !== 'local') throw new Error('Pipeline does not belong to this user.');
@@ -371,13 +386,17 @@ export async function resumePipeline(pipelineId: string, userId = 'local'): Prom
   const approvalIndex = pipeline.currentStepIndex;
   const step = pipeline.steps[approvalIndex];
   if (!step || step.status !== 'waiting_approval') throw new Error('No step is currently waiting for approval.');
+  if (!step.approval) throw new Error('This pipeline was created before secure approval was enabled. Restart it to continue.');
+  if (approval?.stepId !== step.id || approval?.fingerprint !== step.approval.fingerprint || approval?.phrase !== step.approval.phrase) {
+    throw new Error('Approval does not match the current pipeline step and output fingerprint.');
+  }
 
   step.status = 'done';
   step.approvedAt = new Date().toISOString();
   step.completedAt = step.completedAt || step.approvedAt;
   pipeline.status = 'running';
   pipeline.updatedAt = new Date().toISOString();
-  await persistPipeline(pipeline).catch(() => undefined);
+  await persistPipeline(pipeline);
 
   await executePipelineSteps(pipeline, template, approvalIndex + 1);
   return pipeline;
@@ -385,9 +404,9 @@ export async function resumePipeline(pipelineId: string, userId = 'local'): Prom
 
 export async function getPipelineById(id: string): Promise<Pipeline | null> {
   const sb = getSupabaseServiceClient();
-  if (!sb) return null;
+  if (!sb) return getLocalPipeline(id);
   const { data, error } = await sb.from('agent_pipelines').select('*').eq('id', id).maybeSingle();
-  if (error || !data) return null;
+  if (error || !data) return getLocalPipeline(id);
   return {
     id: data.id,
     userId: data.user_id,

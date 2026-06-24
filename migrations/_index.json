@@ -1,0 +1,13 @@
+[
+  {
+    "id": "mig_1782201897509_72990d",
+    "name": "Add users.age + posts table",
+    "upSQL": "CREATE TABLE \"posts\" (\n  \"id\" integer PRIMARY KEY,\n  \"title\" text NOT NULL,\n  \"user_id\" integer\n);\n\nALTER TABLE \"users\" ADD COLUMN \"age\" integer;\n\nALTER TABLE \"users\" ADD COLUMN \"role\" text DEFAULT 'user';",
+    "downSQL": "ALTER TABLE \"users\" DROP COLUMN IF EXISTS \"role\";\n\nALTER TABLE \"users\" DROP COLUMN IF EXISTS \"age\";\n\nDROP TABLE IF EXISTS \"posts\";",
+    "dialect": "postgresql",
+    "description": "Add 1 table(s), 2 column(s)",
+    "risks": [],
+    "generatedAt": "2026-06-23T08:04:57.509Z",
+    "status": "pending"
+  }
+]

@@ -6,7 +6,9 @@
   "type": "module",
   "main": "desktop/main.cjs",
   "scripts": {
-    "dev": "tsx server.ts",
+    "dev": "node scripts/dev-launcher.mjs",
+    "dev:app": "tsx server.ts",
+    "dev:daemon": "tsx server/assistant-daemon.ts",
     "ai:doctor": "node scripts/ai-doctor.mjs",
     "prepare:icons": "node scripts/prepare-desktop-icons.mjs",
     "check:simulations": "node scripts/check-simulation-modules.mjs",
@@ -22,7 +24,7 @@
     "check:runtime": "node scripts/check-runtime-api.mjs",
     "check:offline": "node scripts/check-offline-readiness.mjs",
     "check:offline-vendor-assets": "node scripts/check-offline-vendor-assets.mjs",
-    "check:release": "node scripts/check-release-artifacts.mjs",
+    "check:release": "node scripts/finalize-release.mjs --check-only",
     "check:env": "node scripts/check-env-config.mjs",
     "check:desktop-release": "node scripts/check-hybrid-release.mjs",
     "check:desktop-release:full": "node scripts/check-hybrid-release.mjs --release",
@@ -31,18 +33,29 @@
     "doctor": "node scripts/doctor.mjs",
     "doctor:write": "node scripts/doctor.mjs --write",
     "build:manifest": "node scripts/write-build-manifest.mjs",
-    "release:notes": "node scripts/write-release-notes.mjs",
-    "prebuild": "npm run prepare:icons && npm run check:env && npm run check:simulations && npm run check:founder-labs && npm run check:accounting-calculations && npm run check:agentops-contracts && npm run check:ai-assistant-safety && npm run check:desktop && npm run check:offline",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "release:notes": "node scripts/finalize-release.mjs --notes-only",
+    "release:finalize": "node scripts/finalize-release.mjs",
+    "prebuild": "npm run prepare:icons && npm run check:env && npm test && npm run check:simulations && npm run check:founder-labs && npm run check:accounting-calculations && npm run check:agentops-contracts && npm run check:ai-assistant-safety && npm run check:desktop && npm run check:offline",
+    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/assistant-daemon.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/assistant-daemon.cjs",
     "postbuild": "npm run build:manifest && npm run check:build",
-    "start": "node dist/server.cjs",
+    "start": "node scripts/prod-launcher.mjs",
+    "start:app": "node dist/server.cjs",
+    "start:daemon": "node dist/assistant-daemon.cjs",
     "desktop:dev": "npm run build && npm run prepare:icons && cross-env NODE_ENV=production ELECTRON_DESKTOP=true electron desktop/main.cjs",
     "desktop:pack": "npm run build && npm run prepare:icons && electron-builder --dir && npm run release:notes",
-    "desktop:dist": "npm run build && npm run prepare:icons && electron-builder && npm run release:notes",
+    "desktop:dist": "npm run desktop:pack",
     "clean": "node scripts/clean.mjs",
     "lint": "tsc --noEmit",
+    "test": "node --test --experimental-strip-types server/services/localAuth.test.ts server/services/localDatabase.test.ts server/services/webAiPolicy.test.ts src/app/companyNavigation.test.ts server/services/webAiTaskRouter.test.ts server/services/webAiAutomator.test.ts server/services/codingContext.test.ts server/services/agentRuntimeFoundation.test.ts server/services/agentRuntimeSafety.test.ts",
     "assistant:start": "tsx server/assistant-daemon.ts",
-    "assistant:cli": "tsx scripts/ai-assistant-cli.ts"
+    "assistant:cli": "tsx scripts/ai-assistant-cli.ts",
+    "dev:fast": "tsx server/server-optimized.ts",
+    "build:optimized": "esbuild server/server-optimized.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server-optimized.cjs",
+    "start:optimized": "node dist/server-optimized.cjs",
+    "desktop:dev:fast": "npm run build:optimized && npm run prepare:icons && cross-env NODE_ENV=production ELECTRON_DESKTOP=true electron desktop/main.cjs",
+    "build:vite:optimized": "vite build --config vite.config.optimized.ts",
+    "dev:vite": "vite --config vite.config.optimized.ts",
+    "build:analyze": "vite build --config vite.config.optimized.ts --mode analyze"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
@@ -108,20 +121,8 @@
     "win": {
       "icon": "build/icon.ico",
       "target": [
-        "nsis",
-        "portable"
+        "dir"
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": "always",
-      "createStartMenuShortcut": true,
-      "shortcutName": "LedgerFlow Hub",
-      "uninstallDisplayName": "LedgerFlow Hub",
-      "installerIcon": "build/icon.ico",
-      "uninstallerIcon": "build/icon.ico"
     },
     "mac": {
       "target": "dmg"

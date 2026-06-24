@@ -12,12 +12,12 @@ if (!fs.existsSync(target)) {
 let source = fs.readFileSync(target, 'utf8');
 const original = source;
 
-const helperImport = `import {\n  FOUNDER_DECISION_LOG_STORAGE_KEY,\n  calculateBudgetRisk,\n  calculateFounderSimulation,\n  calculateProductIdeaScore,\n  money\n} from '../utils/accountingVietnamCalculations';`;
+const helperImport = `import {\n  FOUNDER_DECISION_LOG_STORAGE_KEY,\n  calculateBudgetRisk,\n  calculateFounderSimulation,\n  calculateProductIdeaScore,\n  money\n} from '../../utils/accountingVietnamCalculations';`;
 
-if (!source.includes("../utils/accountingVietnamCalculations")) {
+if (!source.includes("../../utils/accountingVietnamCalculations")) {
   source = source.replace(
-    "} from '../data/founderCompanyEnhancements';",
-    `} from '../data/founderCompanyEnhancements';\n${helperImport}`
+    "} from '../../data/founderCompanyEnhancements';",
+    `} from '../../data/founderCompanyEnhancements';\n${helperImport}`
   );
 }
 

@@ -116,6 +116,45 @@ export const MULTI_INDUSTRY_CASE_BANK: IndustryCase[] = [
     learningOutcome: 'Biết kiểm tra doanh thu tiến độ và rủi ro ghi nhận vượt nghiệm thu.',
     nextAction: 'Đối chiếu hợp đồng, nghiệm thu, hóa đơn và chi phí tương ứng; điều chỉnh phần vượt nếu chưa đủ điều kiện.',
     riskLevel: 'High'
+  },
+  {
+    id: 'trade-sales-return-provision',
+    industry: 'Thương mại',
+    title: 'Trích lập dự phòng hàng bán bị trả lại',
+    scenario: 'Doanh nghiệp thương mại điện tử giao hàng qua sàn TMĐT (Shopee/Lazada) có tỷ lệ trả hàng 8% nhưng kế toán ghi nhận 100% doanh thu không trừ dự phòng hàng bán bị trả lại.',
+    documents: ['Báo cáo đối soát sàn', 'Hợp đồng đại lý sàn', 'Chính sách hoàn trả', 'Sổ chi tiết doanh thu', 'Phiếu nhập kho hàng trả'],
+    redFlags: ['tỷ lệ hoàn hàng thực tế cao hơn dự phòng', 'doanh thu khớp hóa đơn nhưng không khớp đối soát thực tế', 'tồn kho ảo do chưa cập nhật hàng trả'],
+    accountingFocus: ['doanh thu thuần', 'khoản giảm trừ doanh thu', 'dự phòng hàng trả lại', 'đối soát công nợ sàn'],
+    auditQuestions: ['Tỷ lệ trả hàng lịch sử là bao nhiêu?', 'Hệ thống có đối soát tự động với API sàn không?', 'Đã ghi giảm doanh thu cho hàng hoàn thực tế chưa?'],
+    learningOutcome: 'Hiểu cách ghi nhận doanh thu và giảm trừ doanh thu trong mô hình thương mại điện tử.',
+    nextAction: 'Phân tích dữ liệu hoàn trả 6 tháng gần nhất, lập dự phòng giảm trừ doanh thu theo tỷ lệ thực tế.',
+    riskLevel: 'Medium'
+  },
+  {
+    id: 'manufacturing-scrap-recovery',
+    industry: 'Sản xuất',
+    title: 'Thu hồi phế liệu từ dây chuyền sản xuất',
+    scenario: 'Dây chuyền sản xuất nhựa sinh ra 5% phế liệu nhựa đầu thừa, phế liệu được gom bán cho bên thứ ba thu tiền mặt nhưng không ghi giảm chi phí sản xuất chung hay ghi thu nhập khác.',
+    documents: ['Biên bản kiểm kê phế liệu', 'Phiếu cân kho', 'Hóa đơn thanh lý', 'Phiếu thu tiền mặt', 'Báo cáo hao hụt sản xuất'],
+    redFlags: ['hao hụt thực tế chênh lệch định mức sản xuất', 'tiền mặt thanh lý không qua tài khoản công ty', 'không có sổ theo dõi phế liệu thu hồi'],
+    accountingFocus: ['giá thành sản xuất', 'chi phí sản xuất chung dở dang', 'thu nhập khác', 'kiểm soát phế phẩm'],
+    auditQuestions: ['Lượng phế liệu thực tế thu hồi có khớp lệnh sản xuất không?', 'Giá thanh lý phế liệu có được định giá độc lập không?', 'Hạch toán giảm giá thành hay ghi thu nhập khác?'],
+    learningOutcome: 'Biết cách kiểm soát vòng đời của phế phẩm và ảnh hưởng của nó đến giá thành sản xuất.',
+    nextAction: 'Thiết lập sổ cân phế phẩm cuối ca, hạch toán ghi giảm chi phí NVL chính hoặc ghi tăng thu nhập khác theo đúng VAS.',
+    riskLevel: 'Medium'
+  },
+  {
+    id: 'service-timesheet-reconciliation',
+    industry: 'Dịch vụ',
+    title: 'Đối chiếu timesheet nhân sự dự án dịch vụ',
+    scenario: 'Công ty outsource phần mềm ghi nhận chi phí nhân công vào giá vốn dịch vụ dựa trên dự toán ban đầu, nhưng timesheet thực tế của kỹ sư lệch 30% do thay đổi yêu cầu mà không cập nhật phụ lục hợp đồng.',
+    documents: ['Timesheet kỹ sư', 'Nhật ký JIRA/Git commits', 'Hợp đồng dịch vụ', 'Phụ lục thay đổi phạm vi (Change Order)', 'Bảng lương phân bổ'],
+    redFlags: ['timesheet không khớp commit code thực tế', 'kỹ sư kiêm nhiệm nhiều dự án vượt 100% thời gian', 'chi phí nhân công thực tế vượt ngân sách dự toán'],
+    accountingFocus: ['phân bổ chi phí nhân công trực tiếp', 'giá thành dịch vụ outsource', 'biên lợi nhuận dự án (project margin)', 'hiệu suất sử dụng nhân sự (utilization)'],
+    auditQuestions: ['Hệ thống timesheet có được phê duyệt bởi PM không?', 'Có đối chiếu chéo timesheet với log Git/Jira không?', 'Phụ lục thay đổi phạm vi đã được khách ký nhận chưa?'],
+    learningOutcome: 'Hiểu cách phân bổ chi phí nhân sự và kiểm soát giá thành trong công ty cung cấp dịch vụ.',
+    nextAction: 'Đối chiếu timesheet của team với Git log, cập nhật tỷ lệ phân bổ lương dự án và lập quy trình phê duyệt change order.',
+    riskLevel: 'High'
   }
 ];
 

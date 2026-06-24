@@ -1,0 +1,43 @@
+[
+  {
+    "id": "rpt_1782197193648_f7eae9",
+    "name": "E2E Test Report",
+    "type": "daily",
+    "cronExpression": "0 9 * * *",
+    "format": "markdown",
+    "sections": [
+      {
+        "id": "health",
+        "title": "System Health",
+        "type": "system_health",
+        "description": "Overall system health status",
+        "enabled": true
+      },
+      {
+        "id": "cost",
+        "title": "Cost Analysis",
+        "type": "cost_analysis",
+        "description": "AI cost breakdown by agent/model",
+        "enabled": true
+      },
+      {
+        "id": "metrics",
+        "title": "Performance Metrics",
+        "type": "metrics_table",
+        "description": "Key performance indicators",
+        "enabled": true
+      },
+      {
+        "id": "agents",
+        "title": "Agent Performance",
+        "type": "agent_performance",
+        "description": "Agent success rates and trends",
+        "enabled": true
+      }
+    ],
+    "outputDir": "D:\\CODE\\LedgerFlow-Studio\\reports\\auto-generated",
+    "enabled": true,
+    "createdAt": "2026-06-23T06:46:33.648Z",
+    "updatedAt": "2026-06-23T06:46:33.648Z"
+  }
+]

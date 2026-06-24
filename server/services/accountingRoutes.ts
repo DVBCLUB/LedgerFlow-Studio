@@ -7,12 +7,31 @@ import { z } from "zod";
 import { callAI } from "./aiClient";
 import { getAgentRole, listAgentRoles } from "./agentRoles";
 import { registerBrief3Routes } from "./brief3Routes";
-import { getCronStatus, startCronScheduler, triggerJobNow } from "./cronScheduler";
+import { cancelCronQueueJob, getCronQueueStatus, getCronStatus, pruneCronQueue, retryCronQueueJob, startCronScheduler, triggerJobNow } from "./cronScheduler";
 import { getGitHubSummary } from "./githubConnector";
 import { extractInvoiceFromImage } from "./invoiceOCR";
 import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
-import { appendCompanyOsEvent, createCompanyOsTask, exportCompanyOsAuditLog, getCompanyOsContracts, listCompanyOsControlPlane, simulateOpenClawAction, updateCompanyOsTask } from "./companyOsControlPlane";
+import { appendCompanyOsEvent, createCompanyOsTask, exportCompanyOsAuditLog, getCompanyOsContracts, listCompanyOsControlPlane, simulateOpenClawAction, updateCompanyOsTask, type OpenClawActionInput } from "./companyOsControlPlane";
+import { startBrowserSandboxRun, getRun, stopRun } from "./browserSandboxConnector";
+import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from "./agentToolExecutionGate";
+import { advanceAgentRun, approveAgentRunStep, createAgentRun, getAgentRun, getAgentRuntimeMetrics, importLegacyAgentRuns, listAgentRuns, replanAgentRun, setAgentRuntimeEmergencyStop, stopAgentRun } from "./agentRuntime";
+import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from "./agentMemoryStore";
+import { getRobotSimulationState, setRobotEmergencyStop, simulateRobotCommand } from "./robotConnector";
+import { readRequestPrincipal, requireRoles } from "./localAuth";
+import { verifyAuditChain } from "./auditLog";
+import { runAISystemReadiness } from "./aiSystemReadiness";
+import { getLibraryStats as getPromptLibraryStats, getTemplates } from "./aiPromptLibrary";
+import { getKBStats } from "./teamKnowledgeBase";
+import { getSkillStats, listSkills } from "./skillRegistry";
+import { listWorkflowTemplates } from "./agentWorkflowEngine";
+import {
+  createAutomationRule,
+  deleteAutomationRule,
+  getAutomationExecutionLog,
+  listAutomationRules,
+  toggleAutomationRule
+} from "./automationRuleEngine";
 
 let securityInstalled = false;
 
@@ -20,13 +39,63 @@ const transactionSchema = z.object({ id: z.string().optional(), date: z.string()
 const reconcileSchema = z.object({ transactions: z.array(transactionSchema).min(1, "transactions array required"), useAI: z.boolean().optional().default(true) });
 const invoiceOcrSchema = z.object({ imageBase64: z.string().min(20, "imageBase64 required"), mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "application/pdf"]).default("image/jpeg") });
 const pipelineStartSchema = z.object({ pipelineType: z.string().min(1), input: z.record(z.string(), z.unknown()).optional().default({}), userId: z.string().optional().default("local") });
-const pipelineApproveSchema = z.object({ userId: z.string().optional().default("local") });
+const pipelineApproveSchema = z.object({ userId: z.string().optional().default("local"), stepId: z.string().min(1), fingerprint: z.string().regex(/^[a-f0-9]{64}$/), phrase: z.literal("APPROVE PIPELINE STEP") });
 const cronTriggerSchema = z.object({ jobName: z.enum(["daily_brief", "weekly_report", "monthly_close_reminder"]), userId: z.string().uuid() });
+const cronQueueActionSchema = z.object({ action: z.enum(["retry", "cancel"]), note: z.string().max(500).optional() });
 const notificationTestSchema = z.object({ userId: z.string().uuid(), message: z.string().optional() });
 const companyOsEventSchema = z.object({ source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).default("dashboard"), eventType: z.string().min(1), title: z.string().min(1), body: z.string().optional(), agentRole: z.string().optional(), taskId: z.string().optional(), risk: z.enum(["low", "medium", "high", "blocked"]).optional(), payload: z.record(z.string(), z.unknown()).optional(), userId: z.string().optional() });
 const companyOsTaskSchema = z.object({ title: z.string().min(1), description: z.string().optional(), agentRole: z.string().optional(), source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).default("dashboard"), risk: z.enum(["low", "medium", "high", "blocked"]).optional(), status: z.enum(["inbox", "planning", "waiting_approval", "ready", "done", "blocked"]).optional(), payload: z.record(z.string(), z.unknown()).optional(), userId: z.string().optional() });
 const companyOsTaskUpdateSchema = z.object({ status: z.enum(["inbox", "planning", "waiting_approval", "ready", "done", "blocked"]), note: z.string().optional(), source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).optional(), userId: z.string().optional() });
 const openClawActionSchema = z.object({ action: z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"]), title: z.string().min(1), target: z.string().optional(), prompt: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), simulate: z.boolean().optional().default(true), userId: z.string().optional() });
+const toolExecutionInputSchema = z.object({ toolId: z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"]), title: z.string().min(1), target: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), executionMode: z.literal("simulation") });
+const toolExecutionApproveSchema = z.object({ previewId: z.string().min(1), fingerprint: z.string().regex(/^[a-f0-9]{64}$/) });
+const toolExecutionConsumeSchema = toolExecutionInputSchema.extend({ previewId: z.string().min(1), approvalToken: z.string().optional() });
+const agentRunCreateSchema = z.object({
+  goal: z.string().min(3).max(4_000),
+  requestedBy: z.string().max(100).optional(),
+  requestedTools: z.array(z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"])).max(8).optional(),
+  toolInputs: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
+  maxSteps: z.number().int().min(1).max(12).optional(),
+  maxRuntimeMs: z.number().int().min(5_000).max(600_000).optional(),
+  plannerMode: z.enum(["auto", "ai", "deterministic"]).optional(),
+});
+const agentRunApprovalSchema = z.object({ stepId: z.string().min(1), fingerprint: z.string().regex(/^[a-f0-9]{64}$/), signature: z.string().regex(/^[a-f0-9]{64}$/).optional(), phrase: z.literal("APPROVE AGENT STEP") });
+const agentRunImportSchema = z.object({ items: z.array(z.object({ id: z.string().min(1), title: z.string().optional(), goal: z.string().optional(), request: z.string().optional(), prompt: z.string().optional(), tools: z.array(z.string()).optional(), sourceType: z.enum(["workboard", "pipeline"]) })).min(1).max(100) });
+const stopSchema = z.object({ reason: z.string().min(3).max(500).default("Founder requested stop.") });
+const emergencyStopSchema = z.object({ active: z.boolean(), reason: z.string().max(500).optional() });
+const agentMemoryCreateSchema = z.object({ kind: z.enum(["company", "session", "procedure", "observation", "feedback"]), title: z.string().min(1).max(200), content: z.string().min(1).max(20_000), source: z.string().min(1).max(200), sourceRef: z.string().max(500).optional(), tags: z.array(z.string().max(50)).max(20).optional(), confidence: z.number().min(0).max(1).optional(), sourceQuality: z.number().min(0).max(1).optional(), supersedesId: z.string().optional(), reviewed: z.boolean().optional(), expiresAt: z.string().datetime().optional() });
+const robotCommandSchema = z.object({
+  command: z.enum(["inspect", "move", "stop", "home", "rotate", "grip", "release", "calibrate"]),
+  position: z.object({
+    x: z.number().optional(),
+    y: z.number().optional(),
+    z: z.number().optional(),
+    roll: z.number().optional(),
+    pitch: z.number().optional(),
+    yaw: z.number().optional()
+  }).optional(),
+  velocity: z.number().optional(),
+  gripAngle: z.number().optional(),
+  approvalPhrase: z.string().optional()
+});
+
+const automationRuleSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().default(""),
+  enabled: z.boolean().default(true),
+  triggerEvent: z.string().min(1),
+  conditions: z.array(z.object({
+    field: z.string(),
+    operator: z.string(),
+    value: z.any().optional()
+  })).default([]),
+  conditionLogic: z.enum(["AND", "OR"]).default("AND"),
+  actions: z.array(z.object({
+    type: z.string(),
+    params: z.record(z.string(), z.any()),
+    requiresApproval: z.boolean().default(false)
+  })).min(1)
+});
 const n8nWebhookSchema = z.object({ workflowName: z.string().min(1), eventType: z.string().min(1), title: z.string().min(1), body: z.string().optional(), agentRole: z.string().optional(), createTask: z.boolean().optional().default(false), risk: z.enum(["low", "medium", "high", "blocked"]).optional(), payload: z.record(z.string(), z.unknown()).optional(), userId: z.string().optional() });
 const telegramUpdateSchema = z.object({ message: z.object({ text: z.string().default(""), chat: z.object({ id: z.union([z.string(), z.number()]).optional() }).optional(), from: z.object({ id: z.union([z.string(), z.number()]).optional(), username: z.string().optional() }).optional() }).passthrough(), userId: z.string().optional() }).passthrough();
 
@@ -77,6 +146,20 @@ export function registerAccountingRoutes(app: Express) {
   startCronScheduler();
 
   app.get("/api/cron/status", (_req, res) => res.json({ success: true, jobs: getCronStatus() }));
+  app.get("/api/cron/queue", async (_req, res) => res.json({ success: true, ...(await getCronQueueStatus()) }));
+  app.patch("/api/cron/queue/:id", async (req, res) => {
+    try {
+      const parsed = cronQueueActionSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      const job = parsed.data.action === "retry" ? await retryCronQueueJob(req.params.id) : await cancelCronQueueJob(req.params.id);
+      await appendCompanyOsEvent({ source: "founder", eventType: `cron.job_${parsed.data.action}`, title: `${parsed.data.action} cron job ${job.id}`, body: parsed.data.note, risk: "medium", payload: { jobId: job.id, status: job.status, name: job.name } });
+      res.json({ success: true, job });
+    } catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to update cron queue job." }); }
+  });
+  app.post("/api/cron/queue/prune", async (req, res) => {
+    try { const days = z.coerce.number().int().min(1).max(365).default(30).parse(req.body?.retentionDays); res.json({ success: true, ...(await pruneCronQueue(days)) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to prune cron queue." }); }
+  });
   app.post("/api/cron/trigger", async (req, res) => {
     try { const parsed = cronTriggerSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json(await triggerJobNow(parsed.data.jobName, parsed.data.userId)); }
     catch (err: any) { res.status(500).json({ success: false, error: err?.message || String(err) }); }
@@ -95,6 +178,52 @@ export function registerAccountingRoutes(app: Express) {
   });
 
   app.get("/api/agents/roles", (_req, res) => res.json({ success: true, roles: listAgentRoles() }));
+  app.get("/api/agent-roles", (_req, res) => res.json({ success: true, roles: listAgentRoles() }));
+  app.get("/api/workflows/templates", (_req, res) => res.json({ success: true, templates: listWorkflowTemplates() }));
+  app.get("/api/ai/inventory", async (_req, res) => {
+    try {
+      const [readiness, controlPlane] = await Promise.all([
+        runAISystemReadiness(),
+        listCompanyOsControlPlane(25),
+      ]);
+      const skills = listSkills({ limit: 12 });
+      const templates = getTemplates();
+      res.json({
+        success: true,
+        checkedAt: new Date().toISOString(),
+        readiness,
+        stats: {
+          prompts: getPromptLibraryStats(),
+          knowledge: getKBStats(),
+          skills: getSkillStats(),
+          controlPlane: {
+            storage: controlPlane.storage,
+            tasks: controlPlane.tasks.length,
+            events: controlPlane.events.length,
+            toolRuns: controlPlane.toolRuns.length,
+          },
+          workflowTemplates: listWorkflowTemplates().length,
+        },
+        highlights: {
+          skills: skills.slice(0, 6).map((skill) => ({
+            id: skill.id,
+            name: skill.name,
+            category: skill.category,
+            tags: skill.tags.slice(0, 5),
+          })),
+          promptTemplates: templates.slice(0, 6).map((template) => ({
+            id: template.id,
+            name: template.name,
+            category: template.category,
+            tags: template.tags.slice(0, 5),
+          })),
+          readinessChecks: readiness.checks.slice(0, 8),
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || "Failed to build AI inventory." });
+    }
+  });
   app.get("/api/agents/roles/:id", (req, res) => { const role = getAgentRole(req.params.id); if (!role) return res.status(404).json({ success: false, error: "Agent role not found." }); res.json({ success: true, role }); });
   app.get("/api/pipelines/types", (_req, res) => res.json({ success: true, types: listPipelineTypes() }));
   app.get("/api/company-os/control-plane/status", async (req, res) => {
@@ -125,6 +254,144 @@ export function registerAccountingRoutes(app: Express) {
     try { const parsed = openClawActionSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const result = await simulateOpenClawAction(parsed.data); res.json({ success: true, ...result }); }
     catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to simulate OpenClaw action." }); }
   });
+  app.post("/api/company-os/tools/preview", (req, res) => {
+    try { const parsed = toolExecutionInputSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, preview: createAgentToolExecutionPreview(parsed.data) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to create tool preview." }); }
+  });
+  app.post("/api/company-os/tools/approve", (req, res) => {
+    try { const parsed = toolExecutionApproveSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, ...approveAgentToolExecution(parsed.data.previewId, parsed.data.fingerprint) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to approve tool preview." }); }
+  });
+  app.post("/api/company-os/tools/execute", async (req, res) => {
+    try {
+      const parsed = toolExecutionConsumeSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      const consumed = consumeAgentToolExecution(parsed.data);
+      const result = await simulateOpenClawAction({ action: consumed.tool.id as OpenClawActionInput['action'], title: consumed.title, target: consumed.target, payload: consumed.payload, simulate: true });
+      res.json({ success: true, execution: { mode: "simulation", consumedPreviewId: consumed.id }, ...result });
+    } catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to execute tool simulation." }); }
+  });
+  app.get("/api/agent-runtime/runs", async (req, res) => {
+    try { res.json({ success: true, ...(await listAgentRuns(Number(req.query.limit || 50))) }); }
+    catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to list agent runs." }); }
+  });
+  app.get("/api/agent-runtime/metrics", async (_req, res) => {
+    try { res.json({ success: true, metrics: await getAgentRuntimeMetrics(), audit: await verifyAuditChain(200) }); }
+    catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to load runtime metrics." }); }
+  });
+  app.post("/api/agent-runtime/runs", async (req, res) => {
+    try { const parsed = agentRunCreateSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const principal = readRequestPrincipal(req); res.json({ success: true, run: await createAgentRun({ ...parsed.data, requestedBy: principal?.id || parsed.data.requestedBy }) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to create agent run." }); }
+  });
+  app.post("/api/agent-runtime/import", requireRoles("owner", "operator"), async (req, res) => {
+    try { const parsed = agentRunImportSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, ...(await importLegacyAgentRuns(parsed.data.items)) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to import legacy work." }); }
+  });
+  app.get("/api/agent-runtime/runs/:id", async (req, res) => {
+    try { const run = await getAgentRun(req.params.id); if (!run) return res.status(404).json({ success: false, error: "Agent run not found." }); res.json({ success: true, run }); }
+    catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to load agent run." }); }
+  });
+  app.post("/api/agent-runtime/runs/:id/advance", async (req, res) => {
+    try { res.json({ success: true, run: await advanceAgentRun(req.params.id) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to advance agent run." }); }
+  });
+  app.post("/api/agent-runtime/runs/:id/replan", requireRoles("owner", "operator"), async (req, res) => {
+    try { const parsed = z.object({ mode: z.enum(["auto", "ai", "deterministic"]).default("auto") }).safeParse(req.body || {}); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, run: await replanAgentRun(req.params.id, parsed.data.mode) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to re-plan agent run." }); }
+  });
+  app.post("/api/agent-runtime/runs/:id/approve", requireRoles("owner"), async (req, res) => {
+    try { const parsed = agentRunApprovalSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, run: await approveAgentRunStep(req.params.id, parsed.data) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to approve agent step." }); }
+  });
+  app.post("/api/agent-runtime/runs/:id/stop", async (req, res) => {
+    try { const parsed = stopSchema.safeParse(req.body || {}); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, run: await stopAgentRun(req.params.id, parsed.data.reason) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to stop agent run." }); }
+  });
+  app.post("/api/agent-runtime/emergency-stop", requireRoles("owner", "operator"), async (req, res) => {
+    try { const parsed = emergencyStopSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, control: await setAgentRuntimeEmergencyStop(parsed.data.active, parsed.data.reason) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to update runtime stop." }); }
+  });
+  app.get("/api/agent-memory/search", async (req, res) => {
+    try { const query = String(req.query.q || ""); res.json({ success: true, results: await searchAgentMemory(query, { limit: Number(req.query.limit || 8), includeDrafts: req.query.includeDrafts === "true" }) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to search memory." }); }
+  });
+  app.post("/api/agent-memory", async (req, res) => {
+    try { const parsed = agentMemoryCreateSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, memory: await createAgentMemory(parsed.data) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to create memory." }); }
+  });
+  app.patch("/api/agent-memory/:id/review", requireRoles("owner"), async (req, res) => {
+    try { const parsed = z.object({ status: z.enum(["reviewed", "rejected"]) }).safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, memory: await reviewAgentMemory(req.params.id, parsed.data.status) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to review memory." }); }
+  });
+  app.get("/api/robot-simulation/status", (_req, res) => res.json({ success: true, state: getRobotSimulationState() }));
+  app.post("/api/robot-simulation/command", async (req, res) => {
+    try { const parsed = robotCommandSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const result = simulateRobotCommand(parsed.data); await appendCompanyOsEvent({ source: "openclaw", eventType: "robot.simulation", title: `Robot simulation: ${parsed.data.command}`, risk: parsed.data.command === "move" ? "high" : "medium", payload: { commandId: result.commandId, mode: "simulation" } }); res.json({ success: true, result }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Robot simulation failed." }); }
+  });
+  app.post("/api/robot-simulation/emergency-stop", (req, res) => {
+    try { const parsed = z.object({ active: z.boolean() }).safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); res.json({ success: true, state: setRobotEmergencyStop(parsed.data.active) }); }
+    catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Robot emergency stop failed." }); }
+  });
+
+  app.get("/api/automation-rules", (_req, res) => {
+    try { res.json(listAutomationRules()); }
+    catch (err: any) { res.status(500).json({ error: err.message }); }
+  });
+  app.get("/api/automation-rules/logs", (req, res) => {
+    try {
+      const limit = Number(req.query.limit || 50);
+      res.json(getAutomationExecutionLog(limit));
+    } catch (err: any) { res.status(500).json({ error: err.message }); }
+  });
+  app.post("/api/automation-rules", (req, res) => {
+    try {
+      const parsed = automationRuleSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") });
+      const rule = createAutomationRule(parsed.data);
+      res.json(rule);
+    } catch (err: any) { res.status(400).json({ error: err.message }); }
+  });
+  app.patch("/api/automation-rules/:id/toggle", (req, res) => {
+    try {
+      const parsed = z.object({ enabled: z.boolean() }).safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") });
+      const rule = toggleAutomationRule(req.params.id, parsed.data.enabled);
+      res.json(rule);
+    } catch (err: any) { res.status(400).json({ error: err.message }); }
+  });
+  app.delete("/api/automation-rules/:id", (req, res) => {
+    try {
+      deleteAutomationRule(req.params.id);
+      res.json({ success: true });
+    } catch (err: any) { res.status(400).json({ error: err.message }); }
+  });
+
+  app.post("/api/company-os/browser-sandbox/run", async (req, res) => {
+    try {
+      const parsed = z.object({
+        profileName: z.string().min(1),
+        folder: z.string().min(1),
+        actionUrl: z.string().url(),
+        taskType: z.enum(["chatgpt-scrape", "gemini-scrape", "general"])
+      }).safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
+      const runId = await startBrowserSandboxRun(parsed.data.profileName, parsed.data.folder, parsed.data.actionUrl, parsed.data.taskType);
+      res.json({ success: true, runId });
+    } catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to start browser sandbox run." }); }
+  });
+
+  app.get("/api/company-os/browser-sandbox/status/:runId", (req, res) => {
+    const run = getRun(req.params.runId);
+    if (!run) return res.status(404).json({ success: false, error: "Sandbox run not found." });
+    res.json({ success: true, run });
+  });
+
+  app.post("/api/company-os/browser-sandbox/stop/:runId", async (req, res) => {
+    try {
+      await stopRun(req.params.runId);
+      res.json({ success: true });
+    } catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to stop sandbox run." }); }
+  });
   app.post("/api/company-os/n8n/webhook", async (req, res) => {
     try {
       const parsed = n8nWebhookSchema.safeParse(req.body);
@@ -153,12 +420,13 @@ export function registerAccountingRoutes(app: Express) {
       if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
       if (!PIPELINE_TEMPLATES[parsed.data.pipelineType as PipelineType]) return res.status(400).json({ success: false, error: "Invalid pipelineType" });
       const pipeline = await startPipeline(parsed.data.pipelineType as PipelineType, parsed.data.input, parsed.data.userId);
-      res.json({ success: true, pipeline });
+      const linkedRun = await createAgentRun({ goal: `Track pipeline ${pipeline.name}`, requestedTools: [], plannerMode: "deterministic", sourceType: "pipeline", sourceId: pipeline.id }).catch(() => null);
+      res.json({ success: true, pipeline, linkedRun });
     } catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to start pipeline." }); }
   });
 
   app.post("/api/pipelines/:id/approve", async (req, res) => {
-    try { const parsed = pipelineApproveSchema.safeParse(req.body || {}); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const pipeline = await resumePipeline(req.params.id, parsed.data.userId); res.json({ success: true, pipeline }); }
+    try { const parsed = pipelineApproveSchema.safeParse(req.body || {}); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") }); const pipeline = await resumePipeline(req.params.id, parsed.data.userId, parsed.data); res.json({ success: true, pipeline }); }
     catch (err: any) { res.status(400).json({ success: false, error: err?.message || "Failed to approve/resume pipeline." }); }
   });
 

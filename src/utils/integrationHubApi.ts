@@ -313,3 +313,113 @@ Jobs/steps:\n${jobText || 'Không có job lỗi cụ thể.'}`;
   await appendIntegrationEvent('github', { type: 'handoff', level: 'success', message: `AI analyzed CI run ${context.selectedRun?.id || 'latest'}.` }).catch(() => undefined);
   return { analysis, modelUsed: data.modelUsed || data.model, handoffPrompt };
 }
+
+// ── Connector Contract Types ───────────────────────────────────────
+export type ConnectorAuthMode =
+  | 'none' | 'local_token' | 'env_var' | 'oauth_app'
+  | 'oauth_user' | 'api_key' | 'browser_session';
+
+export interface ConnectorCapability {
+  id: string;
+  label: string;
+  category: 'read' | 'write' | 'execute' | 'notify' | 'schedule';
+  risk: 'LOW' | 'MEDIUM' | 'HIGH' | 'BLOCKED';
+  requiresApproval: boolean;
+  description: string;
+  inputSchema?: Record<string, unknown>;
+  outputSchema?: Record<string, unknown>;
+}
+
+export interface ConnectorHealth {
+  ok: boolean;
+  lastCheckedAt: string;
+  latencyMs?: number;
+  message: string;
+  detail?: Record<string, unknown>;
+}
+
+export interface ConnectorContract {
+  id: string;
+  title: string;
+  subtitle: string;
+  category: IntegrationCategory;
+  status: IntegrationStatus;
+  priority: IntegrationPriority;
+  authMode: ConnectorAuthMode;
+  enabled: boolean;
+  capabilities: ConnectorCapability[];
+  health: ConnectorHealth;
+  allowedActions: Array<'open' | 'read' | 'write' | 'execute' | 'handoff'>;
+  quickActions: Array<{
+    label: string;
+    action: 'open_url' | 'open_local' | 'handoff_prompt' | 'api_call';
+    href?: string;
+    hash?: string;
+  }>;
+  lastHandoffAt?: string;
+}
+
+export interface IDECheckResult {
+  target: string;
+  available: boolean;
+  path?: string;
+  version?: string;
+  message: string;
+  projectRoot: string;
+}
+
+export interface IDEHandoffPrompt {
+  target: string;
+  title: string;
+  promptMarkdown: string;
+  safeCommands: string[];
+  testChecklist: string[];
+  filePlan: string[];
+  risk: 'LOW' | 'MEDIUM' | 'HIGH';
+  approvalRequired: boolean;
+}
+
+// ── Connector Contract API ─────────────────────────────────────────
+export async function fetchContracts(category?: string): Promise<ConnectorContract[]> {
+  const query = category && category !== 'all' ? `?category=${encodeURIComponent(category)}` : '';
+  const data = await readJson<{ success: true; contracts: ConnectorContract[] }>(await fetch(`/api/contracts${query}`));
+  return data.contracts;
+}
+
+export async function fetchContractById(id: string): Promise<ConnectorContract> {
+  const data = await readJson<{ success: true; contract: ConnectorContract }>(await fetch(`/api/contracts/${encodeURIComponent(id)}`));
+  return data.contract;
+}
+
+// ── IDE Bridge API ─────────────────────────────────────────────────
+export async function fetchIDECheck(): Promise<IDECheckResult[]> {
+  const data = await readJson<{ success: true; results: IDECheckResult[] }>(await fetch('/api/ide/check'));
+  return data.results;
+}
+
+export async function fetchIDEBridgeHealth(): Promise<{ ok: boolean; available: string[]; unavailable: string[] }> {
+  const data = await readJson<{ success: true; health: { ok: boolean; available: string[]; unavailable: string[] } }>(await fetch('/api/ide/health'));
+  return data.health;
+}
+
+export async function openIDEFromBridge(target: string, filePath?: string): Promise<{ ok: boolean; opened: boolean; command: string; message: string }> {
+  const data = await readJson<{ success: boolean; ok: boolean; opened: boolean; command: string; message: string }>(
+    await fetch('/api/ide/open', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, filePath }),
+    }),
+  );
+  return { ok: data.ok, opened: data.opened, command: data.command, message: data.message };
+}
+
+export async function generateIDEHandoff(target: string, task: string, files?: string[], context?: string): Promise<IDEHandoffPrompt> {
+  const data = await readJson<{ success: true; prompt: IDEHandoffPrompt }>(
+    await fetch('/api/ide/handoff', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, task, files, context }),
+    }),
+  );
+  return data.prompt;
+}

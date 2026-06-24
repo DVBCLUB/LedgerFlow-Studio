@@ -1,0 +1,41 @@
+[
+  {
+    "id": "chainrun_1782190298400_902c",
+    "chainId": "chain_1782190298398_d4611d",
+    "chainName": "Test Chain: Code Gen + Review",
+    "status": "completed",
+    "nodeResults": [
+      {
+        "nodeId": "node_1782190298399_be7f",
+        "nodeName": "Generate",
+        "output": "",
+        "latencyMs": 108,
+        "status": "failed",
+        "tokensUsed": 0,
+        "modelUsed": "fabric"
+      },
+      {
+        "nodeId": "node_1782190298399_043c",
+        "nodeName": "Review",
+        "output": "",
+        "latencyMs": 113,
+        "status": "failed",
+        "tokensUsed": 0,
+        "modelUsed": "fabric"
+      }
+    ],
+    "finalOutput": "Write add function",
+    "totalLatencyMs": 221,
+    "totalCostUsd": 0.002,
+    "startedAt": "2026-06-23T04:51:38.400Z",
+    "log": [
+      "Starting chain \"Test Chain: Code Gen + Review\" with 2 nodes.",
+      "[prompt] Generate: failed (108ms)",
+      "  ERROR: undefined",
+      "[prompt] Review: failed (113ms)",
+      "  ERROR: undefined",
+      "Chain completed: 0/2 nodes successful."
+    ],
+    "completedAt": "2026-06-23T04:51:38.621Z"
+  }
+]

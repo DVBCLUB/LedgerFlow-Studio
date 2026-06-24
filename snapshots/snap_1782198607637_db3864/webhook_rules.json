@@ -1,0 +1,39 @@
+[
+  {
+    "id": "rule_1782198593869_01",
+    "name": "GitHub PR Review",
+    "source": "github",
+    "eventFilter": "pull_request",
+    "conditions": {
+      "action": "opened"
+    },
+    "action": "run_agent_loop",
+    "goalTemplate": "Review pull request #{{number}}: {{pull_request.title}}. Repository: {{repository.full_name}}",
+    "enabled": true,
+    "createdAt": "2026-06-23T07:09:53.869Z"
+  },
+  {
+    "id": "rule_1782198593869_02",
+    "name": "GitHub Push - Security Audit",
+    "source": "github",
+    "eventFilter": "push",
+    "conditions": {},
+    "action": "dispatch_fabric",
+    "goalTemplate": "Security audit the latest changes pushed to {{repository.full_name}} on branch {{ref}}",
+    "enabled": false,
+    "createdAt": "2026-06-23T07:09:53.869Z"
+  },
+  {
+    "id": "rule_1782198593869_03",
+    "name": "Slack AI Query",
+    "source": "slack",
+    "eventFilter": "slash_command",
+    "conditions": {
+      "command": "/ai"
+    },
+    "action": "dispatch_fabric",
+    "goalTemplate": "{{text}}",
+    "enabled": true,
+    "createdAt": "2026-06-23T07:09:53.869Z"
+  }
+]

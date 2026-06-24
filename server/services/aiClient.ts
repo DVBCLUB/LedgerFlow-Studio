@@ -14,10 +14,10 @@
  * ============================================================
  */
 
-import { callAIWithFallback, checkAIRouterHealth, streamAIWithFallback } from "./aiRouter";
+import { callAIWithFallback, checkAIRouterHealth, streamAIWithFallback } from "./aiRouter.ts";
 
 export type ChatRole = "system" | "user" | "assistant";
-export type AIRoutingTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding";
+export type AIRoutingTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding" | (string & {});
 
 export interface ChatMessage {
   role: ChatRole;

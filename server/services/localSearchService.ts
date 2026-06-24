@@ -21,6 +21,8 @@ interface DocIndex {
   relativePath: string;
   terms: Map<string, number>; // term -> count
   totalTerms: number;
+  filenameTokens: Set<string>;
+  pathTokens: Set<string>;
 }
 
 // In-memory index cache
@@ -120,10 +122,17 @@ export async function buildSearchIndex(): Promise<{ durationMs: number; totalFil
           terms.set(token, (terms.get(token) ?? 0) + 1);
         }
 
+        const filename = path.basename(relativePath);
+        const filenameWithoutExt = filename.substring(0, filename.lastIndexOf('.')) || filename;
+        const filenameTokens = new Set(tokenize(filenameWithoutExt));
+        const pathTokens = new Set(tokenize(relativePath));
+
         docIndexes.push({
           relativePath,
           terms,
           totalTerms: tokens.length,
+          filenameTokens,
+          pathTokens,
         });
 
         // Track unique terms per doc for IDF calculation
@@ -168,7 +177,7 @@ export async function searchCodebase(query: string, limit = 10): Promise<SearchM
 
   const queryVector = new Map<string, number>();
   for (const [token, count] of queryTf.entries()) {
-    const idf = idfCache.get(token) ?? 0;
+    const idf = idfCache.get(token) ?? Math.log(totalDocs || 1);
     queryVector.set(token, (count / queryTokens.length) * idf);
   }
 
@@ -182,10 +191,20 @@ export async function searchCodebase(query: string, limit = 10): Promise<SearchM
 
     for (const [token, queryWeight] of queryVector.entries()) {
       const docTermCount = doc.terms.get(token) ?? 0;
-      if (docTermCount > 0) {
-        const docTf = docTermCount / doc.totalTerms;
-        const idf = idfCache.get(token) ?? 0;
-        const docWeight = docTf * idf;
+      const isFilenameMatch = doc.filenameTokens.has(token);
+      const isPathMatch = doc.pathTokens.has(token);
+
+      if (docTermCount > 0 || isFilenameMatch || isPathMatch) {
+        const docTf = docTermCount / (doc.totalTerms || 1);
+        const idf = idfCache.get(token) ?? Math.log(totalDocs || 1);
+        let docWeight = docTf * idf;
+
+        // Apply weight boost: +5.0 * idf for filename match, +2.0 * idf for path match
+        if (isFilenameMatch) {
+          docWeight += 5.0 * idf;
+        } else if (isPathMatch) {
+          docWeight += 2.0 * idf;
+        }
 
         score += queryWeight * docWeight;
         matchCount++;

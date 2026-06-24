@@ -20,6 +20,7 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         output: {
+          onlyExplicitManualChunks: true,
           manualChunks(id) {
             if (id.includes('node_modules')) {
               const normalizedId = id.replace(/\\/g, '/');
@@ -29,12 +30,23 @@ export default defineConfig(() => {
               if (id.includes('lucide-react')) {
                 return 'vendor-icons';
               }
+              if (normalizedId.includes('/node_modules/xlsx/')) {
+                return 'vendor-spreadsheets';
+              }
               if (
-                normalizedId.includes('/node_modules/react/') ||
-                normalizedId.includes('/node_modules/react-dom/') ||
-                normalizedId.includes('/node_modules/scheduler/')
+                normalizedId.includes('/node_modules/jspdf/') ||
+                normalizedId.includes('/node_modules/jspdf-autotable/')
               ) {
-                return 'vendor-core';
+                return 'vendor-pdf';
+              }
+              if (normalizedId.includes('/node_modules/qrcode/')) {
+                return 'vendor-qrcode';
+              }
+              if (normalizedId.includes('/node_modules/motion')) {
+                return 'vendor-motion';
+              }
+              if (normalizedId.includes('/node_modules/zustand/')) {
+                return 'vendor-state';
               }
               if (id.includes('html2canvas')) {
                 return 'vendor-utils';

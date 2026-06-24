@@ -1,0 +1,34 @@
+[
+  {
+    "id": "wh_1782190912404_176570",
+    "source": "generic",
+    "event": "test",
+    "payload": {
+      "message": "hello world"
+    },
+    "receivedAt": "2026-06-23T05:01:52.404Z",
+    "status": "completed",
+    "latencyMs": 0,
+    "agentResult": "No matching rules."
+  },
+  {
+    "id": "wh_1782190912415_5db6c7",
+    "source": "github",
+    "event": "pull_request",
+    "payload": {
+      "action": "opened",
+      "number": 42,
+      "pull_request": {
+        "title": "Add new feature",
+        "body": "Please review this PR."
+      },
+      "repository": {
+        "full_name": "user/repo"
+      }
+    },
+    "receivedAt": "2026-06-23T05:01:52.415Z",
+    "status": "completed",
+    "latencyMs": 321,
+    "agentResult": "[GitHub PR Review] Error: plan is not defined"
+  }
+]

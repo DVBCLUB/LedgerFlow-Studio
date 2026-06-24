@@ -1,0 +1,74 @@
+[
+  {
+    "name": "deploy_complete",
+    "subject": "Deploy: {{status}} — {{configName}}",
+    "body": "Deploy \"{{configName}}\" finished with status: {{status}}.\nDuration: {{durationMs}}ms\nStrategy: {{strategy}}",
+    "channels": [
+      "slack_webhook",
+      "in_app"
+    ],
+    "minPriority": "normal",
+    "rateLimitPerMin": 5,
+    "aggregateWindowMs": 30000,
+    "enabled": true,
+    "id": "ntpl_1782228122303_0799"
+  },
+  {
+    "name": "security_alert",
+    "subject": "🔴 Security Alert: {{severity}} finding in {{file}}",
+    "body": "Security audit found {{totalFindings}} issues in {{file}}.\nCritical: {{criticalCount}}, High: {{highCount}}\nScore: {{score}}/100",
+    "channels": [
+      "slack_webhook",
+      "in_app",
+      "console"
+    ],
+    "minPriority": "high",
+    "rateLimitPerMin": 10,
+    "aggregateWindowMs": 15000,
+    "enabled": true,
+    "id": "ntpl_1782228122303_21b1"
+  },
+  {
+    "name": "system_health",
+    "subject": "System Health: {{healthScore}}/100",
+    "body": "Health check results:\n- Score: {{healthScore}}/100\n- Bottlenecks: {{bottleneckCount}}\n- Uptime: {{uptimeMinutes}} min",
+    "channels": [
+      "in_app",
+      "file_log"
+    ],
+    "minPriority": "low",
+    "rateLimitPerMin": 2,
+    "aggregateWindowMs": 300000,
+    "enabled": true,
+    "id": "ntpl_1782228122303_b20a"
+  },
+  {
+    "name": "agent_error",
+    "subject": "⚠️ Agent Error: {{agent}} — {{error}}",
+    "body": "Agent \"{{agent}}\" encountered an error:\n{{error}}\n\nAction required: check agent loop monitor.",
+    "channels": [
+      "slack_webhook",
+      "in_app",
+      "file_log"
+    ],
+    "minPriority": "high",
+    "rateLimitPerMin": 15,
+    "aggregateWindowMs": 60000,
+    "enabled": true,
+    "id": "ntpl_1782228122303_53a6"
+  },
+  {
+    "name": "workflow_complete",
+    "subject": "Workflow: {{status}} — {{workflowName}}",
+    "body": "Workflow \"{{workflowName}}\" completed: {{status}}\nSteps: {{completedSteps}}/{{totalSteps}} OK\nDuration: {{durationMs}}ms",
+    "channels": [
+      "in_app",
+      "file_log"
+    ],
+    "minPriority": "normal",
+    "rateLimitPerMin": 10,
+    "aggregateWindowMs": 60000,
+    "enabled": true,
+    "id": "ntpl_1782228122303_d651"
+  }
+]

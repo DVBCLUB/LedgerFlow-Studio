@@ -63,7 +63,7 @@ if (failed.length > 0) {
 }
 
 if (mode === 'release') {
-  console.log('\nDesktop release checklist passed. Build is ready for manual install testing and artifact upload.\n');
+  console.log('\nDesktop release checklist passed. Build is ready for direct EXE testing and artifact upload.\n');
 } else {
-  console.log('\nDesktop prebuild checklist passed. You can now run npm run desktop:dist.\n');
+  console.log('\nDesktop prebuild checklist passed. You can now run npm run desktop:dist to refresh release/win-unpacked.\n');
 }

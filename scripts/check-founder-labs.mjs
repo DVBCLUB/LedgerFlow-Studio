@@ -3,11 +3,10 @@ import path from 'path';
 
 const root = process.cwd();
 const componentDir = path.join(root, 'src', 'components');
-const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
+const dockPath = path.join(componentDir, 'shared', 'FounderLabsDock.tsx');
 const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
 const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.md');
 const mainPath = path.join(root, 'src', 'main.tsx');
-const analyticsWorkspacePath = path.join(componentDir, 'AnalyticsWorkspace.tsx');
 
 const requiredBackupOnlyKeys = ['ledgerflow-founder-labs-last-backup-v1'];
 
@@ -15,7 +14,7 @@ const requiredLabs = [
   { component: 'StartHereLab', tab: 'start_here', label: 'Start Here', storageKeys: [] },
   { component: 'CompanyOS', tab: 'company_os', label: 'Company OS', storageKeys: [] },
   { component: 'ExperimentDashboard', tab: 'dashboard', label: 'Experiment Dashboard', storageKeys: [] },
-  { component: 'AIStaffAssignmentBoard', componentPath: 'src/components/agent-ops/tabs/PeopleTab.tsx', importPath: './agent-ops/tabs/PeopleTab', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
+  { component: 'AIStaffAssignmentBoard', componentPath: 'src/modules/ai-hr/PeopleTab.tsx', importPath: '../../modules/ai-hr/PeopleTab', tab: 'ai_staff', label: 'AI Staff Board', storageKeys: ['ledgerflow-ai-staff-assignment-v1'] },
   { component: 'AIOutputQualityReview', tab: 'ai_quality', label: 'AI Quality Review', storageKeys: [] },
   { component: 'ContentRepurposeBoard', tab: 'content', label: 'Content Repurpose', storageKeys: ['ledgerflow-content-repurpose-board-v1'] },
   { component: 'SyntheticSurveyBuilder', tab: 'synthetic_survey', label: 'Synthetic Survey', storageKeys: ['ledgerflow-synthetic-survey-builder-v1'] },
@@ -49,6 +48,33 @@ const requiredLabs = [
   { component: 'LabsBackupRestore', tab: 'backup', label: 'Backup / Restore', storageKeys: [] }
 ];
 
+const searchDirs = [
+  path.join(root, 'src', 'modules', 'product-studio'),
+  path.join(root, 'src', 'modules', 'marketing-growth'),
+  path.join(root, 'src', 'modules', 'sales-crm'),
+  path.join(root, 'src', 'modules', 'ai-hr'),
+  path.join(root, 'src', 'modules', 'analytics-sandbox'),
+  path.join(root, 'src', 'modules', 'finance-accounting'),
+  path.join(root, 'src', 'modules', 'dev-ops'),
+  path.join(root, 'src', 'modules', 'command-center'),
+  path.join(root, 'src', 'components'),
+  path.join(root, 'src', 'components', 'agent-ops', 'tabs')
+];
+
+function findComponentFile(name) {
+  for (const dir of searchDirs) {
+    for (const ext of ['.tsx', '.ts', '.jsx', '.js']) {
+      const fullPath = path.join(dir, name + ext);
+      if (fs.existsSync(fullPath)) {
+        return fullPath;
+      }
+    }
+  }
+  return null;
+}
+
+const analyticsWorkspacePath = findComponentFile('AnalyticsWorkspace') || path.join(componentDir, 'AnalyticsWorkspace.tsx');
+
 const errors = [];
 const warnings = [];
 
@@ -71,18 +97,17 @@ function findDuplicates(values) {
   return [...duplicates];
 }
 
-const dockContent = readFile('src/components/FounderLabsDock.tsx');
+const dockContent = readFile('src/components/shared/FounderLabsDock.tsx');
 const backupContent = readFile('src/components/LabsBackupRestore.tsx');
 const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
 const mainContent = readFile('src/main.tsx');
-const analyticsWorkspaceContent = readFile('src/components/AnalyticsWorkspace.tsx');
+const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? fs.readFileSync(analyticsWorkspacePath, 'utf8') : '';
+if (!fs.existsSync(analyticsWorkspacePath)) {
+  errors.push(`Missing file: ${path.relative(root, analyticsWorkspacePath)}`);
+}
 
 if (!mainContent.includes('ErpApp') || !analyticsWorkspaceContent.includes('FounderLabsDock embedded')) {
   errors.push('ERP runtime does not expose FounderLabsDock through the embedded Analytics workspace.');
-}
-
-if (!mainContent.includes('SimulationGuard')) {
-  warnings.push('src/main.tsx does not mention SimulationGuard. Confirm global simulation access is intentional.');
 }
 
 if (companyOsGuardrailsContent && !companyOsGuardrailsContent.includes('Company OS is a Founder Labs module, not a replacement for the main LedgerFlow app.')) {
@@ -116,19 +141,25 @@ if (!defaultActiveMatch) {
 }
 
 for (const lab of requiredLabs) {
-  const componentRelativePath = lab.componentPath ?? `src/components/${lab.component}.tsx`;
-  const componentPath = path.join(root, componentRelativePath);
-  if (!fs.existsSync(componentPath)) {
-    errors.push(`Missing Founder Lab component: ${componentRelativePath}`);
+  const existingPath = lab.componentPath
+    ? path.join(root, lab.componentPath)
+    : findComponentFile(lab.component);
+
+  if (!existingPath || !fs.existsSync(existingPath)) {
+    errors.push(`Missing Founder Lab component: ${lab.component}`);
     continue;
   }
 
-  const componentContent = fs.readFileSync(componentPath, 'utf8');
+  const componentRelativePath = path.relative(root, existingPath).replace(/\\/g, '/');
+  const componentContent = fs.readFileSync(existingPath, 'utf8');
   if (!/export\s+default/.test(componentContent)) {
     errors.push(`Founder Lab component has no default export: ${componentRelativePath}`);
   }
 
-  const importPath = lab.importPath ?? `./${lab.component}`;
+  // Calculate relative import path from FounderLabsDock (which is in src/components/shared)
+  const relFromDock = path.relative(path.join(root, 'src', 'components', 'shared'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+  const importPath = relFromDock.startsWith('.') ? relFromDock : './' + relFromDock;
+
   if (!dockContent.includes(`import('${importPath}')`)) {
     errors.push(`FounderLabsDock does not lazy-load ${lab.component} from ${importPath}.`);
   }

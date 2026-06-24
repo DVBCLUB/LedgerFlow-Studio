@@ -1,0 +1,28 @@
+{
+  "name": "code-formatter",
+  "version": "1.0.0",
+  "type": "tool",
+  "description": "Auto-format code files",
+  "author": "system",
+  "capabilities": [
+    {
+      "name": "format_code",
+      "description": "Format TypeScript/JavaScript code",
+      "params": {
+        "filePath": {
+          "type": "string",
+          "description": "File to format",
+          "required": true
+        }
+      },
+      "returns": {
+        "type": "string",
+        "description": "Formatted code"
+      }
+    }
+  ],
+  "dependencies": [],
+  "entryPoint": "index.ts",
+  "enabled": true,
+  "id": "plugin_1782200194267_bc59b2"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "job_1782198417791_504106",
+  "type": "audit",
+  "priority": "normal",
+  "status": "completed",
+  "payload": {
+    "filePath": "d:/CODE/LedgerFlow-Studio/server/assistant-daemon.ts"
+  },
+  "maxRetries": 3,
+  "retryCount": 0,
+  "retryDelayMs": 2000,
+  "timeoutMs": 120000,
+  "enqueuedAt": "2026-06-23T07:06:57.791Z",
+  "attempts": [
+    {
+      "at": "2026-06-23T07:06:58.126Z",
+      "status": "completed",
+      "durationMs": 335
+    }
+  ],
+  "startedAt": "2026-06-23T07:06:57.791Z",
+  "result": "Audit: 75/100, 3 findings",
+  "completedAt": "2026-06-23T07:06:58.126Z"
+}

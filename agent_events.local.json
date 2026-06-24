@@ -1,0 +1,374 @@
+[
+  {
+    "id": "evt_d996b73e-a4f0-4c5f-9f04-b596127ec857",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T23:54:27.815Z"
+    },
+    "publishedAt": "2026-06-23T23:54:27.815Z"
+  },
+  {
+    "id": "evt_186889ad-6479-4a1d-891d-7323550ddb2c",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d"
+    },
+    "publishedAt": "2026-06-23T23:54:27.532Z"
+  },
+  {
+    "id": "evt_10bfb1db-cf76-417f-9f3b-b0a423fc12ca",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+      "stepId": "step_87116f05-29bf-4cc8-8837-8b9faac6dbdf",
+      "toolId": "draft_patch",
+      "fingerprint": "55d013dbb759835aa3ce2e13f14a26c893e526ec07b6a87802e59cc4f8cb1937"
+    },
+    "publishedAt": "2026-06-23T23:54:27.436Z"
+  },
+  {
+    "id": "evt_60029c18-5119-4938-ba74-72624ae78afd",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:51:26.595Z"
+    },
+    "publishedAt": "2026-06-23T15:51:26.595Z"
+  },
+  {
+    "id": "evt_c9901edf-c7bf-4b64-b18d-66bbbcac80e8",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9"
+    },
+    "publishedAt": "2026-06-23T15:51:26.539Z"
+  },
+  {
+    "id": "evt_3a0ed873-4c5e-4131-b8d1-85771535b322",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+      "stepId": "step_c771e35e-d0d3-4e31-b0b5-f4bea048d8ba",
+      "toolId": "draft_patch",
+      "fingerprint": "7bfcfac7763922e48283790d8a3dffe15eeedf401783ab1a1d135386a5109383"
+    },
+    "publishedAt": "2026-06-23T15:51:26.511Z"
+  },
+  {
+    "id": "evt_accb0e27-046d-4d1f-9275-a4575c9c3e18",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:47:36.180Z"
+    },
+    "publishedAt": "2026-06-23T15:47:36.180Z"
+  },
+  {
+    "id": "evt_94bf8ee9-126c-4990-88a2-2c1d207686af",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b"
+    },
+    "publishedAt": "2026-06-23T15:47:36.137Z"
+  },
+  {
+    "id": "evt_a6b1686a-2011-4046-93ab-28bc843b2b27",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+      "stepId": "step_940b85e4-b6e0-488e-a5ac-51bb56ac52c3",
+      "toolId": "draft_patch",
+      "fingerprint": "c079ae9e5c223e7b4ce0dd78945eff0543baff6fe5ca04ce1752cd12a6b66901"
+    },
+    "publishedAt": "2026-06-23T15:47:36.121Z"
+  },
+  {
+    "id": "evt_be77694c-7745-4131-9012-feff52214233",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:41:51.231Z"
+    },
+    "publishedAt": "2026-06-23T15:41:51.231Z"
+  },
+  {
+    "id": "evt_0d1ce0c8-939b-4493-9733-fc69f107c341",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd"
+    },
+    "publishedAt": "2026-06-23T15:41:51.192Z"
+  },
+  {
+    "id": "evt_b0a3fd0a-f554-40f6-9bec-b096a8feb3ba",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+      "stepId": "step_d609387c-ef11-47d8-b162-b81b7a3f8634",
+      "toolId": "draft_patch",
+      "fingerprint": "9c6a4ad2f4320fe68c95dcef4b90e0ba43f4a480ff53cbccadbf609f3c9989af"
+    },
+    "publishedAt": "2026-06-23T15:41:51.173Z"
+  },
+  {
+    "id": "evt_0e4e7f19-bfa5-4ef2-b117-999a0b26ffd9",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:29:56.483Z"
+    },
+    "publishedAt": "2026-06-23T15:29:56.483Z"
+  },
+  {
+    "id": "evt_2032aed5-62e2-48f7-8d0f-670ebbcc3fc6",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6"
+    },
+    "publishedAt": "2026-06-23T15:29:56.423Z"
+  },
+  {
+    "id": "evt_d74b160b-7da5-4932-aa82-35456b4eb429",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+      "stepId": "step_1c0430d6-f6ca-48b7-b56a-268c098ec18f",
+      "toolId": "draft_patch",
+      "fingerprint": "ad9d6899bb61607c396b91b36f4fa524831c35e9e65d20e2db310daf5ce5d046"
+    },
+    "publishedAt": "2026-06-23T15:29:56.405Z"
+  },
+  {
+    "id": "evt_c7799601-b1bc-4d7c-8176-90dd8dd3ed33",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:26:55.420Z"
+    },
+    "publishedAt": "2026-06-23T15:26:55.420Z"
+  },
+  {
+    "id": "evt_1353a054-2484-4e50-bdc4-d8a066b15259",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42"
+    },
+    "publishedAt": "2026-06-23T15:26:55.368Z"
+  },
+  {
+    "id": "evt_61111f8f-7d3c-4f2e-b149-f33681ce257f",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+      "stepId": "step_6fc856f5-080c-4e04-9b79-7d4a6ba38a90",
+      "toolId": "draft_patch",
+      "fingerprint": "8d167468db8cf4277e323e65a11d52b32ec33a746cf280e06f923f8e98f946c8"
+    },
+    "publishedAt": "2026-06-23T15:26:55.352Z"
+  },
+  {
+    "id": "evt_7241ae01-7fe4-4d3c-8bc3-6f5fbd2052e3",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:23:36.031Z"
+    },
+    "publishedAt": "2026-06-23T15:23:36.031Z"
+  },
+  {
+    "id": "evt_2aa2f979-ad48-4c08-98fc-2d466b43cd29",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9"
+    },
+    "publishedAt": "2026-06-23T15:23:35.963Z"
+  },
+  {
+    "id": "evt_76b4a7d1-3ff6-4f98-a5e9-3d213867b3ff",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+      "stepId": "step_88b2973f-6690-4e3e-8fb3-e24f7ac2e61a",
+      "toolId": "draft_patch",
+      "fingerprint": "34754c6f02c797b97b9e94c62b0d82e82ad6df2959802efea674f4f24d322c1b"
+    },
+    "publishedAt": "2026-06-23T15:23:35.937Z"
+  },
+  {
+    "id": "evt_c7f164e8-be42-40d4-be08-0ce3fedf731f",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T15:17:47.131Z"
+    },
+    "publishedAt": "2026-06-23T15:17:47.131Z"
+  },
+  {
+    "id": "evt_fd0b104c-700e-45be-bcb5-c3b91d0e31ec",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3"
+    },
+    "publishedAt": "2026-06-23T15:17:47.084Z"
+  },
+  {
+    "id": "evt_b6b40688-dded-4ba3-a0b3-9afd5b2134ce",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+      "stepId": "step_b0c29396-1d71-4d61-885f-c5aff6845b3b",
+      "toolId": "draft_patch",
+      "fingerprint": "abc149c3f8e2cbf95ba4f81e61bd1b1fd9fb51af162798c83f883716950a57b6"
+    },
+    "publishedAt": "2026-06-23T15:17:47.062Z"
+  },
+  {
+    "id": "evt_53a2e42c-da82-4e64-864d-640c44a5ab33",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T14:57:09.428Z"
+    },
+    "publishedAt": "2026-06-23T14:57:09.428Z"
+  },
+  {
+    "id": "evt_057a1e72-2fe8-483e-a5fd-aa148d3f31e6",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa"
+    },
+    "publishedAt": "2026-06-23T14:57:09.367Z"
+  },
+  {
+    "id": "evt_333ef318-75f1-4320-a401-9e6c303d6de3",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+      "stepId": "step_f7f2718e-b293-4971-b4d3-b07004b91547",
+      "toolId": "draft_patch",
+      "fingerprint": "64286a21ed5d23f9f2ca36fe45e7c45886777125335c218b469d7f115b737c70"
+    },
+    "publishedAt": "2026-06-23T14:57:09.354Z"
+  },
+  {
+    "id": "evt_37d65ddb-2994-46c8-8351-abcf4ee8cf81",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T14:55:54.708Z"
+    },
+    "publishedAt": "2026-06-23T14:55:54.708Z"
+  },
+  {
+    "id": "evt_1490c5f4-18f3-4edd-a82c-d0ebb7237164",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916"
+    },
+    "publishedAt": "2026-06-23T14:55:54.656Z"
+  },
+  {
+    "id": "evt_bd22acdd-f9df-4f98-a4d4-d7eeb2e7b035",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+      "stepId": "step_d1978cbc-0879-4e2f-a819-df67bf94ad77",
+      "toolId": "draft_patch",
+      "fingerprint": "58ac073e68c0d812aa16a540977b6bae53bfe2980f1561a824c3f80b5b6c724c"
+    },
+    "publishedAt": "2026-06-23T14:55:54.633Z"
+  },
+  {
+    "id": "evt_bd986ff0-880d-4991-89cc-48798e7fbdba",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T14:47:42.734Z"
+    },
+    "publishedAt": "2026-06-23T14:47:42.734Z"
+  },
+  {
+    "id": "evt_1a317dd8-5fa7-4cd6-9277-f3e56f271444",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d"
+    },
+    "publishedAt": "2026-06-23T14:47:42.679Z"
+  },
+  {
+    "id": "evt_c722e65c-0f9d-4efd-81b8-68af2fd3d62e",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+      "stepId": "step_8ec0887c-9fe4-4434-ae78-6dbd7a6aa2a8",
+      "toolId": "draft_patch",
+      "fingerprint": "eec027b9d2768fc8de26cc6846193456675c9a16f76d45b17ae3ef0d582ae532"
+    },
+    "publishedAt": "2026-06-23T14:47:42.661Z"
+  },
+  {
+    "id": "evt_8143eb94-9188-4325-9c8a-c693bfaa79c7",
+    "type": "robot.emergency_stop",
+    "source": "system",
+    "payload": {
+      "active": true,
+      "timestamp": "2026-06-23T14:35:01.904Z"
+    },
+    "publishedAt": "2026-06-23T14:35:01.904Z"
+  },
+  {
+    "id": "evt_7a0a7b09-c669-49f5-abef-7f58b5119471",
+    "type": "agent.run.completed",
+    "source": "system",
+    "payload": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af"
+    },
+    "publishedAt": "2026-06-23T14:35:01.863Z"
+  },
+  {
+    "id": "evt_9e7d577f-4877-4d0b-9da5-b5dbffcde1dc",
+    "type": "agent.step.approval_required",
+    "source": "system",
+    "payload": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+      "stepId": "step_0b769aea-b1df-45ce-bfcb-9e1792142b69",
+      "toolId": "draft_patch",
+      "fingerprint": "cbad5927e96302a09261910e833613427c48a17a5c0d8464b492b4fa90e2eb3e"
+    },
+    "publishedAt": "2026-06-23T14:35:01.847Z"
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "id": "thread_1782189851170_2115f2",
+  "title": "E2E Test Conversation",
+  "domain": "coding",
+  "agent": "fabric",
+  "status": "active",
+  "turns": [],
+  "summary": "",
+  "contextWindowId": "ctx_thread_1782189851170_2115f2",
+  "tags": [],
+  "messageCount": 0,
+  "totalTokens": 0,
+  "createdAt": "2026-06-23T04:44:11.170Z",
+  "updatedAt": "2026-06-23T04:44:11.170Z"
+}

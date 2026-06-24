@@ -14,6 +14,27 @@ import { getWorkspaceRoot } from "./safeFileManager";
 import { callAI } from "./aiClient";
 import { parseAICodeResponse, buildCodingPrompt } from "./codingContext";
 
+export interface AutoRepairProgress {
+  active: boolean;
+  loop: number;
+  maxLoops: number;
+  status: "checking" | "failed" | "fixing" | "success" | "idle";
+  message: string;
+}
+
+export let activeRepairProgress: AutoRepairProgress = {
+  active: false,
+  loop: 0,
+  maxLoops: 0,
+  status: "idle",
+  message: "",
+};
+
+function updateProgress(progress: Partial<AutoRepairProgress>) {
+  activeRepairProgress = { ...activeRepairProgress, ...progress };
+  console.log(`[AutoRepair Progress] Loop ${activeRepairProgress.loop}: ${activeRepairProgress.status} - ${activeRepairProgress.message}`);
+}
+
 interface ValidationResult {
   ok: boolean;
   errors?: string;
@@ -117,102 +138,179 @@ export async function runAutoRepairLoop(
   applyFileFn: (filePath: string, content: string) => Promise<void>,
   getLatestCodeFn: (filePath: string) => Promise<string>,
   maxRetries = 2
-): Promise<{ ok: boolean; message: string; loops: number }> {
+): Promise<{ ok: boolean; message: string; loops: number; steps: Array<{ loop: number; errors: string; fixedFiles: string[] }> }> {
   let loops = 0;
+  const steps: Array<{ loop: number; errors: string; fixedFiles: string[] }> = [];
 
-  while (loops < maxRetries) {
-    console.log(`[AutoRepair] Running compiler/linter checks (Loop ${loops + 1}/${maxRetries})...`);
-    const check = await runValidationChecks();
+  updateProgress({
+    active: true,
+    loop: 0,
+    maxLoops: maxRetries,
+    status: "checking",
+    message: "Đang khởi chạy kiểm tra lỗi biên dịch (compiler/linter)...",
+  });
 
-    if (check.ok) {
+  try {
+    while (loops < maxRetries) {
+      updateProgress({
+        loop: loops + 1,
+        status: "checking",
+        message: `Đang chạy kiểm tra lỗi biên dịch (vòng lặp ${loops + 1}/${maxRetries})...`,
+      });
+
+      console.log(`[AutoRepair] Running compiler/linter checks (Loop ${loops + 1}/${maxRetries})...`);
+      const check = await runValidationChecks();
+
+      if (check.ok) {
+        updateProgress({
+          active: false,
+          status: "success",
+          message: `Sửa lỗi biên dịch thành công sau ${loops} vòng lặp.`,
+        });
+        return {
+          ok: true,
+          message: `✅ Sửa lỗi compiler/linter thành công sau ${loops} vòng lặp.`,
+          loops,
+          steps,
+        };
+      }
+
+      loops++;
+      console.warn(`[AutoRepair] Validation failed with errors:\n${check.errors}`);
+
+      updateProgress({
+        loop: loops,
+        status: "fixing",
+        message: `Phát hiện lỗi compiler. Đang gửi log lỗi đến AI để tìm phương án sửa đổi...`,
+      });
+
+      const currentStep = {
+        loop: loops,
+        errors: check.errors,
+        fixedFiles: [] as string[],
+      };
+      steps.push(currentStep);
+
+      // Read current content of target files to provide as context
+      const currentFilesCtx = [];
+      for (const f of files) {
+        try {
+          const content = await getLatestCodeFn(f.filePath);
+          currentFilesCtx.push({
+            absolutePath: f.filePath,
+            relativePath: f.relativePath,
+            content,
+            language: f.filePath.endsWith(".tsx") ? "typescriptreact" : "typescript",
+            sizeBytes: content.length,
+            modifiedAt: new Date().toISOString(),
+          });
+        } catch {
+          // Skip
+        }
+      }
+
+      // Build repair prompt
+      const repairPrompt =
+        `Mã nguồn hiện tại sau khi chỉnh sửa bị lỗi kiểm tra cục bộ (compiler/linter). Hãy sửa lại code để giải quyết các lỗi này.\n\n` +
+        `**Lỗi từ compiler/linter cục bộ:**\n\`\`\`\n${check.errors}\n\`\`\`\n\n` +
+        `**Yêu cầu gốc ban đầu:** "${originalPrompt}"\n\n` +
+        `Hãy trả về nội dung của các file đã được SỬA LỖI hoàn chỉnh trong các code block tương ứng.`;
+
+      const messages = buildCodingPrompt({
+        instruction: repairPrompt,
+        files: currentFilesCtx,
+        task: "fix",
+      });
+
+      console.log("[AutoRepair] Calling AI router to fix errors...");
+      const aiResult = await callAI(messages, {
+        task: "coding",
+        model: "ai-assistant-pro", // Use pro model for complex debugging
+        temperature: 0.1, // low temperature for precise fixes
+        maxTokens: 4096,
+      });
+
+      // Parse files returned
+      const parsed = parseAICodeResponse(aiResult.content);
+
+      if (parsed.codeBlocks.length === 0) {
+        console.warn("[AutoRepair] AI did not return any code blocks for repair. Aborting.");
+        updateProgress({
+          status: "failed",
+          message: "AI không trả về khối mã nguồn sửa đổi nào. Hủy tiến trình.",
+        });
+        break;
+      }
+
+      // Write repaired code blocks back to target files
+      for (const block of parsed.codeBlocks) {
+        // Find matching file
+        const matchedFile = files.find(
+          (f) =>
+            block.targetFile?.includes(f.relativePath) ||
+            f.relativePath.endsWith(block.targetFile ?? "") ||
+            // Fallback to first target file if single block
+            (parsed.codeBlocks.length === 1 && files.length === 1)
+        );
+
+        if (matchedFile) {
+          console.log(`[AutoRepair] Writing repaired code to ${matchedFile.relativePath}...`);
+          updateProgress({
+            status: "fixing",
+            message: `Đang ghi file sửa lỗi: ${matchedFile.relativePath}...`,
+          });
+          await applyFileFn(matchedFile.filePath, block.code);
+          currentStep.fixedFiles.push(matchedFile.relativePath);
+        }
+      }
+    }
+
+    // Final confirmation compiler/linter check
+    updateProgress({
+      status: "checking",
+      message: "Đang chạy kiểm tra biên dịch cuối cùng để xác nhận...",
+    });
+
+    const finalCheck = await runValidationChecks();
+    if (finalCheck.ok) {
+      updateProgress({
+        active: false,
+        status: "success",
+        message: `Sửa lỗi biên dịch thành công sau ${loops} vòng lặp.`,
+      });
       return {
         ok: true,
         message: `✅ Sửa lỗi compiler/linter thành công sau ${loops} vòng lặp.`,
         loops,
+        steps,
       };
     }
 
-    loops++;
-    console.warn(`[AutoRepair] Validation failed with errors:\n${check.errors}`);
-
-    // Read current content of target files to provide as context
-    const currentFilesCtx = [];
-    for (const f of files) {
-      try {
-        const content = await getLatestCodeFn(f.filePath);
-        currentFilesCtx.push({
-          absolutePath: f.filePath,
-          relativePath: f.relativePath,
-          content,
-          language: f.filePath.endsWith(".tsx") ? "typescriptreact" : "typescript",
-          sizeBytes: content.length,
-          modifiedAt: new Date().toISOString(),
-        });
-      } catch {
-        // Skip
-      }
-    }
-
-    // Build repair prompt
-    const repairPrompt =
-      `Mã nguồn hiện tại sau khi chỉnh sửa bị lỗi kiểm tra cục bộ (compiler/linter). Hãy sửa lại code để giải quyết các lỗi này.\n\n` +
-      `**Lỗi từ compiler/linter cục bộ:**\n\`\`\`\n${check.errors}\n\`\`\`\n\n` +
-      `**Yêu cầu gốc ban đầu:** "${originalPrompt}"\n\n` +
-      `Hãy trả về nội dung của các file đã được SỬA LỖI hoàn chỉnh trong các code block tương ứng.`;
-
-    const messages = buildCodingPrompt({
-      instruction: repairPrompt,
-      files: currentFilesCtx,
-      task: "fix",
+    // Record final state failure if we reached maximum retries
+    steps.push({
+      loop: loops + 1,
+      errors: finalCheck.errors,
+      fixedFiles: [],
     });
 
-    console.log("[AutoRepair] Calling AI router to fix errors...");
-    const aiResult = await callAI(messages, {
-      task: "coding",
-      model: "ai-assistant-pro", // Use pro model for complex debugging
-      temperature: 0.1, // low temperature for precise fixes
-      maxTokens: 4096,
+    updateProgress({
+      active: false,
+      status: "failed",
+      message: "Tự động sửa lỗi thất bại. Vẫn còn lỗi biên dịch.",
     });
 
-    // Parse files returned
-    const parsed = parseAICodeResponse(aiResult.content);
-
-    if (parsed.codeBlocks.length === 0) {
-      console.warn("[AutoRepair] AI did not return any code blocks for repair. Aborting.");
-      break;
-    }
-
-    // Write repaired code blocks back to target files
-    for (const block of parsed.codeBlocks) {
-      // Find matching file
-      const matchedFile = files.find(
-        (f) =>
-          block.targetFile?.includes(f.relativePath) ||
-          f.relativePath.endsWith(block.targetFile ?? "") ||
-          // Fallback to first target file if single block
-          (parsed.codeBlocks.length === 1 && files.length === 1)
-      );
-
-      if (matchedFile) {
-        console.log(`[AutoRepair] Writing repaired code to ${matchedFile.relativePath}...`);
-        await applyFileFn(matchedFile.filePath, block.code);
-      }
-    }
-  }
-
-  // Final confirmation compiler/linter check
-  const finalCheck = await runValidationChecks();
-  if (finalCheck.ok) {
     return {
-      ok: true,
-      message: `✅ Sửa lỗi compiler/linter thành công sau ${loops} vòng lặp.`,
+      ok: false,
+      message: `❌ Không thể tự động sửa hết lỗi compiler/linter sau ${loops} vòng lặp. Lỗi còn lại:\n${finalCheck.errors}`,
       loops,
+      steps,
     };
+  } catch (err: any) {
+    updateProgress({
+      active: false,
+      status: "failed",
+      message: `Lỗi bất ngờ trong Auto-Repair: ${err.message || err}`,
+    });
+    throw err;
   }
-
-  return {
-    ok: false,
-    message: `❌ Không thể tự động sửa hết lỗi compiler/linter sau ${loops} vòng lặp. Lỗi còn lại:\n${finalCheck.errors}`,
-    loops,
-  };
 }

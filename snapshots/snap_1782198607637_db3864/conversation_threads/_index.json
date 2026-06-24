@@ -1,0 +1,68 @@
+[
+  {
+    "id": "thread_1782189790963_b29709",
+    "title": "Test Thread",
+    "domain": "coding",
+    "agent": "fabric",
+    "status": "archived",
+    "turns": [
+      {
+        "id": "turn_1782189790963_ff94",
+        "role": "user",
+        "content": "Hello",
+        "timestamp": "2026-06-23T04:43:10.963Z",
+        "metadata": {},
+        "tokenEstimate": 2
+      },
+      {
+        "id": "turn_1782189790963_f8cd",
+        "role": "assistant",
+        "content": "Hi there!",
+        "timestamp": "2026-06-23T04:43:10.963Z",
+        "metadata": {},
+        "tokenEstimate": 3
+      },
+      {
+        "id": "turn_1782189790963_245b",
+        "role": "user",
+        "content": "Write a function",
+        "timestamp": "2026-06-23T04:43:10.963Z",
+        "metadata": {},
+        "tokenEstimate": 5
+      },
+      {
+        "id": "turn_1782189790963_b4e8",
+        "role": "assistant",
+        "content": "Sure, here you go...",
+        "timestamp": "2026-06-23T04:43:10.963Z",
+        "metadata": {},
+        "tokenEstimate": 6
+      }
+    ],
+    "summary": "",
+    "contextWindowId": "ctx_thread_1782189790963_b29709",
+    "tags": [
+      "test"
+    ],
+    "messageCount": 4,
+    "totalTokens": 16,
+    "createdAt": "2026-06-23T04:43:10.963Z",
+    "updatedAt": "2026-06-23T04:43:10.963Z",
+    "archivedAt": "2026-06-23T04:43:10.963Z"
+  },
+  {
+    "id": "thread_1782189851170_2115f2",
+    "title": "E2E Test Conversation",
+    "domain": "coding",
+    "agent": "fabric",
+    "status": "active",
+    "turns": [],
+    "summary": "",
+    "contextWindowId": "ctx_thread_1782189851170_2115f2",
+    "tags": [],
+    "messageCount": 0,
+    "totalTokens": 0,
+    "createdAt": "2026-06-23T04:44:11.170Z",
+    "updatedAt": "2026-06-23T04:44:11.170Z"
+  }
+]

@@ -1,0 +1,31 @@
+[
+  {
+    "id": "ds_1782191604293_6ff5a5",
+    "name": "Test Dataset",
+    "description": "",
+    "domain": "coding",
+    "pairs": [
+      {
+        "id": "pair_1782191604292_d98366",
+        "domain": "coding",
+        "task": "Write sort",
+        "systemPrompt": "",
+        "userPrompt": "Write a sort function in TS",
+        "assistantResponse": "function sort<T>(arr: T[]): T[] { return [...arr].sort(); }",
+        "quality": "gold",
+        "source": "manual",
+        "confidence": 0.7,
+        "tags": [],
+        "tokenCount": 22,
+        "collectedAt": "2026-06-23T05:13:24.292Z"
+      }
+    ],
+    "format": "chatml",
+    "totalPairs": 1,
+    "totalTokens": 22,
+    "qualityDistribution": {
+      "gold": 1
+    },
+    "createdAt": "2026-06-23T05:13:24.293Z"
+  }
+]

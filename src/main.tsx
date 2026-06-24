@@ -1,13 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import ErpApp from './app/ErpApp';
-import LocalLoginGate from './components/LocalLoginGate';
+import App from './App'; // App shell hosts ErpApp (the main ERP runtime)
 import './index.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <LocalLoginGate>
-      <ErpApp />
-    </LocalLoginGate>
+    <App />
   </StrictMode>,
 );

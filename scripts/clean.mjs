@@ -44,8 +44,12 @@ function removeGenerated(target) {
     return;
   }
 
-  fs.rmSync(fullPath, { recursive: true, force: true });
-  console.log(`[clean] Removed ${relative}`);
+  try {
+    fs.rmSync(fullPath, { recursive: true, force: true });
+    console.log(`[clean] Removed ${relative}`);
+  } catch (err) {
+    console.warn(`[clean] Warning: Could not fully remove ${relative}: ${err.message}`);
+  }
 }
 
 function listRuntimeTargets() {

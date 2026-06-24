@@ -1,0 +1,44 @@
+[
+  {
+    "id": "rule-ci-fail",
+    "name": "CI Failure Auto-Fix",
+    "type": "ci_failure",
+    "enabled": false,
+    "matchPattern": "ci:fail",
+    "agentGoal": "Phân tích lỗi CI trong GitHub Actions và đề xuất sửa. Đọc log lỗi, xác định file lỗi, sửa code và chạy npm run lint.",
+    "agentDomain": "coding",
+    "autoRepair": true,
+    "maxLoops": 5,
+    "notifyOnComplete": true,
+    "createdAt": "2026-06-23T15:22:02.300Z",
+    "triggerCount": 0
+  },
+  {
+    "id": "rule-file-review",
+    "name": "Auto Code Review on File Change",
+    "type": "file_change",
+    "enabled": false,
+    "matchPattern": "src/**/*.tsx",
+    "agentGoal": "Review code trong file vừa thay đổi. Kiểm tra type safety, best practices, và đề xuất cải tiến.",
+    "agentDomain": "coding",
+    "autoRepair": false,
+    "maxLoops": 1,
+    "notifyOnComplete": true,
+    "createdAt": "2026-06-23T15:22:02.300Z",
+    "triggerCount": 0
+  },
+  {
+    "id": "rule-daily-report",
+    "name": "Daily AI Report",
+    "type": "cron",
+    "enabled": false,
+    "matchCron": "0 8 * * *",
+    "agentGoal": "Tổng hợp báo cáo ngày: các task đã hoàn thành, CI status, memory đã học, chi phí AI đã dùng.",
+    "agentDomain": "general",
+    "autoRepair": false,
+    "maxLoops": 1,
+    "notifyOnComplete": true,
+    "createdAt": "2026-06-23T15:22:02.300Z",
+    "triggerCount": 0
+  }
+]

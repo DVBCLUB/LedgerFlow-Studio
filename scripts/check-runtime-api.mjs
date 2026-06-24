@@ -21,6 +21,20 @@ async function fetchJson(pathname, options = {}) {
   return { response, json };
 }
 
+async function login() {
+  const result = await fetchJson('/api/auth/local-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: 'smoke@ledgerflow.local', password: 'runtime-smoke-password' })
+  });
+  if (!result.response.ok || result.json?.success !== true) {
+    throw new Error(`Login failed with HTTP ${result.response.status}.`);
+  }
+  const cookie = result.response.headers.get('set-cookie')?.split(';')[0];
+  if (!cookie) throw new Error('Login did not return an HttpOnly session cookie.');
+  return cookie;
+}
+
 async function waitForHealth() {
   const startedAt = Date.now();
   let lastError = null;
@@ -52,7 +66,8 @@ function stopServer(child) {
 const child = spawn(process.execPath, ['dist/server.cjs'], {
   env: {
     ...process.env,
-    NODE_ENV: 'production'
+    NODE_ENV: 'production',
+    LOCAL_AUTH_DEV_PASSWORD: 'runtime-smoke-password'
   },
   stdio: ['ignore', 'pipe', 'pipe']
 });
@@ -84,17 +99,38 @@ try {
     throw new Error('/api/health did not return status ok.');
   }
 
-  const dbLoad = await fetchJson('/api/db/load');
+  const unauthorizedDbLoad = await fetchJson('/api/db/load');
+  if (unauthorizedDbLoad.response.status !== 401) {
+    throw new Error(`/api/db/load must reject unauthenticated requests; received ${unauthorizedDbLoad.response.status}.`);
+  }
+
+  const cookie = await login();
+  const authenticated = { headers: { Cookie: cookie } };
+  const dbLoad = await fetchJson('/api/db/load', authenticated);
   if (!dbLoad.response.ok || dbLoad.json?.success !== true) {
     throw new Error('/api/db/load did not return success true.');
   }
 
-  const aiHealth = await fetchJson('/api/ai/health');
+  const aiHealth = await fetchJson('/api/ai/health', authenticated);
   if (!aiHealth.response.ok || aiHealth.json?.success !== true) {
     throw new Error('/api/ai/health did not return success true.');
   }
 
-  console.log('LedgerFlow runtime API smoke test passed: health, local db and AI health endpoints responded.');
+  const preflight = await fetchJson('/api/ai/preflight', authenticated);
+  if (!preflight.response.ok || !preflight.json?.report) {
+    throw new Error('/api/ai/preflight did not return an AI Doctor report.');
+  }
+
+  const logout = await fetchJson('/api/auth/logout', { method: 'POST', headers: { Cookie: cookie } });
+  if (!logout.response.ok || logout.json?.success !== true) {
+    throw new Error('/api/auth/logout did not return success true.');
+  }
+  const afterLogout = await fetchJson('/api/db/load', authenticated);
+  if (afterLogout.response.status !== 401) {
+    throw new Error('Session remained authorized after logout.');
+  }
+
+  console.log('LedgerFlow runtime API smoke test passed: login, protected APIs, AI Doctor and logout were verified.');
 } catch (error) {
   console.error('\nLedgerFlow runtime API smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));

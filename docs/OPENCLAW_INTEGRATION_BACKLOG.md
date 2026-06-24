@@ -129,6 +129,10 @@ Do not copy OpenClaw behavior that grants broad host control by default:
 
 ## Implemented P0 pieces
 
+- Durable backend AgentRun store with plan, observations, evidence, artifacts and runtime budgets.
+- Fingerprint-bound AgentRun step approval plus per-run and global emergency stop.
+- Reviewed/expiring agent memory records with stable source citations.
+- Robot Connector SDK boundary implemented as a safety-limited digital-twin simulation only.
 - Backend approved GitHub change request route.
 - Draft PR service using backend-only token.
 - Approved PR panel component.

@@ -20,7 +20,7 @@ release/
 
 Bam file `.exe` de cai dat **LedgerFlow Hub**.
 
-Neu da co ban unpacked trong `release/win-unpacked`, co the bam:
+Neu da co ban Portable trong `release/`, co the bam:
 
 ```bat
 KHOI_DONG_PHAN_MEM.cmd

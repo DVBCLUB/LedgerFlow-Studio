@@ -33,6 +33,24 @@ const VAULT_FILE = path.join(process.cwd(), "ai_keys.vault.json");
 const SECRET_FILE = path.join(process.cwd(), ".ledgerflow_secret");
 const USAGE_LOG_FILE = path.join(process.cwd(), "ai_usage.log.json");
 
+async function checkLocalOllama(ollamaUrl: string): Promise<{ running: boolean; models: string[]; error?: string }> {
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1200);
+    const response = await fetch(`${ollamaUrl.replace(/\/$/, "")}/api/tags`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    if (response.ok) {
+      const data = (await response.json()) as any;
+      const models = data?.models?.map((m: any) => m.name) || [];
+      return { running: true, models };
+    } else {
+      return { running: false, models: [], error: `HTTP ${response.status}` };
+    }
+  } catch (err: any) {
+    return { running: false, models: [], error: err.message || String(err) };
+  }
+}
+
 export async function runAIPreflight(): Promise<AIPreflightReport> {
   const checks: AIPreflightCheck[] = [];
   const keys = await listAIKeys().catch(() => []);
@@ -44,6 +62,27 @@ export async function runAIPreflight(): Promise<AIPreflightReport> {
     severity: "ok",
     message: "Backend đang phản hồi bình thường.",
   });
+
+  const ollamaKey = keys.find((key) => key.provider === "ollama");
+  const ollamaUrl = ollamaKey?.baseUrl || "http://127.0.0.1:11434";
+  const ollamaCheck = await checkLocalOllama(ollamaUrl);
+
+  if (ollamaCheck.running) {
+    checks.push({
+      id: "ollama-local",
+      label: "Ollama Local Service",
+      severity: "ok",
+      message: `Ollama đang chạy tại ${ollamaUrl}. Các model khả dụng: ${ollamaCheck.models.join(", ") || "Chưa tải model nào."}`,
+    });
+  } else {
+    checks.push({
+      id: "ollama-local",
+      label: "Ollama Local Service",
+      severity: "warn",
+      message: `Không phát hiện Ollama chạy local tại ${ollamaUrl}. (Có thể bỏ qua nếu bạn dùng cloud providers).`,
+      action: "Khởi động Ollama ('ollama serve') và pull model (ví dụ: 'ollama pull qwen2.5:7b') để sử dụng hoàn toàn offline.",
+    });
+  }
 
   checks.push({
     id: "vault-file",

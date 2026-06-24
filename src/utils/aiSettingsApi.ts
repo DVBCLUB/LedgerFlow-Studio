@@ -1,5 +1,28 @@
 export type AIProviderId = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek";
-export type AIPromptTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding";
+export type AIPromptTask =
+  | "general"
+  | "accounting"
+  | "analytics"
+  | "marketing"
+  | "sales"
+  | "coding"
+  | "Chief of Staff"
+  | "AI CFO"
+  | "AI Dev"
+  | "AI DevOps"
+  | "AI PM"
+  | "AI Designer"
+  | "AI Game Dev"
+  | "AI QA"
+  | "AI Marketer"
+  | "AI Research"
+  | "AI Sales"
+  | "AI Accountant"
+  | "AI Auditor"
+  | "AI Legal"
+  | "AI Onboarding"
+  | "AI Support"
+  | "AI Analyst";
 
 export interface AIProviderDefinition {
   id: AIProviderId;

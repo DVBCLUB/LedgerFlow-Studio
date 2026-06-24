@@ -1,13 +1,28 @@
-import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type DecryptedAIKeyEntry } from "./aiKeyVault";
-import type { CallAIOptions, CallAIResult, ChatMessage } from "./aiClient";
-import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog";
+import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type DecryptedAIKeyEntry } from "./aiKeyVault.ts";
+import type { CallAIOptions, CallAIResult, ChatMessage } from "./aiClient.ts";
+import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog.ts";
 
 interface ProviderCallResult { content: string; modelUsed?: string; raw: unknown }
 export interface AIRouterDiagnosticItem { provider: AIProviderName | "litellm-proxy"; label: string; model?: string; status: "ok" | "quota" | "error" | "skipped"; latencyMs?: number; message?: string }
 export interface AIRouterDiagnostics { ok: boolean; checkedAt: string; totalEnabledKeys: number; results: AIRouterDiagnosticItem[] }
 
 class ProviderError extends Error {
-  constructor(message: string, public status?: number, public body?: unknown, public provider?: AIProviderName | "litellm-proxy") { super(message); this.name = "ProviderError"; }
+  public status?: number;
+  public body?: unknown;
+  public provider?: AIProviderName | "litellm-proxy";
+
+  constructor(
+    message: string,
+    status?: number,
+    body?: unknown,
+    provider?: AIProviderName | "litellm-proxy"
+  ) {
+    super(message);
+    this.name = "ProviderError";
+    this.status = status;
+    this.body = body;
+    this.provider = provider;
+  }
 }
 
 const DEFAULT_PROXY_URL = process.env.AI_PROXY_URL ?? "http://127.0.0.1:4000";

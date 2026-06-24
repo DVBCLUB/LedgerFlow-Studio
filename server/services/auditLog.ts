@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { signRecord, verifyRecord } from "./signedRecords.ts";
 
 export type AuditActor = "founder" | "ai-agent" | "system" | "connector";
 export type AuditRisk = "LOW" | "MEDIUM" | "HIGH" | "BLOCKED";
@@ -18,10 +19,13 @@ export interface AuditLogEntry {
   evidence?: Record<string, unknown>;
   approvalId?: string;
   connectorId?: string;
+  previousSignature?: string;
+  signature?: string;
 }
 
 const AUDIT_FILE = path.join(process.cwd(), "ledgerflow_audit.log.json");
 const MAX_AUDIT_EVENTS = 500;
+let auditWriteQueue = Promise.resolve();
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -41,20 +45,36 @@ async function writeJsonFile(filePath: string, payload: unknown): Promise<void> 
 }
 
 export async function appendAuditEvent(input: Omit<AuditLogEntry, "id" | "createdAt">): Promise<AuditLogEntry> {
-  const events = await readJsonFile<AuditLogEntry[]>(AUDIT_FILE, []);
-  const entry: AuditLogEntry = {
-    ...input,
-    id: `audit_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-    createdAt: nowIso(),
+  let entry!: AuditLogEntry;
+  const operation = async () => {
+    const events = await readJsonFile<AuditLogEntry[]>(AUDIT_FILE, []);
+    const unsigned: AuditLogEntry = { ...input, id: `audit_${Date.now()}_${Math.random().toString(16).slice(2)}`, createdAt: nowIso(), previousSignature: events[0]?.signature };
+    entry = { ...unsigned, signature: signRecord(unsigned) };
+    events.unshift(entry);
+    await writeJsonFile(AUDIT_FILE, events.slice(0, MAX_AUDIT_EVENTS));
   };
-  events.unshift(entry);
-  await writeJsonFile(AUDIT_FILE, events.slice(0, MAX_AUDIT_EVENTS));
+  const queued = auditWriteQueue.then(operation, operation);
+  auditWriteQueue = queued.catch(() => undefined);
+  await queued;
   return entry;
 }
 
 export async function readAuditEvents(limit = 100): Promise<AuditLogEntry[]> {
+  await auditWriteQueue.catch(() => undefined);
   const events = await readJsonFile<AuditLogEntry[]>(AUDIT_FILE, []);
   return events.slice(0, Math.max(1, Math.min(limit, MAX_AUDIT_EVENTS)));
+}
+
+export async function verifyAuditChain(limit = MAX_AUDIT_EVENTS) {
+  const events = await readAuditEvents(limit);
+  const failures: string[] = [];
+  events.forEach((entry, index) => {
+    const { signature = '', ...unsigned } = entry;
+    if (!signature || !verifyRecord(unsigned, signature)) failures.push(entry.id);
+    const older = events[index + 1];
+    if (older && entry.previousSignature !== older.signature) failures.push(`${entry.id}:chain`);
+  });
+  return { valid: failures.length === 0, checked: events.length, failures: [...new Set(failures)] };
 }
 
 export function integrationLevelToAuditRisk(level: "info" | "success" | "warning" | "error"): AuditRisk {

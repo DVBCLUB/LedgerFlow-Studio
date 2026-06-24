@@ -72,7 +72,7 @@ contains('server/services/accountingRoutes.ts', '/api/github/prs', 'DevRoom GitH
 
 // Task G — Revenue Dashboard
 exists('src/utils/revenueMetrics.ts', 'Task G revenueMetrics utility is missing.');
-exists('src/components/RevenueDashboard.tsx', 'Task G RevenueDashboard is missing.');
+exists('src/modules/finance-accounting/RevenueDashboard.tsx', 'Task G RevenueDashboard is missing.');
 containsAll('src/utils/revenueMetrics.ts', ['mrr', 'arr', 'activeCustomers', 'churnedThisMonth'], 'Revenue metrics');
 
 // Task H — Domain knowledge

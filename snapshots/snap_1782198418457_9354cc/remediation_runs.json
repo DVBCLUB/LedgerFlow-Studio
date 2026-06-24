@@ -1,0 +1,110 @@
+[
+  {
+    "id": "remed_1782197136444_574cea",
+    "trigger": "manual",
+    "target": "d:/CODE/LedgerFlow-Studio/.test_remediation.ts",
+    "errorDescription": "Missing semicolons and type annotations",
+    "steps": [
+      {
+        "id": "rst_1782197136536_d026",
+        "type": "validate_output",
+        "description": "Read original file content",
+        "status": "completed",
+        "output": "File size: 26 chars",
+        "latencyMs": 0
+      },
+      {
+        "id": "rst_1782197136536_426d",
+        "type": "ai_fix",
+        "description": "AI analyzing error and generating fix...",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 295
+      },
+      {
+        "id": "rst_1782197136975_4503",
+        "type": "ai_fix",
+        "description": "Fix attempt 2/3",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 143
+      },
+      {
+        "id": "rst_1782197137177_0f36",
+        "type": "ai_fix",
+        "description": "Fix attempt 3/3",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 202
+      },
+      {
+        "id": "rst_1782197137177_49ee",
+        "type": "notify",
+        "description": "Remediation complete",
+        "status": "failed",
+        "output": "Status: failed. Manual review needed.",
+        "latencyMs": 0
+      }
+    ],
+    "finalStatus": "failed",
+    "fixApplied": false,
+    "startedAt": "2026-06-23T06:45:36.444Z",
+    "totalLatencyMs": 733,
+    "originalContent": "const x = 1\nconsole.log(x)",
+    "completedAt": "2026-06-23T06:45:37.177Z"
+  },
+  {
+    "id": "remed_1782197193855_c4b20b",
+    "trigger": "manual",
+    "target": "d:/CODE/LedgerFlow-Studio/package.json",
+    "errorDescription": "Missing newline at end of file",
+    "steps": [
+      {
+        "id": "rst_1782197193857_1ca0",
+        "type": "validate_output",
+        "description": "Read original file content",
+        "status": "completed",
+        "output": "File size: 5900 chars",
+        "latencyMs": 0
+      },
+      {
+        "id": "rst_1782197193857_e8bd",
+        "type": "ai_fix",
+        "description": "AI analyzing error and generating fix...",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 159
+      },
+      {
+        "id": "rst_1782197194164_e380",
+        "type": "ai_fix",
+        "description": "Fix attempt 2/3",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 147
+      },
+      {
+        "id": "rst_1782197194323_d66e",
+        "type": "ai_fix",
+        "description": "Fix attempt 3/3",
+        "status": "failed",
+        "output": "AI failed to generate fix",
+        "latencyMs": 159
+      },
+      {
+        "id": "rst_1782197194323_fa69",
+        "type": "notify",
+        "description": "Remediation complete",
+        "status": "failed",
+        "output": "Status: failed. Manual review needed.",
+        "latencyMs": 0
+      }
+    ],
+    "finalStatus": "failed",
+    "fixApplied": false,
+    "startedAt": "2026-06-23T06:46:33.855Z",
+    "totalLatencyMs": 468,
+    "originalContent": "{\n  \"name\": \"ledgerflow-studio\",\n  \"private\": true,\n  \"version\": \"0.1.0\",\n  \"description\": \"Desktop-first software company operating system for a solo LedgerFlow owner.\",\n  \"type\": \"module\",\n  \"main\": \"desktop/main.cjs\",\n  \"scripts\": {\n    \"dev\": \"tsx server.ts\",\n    \"ai:doctor\": \"node scripts/ai-doctor.mjs\",\n    \"prepare:icons\": \"node scripts/prepare-desktop-icons.mjs\",\n    \"check:simulations\": \"node scripts/check-simulation-modules.mjs\",\n    \"check:founder-labs\": \"node scripts/check-founder-labs.mjs\",\n    \"check:accounting-calculations\": \"node scripts/check-accounting-calculations.mjs\",\n    \"check:agentops-contracts\": \"node scripts/check-agentops-contracts.mjs\",\n    \"check:ai-assistant-safety\": \"node scripts/check-ai-assistant-safety.mjs\",\n    \"check:new-features-brief\": \"node scripts/check-new-features-brief.mjs\",\n    \"check:company-os\": \"npm run lint && npm run check:agentops-contracts\",\n    \"migrate:accounting-calculations\": \"node scripts/migrate-accounting-calculations.mjs\",\n    \"check:build\": \"node scripts/check-build-output.mjs\",\n    \"check:desktop\": \"node scripts/check-desktop-package.mjs\",\n    \"check:runtime\": \"node scripts/check-runtime-api.mjs\",\n    \"check:offline\": \"node scripts/check-offline-readiness.mjs\",\n    \"check:offline-vendor-assets\": \"node scripts/check-offline-vendor-assets.mjs\",\n    \"check:release\": \"node scripts/finalize-release.mjs --check-only\",\n    \"check:env\": \"node scripts/check-env-config.mjs\",\n    \"check:desktop-release\": \"node scripts/check-hybrid-release.mjs\",\n    \"check:desktop-release:full\": \"node scripts/check-hybrid-release.mjs --release\",\n    \"check:hybrid\": \"npm run check:desktop-release\",\n    \"check:hybrid:release\": \"npm run check:desktop-release:full\",\n    \"doctor\": \"node scripts/doctor.mjs\",\n    \"doctor:write\": \"node scripts/doctor.mjs --write\",\n    \"build:manifest\": \"node scripts/write-build-manifest.mjs\",\n    \"release:notes\": \"node scripts/finalize-release.mjs --notes-only\",\n    \"release:finalize\": \"node scripts/finalize-release.mjs\",\n    \"prebuild\": \"npm run prepare:icons && npm run check:env && npm test && npm run check:simulations && npm run check:founder-labs && npm run check:accounting-calculations && npm run check:agentops-contracts && npm run check:ai-assistant-safety && npm run check:desktop && npm run check:offline\",\n    \"build\": \"vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs\",\n    \"postbuild\": \"npm run build:manifest && npm run check:build\",\n    \"start\": \"node dist/server.cjs\",\n    \"desktop:dev\": \"npm run build && npm run prepare:icons && cross-env NODE_ENV=production ELECTRON_DESKTOP=true electron desktop/main.cjs\",\n    \"desktop:pack\": \"npm run build && npm run prepare:icons && electron-builder --dir && npm run release:notes\",\n    \"desktop:dist\": \"npm run build && npm run prepare:icons && electron-builder && npm run release:finalize\",\n    \"clean\": \"node scripts/clean.mjs\",\n    \"lint\": \"tsc --noEmit\",\n    \"test\": \"node --test --experimental-strip-types server/services/localAuth.test.ts server/services/localDatabase.test.ts server/services/webAiPolicy.test.ts src/app/companyNavigation.test.ts server/services/webAiTaskRouter.test.ts server/services/webAiAutomator.test.ts server/services/codingContext.test.ts server/services/agentRuntimeFoundation.test.ts server/services/agentRuntimeSafety.test.ts\",\n    \"assistant:start\": \"tsx server/assistant-daemon.ts\",\n    \"assistant:cli\": \"tsx scripts/ai-assistant-cli.ts\"\n  },\n  \"dependencies\": {\n    \"@google/genai\": \"^2.4.0\",\n    \"@supabase/supabase-js\": \"^2.107.0\",\n    \"dotenv\": \"^17.2.3\",\n    \"express\": \"^4.21.2\",\n    \"express-rate-limit\": \"^8.5.2\",\n    \"helmet\": \"^8.1.0\",\n    \"multer\": \"^2.0.2\",\n    \"node-cron\": \"^4.2.1\",\n    \"puppeteer\": \"^25.1.0\",\n    \"simple-git\": \"^3.36.0\",\n    \"xlsx\": \"^0.18.5\",\n    \"zod\": \"^4.4.3\"\n  },\n  \"devDependencies\": {\n    \"@tailwindcss/vite\": \"^4.1.14\",\n    \"@types/express\": \"^4.17.21\",\n    \"@types/helmet\": \"^4.0.0\",\n    \"@types/multer\": \"^2.0.0\",\n    \"@types/node\": \"^22.14.0\",\n    \"@types/node-cron\": \"^3.0.11\",\n    \"@types/qrcode\": \"^1.5.6\",\n    \"@types/react\": \"^19.0.12\",\n    \"@types/react-dom\": \"^19.0.4\",\n    \"@vitejs/plugin-react\": \"^5.0.4\",\n    \"autoprefixer\": \"^10.4.21\",\n    \"commander\": \"^13.1.0\",\n    \"cross-env\": \"^7.0.3\",\n    \"electron\": \"^39.8.10\",\n    \"electron-builder\": \"^26.0.12\",\n    \"esbuild\": \"^0.25.0\",\n    \"jspdf\": \"^4.2.1\",\n    \"jspdf-autotable\": \"^5.0.2\",\n    \"lucide-react\": \"^0.546.0\",\n    \"motion\": \"^12.23.24\",\n    \"qrcode\": \"^1.5.4\",\n    \"react\": \"^19.0.1\",\n    \"react-dom\": \"^19.0.1\",\n    \"react-router-dom\": \"^7.17.0\",\n    \"recharts\": \"^3.8.1\",\n    \"tailwindcss\": \"^4.1.14\",\n    \"tsx\": \"^4.21.0\",\n    \"typescript\": \"~5.8.2\",\n    \"vite\": \"^6.2.3\",\n    \"zustand\": \"^5.0.14\"\n  },\n  \"build\": {\n    \"appId\": \"com.ledgerflow.hub\",\n    \"productName\": \"LedgerFlow Hub\",\n    \"artifactName\": \"LedgerFlow-Hub-${version}-${arch}.${ext}\",\n    \"directories\": {\n      \"output\": \"release\",\n      \"buildReso",
+    "completedAt": "2026-06-23T06:46:34.323Z"
+  }
+]

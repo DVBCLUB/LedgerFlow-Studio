@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 
 const helperPath = 'src/utils/accountingVietnamCalculations.ts';
-const componentPath = 'src/components/AccountingVietnam.tsx';
+const componentPath = 'src/modules/finance-accounting/AccountingVietnam.tsx';
 const helper = readFileSync(helperPath, 'utf8');
 const component = readFileSync(componentPath, 'utf8');
 

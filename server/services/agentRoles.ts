@@ -193,34 +193,42 @@ export const AGENT_ROLES: AgentRoleDefinition[] = [
   { id: 'AI Analyst', emoji: '📊', group: 'Data', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Analyst'] },
 ];
 
-const AGENT_ROLE_PROMPTS_FILE = process.env.AGENT_ROLE_PROMPTS_FILE
-  ? path.resolve(process.env.AGENT_ROLE_PROMPTS_FILE)
-  : path.resolve(process.cwd(), 'agent_role_prompts.json');
+const REGISTRY_FILE = path.join(process.cwd(), "ai_prompt_registry.json");
 
 let runtimeRoleCache: AgentRoleDefinition[] = AGENT_ROLES;
 let runtimeRoleCacheMtimeMs = -1;
 
 function resolveRuntimeRoles(): AgentRoleDefinition[] {
   try {
-    if (!fs.existsSync(AGENT_ROLE_PROMPTS_FILE)) {
+    if (!fs.existsSync(REGISTRY_FILE)) {
       runtimeRoleCache = AGENT_ROLES;
       runtimeRoleCacheMtimeMs = -1;
       return runtimeRoleCache;
     }
 
-    const stat = fs.statSync(AGENT_ROLE_PROMPTS_FILE);
+    const stat = fs.statSync(REGISTRY_FILE);
     if (stat.mtimeMs === runtimeRoleCacheMtimeMs) {
       return runtimeRoleCache;
     }
 
-    const raw = fs.readFileSync(AGENT_ROLE_PROMPTS_FILE, 'utf-8');
-    const parsed = JSON.parse(raw) as AgentRolePromptsOverrideFile;
-    const overrides = parsed.prompts ?? {};
+    const raw = fs.readFileSync(REGISTRY_FILE, "utf-8");
+    const parsed = JSON.parse(raw);
+    const templates = parsed.templates || [];
 
-    runtimeRoleCache = AGENT_ROLES.map((role) => ({
-      ...role,
-      systemPrompt: overrides[role.id] ?? role.systemPrompt,
-    }));
+    runtimeRoleCache = AGENT_ROLES.map((role) => {
+      const template = templates.find((t: any) => t.task === role.id);
+      if (template) {
+        const activeVersion = template.activeVersion;
+        const active = template.versions?.find((v: any) => v.version === activeVersion);
+        if (active) {
+          return {
+            ...role,
+            systemPrompt: active.content,
+          };
+        }
+      }
+      return role;
+    });
     runtimeRoleCacheMtimeMs = stat.mtimeMs;
     return runtimeRoleCache;
   } catch {
@@ -237,3 +245,21 @@ export function listAgentRoles() {
 export function getAgentRole(id: string) {
   return resolveRuntimeRoles().find((role) => role.id === id);
 }
+
+export async function updateAgentRolePrompt(id: AgentRoleId, systemPrompt: string): Promise<void> {
+  try {
+    const { createPromptVersion } = await import("./aiPromptRegistry");
+    await createPromptVersion({
+      task: id as any,
+      content: systemPrompt,
+      createdBy: "local-admin",
+      note: "Updated via agent role configuration",
+      activate: true,
+    });
+    // Invalidate cache to force reload on next call
+    runtimeRoleCacheMtimeMs = -1;
+  } catch (err: any) {
+    throw new Error(`Failed to update agent role prompt: ${err.message}`);
+  }
+}
+

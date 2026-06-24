@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import type { AIProviderName } from "./aiKeyVault";
+import type { AIProviderName } from "./aiKeyVault.ts";
 
 export type AIUsageStatus = "ok" | "quota" | "error";
 export type AIUsageMode = "call" | "stream" | "diagnostic" | "test";

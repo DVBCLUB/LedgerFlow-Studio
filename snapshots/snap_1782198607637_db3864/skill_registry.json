@@ -1,0 +1,151 @@
+[
+  {
+    "name": "code-generator",
+    "version": "1.0.0",
+    "category": "coding",
+    "status": "published",
+    "description": "Viết code từ yêu cầu bằng ngôn ngữ tự nhiên.",
+    "prompt": "Bạn là Code Generator. Viết code sạch, type-safe, có comment. Chỉ trả về code.",
+    "tools": [
+      "write_file",
+      "read_file"
+    ],
+    "requiredModels": [
+      "gpt-4o",
+      "claude-3.5-sonnet"
+    ],
+    "minConfidence": 0.7,
+    "tags": [
+      "code",
+      "generation",
+      "typescript"
+    ],
+    "author": "system",
+    "usageCount": 0,
+    "successRate": 100,
+    "avgLatencyMs": 0,
+    "ratings": [],
+    "id": "skill_1782198593859_ae9915",
+    "createdAt": "2026-06-23T07:09:53.859Z",
+    "updatedAt": "2026-06-23T07:09:53.859Z"
+  },
+  {
+    "name": "code-reviewer",
+    "version": "1.0.0",
+    "category": "coding",
+    "status": "published",
+    "description": "Review code về security, performance, và best practices.",
+    "prompt": "Bạn là Code Reviewer. Kiểm tra security, performance, best practices. Trả về findings cụ thể.",
+    "tools": [
+      "read_file",
+      "security_scan"
+    ],
+    "requiredModels": [
+      "gpt-4o"
+    ],
+    "minConfidence": 0.75,
+    "tags": [
+      "review",
+      "security",
+      "quality"
+    ],
+    "author": "system",
+    "usageCount": 0,
+    "successRate": 100,
+    "avgLatencyMs": 0,
+    "ratings": [],
+    "id": "skill_1782198593861_0a819f",
+    "createdAt": "2026-06-23T07:09:53.861Z",
+    "updatedAt": "2026-06-23T07:09:53.861Z"
+  },
+  {
+    "name": "test-writer",
+    "version": "1.0.0",
+    "category": "testing",
+    "status": "published",
+    "description": "Viết unit test cho code TypeScript/JavaScript.",
+    "prompt": "Bạn là Test Writer. Viết test đầy đủ, bao phủ edge case. Dùng vitest hoặc jest.",
+    "tools": [
+      "read_file",
+      "write_file",
+      "run_test"
+    ],
+    "requiredModels": [
+      "gpt-4o-mini",
+      "claude-3.5-sonnet"
+    ],
+    "minConfidence": 0.65,
+    "tags": [
+      "test",
+      "unit-test",
+      "coverage"
+    ],
+    "author": "system",
+    "usageCount": 0,
+    "successRate": 100,
+    "avgLatencyMs": 0,
+    "ratings": [],
+    "id": "skill_1782198593861_fd1ade",
+    "createdAt": "2026-06-23T07:09:53.861Z",
+    "updatedAt": "2026-06-23T07:09:53.861Z"
+  },
+  {
+    "name": "data-analyzer",
+    "version": "1.0.0",
+    "category": "analysis",
+    "status": "published",
+    "description": "Phân tích dữ liệu, tạo báo cáo và biểu đồ.",
+    "prompt": "Bạn là Data Analyzer. Phân tích dữ liệu, tìm pattern, đưa ra insight.",
+    "tools": [
+      "read_data",
+      "calculate",
+      "generate_report"
+    ],
+    "requiredModels": [
+      "gpt-4o"
+    ],
+    "minConfidence": 0.7,
+    "tags": [
+      "analysis",
+      "report",
+      "data"
+    ],
+    "author": "system",
+    "usageCount": 0,
+    "successRate": 100,
+    "avgLatencyMs": 0,
+    "ratings": [],
+    "id": "skill_1782198593861_39d680",
+    "createdAt": "2026-06-23T07:09:53.861Z",
+    "updatedAt": "2026-06-23T07:09:53.861Z"
+  },
+  {
+    "name": "security-auditor",
+    "version": "1.0.0",
+    "category": "security",
+    "status": "published",
+    "description": "Quét code tìm lỗ hổng bảo mật.",
+    "prompt": "Bạn là Security Auditor. Tìm lỗ hổng XSS, SQLi, hardcoded secret, eval, path traversal.",
+    "tools": [
+      "read_file",
+      "security_scan"
+    ],
+    "requiredModels": [
+      "gpt-4o"
+    ],
+    "minConfidence": 0.8,
+    "tags": [
+      "security",
+      "audit",
+      "vulnerability"
+    ],
+    "author": "system",
+    "usageCount": 0,
+    "successRate": 100,
+    "avgLatencyMs": 0,
+    "ratings": [],
+    "id": "skill_1782198593861_13620e",
+    "createdAt": "2026-06-23T07:09:53.861Z",
+    "updatedAt": "2026-06-23T07:09:53.861Z"
+  }
+]

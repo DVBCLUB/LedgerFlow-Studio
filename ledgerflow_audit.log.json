@@ -1,0 +1,1990 @@
+[
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_c4c59774-0294-43bd-9df4-28185b03b18b",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T23:54:27.815Z"
+      }
+    },
+    "id": "audit_1782258867838_92a17979121f3",
+    "createdAt": "2026-06-23T23:54:27.838Z",
+    "previousSignature": "c4f4945d5927b733f750c9413442e8b4caad2dbae00c7ee298ee4deb74e6c795",
+    "signature": "37d3d7787291da6f8d74d0d5498c9e5ad0176848c608bade95bbb8dd19e50fcc"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_07259d62-f01a-49a4-811a-555c83d4a6f6",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782258867634_10731a9747c97",
+    "createdAt": "2026-06-23T23:54:27.634Z",
+    "previousSignature": "e5a07d76336fdc6b9f8efe4609b8736efc0448a16251e044496b297fea588fe6",
+    "signature": "c4f4945d5927b733f750c9413442e8b4caad2dbae00c7ee298ee4deb74e6c795"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_87116f05-29bf-4cc8-8837-8b9faac6dbdf",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_10960c94-c384-447a-a00f-66b0ceae770d.",
+    "evidence": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+      "fingerprint": "55d013dbb759835aa3ce2e13f14a26c893e526ec07b6a87802e59cc4f8cb1937"
+    },
+    "id": "audit_1782258867576_a454ae6620ecd",
+    "createdAt": "2026-06-23T23:54:27.576Z",
+    "previousSignature": "8f18cdfb6e4713339717c578ba49c16a8ed076a21c673635e0af2d673f9ebe33",
+    "signature": "e5a07d76336fdc6b9f8efe4609b8736efc0448a16251e044496b297fea588fe6"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_87116f05-29bf-4cc8-8837-8b9faac6dbdf",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782258867518_94029d1d06561",
+    "createdAt": "2026-06-23T23:54:27.518Z",
+    "previousSignature": "a5b7c5b6d9c62ccb770540ea5c98d44789a3d1070796b63020a0b28258e0e84e",
+    "signature": "8f18cdfb6e4713339717c578ba49c16a8ed076a21c673635e0af2d673f9ebe33"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_e3aa2369-9563-4fc4-b128-3a56c9ef15f4",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+        "stepId": "step_87116f05-29bf-4cc8-8837-8b9faac6dbdf",
+        "toolId": "draft_patch",
+        "fingerprint": "55d013dbb759835aa3ce2e13f14a26c893e526ec07b6a87802e59cc4f8cb1937"
+      }
+    },
+    "id": "audit_1782258867483_03460e96f39bc8",
+    "createdAt": "2026-06-23T23:54:27.483Z",
+    "previousSignature": "c620dbd4c8aaf9e83779c78123061dc5ae4d41a84ccb1ef6b8b8938e0b50bde3",
+    "signature": "a5b7c5b6d9c62ccb770540ea5c98d44789a3d1070796b63020a0b28258e0e84e"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_573f4b4e-2f9b-4d04-89ba-f31352a21503",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782258867429_19c7b5c28b444",
+    "createdAt": "2026-06-23T23:54:27.429Z",
+    "previousSignature": "f2b4d7f9cc42b53f91b14ffd07cbc42cb67f19fe0d31621c5a7b8f5b170accaf",
+    "signature": "c620dbd4c8aaf9e83779c78123061dc5ae4d41a84ccb1ef6b8b8938e0b50bde3"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_7a8ea614-290b-4850-9d5a-b91333147167",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782258867417_51f852abde8a98",
+    "createdAt": "2026-06-23T23:54:27.417Z",
+    "previousSignature": "5e518934bb98d2dc2c4dbe282265d4934ed21f5af9101773b4a5a306e34f1761",
+    "signature": "f2b4d7f9cc42b53f91b14ffd07cbc42cb67f19fe0d31621c5a7b8f5b170accaf"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_10960c94-c384-447a-a00f-66b0ceae770d",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782258867375_a97a391d29abb",
+    "createdAt": "2026-06-23T23:54:27.375Z",
+    "previousSignature": "aeeff941ab84cccbd90b4291080c6bb23f7b842bab276b1ddccf817d5e365d3f",
+    "signature": "5e518934bb98d2dc2c4dbe282265d4934ed21f5af9101773b4a5a306e34f1761"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_86b44cfa-be43-480a-9473-dd49fff6252d",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:51:26.595Z"
+      }
+    },
+    "id": "audit_1782229886598_02da5463a8c9b8",
+    "createdAt": "2026-06-23T15:51:26.598Z",
+    "previousSignature": "3fb4dfee052d17513e961f1ddf586dc866500ea195c46ff74c04d12c5270eb59",
+    "signature": "aeeff941ab84cccbd90b4291080c6bb23f7b842bab276b1ddccf817d5e365d3f"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_d535d505-85fd-4f6a-876c-ab0f704b151c",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229886569_54bf800b697a48",
+    "createdAt": "2026-06-23T15:51:26.569Z",
+    "previousSignature": "d25fdfb3826b9ed0011880cbb799336598c76a25021f394980501ef9196184c8",
+    "signature": "3fb4dfee052d17513e961f1ddf586dc866500ea195c46ff74c04d12c5270eb59"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_c771e35e-d0d3-4e31-b0b5-f4bea048d8ba",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_b56241da-8a14-48f0-893c-542a17db78b9.",
+    "evidence": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+      "fingerprint": "7bfcfac7763922e48283790d8a3dffe15eeedf401783ab1a1d135386a5109383"
+    },
+    "id": "audit_1782229886546_9caa3eb419ff5",
+    "createdAt": "2026-06-23T15:51:26.546Z",
+    "previousSignature": "e0ad6cd914e07a4ef4a4e4f5e07e8da6700639a9f1207414004dc7e95c9136c3",
+    "signature": "d25fdfb3826b9ed0011880cbb799336598c76a25021f394980501ef9196184c8"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_c771e35e-d0d3-4e31-b0b5-f4bea048d8ba",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229886537_c799943dc7335",
+    "createdAt": "2026-06-23T15:51:26.537Z",
+    "previousSignature": "ef664e8c749caeded8e007a2c4878c76ad06d720f000e98d3288613eaa08a445",
+    "signature": "e0ad6cd914e07a4ef4a4e4f5e07e8da6700639a9f1207414004dc7e95c9136c3"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_30c9d930-a84a-4bc2-beaa-538a08d5a8cc",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+        "stepId": "step_c771e35e-d0d3-4e31-b0b5-f4bea048d8ba",
+        "toolId": "draft_patch",
+        "fingerprint": "7bfcfac7763922e48283790d8a3dffe15eeedf401783ab1a1d135386a5109383"
+      }
+    },
+    "id": "audit_1782229886522_013f3642d3a7c",
+    "createdAt": "2026-06-23T15:51:26.522Z",
+    "previousSignature": "14db3349751cc8f55f9f239b801deb8fafee24e0a194912883eb76391202b560",
+    "signature": "ef664e8c749caeded8e007a2c4878c76ad06d720f000e98d3288613eaa08a445"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_4acbb29a-1c92-47d5-b9a5-6720c17971fb",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229886508_d845576ab1939",
+    "createdAt": "2026-06-23T15:51:26.508Z",
+    "previousSignature": "7c9c1c10a4102bf13759e9bbc944d123f976b28cd078a7d41cad94ed7863e787",
+    "signature": "14db3349751cc8f55f9f239b801deb8fafee24e0a194912883eb76391202b560"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_f811314a-c660-45b3-8944-1755dc3436d0",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782229886502_f813a2d74131c",
+    "createdAt": "2026-06-23T15:51:26.502Z",
+    "previousSignature": "dde9db7106be6d559d42351b8b95590d3e077d1e86bfe3b2f03b9acf74300294",
+    "signature": "7c9c1c10a4102bf13759e9bbc944d123f976b28cd078a7d41cad94ed7863e787"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_b56241da-8a14-48f0-893c-542a17db78b9",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229886487_950e0ac5011ba",
+    "createdAt": "2026-06-23T15:51:26.487Z",
+    "previousSignature": "12e7ff9bf60bfc1e569f96554c25722fa8207b34f7d7461c20d68a9dfff773a0",
+    "signature": "dde9db7106be6d559d42351b8b95590d3e077d1e86bfe3b2f03b9acf74300294"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_887ecbe1-4d2a-448c-b327-3f957e6f40d3",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:47:36.180Z"
+      }
+    },
+    "id": "audit_1782229656184_0ec52beec8af88",
+    "createdAt": "2026-06-23T15:47:36.184Z",
+    "previousSignature": "5bc0f43b52484c62b1565c1b57531eb1eb15bec2b4a23a53eb4765a873c0368f",
+    "signature": "12e7ff9bf60bfc1e569f96554c25722fa8207b34f7d7461c20d68a9dfff773a0"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_7c4685c3-1f14-4e59-8c86-b28aa03a4a59",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229656154_2f0e0c98c6d4",
+    "createdAt": "2026-06-23T15:47:36.154Z",
+    "previousSignature": "ecc43121ce0684bfb35f7d6566b38170f2827dae8c270b0f20e6ad8c943a9857",
+    "signature": "5bc0f43b52484c62b1565c1b57531eb1eb15bec2b4a23a53eb4765a873c0368f"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_940b85e4-b6e0-488e-a5ac-51bb56ac52c3",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b.",
+    "evidence": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+      "fingerprint": "c079ae9e5c223e7b4ce0dd78945eff0543baff6fe5ca04ce1752cd12a6b66901"
+    },
+    "id": "audit_1782229656143_7dbd619e1426a8",
+    "createdAt": "2026-06-23T15:47:36.143Z",
+    "previousSignature": "c3b3dc65ebfd37c4d9e84c798f356030d39f42a73efa6ebc3071abaad0d41c3f",
+    "signature": "ecc43121ce0684bfb35f7d6566b38170f2827dae8c270b0f20e6ad8c943a9857"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_940b85e4-b6e0-488e-a5ac-51bb56ac52c3",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229656136_385d6c1ac778a",
+    "createdAt": "2026-06-23T15:47:36.136Z",
+    "previousSignature": "2be2e3378b72f4c641e2ac2c6b375cfecc60f7eb45fef5d3a7de226c0992f7c5",
+    "signature": "c3b3dc65ebfd37c4d9e84c798f356030d39f42a73efa6ebc3071abaad0d41c3f"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_b52e71c9-79b0-4f59-9f13-621c9fc7cd5e",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+        "stepId": "step_940b85e4-b6e0-488e-a5ac-51bb56ac52c3",
+        "toolId": "draft_patch",
+        "fingerprint": "c079ae9e5c223e7b4ce0dd78945eff0543baff6fe5ca04ce1752cd12a6b66901"
+      }
+    },
+    "id": "audit_1782229656127_8aea47871a613",
+    "createdAt": "2026-06-23T15:47:36.127Z",
+    "previousSignature": "4b04cc24e2ed9c8960d5b6c323e51f689b18f4ab5a5ab0f5924850bd97dfe114",
+    "signature": "2be2e3378b72f4c641e2ac2c6b375cfecc60f7eb45fef5d3a7de226c0992f7c5"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_47b05d9a-ee1b-4cdf-a8a8-4076b871904e",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229656119_bfd48d728d2c5",
+    "createdAt": "2026-06-23T15:47:36.119Z",
+    "previousSignature": "757eac7af43ce114f8c1dd718b6acefbb848fe6b62ffa5d254a08eb183c08b56",
+    "signature": "4b04cc24e2ed9c8960d5b6c323e51f689b18f4ab5a5ab0f5924850bd97dfe114"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_3fe708d2-80c3-44c3-bfba-8a3abebe640e",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782229656115_f6b3def2ad6008",
+    "createdAt": "2026-06-23T15:47:36.115Z",
+    "previousSignature": "ce430f1c1bc228ad1a74075c181c63191f6706a9d5457f3bf6fe78d3e96a0682",
+    "signature": "757eac7af43ce114f8c1dd718b6acefbb848fe6b62ffa5d254a08eb183c08b56"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_c2fc86ea-3d1d-4172-bbb5-ae47691d6d2b",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229656108_f021c6dcea169",
+    "createdAt": "2026-06-23T15:47:36.108Z",
+    "previousSignature": "20346bd1c1fba00861e7c71ab917076efaacc55d7e1b9bb36e6a2dee0f1994c8",
+    "signature": "ce430f1c1bc228ad1a74075c181c63191f6706a9d5457f3bf6fe78d3e96a0682"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_ba9147bb-a338-4620-9e84-febaea459a1e",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:41:51.231Z"
+      }
+    },
+    "id": "audit_1782229311236_b7e3be03f5f4b8",
+    "createdAt": "2026-06-23T15:41:51.236Z",
+    "previousSignature": "91244f0cf48141881b4a0f523e64eb4562a5ac9b98c907b592328f4a374aad60",
+    "signature": "20346bd1c1fba00861e7c71ab917076efaacc55d7e1b9bb36e6a2dee0f1994c8"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_233a2c83-3620-4807-aa67-d3896674811b",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229311209_2c093bd547909",
+    "createdAt": "2026-06-23T15:41:51.209Z",
+    "previousSignature": "57eee72f1160a1e005826f71f8b51784a7a28ee19415bdef567ee6e435018360",
+    "signature": "91244f0cf48141881b4a0f523e64eb4562a5ac9b98c907b592328f4a374aad60"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_d609387c-ef11-47d8-b162-b81b7a3f8634",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd.",
+    "evidence": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+      "fingerprint": "9c6a4ad2f4320fe68c95dcef4b90e0ba43f4a480ff53cbccadbf609f3c9989af"
+    },
+    "id": "audit_1782229311197_a02596d2e6d8e",
+    "createdAt": "2026-06-23T15:41:51.197Z",
+    "previousSignature": "198ff0a102989b5836ce11d756bcaa0476a85940b29e60d89c3d3004eb94b955",
+    "signature": "57eee72f1160a1e005826f71f8b51784a7a28ee19415bdef567ee6e435018360"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_d609387c-ef11-47d8-b162-b81b7a3f8634",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229311191_c6ea00cbeed09",
+    "createdAt": "2026-06-23T15:41:51.191Z",
+    "previousSignature": "41464b3982870cd980ac55d6842f5ea150a4a7e9af491228ae8e1f64b197b954",
+    "signature": "198ff0a102989b5836ce11d756bcaa0476a85940b29e60d89c3d3004eb94b955"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_3ead9c21-20a3-4de6-8efe-5058513b02bc",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+        "stepId": "step_d609387c-ef11-47d8-b162-b81b7a3f8634",
+        "toolId": "draft_patch",
+        "fingerprint": "9c6a4ad2f4320fe68c95dcef4b90e0ba43f4a480ff53cbccadbf609f3c9989af"
+      }
+    },
+    "id": "audit_1782229311180_0fbc9ef1135858",
+    "createdAt": "2026-06-23T15:41:51.180Z",
+    "previousSignature": "64596703bd66a5cbe7e0578e7d62d25072a635633e58d3ed65169ef19ce4686c",
+    "signature": "41464b3982870cd980ac55d6842f5ea150a4a7e9af491228ae8e1f64b197b954"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_196c5f46-880c-4a76-b0e5-5b1ba38c1a93",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782229311170_aca1a7fd85ef9",
+    "createdAt": "2026-06-23T15:41:51.170Z",
+    "previousSignature": "acccf9074c2282e8b6924c602db18ddfa00a09e3158602e26b9026292b0b599a",
+    "signature": "64596703bd66a5cbe7e0578e7d62d25072a635633e58d3ed65169ef19ce4686c"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_e0d96756-b3aa-40e6-880b-d7ea4c945f3b",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782229311166_db94ae9233b13",
+    "createdAt": "2026-06-23T15:41:51.166Z",
+    "previousSignature": "a58b5819fc233352d3df3ff4b2cd87c14e6d92797185a0c46690a20427f0ed6c",
+    "signature": "acccf9074c2282e8b6924c602db18ddfa00a09e3158602e26b9026292b0b599a"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_5d23b7bc-de9c-40d5-a2a0-58e74ba8c3cd",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782229311157_89f7d7a09a6ff",
+    "createdAt": "2026-06-23T15:41:51.157Z",
+    "previousSignature": "30eed80868c19724a8001d1475f2b8bcf5c73fd8ecd844afa9b4c049a3790cef",
+    "signature": "a58b5819fc233352d3df3ff4b2cd87c14e6d92797185a0c46690a20427f0ed6c"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_74acf834-6a19-4841-9594-1cd7c10fdc15",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:29:56.483Z"
+      }
+    },
+    "id": "audit_1782228596487_ecc0579d8b7638",
+    "createdAt": "2026-06-23T15:29:56.487Z",
+    "previousSignature": "2b293961a8db4c747ddf55951ad0dc3b0c46c86bbe5e8979c9a48ad53c465e1f",
+    "signature": "30eed80868c19724a8001d1475f2b8bcf5c73fd8ecd844afa9b4c049a3790cef"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_17edcd69-a94a-4dec-96d0-fbfa0ef444f2",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228596446_0e39f682343ab",
+    "createdAt": "2026-06-23T15:29:56.446Z",
+    "previousSignature": "79bd4420ece75108f3668d0a106a5d70f4f26d179bab92ae879fde6579c7961d",
+    "signature": "2b293961a8db4c747ddf55951ad0dc3b0c46c86bbe5e8979c9a48ad53c465e1f"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_1c0430d6-f6ca-48b7-b56a-268c098ec18f",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6.",
+    "evidence": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+      "fingerprint": "ad9d6899bb61607c396b91b36f4fa524831c35e9e65d20e2db310daf5ce5d046"
+    },
+    "id": "audit_1782228596430_ece4d9af2caef",
+    "createdAt": "2026-06-23T15:29:56.430Z",
+    "previousSignature": "061a205197c9a669750c2d5ef5344b87e88016726582a081e310184c7db5f25f",
+    "signature": "79bd4420ece75108f3668d0a106a5d70f4f26d179bab92ae879fde6579c7961d"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_1c0430d6-f6ca-48b7-b56a-268c098ec18f",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228596422_a8ac30a838a91",
+    "createdAt": "2026-06-23T15:29:56.422Z",
+    "previousSignature": "02822c220181ce2004f498bee49c8ef5414279a9b34eba58c1e381448b5b6121",
+    "signature": "061a205197c9a669750c2d5ef5344b87e88016726582a081e310184c7db5f25f"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_c59748eb-feaa-4709-ab2d-b5b28777554e",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+        "stepId": "step_1c0430d6-f6ca-48b7-b56a-268c098ec18f",
+        "toolId": "draft_patch",
+        "fingerprint": "ad9d6899bb61607c396b91b36f4fa524831c35e9e65d20e2db310daf5ce5d046"
+      }
+    },
+    "id": "audit_1782228596413_93dea3ec01606",
+    "createdAt": "2026-06-23T15:29:56.413Z",
+    "previousSignature": "1f35969c6b335268b11c3aa317c1dd61f880a730632912aa7ab810afd1e8327e",
+    "signature": "02822c220181ce2004f498bee49c8ef5414279a9b34eba58c1e381448b5b6121"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_03f44b2d-03d8-4227-91a0-e69f1f256dab",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228596403_6f6eb9b018f1e",
+    "createdAt": "2026-06-23T15:29:56.403Z",
+    "previousSignature": "9be5c50c8bd2ef53140c6c9f325c70302ab9f8c11cecf1d1c0ce5287664ff0a1",
+    "signature": "1f35969c6b335268b11c3aa317c1dd61f880a730632912aa7ab810afd1e8327e"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_8c290f11-52e9-4111-9f99-72f1d8772d88",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782228596399_0ab098983ad19",
+    "createdAt": "2026-06-23T15:29:56.399Z",
+    "previousSignature": "f47a5f59a8653e4ae80d217f01d1ebdc834139f99c5a6c689576b08daf9fd588",
+    "signature": "9be5c50c8bd2ef53140c6c9f325c70302ab9f8c11cecf1d1c0ce5287664ff0a1"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_9c9c0e80-c854-4f7c-8e42-47f38bcf20f6",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228596390_bdd2026971271",
+    "createdAt": "2026-06-23T15:29:56.390Z",
+    "previousSignature": "f8fd698c75719cba987d00c65a4173ccc79283f94174397cf8968b553ca5bc00",
+    "signature": "f47a5f59a8653e4ae80d217f01d1ebdc834139f99c5a6c689576b08daf9fd588"
+  },
+  {
+    "actor": "observer",
+    "workspace": "Observer Agent",
+    "action": "observer.alert",
+    "target": "AI Fabric degraded: Không có route AI nào khả dụng.",
+    "risk": "MEDIUM",
+    "status": "executed",
+    "summary": "Health check found 1 issue(s): AI Fabric degraded: Không có route AI nào khả dụng.",
+    "connectorId": "observer-agent",
+    "evidence": {
+      "reportId": "obs_1782228554032",
+      "summary": {
+        "total": 3,
+        "ok": 2,
+        "degraded": 1,
+        "down": 0
+      }
+    },
+    "id": "audit_1782228554044_f18ef71d137a5",
+    "createdAt": "2026-06-23T15:29:14.044Z",
+    "previousSignature": "8368e3a320c6dbf824ae60d3b0259a0a1df7b082ac179e751d65e7c064a62702",
+    "signature": "f8fd698c75719cba987d00c65a4173ccc79283f94174397cf8968b553ca5bc00"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_4a258e01-7881-4771-a143-ff7270181bd1",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:26:55.420Z"
+      }
+    },
+    "id": "audit_1782228415425_479c80b0e2eee8",
+    "createdAt": "2026-06-23T15:26:55.425Z",
+    "previousSignature": "3063bc24cce85684a73096427273d52d76d537fe60ae7118d171c88c58332cbc",
+    "signature": "8368e3a320c6dbf824ae60d3b0259a0a1df7b082ac179e751d65e7c064a62702"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_f185d2a0-a024-4ff2-9ca9-37b30edfc9a4",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228415385_23beec37178c78",
+    "createdAt": "2026-06-23T15:26:55.385Z",
+    "previousSignature": "0d3c3c155986844ceefc33a48c33671d86412911e9de85dcf3aca6a9f76fee6f",
+    "signature": "3063bc24cce85684a73096427273d52d76d537fe60ae7118d171c88c58332cbc"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_6fc856f5-080c-4e04-9b79-7d4a6ba38a90",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_383299e7-6a2e-4cbc-9949-d530fbf3ce42.",
+    "evidence": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+      "fingerprint": "8d167468db8cf4277e323e65a11d52b32ec33a746cf280e06f923f8e98f946c8"
+    },
+    "id": "audit_1782228415373_92712968cf2b5",
+    "createdAt": "2026-06-23T15:26:55.373Z",
+    "previousSignature": "9ff849647d5e94ceb019cf786a28277ad6748a19f92304682f1e7ebaacab431a",
+    "signature": "0d3c3c155986844ceefc33a48c33671d86412911e9de85dcf3aca6a9f76fee6f"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_6fc856f5-080c-4e04-9b79-7d4a6ba38a90",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228415367_903ba571cbc9f",
+    "createdAt": "2026-06-23T15:26:55.367Z",
+    "previousSignature": "905bd8e06aa103b6592741d64338c7dfafa892874cfe6a8e6c9f470bd255fdec",
+    "signature": "9ff849647d5e94ceb019cf786a28277ad6748a19f92304682f1e7ebaacab431a"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_fd112a9d-d0f0-4f76-9d5a-22df3283b80c",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+        "stepId": "step_6fc856f5-080c-4e04-9b79-7d4a6ba38a90",
+        "toolId": "draft_patch",
+        "fingerprint": "8d167468db8cf4277e323e65a11d52b32ec33a746cf280e06f923f8e98f946c8"
+      }
+    },
+    "id": "audit_1782228415359_b62d0a9ed66bd8",
+    "createdAt": "2026-06-23T15:26:55.359Z",
+    "previousSignature": "0d53396ca0f088594d14e3d935df8cfc56b8f757979f24c8b09e8b0038fcdd21",
+    "signature": "905bd8e06aa103b6592741d64338c7dfafa892874cfe6a8e6c9f470bd255fdec"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_815b851c-7e4c-443a-bd68-a653cfa016ac",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228415350_9ef35f5767a5",
+    "createdAt": "2026-06-23T15:26:55.350Z",
+    "previousSignature": "42a9c41286193c298b7e0ac64b6982d795e82a4321bbcb4da50330789055ade7",
+    "signature": "0d53396ca0f088594d14e3d935df8cfc56b8f757979f24c8b09e8b0038fcdd21"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_c94e1751-2dce-4df7-a6dc-1f47b0b586fc",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782228415347_67b51ca232a1f",
+    "createdAt": "2026-06-23T15:26:55.347Z",
+    "previousSignature": "79fc8be4b6e50b24654e7fd8da5b253de206e64a39269ae20390dd8e60b10f8e",
+    "signature": "42a9c41286193c298b7e0ac64b6982d795e82a4321bbcb4da50330789055ade7"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_383299e7-6a2e-4cbc-9949-d530fbf3ce42",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228415338_52f58bcc47a83",
+    "createdAt": "2026-06-23T15:26:55.338Z",
+    "previousSignature": "5a5370b2de57b3bd512446d442f0a5d368e2d5b0190d820452904e2f81ef5222",
+    "signature": "79fc8be4b6e50b24654e7fd8da5b253de206e64a39269ae20390dd8e60b10f8e"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_8d1884bf-1ce9-44db-b9e0-554e6dd3188b",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:23:36.031Z"
+      }
+    },
+    "id": "audit_1782228216062_c120110728b408",
+    "createdAt": "2026-06-23T15:23:36.062Z",
+    "previousSignature": "42791de93fa9daaebdc5844ef1a03d5192c7824e0049dcff342bf50b4e45d56a",
+    "signature": "5a5370b2de57b3bd512446d442f0a5d368e2d5b0190d820452904e2f81ef5222"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_010e3691-bff3-4dc9-9631-5ef69f27e869",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228215989_c3100879612b58",
+    "createdAt": "2026-06-23T15:23:35.989Z",
+    "previousSignature": "3640c08490acc11b9ed7f5894e48287850a03974ab2c5ac0656692ecad864b20",
+    "signature": "42791de93fa9daaebdc5844ef1a03d5192c7824e0049dcff342bf50b4e45d56a"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_88b2973f-6690-4e3e-8fb3-e24f7ac2e61a",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_dc34dfec-542e-411e-8e70-a396bda239e9.",
+    "evidence": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+      "fingerprint": "34754c6f02c797b97b9e94c62b0d82e82ad6df2959802efea674f4f24d322c1b"
+    },
+    "id": "audit_1782228215972_9e47a640ba54f",
+    "createdAt": "2026-06-23T15:23:35.972Z",
+    "previousSignature": "fc2e6da495fbaea01e35b313f2148ebdf8734dfafd6dd2695f7f33b20b1728dc",
+    "signature": "3640c08490acc11b9ed7f5894e48287850a03974ab2c5ac0656692ecad864b20"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_88b2973f-6690-4e3e-8fb3-e24f7ac2e61a",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228215962_d1ab67b5a8ebe8",
+    "createdAt": "2026-06-23T15:23:35.962Z",
+    "previousSignature": "b38f504c045ab67b9fc91959434b841e4e3086a540aca7fe924101caa0a41fde",
+    "signature": "fc2e6da495fbaea01e35b313f2148ebdf8734dfafd6dd2695f7f33b20b1728dc"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_2eb25e55-2955-41e5-a7c9-17b4eae1c499",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+        "stepId": "step_88b2973f-6690-4e3e-8fb3-e24f7ac2e61a",
+        "toolId": "draft_patch",
+        "fingerprint": "34754c6f02c797b97b9e94c62b0d82e82ad6df2959802efea674f4f24d322c1b"
+      }
+    },
+    "id": "audit_1782228215949_6fb1b4b42a7aa",
+    "createdAt": "2026-06-23T15:23:35.949Z",
+    "previousSignature": "ef56aa012648343f9226912d3ea086ecf2ae7dc6a581f1cb8713865d3c1a105c",
+    "signature": "b38f504c045ab67b9fc91959434b841e4e3086a540aca7fe924101caa0a41fde"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_d6219570-6bc0-4436-a7a5-1cd0a1432581",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782228215935_64cea35112dcc8",
+    "createdAt": "2026-06-23T15:23:35.935Z",
+    "previousSignature": "f92b64902970b8318f9d8bd3333b1d77c870fb4ae92f8bd1c6e78cea6f169117",
+    "signature": "ef56aa012648343f9226912d3ea086ecf2ae7dc6a581f1cb8713865d3c1a105c"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_3189bd0d-a8ba-4c89-a71d-33f04f63353c",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782228215931_516a307f8efc48",
+    "createdAt": "2026-06-23T15:23:35.931Z",
+    "previousSignature": "eea1df4e1bf29ef899cf14847fae037197106f0438674748eafe313c2990e07f",
+    "signature": "f92b64902970b8318f9d8bd3333b1d77c870fb4ae92f8bd1c6e78cea6f169117"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_dc34dfec-542e-411e-8e70-a396bda239e9",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782228215919_9d2d9b7debb67",
+    "createdAt": "2026-06-23T15:23:35.919Z",
+    "previousSignature": "a09686a8b413e7fbd85fbfc76230a9833d4d1e56b6932413c28791004195f115",
+    "signature": "eea1df4e1bf29ef899cf14847fae037197106f0438674748eafe313c2990e07f"
+  },
+  {
+    "actor": "observer",
+    "workspace": "Observer Agent",
+    "action": "observer.alert",
+    "target": "AI Fabric degraded: Không có route AI nào khả dụng.",
+    "risk": "MEDIUM",
+    "status": "executed",
+    "summary": "Health check found 1 issue(s): AI Fabric degraded: Không có route AI nào khả dụng.",
+    "connectorId": "observer-agent",
+    "evidence": {
+      "reportId": "obs_1782228155937",
+      "summary": {
+        "total": 3,
+        "ok": 2,
+        "degraded": 1,
+        "down": 0
+      }
+    },
+    "id": "audit_1782228156057_98d9a51f1f2488",
+    "createdAt": "2026-06-23T15:22:36.057Z",
+    "previousSignature": "57479a36f8f48adc9e20967f871f9fe6deac5921455778e19c103046004cb798",
+    "signature": "a09686a8b413e7fbd85fbfc76230a9833d4d1e56b6932413c28791004195f115"
+  },
+  {
+    "actor": "observer",
+    "workspace": "Observer Agent",
+    "action": "observer.alert",
+    "target": "AI Fabric degraded: Không có route AI nào khả dụng.",
+    "risk": "MEDIUM",
+    "status": "executed",
+    "summary": "Health check found 1 issue(s): AI Fabric degraded: Không có route AI nào khả dụng.",
+    "connectorId": "observer-agent",
+    "evidence": {
+      "reportId": "obs_1782228122338",
+      "summary": {
+        "total": 3,
+        "ok": 2,
+        "degraded": 1,
+        "down": 0
+      }
+    },
+    "id": "audit_1782228122369_c8ac5efb5d936",
+    "createdAt": "2026-06-23T15:22:02.369Z",
+    "previousSignature": "e89670021a8419fdfb3b92df087bfcd47eb4abf81e7205fce4fa0dfd70f73396",
+    "signature": "57479a36f8f48adc9e20967f871f9fe6deac5921455778e19c103046004cb798"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_0e7ec8eb-085e-495d-b0ac-17c44f0f69a7",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T15:17:47.131Z"
+      }
+    },
+    "id": "audit_1782227867136_26eb8007707048",
+    "createdAt": "2026-06-23T15:17:47.136Z",
+    "previousSignature": "3e4e79e05a4447f8d4717a13d57edfd7c7aa37699fc4d0e26f5f753a9f9ef7de",
+    "signature": "e89670021a8419fdfb3b92df087bfcd47eb4abf81e7205fce4fa0dfd70f73396"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_005f02c5-b434-4a43-906f-10ac8fc0ab35",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782227867107_49a8bb1bae289",
+    "createdAt": "2026-06-23T15:17:47.107Z",
+    "previousSignature": "b2ee9a5e3bd7580e75509678575519f20bc5625964d075b1e552b4ceb6cf8e03",
+    "signature": "3e4e79e05a4447f8d4717a13d57edfd7c7aa37699fc4d0e26f5f753a9f9ef7de"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_b0c29396-1d71-4d61-885f-c5aff6845b3b",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3.",
+    "evidence": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+      "fingerprint": "abc149c3f8e2cbf95ba4f81e61bd1b1fd9fb51af162798c83f883716950a57b6"
+    },
+    "id": "audit_1782227867092_77ac60c596a5b8",
+    "createdAt": "2026-06-23T15:17:47.092Z",
+    "previousSignature": "fcba9d0d9729955a6ff71980133580524dbbedac6612cf1f248d1a05019c2ba2",
+    "signature": "b2ee9a5e3bd7580e75509678575519f20bc5625964d075b1e552b4ceb6cf8e03"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_b0c29396-1d71-4d61-885f-c5aff6845b3b",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782227867083_0719923eafade",
+    "createdAt": "2026-06-23T15:17:47.083Z",
+    "previousSignature": "b69b67a5fffc9f01f651ecf22f8c2f9cbf586d17a2d107da48bd3a321382422a",
+    "signature": "fcba9d0d9729955a6ff71980133580524dbbedac6612cf1f248d1a05019c2ba2"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_0f0e6b31-63f0-4932-a509-002a5f7d1a01",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+        "stepId": "step_b0c29396-1d71-4d61-885f-c5aff6845b3b",
+        "toolId": "draft_patch",
+        "fingerprint": "abc149c3f8e2cbf95ba4f81e61bd1b1fd9fb51af162798c83f883716950a57b6"
+      }
+    },
+    "id": "audit_1782227867070_127eaa96d961c",
+    "createdAt": "2026-06-23T15:17:47.070Z",
+    "previousSignature": "c875b89d485f29b6e3b5eb79f24b93d5606ab772dde59f9e0a551ce8c8c4b208",
+    "signature": "b69b67a5fffc9f01f651ecf22f8c2f9cbf586d17a2d107da48bd3a321382422a"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_ea0941ed-027a-4ea7-8f45-34ffad27a13c",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782227867059_0a30e27bee81c",
+    "createdAt": "2026-06-23T15:17:47.059Z",
+    "previousSignature": "3571b1af946fde11512144987cdd8237de0026722d34dc89d64212de1d6bce8e",
+    "signature": "c875b89d485f29b6e3b5eb79f24b93d5606ab772dde59f9e0a551ce8c8c4b208"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_ea1ea52f-30ca-4d49-bd05-cc11d429674b",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782227867054_5322d48490e2e",
+    "createdAt": "2026-06-23T15:17:47.054Z",
+    "previousSignature": "4cfc191133a1c825c7eba1479b2f302b2b6390d395adb62c237bc8fa63cd5a4e",
+    "signature": "3571b1af946fde11512144987cdd8237de0026722d34dc89d64212de1d6bce8e"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_d28b22fd-46fe-44d7-bf7d-c6b007235fe3",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782227867041_64e56dea341ad8",
+    "createdAt": "2026-06-23T15:17:47.042Z",
+    "previousSignature": "ff3d24d3cfcf028b86600f7de4b2ad232dec735b58f3af16da79843b20a73aa3",
+    "signature": "4cfc191133a1c825c7eba1479b2f302b2b6390d395adb62c237bc8fa63cd5a4e"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_31afb2f0-9055-4ba0-b43e-90125200e39a",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T14:57:09.428Z"
+      }
+    },
+    "id": "audit_1782226629431_0e504d844a8ee",
+    "createdAt": "2026-06-23T14:57:09.431Z",
+    "previousSignature": "64d42751dcffd76ce7294c79243cd636f2916b5cfce5833ef96fe7f4b06745a5",
+    "signature": "ff3d24d3cfcf028b86600f7de4b2ad232dec735b58f3af16da79843b20a73aa3"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_0663f75f-c06f-482a-a0de-10970229bc97",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226629384_7bcac5a18b59",
+    "createdAt": "2026-06-23T14:57:09.384Z",
+    "previousSignature": "a1bed907424c0b1d04b278f52fcf01cb807742748f4b55fa6a9a9f2d2ef1f655",
+    "signature": "64d42751dcffd76ce7294c79243cd636f2916b5cfce5833ef96fe7f4b06745a5"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_f7f2718e-b293-4971-b4d3-b07004b91547",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_eb577c03-1593-49fc-b1f8-5f437201b8fa.",
+    "evidence": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+      "fingerprint": "64286a21ed5d23f9f2ca36fe45e7c45886777125335c218b469d7f115b737c70"
+    },
+    "id": "audit_1782226629372_9aad69d3ca4c8",
+    "createdAt": "2026-06-23T14:57:09.372Z",
+    "previousSignature": "264a2a38c90613021201a75091de49a70b6e0dfe8459577423b91c078157a631",
+    "signature": "a1bed907424c0b1d04b278f52fcf01cb807742748f4b55fa6a9a9f2d2ef1f655"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_f7f2718e-b293-4971-b4d3-b07004b91547",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226629366_163632370ac0e8",
+    "createdAt": "2026-06-23T14:57:09.366Z",
+    "previousSignature": "5b7499c061101207d20cb4fea9bdeb63d680b3c911ff80643a3e6f9796582a28",
+    "signature": "264a2a38c90613021201a75091de49a70b6e0dfe8459577423b91c078157a631"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_97db1acd-bf24-492f-8938-a455cad2d88a",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+        "stepId": "step_f7f2718e-b293-4971-b4d3-b07004b91547",
+        "toolId": "draft_patch",
+        "fingerprint": "64286a21ed5d23f9f2ca36fe45e7c45886777125335c218b469d7f115b737c70"
+      }
+    },
+    "id": "audit_1782226629359_657e44056ac9",
+    "createdAt": "2026-06-23T14:57:09.359Z",
+    "previousSignature": "b65f1ef48120dfb11520823843c717125d8f01f97c060d14155f3ab7bf82d531",
+    "signature": "5b7499c061101207d20cb4fea9bdeb63d680b3c911ff80643a3e6f9796582a28"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_85110feb-a7fe-450b-834d-cf178be4b73c",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226629352_68cd10843c3838",
+    "createdAt": "2026-06-23T14:57:09.352Z",
+    "previousSignature": "4d982ffa1a7235520576779faa4c04ffad99fff8765e8483754be6857c0f99c6",
+    "signature": "b65f1ef48120dfb11520823843c717125d8f01f97c060d14155f3ab7bf82d531"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_47cc0708-7d9a-4f8b-80ec-ae2bf074a1db",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782226629349_0f0603fc2d76c",
+    "createdAt": "2026-06-23T14:57:09.349Z",
+    "previousSignature": "01eeb2a82ace5454c8cc755e3f188fa35045611833715d8dd929db460574338d",
+    "signature": "4d982ffa1a7235520576779faa4c04ffad99fff8765e8483754be6857c0f99c6"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_eb577c03-1593-49fc-b1f8-5f437201b8fa",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226629339_25d51a0e998278",
+    "createdAt": "2026-06-23T14:57:09.339Z",
+    "previousSignature": "60063a1fea901c3db8f1fc0c37a656a13ae6129d1e45c442230785e2a5057d40",
+    "signature": "01eeb2a82ace5454c8cc755e3f188fa35045611833715d8dd929db460574338d"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_dde5d847-e709-4b3c-879b-d79447ef48fe",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T14:55:54.708Z"
+      }
+    },
+    "id": "audit_1782226554715_e73422b27ce2d8",
+    "createdAt": "2026-06-23T14:55:54.715Z",
+    "previousSignature": "ab70966426514bda1c139fb3402af7ee1c2d51c6a146deede295bbbe9a883119",
+    "signature": "60063a1fea901c3db8f1fc0c37a656a13ae6129d1e45c442230785e2a5057d40"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_8d044e1c-1a46-47ce-aec9-78dbcbcd213b",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226554677_ca0f502f84ace8",
+    "createdAt": "2026-06-23T14:55:54.677Z",
+    "previousSignature": "408e769acca4f7604e181f8cc9fe59bd7501445f1b961121c0808ee2d5482682",
+    "signature": "ab70966426514bda1c139fb3402af7ee1c2d51c6a146deede295bbbe9a883119"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_d1978cbc-0879-4e2f-a819-df67bf94ad77",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_1c96f613-31e7-4b21-b715-b3800135d916.",
+    "evidence": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+      "fingerprint": "58ac073e68c0d812aa16a540977b6bae53bfe2980f1561a824c3f80b5b6c724c"
+    },
+    "id": "audit_1782226554663_755cf32c56ef48",
+    "createdAt": "2026-06-23T14:55:54.663Z",
+    "previousSignature": "760196277bd79b8c9630be5229d81953837551d1ac7c78c13a7276295233a01c",
+    "signature": "408e769acca4f7604e181f8cc9fe59bd7501445f1b961121c0808ee2d5482682"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_d1978cbc-0879-4e2f-a819-df67bf94ad77",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226554654_01ffd65b964708",
+    "createdAt": "2026-06-23T14:55:54.654Z",
+    "previousSignature": "dbd31a279bd7f7bcf779e970f5f53caeb7e440c37692d94aab8e265db237a71f",
+    "signature": "760196277bd79b8c9630be5229d81953837551d1ac7c78c13a7276295233a01c"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_2eed7adb-cd00-46b6-85e7-56534f3869c8",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+        "stepId": "step_d1978cbc-0879-4e2f-a819-df67bf94ad77",
+        "toolId": "draft_patch",
+        "fingerprint": "58ac073e68c0d812aa16a540977b6bae53bfe2980f1561a824c3f80b5b6c724c"
+      }
+    },
+    "id": "audit_1782226554644_e288236a3798d8",
+    "createdAt": "2026-06-23T14:55:54.644Z",
+    "previousSignature": "7882141bda0a93078d2adebcf305f73a2889285daf8ae1a334e9ffdf73d71b46",
+    "signature": "dbd31a279bd7f7bcf779e970f5f53caeb7e440c37692d94aab8e265db237a71f"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_7a01dc35-2174-48c8-9898-6a43091db832",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226554631_cebcc095c63998",
+    "createdAt": "2026-06-23T14:55:54.631Z",
+    "previousSignature": "d08ab56bc241a43b10761d1ec6529b1097802d799b4c1ec8238d00a43dda3fcb",
+    "signature": "7882141bda0a93078d2adebcf305f73a2889285daf8ae1a334e9ffdf73d71b46"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_ce112ba0-7301-476d-90c5-ac7e9ad4d4bb",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782226554627_992f046935923",
+    "createdAt": "2026-06-23T14:55:54.627Z",
+    "previousSignature": "6e4bebefb6accd04cc9769c227bd8f23a482fc368167d68e9dea1751f016bcab",
+    "signature": "d08ab56bc241a43b10761d1ec6529b1097802d799b4c1ec8238d00a43dda3fcb"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_1c96f613-31e7-4b21-b715-b3800135d916",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226554614_1d709a3862c6c8",
+    "createdAt": "2026-06-23T14:55:54.615Z",
+    "previousSignature": "ffa603bc261d29d30890c10ab8db30f831d0c45507c386c5ff00e34ad7afdae3",
+    "signature": "6e4bebefb6accd04cc9769c227bd8f23a482fc368167d68e9dea1751f016bcab"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_bb99aaae-28aa-45cc-a74a-7e9a47836a94",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T14:47:42.734Z"
+      }
+    },
+    "id": "audit_1782226062738_5770715331acf",
+    "createdAt": "2026-06-23T14:47:42.738Z",
+    "previousSignature": "3ebd2a0396b3246f44d22a5dfdb69bc5c656d8675f2ecd94f123c5be55a1b378",
+    "signature": "ffa603bc261d29d30890c10ab8db30f831d0c45507c386c5ff00e34ad7afdae3"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_9c76b2e7-b82d-4283-b13b-f58bdcac508e",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226062704_2cbd9307a8c9d",
+    "createdAt": "2026-06-23T14:47:42.704Z",
+    "previousSignature": "bd291ce28a2aba3d5b66f64bdb4ffd3e03887f6269c90fbc3d1b9a4f44825b65",
+    "signature": "3ebd2a0396b3246f44d22a5dfdb69bc5c656d8675f2ecd94f123c5be55a1b378"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_8ec0887c-9fe4-4434-ae78-6dbd7a6aa2a8",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_1244997e-1b45-44d4-80f7-6eb309acdf2d.",
+    "evidence": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+      "fingerprint": "eec027b9d2768fc8de26cc6846193456675c9a16f76d45b17ae3ef0d582ae532"
+    },
+    "id": "audit_1782226062687_f45f6989eafc1",
+    "createdAt": "2026-06-23T14:47:42.687Z",
+    "previousSignature": "70565dcb0db0e8cd752b74a195e69b73617d0063dca6b7c4d7bb8c70cb78bac0",
+    "signature": "bd291ce28a2aba3d5b66f64bdb4ffd3e03887f6269c90fbc3d1b9a4f44825b65"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_8ec0887c-9fe4-4434-ae78-6dbd7a6aa2a8",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226062677_4db2c4c565154",
+    "createdAt": "2026-06-23T14:47:42.677Z",
+    "previousSignature": "a36fdab55efcfdbc54d87aff96428055422e6b5920ba3badb6afe81c36c61477",
+    "signature": "70565dcb0db0e8cd752b74a195e69b73617d0063dca6b7c4d7bb8c70cb78bac0"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_c777fb7e-864a-40d6-8f85-1ef2b313d6a0",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+        "stepId": "step_8ec0887c-9fe4-4434-ae78-6dbd7a6aa2a8",
+        "toolId": "draft_patch",
+        "fingerprint": "eec027b9d2768fc8de26cc6846193456675c9a16f76d45b17ae3ef0d582ae532"
+      }
+    },
+    "id": "audit_1782226062668_7d18cb03f89818",
+    "createdAt": "2026-06-23T14:47:42.668Z",
+    "previousSignature": "681e6b22dfc16cba37d1407f1c0f4b870c27b6575ed6e7c7bf0d034b0af79074",
+    "signature": "a36fdab55efcfdbc54d87aff96428055422e6b5920ba3badb6afe81c36c61477"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_9ec3214e-40c5-4ffb-8938-388aa4ffc1a5",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782226062659_521892fb3b0c48",
+    "createdAt": "2026-06-23T14:47:42.659Z",
+    "previousSignature": "2b756f657996d9ffd45781149b023931fe04437767e334ffa65c1b83494edff3",
+    "signature": "681e6b22dfc16cba37d1407f1c0f4b870c27b6575ed6e7c7bf0d034b0af79074"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_ff64a3e0-8fae-473b-8f2d-d0d23b55aa1f",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782226062652_aefc6b93c237f",
+    "createdAt": "2026-06-23T14:47:42.652Z",
+    "previousSignature": "14f77eef1b674504dfc6966168834e265e0cbe168190dca921396aca3c05370b",
+    "signature": "2b756f657996d9ffd45781149b023931fe04437767e334ffa65c1b83494edff3"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_1244997e-1b45-44d4-80f7-6eb309acdf2d",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782226062645_817968a615cf28",
+    "createdAt": "2026-06-23T14:47:42.645Z",
+    "previousSignature": "3651dbf4d334a498f52cd094cd50cd950194bf88cf5b2e2bc4e8bf2fc8f94d92",
+    "signature": "14f77eef1b674504dfc6966168834e265e0cbe168190dca921396aca3c05370b"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_robot_estop_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "🤖 Robot emergency stop activated!",
+    "evidence": {
+      "ruleId": "rule_robot_estop_notify",
+      "eventId": "evt_5c86ea10-5115-4cef-af85-6b6cf1a33782",
+      "eventType": "robot.emergency_stop",
+      "payload": {
+        "active": true,
+        "timestamp": "2026-06-23T14:35:01.904Z"
+      }
+    },
+    "id": "audit_1782225301907_9c38d05ab6642",
+    "createdAt": "2026-06-23T14:35:01.907Z",
+    "previousSignature": "258b5dedd7805b627424d02be7e85d560d7a39f7da1293c143f34ccb374b26cd",
+    "signature": "3651dbf4d334a498f52cd094cd50cd950194bf88cf5b2e2bc4e8bf2fc8f94d92"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_3cb98549-519c-483d-8d43-1bb10cc4350b",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Safe planning task",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782225301879_2eb591db9e84",
+    "createdAt": "2026-06-23T14:35:01.879Z",
+    "previousSignature": "9819daf585420c7e9c04382c4145199b3a62a85a8aaadc97a89fe22439410446",
+    "signature": "258b5dedd7805b627424d02be7e85d560d7a39f7da1293c143f34ccb374b26cd"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "step.approved",
+    "target": "step_0b769aea-b1df-45ce-bfcb-9e1792142b69",
+    "risk": "MEDIUM",
+    "status": "approved",
+    "summary": "Approved signed step for run_25fa3f85-a541-4505-81f3-d1b56a0bc1af.",
+    "evidence": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+      "fingerprint": "cbad5927e96302a09261910e833613427c48a17a5c0d8464b492b4fa90e2eb3e"
+    },
+    "id": "audit_1782225301867_3d4591d44423c8",
+    "createdAt": "2026-06-23T14:35:01.867Z",
+    "previousSignature": "2495bcfb5dbd724492e4b44c0c253cd0741077ffbb5dfb439bd2b714355c97a1",
+    "signature": "9819daf585420c7e9c04382c4145199b3a62a85a8aaadc97a89fe22439410446"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_0b769aea-b1df-45ce-bfcb-9e1792142b69",
+    "risk": "MEDIUM",
+    "status": "sandbox",
+    "summary": "draft_patch completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+      "toolId": "draft_patch",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782225301862_057faf75759c78",
+    "createdAt": "2026-06-23T14:35:01.862Z",
+    "previousSignature": "9b6cf5a954473956bd9b1a2dde2a8af272252ccb3df7e05515be132bca215ef5",
+    "signature": "2495bcfb5dbd724492e4b44c0c253cd0741077ffbb5dfb439bd2b714355c97a1"
+  },
+  {
+    "actor": "automation-engine",
+    "workspace": "ai-ops",
+    "action": "automation.rule.triggered",
+    "target": "rule_agent_approval_notify",
+    "risk": "LOW",
+    "status": "executed",
+    "summary": "Agent step waiting for founder approval.",
+    "evidence": {
+      "ruleId": "rule_agent_approval_notify",
+      "eventId": "evt_fb2d38f8-915a-476a-890e-49ccbe43203b",
+      "eventType": "agent.step.approval_required",
+      "payload": {
+        "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+        "stepId": "step_0b769aea-b1df-45ce-bfcb-9e1792142b69",
+        "toolId": "draft_patch",
+        "fingerprint": "cbad5927e96302a09261910e833613427c48a17a5c0d8464b492b4fa90e2eb3e"
+      }
+    },
+    "id": "audit_1782225301854_d21844f6634ca8",
+    "createdAt": "2026-06-23T14:35:01.854Z",
+    "previousSignature": "34acf93d310a04b2b688df74498055519be7379079b89fef0e18d80c5c35bf6c",
+    "signature": "9b6cf5a954473956bd9b1a2dde2a8af272252ccb3df7e05515be132bca215ef5"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_aaea70e8-3857-45cb-a5e2-85c8c0b7372f",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "draft_plan completed with inspectable sandbox evidence.",
+    "evidence": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+      "toolId": "draft_plan",
+      "mode": "sandbox"
+    },
+    "id": "audit_1782225301845_6ddd7a697ee578",
+    "createdAt": "2026-06-23T14:35:01.845Z",
+    "previousSignature": "45b41dbdf01066e143171d5b3dd89773a9186d34f82af62dc5235a64712e4782",
+    "signature": "34acf93d310a04b2b688df74498055519be7379079b89fef0e18d80c5c35bf6c"
+  },
+  {
+    "actor": "ai-agent",
+    "workspace": "agent-runtime",
+    "action": "tool.executed",
+    "target": "step_1518adaa-8943-445c-96fc-86e8b62e2c65",
+    "risk": "LOW",
+    "status": "sandbox",
+    "summary": "read_knowledge completed with inspectable retrieval evidence.",
+    "evidence": {
+      "runId": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+      "toolId": "read_knowledge",
+      "mode": "retrieval"
+    },
+    "id": "audit_1782225301841_c4f4cc45ee26c",
+    "createdAt": "2026-06-23T14:35:01.841Z",
+    "previousSignature": "6f1e557da3ffd314adce3d8d9fbf762faaec40eb32cff9d2b41d811e4515447b",
+    "signature": "45b41dbdf01066e143171d5b3dd89773a9186d34f82af62dc5235a64712e4782"
+  },
+  {
+    "actor": "founder",
+    "workspace": "agent-runtime",
+    "action": "run.created",
+    "target": "run_25fa3f85-a541-4505-81f3-d1b56a0bc1af",
+    "risk": "LOW",
+    "status": "planned",
+    "summary": "Prepare a reviewed product patch",
+    "evidence": {
+      "planner": "deterministic",
+      "steps": [
+        "read_knowledge",
+        "draft_plan",
+        "draft_patch"
+      ],
+      "sourceType": "direct"
+    },
+    "id": "audit_1782225301835_9d96e811899a8",
+    "createdAt": "2026-06-23T14:35:01.835Z",
+    "signature": "6f1e557da3ffd314adce3d8d9fbf762faaec40eb32cff9d2b41d811e4515447b"
+  }
+]

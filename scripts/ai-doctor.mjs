@@ -3,6 +3,19 @@
 const baseUrl = process.env.LEDGERFLOW_URL || process.env.APP_URL || "http://127.0.0.1:3000";
 const endpoint = `${baseUrl.replace(/\/$/, "")}/api/ai/preflight`;
 
+async function getSessionCookie() {
+  const password = process.env.LOCAL_AUTH_DEV_PASSWORD || "admin123";
+  const response = await fetch(`${baseUrl.replace(/\/$/, "")}/api/auth/local-session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: "doctor@ledgerflow.local", password }),
+  });
+  if (!response.ok) throw new Error(`AI Doctor login failed: HTTP ${response.status}`);
+  const cookie = response.headers.get("set-cookie")?.split(";")[0];
+  if (!cookie) throw new Error("AI Doctor login did not return a session cookie.");
+  return cookie;
+}
+
 function icon(severity) {
   if (severity === "ok") return "✅";
   if (severity === "warn") return "⚠️ ";
@@ -10,7 +23,8 @@ function icon(severity) {
 }
 
 try {
-  const response = await fetch(endpoint);
+  const cookie = await getSessionCookie();
+  const response = await fetch(endpoint, { headers: { Cookie: cookie } });
   const payload = await response.json().catch(() => null);
 
   if (!response.ok || !payload?.report) {

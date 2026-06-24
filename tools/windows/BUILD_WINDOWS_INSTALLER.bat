@@ -1,18 +1,18 @@
 @echo off
 setlocal EnableExtensions EnableDelayedExpansion
 chcp 65001 >nul
-title Build LedgerFlow Hub Windows Installer
+title Build LedgerFlow Hub Windows App
 
 set SCRIPT_DIR=%~dp0
 pushd "%SCRIPT_DIR%..\.." >nul
 
 echo ==================================================
-echo  LedgerFlow Hub - Tao file cai dat Windows .exe
+echo  LedgerFlow Hub - Tao ban Windows chay truc tiep
 echo ==================================================
 echo.
 echo File nay KHONG chay app dev/localhost.
-echo File nay dung de dong goi ra ban cai dat trong thu muc release.
-echo Sau khi xong, ban chi can bam file .exe trong release de cai dat.
+echo File nay build ra thu muc release\win-unpacked.
+echo Sau khi xong, bam LedgerFlow Hub.exe trong thu muc do de chay.
 echo.
 
 where node >nul 2>nul
@@ -48,11 +48,11 @@ if not exist desktop\main.cjs (
   exit /b 1
 )
 
-echo [2/6] Don thu muc release cu de tranh nham file .exe cu...
+echo [2/6] Don thu muc release cu de tranh nham ban .exe cu...
 if exist release (
   rmdir /s /q release
   if exist release (
-    echo [LOI] Khong xoa duoc thu muc release cu. Hay dong cac file .exe/installer dang mo roi chay lai.
+    echo [LOI] Khong xoa duoc thu muc release cu. Hay dong LedgerFlow Hub.exe dang mo roi chay lai.
     pause
     popd >nul
     exit /b 1
@@ -90,14 +90,14 @@ if not exist build\icon.ico (
 )
 
 echo.
-echo [5/6] Build va dong goi installer...
+echo [5/6] Build ban Windows chay truc tiep...
 echo Qua trinh nay co the mat vai phut lan dau tien.
 echo Neu thay nhieu dong WARN thi chua chac la loi. Chi khi co dong [LOI] moi la build fail.
 set CSC_IDENTITY_AUTO_DISCOVERY=false
 call npm run desktop:dist
 if errorlevel 1 (
   echo.
-  echo [LOI] Build installer that bai.
+  echo [LOI] Build ban Windows that bai.
   echo Hay chup man hinh tu dong loi dau tien den dong nay gui cho ChatGPT.
   echo Thuong gap: script check, icon Windows, hoac Electron Builder tai goi bi loi mang.
   pause
@@ -114,31 +114,29 @@ if not exist release (
   exit /b 1
 )
 
-set EXE_COUNT=0
-for /f "delims=" %%F in ('dir /b /a:-d "release\*.exe" 2^>nul') do (
-  set /a EXE_COUNT+=1
-  echo   [EXE] release\%%F
-)
-
-if "%EXE_COUNT%"=="0" (
-  echo [LOI] Khong tim thay file .exe trong thu muc release.
-  echo Hay mo thu muc release va chup man hinh danh sach file gui cho ChatGPT.
+set "APP_EXE=%cd%\release\win-unpacked\LedgerFlow Hub.exe"
+if not exist "%APP_EXE%" (
+  echo [LOI] Khong tim thay file:
+  echo "%APP_EXE%"
+  echo Hay mo thu muc release\win-unpacked va chup man hinh danh sach file gui cho ChatGPT.
   start "" "%cd%\release"
   pause
   popd >nul
   exit /b 1
 )
 
+echo   [EXE] "%APP_EXE%"
+
 echo.
 echo ==================================================
 echo  BUILD THANH CONG
 echo ==================================================
 echo.
-echo Thu muc thanh pham: %cd%\release
-echo Bam file .exe trong danh sach tren de cai dat LedgerFlow Hub.
+echo Thu muc thanh pham: %cd%\release\win-unpacked
+echo Bam LedgerFlow Hub.exe de chay phan mem, khong can cai dat.
 echo Neu Windows hien SmartScreen, chon More info ^> Run anyway.
 echo.
-start "" "%cd%\release"
+start "" "%cd%\release\win-unpacked"
 pause
 popd >nul
 endlocal

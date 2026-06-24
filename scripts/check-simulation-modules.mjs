@@ -6,10 +6,36 @@ const componentDir = path.join(root, 'src', 'components');
 const registryPath = path.join(root, 'src', 'data', 'simulationRegistry.ts');
 const appPath = path.join(root, 'src', 'app', 'ErpApp.tsx');
 const mainPath = path.join(root, 'src', 'main.tsx');
-const dockPath = path.join(componentDir, 'FounderLabsDock.tsx');
+const dockPath = path.join(componentDir, 'shared', 'FounderLabsDock.tsx');
 const workspaceRendererPath = path.join(root, 'src', 'app', 'WorkspaceRenderer.tsx');
 const companyNavPath = path.join(root, 'src', 'app', 'companyNavigation.ts');
-const analyticsWorkspacePath = path.join(componentDir, 'AnalyticsWorkspace.tsx');
+const searchDirs = [
+  path.join(root, 'src', 'modules', 'product-studio'),
+  path.join(root, 'src', 'modules', 'marketing-growth'),
+  path.join(root, 'src', 'modules', 'sales-crm'),
+  path.join(root, 'src', 'modules', 'ai-hr'),
+  path.join(root, 'src', 'modules', 'analytics-sandbox'),
+  path.join(root, 'src', 'modules', 'finance-accounting'),
+  path.join(root, 'src', 'modules', 'dev-ops'),
+  path.join(root, 'src', 'modules', 'command-center'),
+  path.join(root, 'src', 'components'),
+  path.join(root, 'src', 'components', 'agent-ops', 'tabs')
+];
+
+function findComponentFile(name) {
+  for (const dir of searchDirs) {
+    for (const ext of ['.tsx', '.ts', '.jsx', '.js']) {
+      const fullPath = path.join(dir, name + ext);
+      if (fs.existsSync(fullPath)) {
+        return fullPath;
+      }
+    }
+  }
+  return null;
+}
+
+const analyticsWorkspacePath = findComponentFile('AnalyticsWorkspace') || path.join(componentDir, 'AnalyticsWorkspace.tsx');
+
 
 function parseRegistryComponents() {
   if (!fs.existsSync(registryPath)) {
@@ -70,12 +96,7 @@ for (const relativePath of requiredRuntimeFiles) {
 }
 
 for (const moduleName of criticalModules) {
-  const tsxPath = path.join(componentDir, `${moduleName}.tsx`);
-  const tsPath = path.join(componentDir, `${moduleName}.ts`);
-  const jsxPath = path.join(componentDir, `${moduleName}.jsx`);
-  const jsPath = path.join(componentDir, `${moduleName}.js`);
-
-  const existingPath = [tsxPath, tsPath, jsxPath, jsPath].find((candidate) => fs.existsSync(candidate));
+  const existingPath = findComponentFile(moduleName);
 
   if (!existingPath) {
     errors.push(`Missing critical simulation component: ${moduleName}`);
@@ -127,14 +148,24 @@ if (mainContent.includes('FounderLabsDock') && !mainContent.includes("./componen
 }
 
 for (const moduleName of criticalModules) {
-  // Check App.tsx OR WorkspaceRenderer.tsx (extracted lazy-load host)
+  const existingPath = findComponentFile(moduleName);
+  if (!existingPath) continue;
+
+  const projectRelPath = path.relative(root, existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+  
+  // Calculate relative paths from WorkspaceRenderer and FounderLabsDock
+  const relFromRenderer = path.relative(path.join(root, 'src', 'app'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+  const relFromDock = path.relative(path.join(root, 'src', 'components', 'shared'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+  const relFromAnalytics = path.relative(path.dirname(analyticsWorkspacePath), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+
   const appOrRendererLoadsModule =
-    appContent.includes(`./components/${moduleName}`) ||
-    workspaceRendererContent.includes(`./components/${moduleName}`) ||
-    workspaceRendererContent.includes(`'../components/${moduleName}'`) ||
-    workspaceRendererContent.includes(`"../components/${moduleName}"`) ||
-    analyticsWorkspaceContent.includes(`./${moduleName}`);
-  const dockLoadsModule = dockContent.includes(`import('./${moduleName}')`);
+    appContent.includes(relFromRenderer) ||
+    workspaceRendererContent.includes(relFromRenderer) ||
+    analyticsWorkspaceContent.includes(relFromAnalytics) ||
+    appContent.includes(projectRelPath) ||
+    workspaceRendererContent.includes(projectRelPath);
+
+  const dockLoadsModule = dockContent.includes(relFromDock);
 
   if (!appOrRendererLoadsModule && !dockLoadsModule) {
     errors.push(`Registry module is not lazy-loaded by the app runtime or FounderLabsDock.tsx: ${moduleName}`);

@@ -29,20 +29,36 @@ Root should stay lean. Keep only files that must be at the project root for Node
 | Local developer runtime | `npm run dev` → `server.ts` |
 | Production server | `npm run build` then `npm start` → `dist/server.cjs` |
 | Desktop | `desktop/main.cjs` loads the production app |
-| Windows installer local build | `tools/windows/BUILD_WINDOWS_INSTALLER.bat` / `npm run desktop:dist` |
+| Windows direct app build | `tools/windows/BUILD_WINDOWS_INSTALLER.bat` / `npm run desktop:dist` |
 | Windows user download | GitHub Actions artifact `LedgerFlow-Hub-Windows-Download` |
 
 The local server is not a separate product edition. It exists so the Windows app can run one internal API/UI runtime and so developers can test changes.
+
+## Local API authentication
+
+- `/api/health` and the login/session endpoints are public; all other `/api` routes require authentication.
+- Browser and desktop clients authenticate with an `HttpOnly`, `SameSite=Strict` session cookie.
+- Desktop and development may use the visible `admin123` fallback for initial setup. Hosted production must configure `LOCAL_AUTH_DEV_PASSWORD`.
+- Trusted automation clients that cannot keep a browser cookie may send `Authorization: Bearer <LEDGERFLOW_API_TOKEN>` when that server-side token is configured.
+- Desktop runtime binds its embedded Express server to `127.0.0.1`. Hosted deployments can set `HOST` explicitly.
+- Local database saves are serialized, written through a temporary file, and retain `db_storage.json.bak` after replacing existing data.
 
 ## Frontend organization
 
 ```text
 src/
 ├── app/                     # Company OS shell, navigation registry, workspace renderer
-├── components/              # Shared feature panels and overlay launchers
+├── components/              # Shared/global launcher bridges, UI elements, layouts (e.g. FounderLabsDock)
 │   └── agent-ops/           # AgentOpsHub shell, hooks, helpers, and tabs
 ├── context/                 # Cross-app React providers such as local auth
-├── modules/                 # Business workspaces grouped by company function
+├── modules/                 # Domain-driven company OS modules
+│   ├── command-center/      # CommandCenter dashboard and top-level entry workspaces
+│   ├── product-studio/      # Game libraries, ML workbench, learning roadmaps, strategy games
+│   ├── marketing-growth/    # SEO tools, synthetic surveys, landing copy labs, email sequences
+│   ├── sales-crm/           # Pricing labs, NPS, affiliate hubs, outbound sales leads
+│   ├── ai-hr/               # AI assistants, AI settings wizards, key security panels
+│   ├── analytics-sandbox/   # Python sandbox, case banks, automation blueprint planners
+│   └── finance-accounting/  # Revenue metrics, Vietnam VAS accounting, budgets, founder standups
 ├── types/                   # Shared frontend TypeScript type sources
 │   └── agentOps.ts          # Single source for AgentOps records/status/risk types
 ├── utils/                   # Frontend API clients and shared helpers
@@ -132,7 +148,7 @@ tools/
     └── README.md
 ```
 
-`tools/windows/BUILD_WINDOWS_INSTALLER.bat` is for developers who want to build the installer locally. It should not be the primary user download path. End users should download the Windows artifact from GitHub Actions.
+`tools/windows/BUILD_WINDOWS_INSTALLER.bat` is for developers who want to build the Windows app folder locally. It produces `release/win-unpacked/LedgerFlow Hub.exe`; LedgerFlow no longer ships a separate setup installer or portable root artifact.
 
 ## Scripts organization
 
@@ -142,14 +158,14 @@ Scripts in `scripts/` are intentionally kept as `.mjs` Node scripts for cross-pl
 |---|---|
 | Doctors/checks | `doctor.mjs`, `ai-doctor.mjs`, `check-*.mjs` |
 | Desktop resources | `prepare-desktop-icons.mjs` |
-| Release helpers | `write-build-manifest.mjs`, `write-release-notes.mjs` |
+| Release helpers | `write-build-manifest.mjs`, `finalize-release.mjs` |
 | Maintenance | `clean.mjs` |
 
 Avoid adding shell-only logic to `package.json`; prefer Node scripts so Windows/GitHub Actions/local machines behave consistently.
 
 ## User download package
 
-The source-code zip from GitHub is not the app installer. A user-ready Windows package is created by the `Build Windows Desktop` workflow and uploaded as:
+The source-code zip from GitHub is not the Windows app. A user-ready Windows package is created by the `Build Windows Desktop` workflow and uploaded as:
 
 ```text
 LedgerFlow-Hub-Windows-Download
@@ -158,11 +174,11 @@ LedgerFlow-Hub-Windows-Download
 That artifact contains:
 
 ```text
-*.exe
+win-unpacked/LedgerFlow Hub.exe
 START_HERE.txt
 ```
 
-A user should download that artifact, unzip it, and run the `.exe`.
+A user should download that artifact, unzip it, and run `LedgerFlow Hub.exe` inside `win-unpacked`.
 
 ## Local ignored files
 

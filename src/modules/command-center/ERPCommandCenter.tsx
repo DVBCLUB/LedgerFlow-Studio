@@ -12,7 +12,7 @@ import {
 import type { TabType } from '../../app/companyNavigation';
 
 interface ERPCommandCenterProps {
-  onNavigate: (tab: TabType) => void;
+  onNavigate: (tab: TabType, subTab?: string) => void;
 }
 
 const priorities = [
@@ -43,7 +43,7 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
           <h2>Chào buổi chiều, Founder</h2>
           <span>Những việc quan trọng nhất của công ty được gom tại đây.</span>
         </div>
-        <button className="erp-primary-button" onClick={() => onNavigate('approval_workflow')}>
+        <button className="erp-primary-button" onClick={() => onNavigate('finance_accounting', 'approval')}>
           <CheckCircle2 size={16} /> Xem việc cần duyệt
         </button>
       </section>
@@ -71,7 +71,7 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
         <section className="erp-panel erp-panel--wide">
           <header className="erp-panel__header">
             <div><h3>Ưu tiên hôm nay</h3><p>Tập trung vào công việc tạo tác động trực tiếp.</p></div>
-            <button onClick={() => onNavigate('roadmap')}>Mở dự án <ArrowRight size={14} /></button>
+            <button onClick={() => onNavigate('product_studio', 'tasks_progress')}>Mở dự án <ArrowRight size={14} /></button>
           </header>
           <div className="erp-priority-list">
             {priorities.map((item) => (
@@ -97,7 +97,7 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
         <section className="erp-panel erp-panel--wide">
           <header className="erp-panel__header">
             <div><h3>Danh mục sản phẩm</h3><p>Tiến độ theo bản phát hành gần nhất.</p></div>
-            <button onClick={() => onNavigate('guerrilla')}>Product Studio <ArrowRight size={14} /></button>
+            <button onClick={() => onNavigate('product_studio', 'dev_hub')}>Product Studio <ArrowRight size={14} /></button>
           </header>
           <div className="erp-table-wrap">
             <table className="erp-table">
@@ -116,7 +116,7 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
         </section>
 
         <section className="erp-panel">
-          <header className="erp-panel__header"><div><h3>Pipeline kinh doanh</h3><p>Giá trị cơ hội dự kiến</p></div><button onClick={() => onNavigate('outbound_hub')}>CRM <ArrowRight size={14} /></button></header>
+          <header className="erp-panel__header"><div><h3>Pipeline kinh doanh</h3><p>Giá trị cơ hội dự kiến</p></div><button onClick={() => onNavigate('growth_sales', 'leads_outreach')}>CRM <ArrowRight size={14} /></button></header>
           <div className="erp-pipeline">
             {pipeline.map((item) => <article key={item.stage}><div><strong>{item.stage}</strong><small>{item.count} cơ hội</small></div><b>{item.value}</b></article>)}
           </div>
