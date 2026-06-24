@@ -3,7 +3,7 @@ import { createSoftwareFactoryAsset, type SoftwareFactoryAssetRecord } from "./s
 import { appendSoftwareFactoryExecutionLog, getSoftwareFactoryExecution } from "./softwareFactoryExecutionService";
 import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
 
-export type SoftwareFactoryCommandKind = "factory-check" | "typecheck" | "lint" | "test" | "build" | "preview";
+export type SoftwareFactoryCommandKind = "typecheck" | "lint" | "test" | "build" | "preview";
 export type SoftwareFactoryCommandStatus = "queued" | "running" | "complete" | "failed";
 
 export interface SoftwareFactoryCommandRecord {
@@ -31,8 +31,7 @@ export interface SoftwareFactoryCommandLinkResult {
 const STORE_NAME = "command-runs";
 const records = new Map<string, SoftwareFactoryCommandRecord>();
 const commandCatalog: Record<SoftwareFactoryCommandKind, string[]> = {
-  "factory-check": ["npm run check:software-factory"],
-  typecheck: ["npm run lint"],
+  typecheck: ["npm run check:software-factory", "npm run lint"],
   lint: ["npm run lint"],
   test: ["npm test"],
   build: ["npm run build"],
