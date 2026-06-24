@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, KeyRound, Lock, PackageCheck, RefreshCw, ShieldAlert, ShieldCheck, Unplug, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Lock, PackageCheck, RefreshCw, ShieldAlert, ShieldCheck, Unplug, XCircle } from 'lucide-react';
 import { daemonFetch } from '../../utils/assistantApi';
 
 type Plugin = {
