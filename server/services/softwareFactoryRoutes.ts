@@ -70,6 +70,7 @@ import {
   type SoftwareFactoryAuditArea,
   type SoftwareFactoryAuditLevel,
 } from "./softwareFactoryAuditLogService";
+import { getSoftwareFactoryHealthSummary } from "./softwareFactoryHealthService";
 
 const router = Router();
 
@@ -83,6 +84,10 @@ const validAssetStatuses: SoftwareFactoryAssetStatus[] = ["new", "checked", "lin
 const validCommandKinds: SoftwareFactoryCommandKind[] = ["typecheck", "lint", "test", "build", "preview"];
 const validAuditAreas: SoftwareFactoryAuditArea[] = ["run", "execution", "provider", "asset", "release", "command", "git", "system"];
 const validAuditLevels: SoftwareFactoryAuditLevel[] = ["info", "success", "warning", "error"];
+
+router.get("/health-summary", (_req, res) => {
+  res.json({ ok: true, health: getSoftwareFactoryHealthSummary() });
+});
 
 router.get("/runs", (_req, res) => {
   res.json({ ok: true, runs: listSoftwareFactoryRuns(), stats: getSoftwareFactoryStats() });
@@ -335,7 +340,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats(), auditStats: getSoftwareFactoryAuditStats(), health: getSoftwareFactoryHealthSummary() });
 });
 
 router.post("/seed", (_req, res) => {
