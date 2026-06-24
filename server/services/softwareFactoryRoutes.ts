@@ -53,6 +53,14 @@ import {
   type SoftwareFactoryAssetKind,
   type SoftwareFactoryAssetStatus,
 } from "./softwareFactoryAssetService";
+import {
+  getSoftwareFactoryCommandRun,
+  getSoftwareFactoryCommandStats,
+  listSoftwareFactoryCommandCatalog,
+  listSoftwareFactoryCommandRuns,
+  runSoftwareFactoryCommand,
+  type SoftwareFactoryCommandKind,
+} from "./softwareFactoryCommandRunner";
 
 const router = Router();
 
@@ -63,6 +71,7 @@ const validReleaseChannels: SoftwareFactoryReleaseChannel[] = ["landing_page", "
 const validReleaseStatuses: SoftwareFactoryReleaseStatus[] = ["draft", "ready", "review", "scheduled", "complete"];
 const validAssetKinds: SoftwareFactoryAssetKind[] = ["code", "package", "media", "document", "release", "log"];
 const validAssetStatuses: SoftwareFactoryAssetStatus[] = ["new", "checked", "linked", "stored"];
+const validCommandKinds: SoftwareFactoryCommandKind[] = ["typecheck", "lint", "test", "build", "preview"];
 
 router.get("/runs", (_req, res) => {
   res.json({ ok: true, runs: listSoftwareFactoryRuns(), stats: getSoftwareFactoryStats() });
@@ -70,9 +79,7 @@ router.get("/runs", (_req, res) => {
 
 router.post("/runs", (req, res) => {
   const { title, workType, owner, input, output } = req.body || {};
-  if (!title || !input || !validWorkTypes.includes(workType)) {
-    return res.status(400).json({ ok: false, error: "title, input and valid workType are required" });
-  }
+  if (!title || !input || !validWorkTypes.includes(workType)) return res.status(400).json({ ok: false, error: "title, input and valid workType are required" });
   const run = createSoftwareFactoryRun({ title, workType, owner, input, output });
   return res.status(201).json({ ok: true, run });
 });
@@ -128,6 +135,28 @@ router.post("/executions/:id/block", (req, res) => {
   return res.json({ ok: true, execution });
 });
 
+router.get("/commands/catalog", (_req, res) => {
+  res.json({ ok: true, catalog: listSoftwareFactoryCommandCatalog() });
+});
+
+router.get("/commands", (_req, res) => {
+  res.json({ ok: true, runs: listSoftwareFactoryCommandRuns(), stats: getSoftwareFactoryCommandStats() });
+});
+
+router.post("/commands/run", async (req, res) => {
+  const { kind, commandIndex } = req.body || {};
+  if (!validCommandKinds.includes(kind)) return res.status(400).json({ ok: false, error: "valid command kind is required" });
+  const run = await runSoftwareFactoryCommand(kind, typeof commandIndex === "number" ? commandIndex : 0);
+  if (!run) return res.status(400).json({ ok: false, error: "command is not available" });
+  return res.json({ ok: true, run, stats: getSoftwareFactoryCommandStats() });
+});
+
+router.get("/commands/:id", (req, res) => {
+  const run = getSoftwareFactoryCommandRun(req.params.id);
+  if (!run) return res.status(404).json({ ok: false, error: "command run not found" });
+  return res.json({ ok: true, run });
+});
+
 router.get("/providers", (_req, res) => {
   res.json({ ok: true, profiles: listSoftwareFactoryProviderProfiles(), stats: getSoftwareFactoryProviderStats() });
 });
@@ -153,9 +182,7 @@ router.get("/assets", (_req, res) => {
 
 router.post("/assets", (req, res) => {
   const { runId, kind, title, fileName, content, notes } = req.body || {};
-  if (!runId || !title || typeof content !== "string" || !validAssetKinds.includes(kind)) {
-    return res.status(400).json({ ok: false, error: "runId, title, content and valid kind are required" });
-  }
+  if (!runId || !title || typeof content !== "string" || !validAssetKinds.includes(kind)) return res.status(400).json({ ok: false, error: "runId, title, content and valid kind are required" });
   const asset = createSoftwareFactoryAsset({ runId, kind, title, fileName, content, notes });
   return res.status(201).json({ ok: true, asset, stats: getSoftwareFactoryAssetStats() });
 });
@@ -191,9 +218,7 @@ router.get("/release-kit", (_req, res) => {
 
 router.post("/release-kit", (req, res) => {
   const { runId, channel, title, owner, deliverable, notes } = req.body || {};
-  if (!runId || !title || !deliverable || !validReleaseChannels.includes(channel)) {
-    return res.status(400).json({ ok: false, error: "runId, title, deliverable and valid channel are required" });
-  }
+  if (!runId || !title || !deliverable || !validReleaseChannels.includes(channel)) return res.status(400).json({ ok: false, error: "runId, title, deliverable and valid channel are required" });
   const item = createSoftwareFactoryReleaseItem({ runId, channel, title, owner, deliverable, notes });
   return res.status(201).json({ ok: true, item, stats: getSoftwareFactoryReleaseStats() });
 });
@@ -253,7 +278,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats(), commandStats: getSoftwareFactoryCommandStats() });
 });
 
 router.post("/seed", (_req, res) => {
