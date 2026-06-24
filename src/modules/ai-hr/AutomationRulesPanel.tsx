@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react';
 import { Bot, Cable, Database, PlayCircle, Rocket, Terminal, Zap } from 'lucide-react';
 import FactoryCatalogStatusPanel from './FactoryCatalogStatusPanel';
 import FactoryBackendRuntimePanel from './FactoryBackendRuntimePanel';
+import FactoryExecutionDecisionPanel from './FactoryExecutionDecisionPanel';
 import AutomationRobotControlHubPanel from './AutomationRobotControlHubPanel';
 import AutomationBridgeHubPanel from './AutomationBridgeHubPanel';
 
@@ -17,7 +19,7 @@ function Pill({ children, tone = 'slate' }: { children: string; tone?: 'slate' |
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${cls}`}>{children}</span>;
 }
 
-function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`rounded-3xl border border-slate-800 bg-slate-950/65 p-4 text-left shadow-xl shadow-slate-950/20 ${className}`}>{children}</div>;
 }
 
@@ -88,17 +90,13 @@ function SoftwareFactoryAutomationBrief() {
           <h2 className="mt-2 text-2xl font-black text-white">Tự động hóa tạo phần mềm, game, tool và video AI đến mức có thể thương mại hóa</h2>
           <p className="mt-3 max-w-5xl text-sm font-semibold leading-6 text-slate-400">Automation được định hướng lại thành dây chuyền sản xuất: nhận ý tưởng, điều phối nhiều AI/agent, kết nối GitHub/IDE, sinh code và media, sửa lỗi, đóng gói, rồi chuẩn bị bán hàng. Các bước rủi ro cao vẫn đi qua founder approval.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Pill tone="emerald">API first</Pill>
-          <Pill tone="violet">Catalog connected</Pill>
-          <Pill tone="cyan">GitHub + IDE</Pill>
-          <Pill tone="amber">Review gated</Pill>
-        </div>
+        <div className="flex flex-wrap gap-2"><Pill tone="emerald">API first</Pill><Pill tone="violet">Catalog connected</Pill><Pill tone="cyan">GitHub + IDE</Pill><Pill tone="amber">Review gated</Pill></div>
       </div>
     </section>
 
     <FactoryCatalogStatusPanel />
     <FactoryBackendRuntimePanel />
+    <FactoryExecutionDecisionPanel />
 
     <section className="grid gap-3 md:grid-cols-4">
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Goal</p><p className="mt-2 text-2xl font-black text-white">Idea to revenue</p><p className="mt-1 text-[11px] font-bold text-slate-500">Tập trung tạo sản phẩm có khả năng bán.</p></Card>
