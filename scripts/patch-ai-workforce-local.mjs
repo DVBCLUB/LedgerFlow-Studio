@@ -8,6 +8,7 @@ const patchers = [
   'scripts/patch-telegram-mission-commands.mjs',
   'scripts/patch-daemon-patch-review-routes.mjs',
   'scripts/patch-daemon-agent-reject-route.mjs',
+  'scripts/patch-daemon-robot-automation-routes.mjs',
   'scripts/patch-plugin-runtime-boundary.mjs',
   'scripts/patch-ai-ops-safety-runbook-panel.mjs',
 ];
@@ -22,5 +23,5 @@ for (const patcher of patchers) {
   }
 }
 
-console.log('\n✅ AI Workforce local daemon, plugin and UI patches completed.');
+console.log('\n✅ AI Workforce local daemon, robot, automation, plugin and UI patches completed.');
 console.log('Next: node scripts/check-ai-workforce-local.mjs && node scripts/check-agent-runtime-rejection.mjs && npm run lint && npm run build');
