@@ -36,7 +36,7 @@ function latestRunIdFromArgs(args: string[]) {
   return args[0] && args[0] !== 'latest' ? args[0] : '';
 }
 
-function runSummary(run: Awaited<ReturnType<typeof getAgentRun>> | undefined) {
+function runSummary(run: Awaited<ReturnType<typeof getAgentRun>> | undefined | null) {
   if (!run) return 'Run not found.';
   const steps = run.steps || [];
   const waiting = steps.filter((step) => String(step.status).includes('waiting'));
@@ -54,8 +54,8 @@ function runSummary(run: Awaited<ReturnType<typeof getAgentRun>> | undefined) {
 }
 
 async function getLatestRun() {
-  const runs = await listAgentRuns({ limit: 1 });
-  return runs[0];
+  const result = await listAgentRuns(1);
+  return result.runs[0] || null;
 }
 
 export async function tryHandleTelegramMissionCommand(chatId: number, text: string, send: TelegramSend): Promise<boolean> {
@@ -102,8 +102,8 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
     }
 
     case 'approvals': {
-      const runs = await listAgentRuns({ limit: 20 });
-      const waiting = runs.flatMap((run) => (run.steps || [])
+      const result = await listAgentRuns(20);
+      const waiting = result.runs.flatMap((run) => (run.steps || [])
         .filter((step) => String(step.status).includes('waiting') || step.requiresApproval)
         .map((step) => ({ run, step })));
       if (!waiting.length) {
@@ -125,7 +125,7 @@ export async function tryHandleTelegramMissionCommand(chatId: number, text: stri
         await send(chatId, '❓ Usage: `/mission approve <runId> <stepId> <fingerprint>`', { parse_mode: 'Markdown' });
         return true;
       }
-      const run = await approveAgentRunStep({ runId, stepId, fingerprint, phrase: APPROVAL_PHRASE });
+      const run = await approveAgentRunStep(runId, { stepId, fingerprint, phrase: APPROVAL_PHRASE });
       await send(chatId, `✅ Approved step \`${stepId}\` for mission \`${run.id}\`.\nStatus: \`${run.status}\``, { parse_mode: 'Markdown' });
       return true;
     }
