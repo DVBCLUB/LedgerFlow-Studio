@@ -31,12 +31,24 @@ import {
   type SoftwareFactoryProviderHealth,
   type SoftwareFactoryWorkKind,
 } from "./softwareFactoryProviderRuntime";
+import {
+  createSoftwareFactoryReleaseItem,
+  getSoftwareFactoryReleaseItem,
+  getSoftwareFactoryReleaseStats,
+  listSoftwareFactoryReleaseItems,
+  seedSoftwareFactoryReleaseItems,
+  updateSoftwareFactoryReleaseStatus,
+  type SoftwareFactoryReleaseChannel,
+  type SoftwareFactoryReleaseStatus,
+} from "./softwareFactoryReleaseKitService";
 
 const router = Router();
 
 const validWorkTypes: SoftwareFactoryWorkType[] = ["planning", "coding", "qa", "media", "launch"];
 const validStatuses: SoftwareFactoryRunStatus[] = ["draft", "queued", "running", "review", "complete", "blocked"];
 const validProviderHealth: SoftwareFactoryProviderHealth[] = ["healthy", "limited", "paused"];
+const validReleaseChannels: SoftwareFactoryReleaseChannel[] = ["landing_page", "short_video", "store_listing", "creative_pack", "email_draft", "social_draft"];
+const validReleaseStatuses: SoftwareFactoryReleaseStatus[] = ["draft", "ready", "review", "scheduled", "complete"];
 
 router.get("/runs", (_req, res) => {
   res.json({ ok: true, runs: listSoftwareFactoryRuns(), stats: getSoftwareFactoryStats() });
@@ -116,6 +128,38 @@ router.patch("/providers/:id/health", (req, res) => {
   return res.json({ ok: true, profile, stats: getSoftwareFactoryProviderStats() });
 });
 
+router.get("/release-kit", (_req, res) => {
+  res.json({ ok: true, items: listSoftwareFactoryReleaseItems(), stats: getSoftwareFactoryReleaseStats() });
+});
+
+router.post("/release-kit", (req, res) => {
+  const { runId, channel, title, owner, deliverable, notes } = req.body || {};
+  if (!runId || !title || !deliverable || !validReleaseChannels.includes(channel)) {
+    return res.status(400).json({ ok: false, error: "runId, title, deliverable and valid channel are required" });
+  }
+  const item = createSoftwareFactoryReleaseItem({ runId, channel, title, owner, deliverable, notes });
+  return res.status(201).json({ ok: true, item, stats: getSoftwareFactoryReleaseStats() });
+});
+
+router.get("/release-kit/:id", (req, res) => {
+  const item = getSoftwareFactoryReleaseItem(req.params.id);
+  if (!item) return res.status(404).json({ ok: false, error: "release item not found" });
+  return res.json({ ok: true, item });
+});
+
+router.patch("/release-kit/:id/status", (req, res) => {
+  const { status, notes } = req.body || {};
+  if (!validReleaseStatuses.includes(status)) return res.status(400).json({ ok: false, error: "valid status is required" });
+  const item = updateSoftwareFactoryReleaseStatus(req.params.id, status, notes);
+  if (!item) return res.status(404).json({ ok: false, error: "release item not found" });
+  return res.json({ ok: true, item, stats: getSoftwareFactoryReleaseStats() });
+});
+
+router.post("/release-kit/seed", (req, res) => {
+  const { runId } = req.body || {};
+  res.json({ ok: true, items: seedSoftwareFactoryReleaseItems(runId || "sample-run"), stats: getSoftwareFactoryReleaseStats() });
+});
+
 router.get("/git/status", async (_req, res) => {
   try {
     res.json({ ok: true, runner: await getSoftwareFactoryGitRunnerStatus() });
@@ -152,7 +196,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats() });
 });
 
 router.post("/seed", (_req, res) => {
