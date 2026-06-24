@@ -20,6 +20,7 @@ const app = file('src/App.tsx');
 const aiOps = file('src/modules/ai-hr/AIOperationsCenter.tsx');
 const robotLab = file('src/modules/ai-hr/RobotLabPanel.tsx');
 const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
+const automationHub = file('src/modules/ai-hr/AutomationRobotControlHubPanel.tsx');
 const memoryPanel = file('src/modules/ai-hr/AIMemoryRagPanel.tsx');
 const knowledgeHub = file('src/modules/ai-hr/KnowledgeContentHubPanel.tsx');
 const projectMemory = file('src/modules/analytics-sandbox/ProjectMemoryDecisionLog.tsx');
@@ -45,8 +46,15 @@ const requiredRoutes = [
   '/api/agent-runtime/emergency-stop',
   '/api/robot-simulation/status',
   '/api/robot-simulation/command',
+  '/api/robot-simulation/emergency-stop',
   '/api/automation-rules',
   '/api/automation-rules/logs',
+  '/api/agent-workflows/templates',
+  '/api/agent-workflows',
+  '/api/streams/pipelines',
+  '/api/streams/events',
+  '/api/notify/templates',
+  '/api/notify/events',
   '/api/agent-memory/search',
   '/api/vectors/search',
   '/api/vectors/namespaces',
@@ -83,7 +91,8 @@ addCheck('assistantApi keeps legacy agent runtime exports', assistantApi.include
 
 addCheck('AI Operations uses daemon-backed panel', aiOps.includes('AIOperationsDaemonPanel'), 'AIOperationsCenter should delegate to daemon-backed panel.');
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
-addCheck('Automation Rules uses health panel', automationPanel.includes('AutomationRulesHealthPanel'), 'AutomationRulesPanel should delegate to daemon-backed health panel.');
+addCheck('Automation Robot hub uses control routes', automationHub.includes('/api/robot-simulation/status') && automationHub.includes('/api/automation-rules') && automationHub.includes('/api/agent-workflows') && automationHub.includes('/api/notify/events'), 'AutomationRobotControlHubPanel should aggregate robot, automation, workflow, stream and notification routes.');
+addCheck('Automation Rules delegates to Automation Robot hub', automationPanel.includes('AutomationRobotControlHubPanel'), 'AutomationRulesPanel should delegate to the Automation Robot control hub.');
 addCheck('Memory/RAG panel uses daemon routes', memoryPanel.includes('/api/agent-memory/search') && memoryPanel.includes('/api/vectors/search'), 'AIMemoryRagPanel should use daemon memory/vector routes.');
 addCheck('Knowledge Content hub uses knowledge routes', knowledgeHub.includes('/api/agent-memory/search') && knowledgeHub.includes('/api/prompts/templates') && knowledgeHub.includes('/api/content/assets') && knowledgeHub.includes('/api/context/windows'), 'KnowledgeContentHubPanel should aggregate memory, prompt, content and context routes.');
 addCheck('Project Memory delegates to Knowledge Content hub', projectMemory.includes('KnowledgeContentHubPanel'), 'ProjectMemoryDecisionLog should delegate to the Knowledge Content hub.');
