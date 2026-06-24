@@ -11,6 +11,7 @@
     "dev:daemon": "tsx server/assistant-daemon.ts",
     "ai:doctor": "node scripts/ai-doctor.mjs",
     "ai:patch-daemon-tools": "node scripts/patch-agent-daemon-tool-schema.mjs",
+    "ai:patch-telegram-missions": "node scripts/patch-telegram-mission-commands.mjs",
     "prepare:icons": "node scripts/prepare-desktop-icons.mjs",
     "check:simulations": "node scripts/check-simulation-modules.mjs",
     "check:founder-labs": "node scripts/check-founder-labs.mjs",
