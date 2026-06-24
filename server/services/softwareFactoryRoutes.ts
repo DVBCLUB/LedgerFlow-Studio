@@ -23,11 +23,20 @@ import {
   prepareSoftwareFactoryCommitDraft,
   prepareSoftwareFactoryPullRequestDraft,
 } from "./softwareFactoryGitRunner";
+import {
+  chooseSoftwareFactoryProvider,
+  getSoftwareFactoryProviderStats,
+  listSoftwareFactoryProviderProfiles,
+  setSoftwareFactoryProviderHealth,
+  type SoftwareFactoryProviderHealth,
+  type SoftwareFactoryWorkKind,
+} from "./softwareFactoryProviderRuntime";
 
 const router = Router();
 
 const validWorkTypes: SoftwareFactoryWorkType[] = ["planning", "coding", "qa", "media", "launch"];
 const validStatuses: SoftwareFactoryRunStatus[] = ["draft", "queued", "running", "review", "complete", "blocked"];
+const validProviderHealth: SoftwareFactoryProviderHealth[] = ["healthy", "limited", "paused"];
 
 router.get("/runs", (_req, res) => {
   res.json({ ok: true, runs: listSoftwareFactoryRuns(), stats: getSoftwareFactoryStats() });
@@ -88,6 +97,25 @@ router.post("/executions/:id/block", (req, res) => {
   return res.json({ ok: true, execution });
 });
 
+router.get("/providers", (_req, res) => {
+  res.json({ ok: true, profiles: listSoftwareFactoryProviderProfiles(), stats: getSoftwareFactoryProviderStats() });
+});
+
+router.post("/providers/choose", (req, res) => {
+  const { workKind } = req.body || {};
+  if (!validWorkTypes.includes(workKind)) return res.status(400).json({ ok: false, error: "valid workKind is required" });
+  const decision = chooseSoftwareFactoryProvider(workKind as SoftwareFactoryWorkKind);
+  return res.json({ ok: true, decision });
+});
+
+router.patch("/providers/:id/health", (req, res) => {
+  const { health } = req.body || {};
+  if (!validProviderHealth.includes(health)) return res.status(400).json({ ok: false, error: "valid health is required" });
+  const profile = setSoftwareFactoryProviderHealth(req.params.id, health);
+  if (!profile) return res.status(404).json({ ok: false, error: "provider profile not found" });
+  return res.json({ ok: true, profile, stats: getSoftwareFactoryProviderStats() });
+});
+
 router.get("/git/status", async (_req, res) => {
   try {
     res.json({ ok: true, runner: await getSoftwareFactoryGitRunnerStatus() });
@@ -124,7 +152,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats() });
 });
 
 router.post("/seed", (_req, res) => {
