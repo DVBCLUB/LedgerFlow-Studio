@@ -1,4 +1,6 @@
 import { exec } from "child_process";
+import { createSoftwareFactoryAsset, type SoftwareFactoryAssetRecord } from "./softwareFactoryAssetService";
+import { appendSoftwareFactoryExecutionLog, getSoftwareFactoryExecution } from "./softwareFactoryExecutionService";
 import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
 
 export type SoftwareFactoryCommandKind = "typecheck" | "lint" | "test" | "build" | "preview";
@@ -13,8 +15,17 @@ export interface SoftwareFactoryCommandRecord {
   stdout: string;
   stderr: string;
   durationMs: number;
+  linkedAssetId?: string;
+  linkedExecutionId?: string;
+  linkedAt?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface SoftwareFactoryCommandLinkResult {
+  command: SoftwareFactoryCommandRecord;
+  asset: SoftwareFactoryAssetRecord;
+  executionLinked: boolean;
 }
 
 const STORE_NAME = "command-runs";
@@ -58,6 +69,28 @@ function runShellCommand(command: string): Promise<{ exitCode: number; stdout: s
       });
     });
   });
+}
+
+function buildCommandAssetContent(record: SoftwareFactoryCommandRecord) {
+  return [
+    `# Command result: ${record.kind}`,
+    "",
+    `Command: ${record.command}`,
+    `Status: ${record.status}`,
+    `Exit code: ${record.exitCode ?? "pending"}`,
+    `Duration: ${record.durationMs}ms`,
+    `Updated: ${record.updatedAt}`,
+    "",
+    "## stdout",
+    "```text",
+    record.stdout || "No stdout.",
+    "```",
+    "",
+    "## stderr",
+    "```text",
+    record.stderr || "No stderr.",
+    "```",
+  ].join("\n");
 }
 
 export function listSoftwareFactoryCommandCatalog() {
@@ -111,6 +144,34 @@ export async function runSoftwareFactoryCommand(kind: SoftwareFactoryCommandKind
   return updated;
 }
 
+export function linkSoftwareFactoryCommandResult(commandId: string, executionId?: string): SoftwareFactoryCommandLinkResult | null {
+  hydrate();
+  const record = records.get(commandId);
+  if (!record) return null;
+  const execution = executionId ? getSoftwareFactoryExecution(executionId) : null;
+  const runId = execution?.runId || "command-run";
+  const asset = createSoftwareFactoryAsset({
+    runId,
+    kind: "log",
+    title: `${record.kind} command result`,
+    fileName: `${record.kind}-command-result.md`,
+    content: buildCommandAssetContent(record),
+    notes: `Linked from command ${record.id}`,
+  });
+  const timestamp = now();
+  const updated: SoftwareFactoryCommandRecord = {
+    ...record,
+    linkedAssetId: asset.id,
+    linkedExecutionId: execution?.id,
+    linkedAt: timestamp,
+    updatedAt: timestamp,
+  };
+  records.set(updated.id, updated);
+  persist();
+  const executionLinked = execution ? Boolean(appendSoftwareFactoryExecutionLog(execution.id, `linked command ${record.id} to asset ${asset.id}`)) : false;
+  return { command: updated, asset, executionLinked };
+}
+
 export function getSoftwareFactoryCommandStats() {
   const all = listSoftwareFactoryCommandRuns();
   return {
@@ -118,6 +179,7 @@ export function getSoftwareFactoryCommandStats() {
     complete: all.filter((item) => item.status === "complete").length,
     failed: all.filter((item) => item.status === "failed").length,
     running: all.filter((item) => item.status === "running").length,
+    linked: all.filter((item) => item.linkedAssetId).length,
     latest: all[0] || null,
   };
 }
