@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { AlertTriangle, Bot, CheckCircle2, Gauge, GitBranch, Lock, MessageSquare, PackageCheck, ShieldAlert, Smartphone, Wrench, XCircle } from 'lucide-react';
 
 type ReadinessStatus = 'complete' | 'partial' | 'missing';
@@ -8,7 +9,7 @@ type ReadinessItem = {
   weight: number;
   evidence: string;
   next: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 const items: ReadinessItem[] = [
