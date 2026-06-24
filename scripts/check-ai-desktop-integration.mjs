@@ -23,6 +23,8 @@ const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
 const memoryPanel = file('src/modules/ai-hr/AIMemoryRagPanel.tsx');
 const gitPanel = file('src/modules/dev-ops/GitAssistantDaemonPanel.tsx');
 const ciDoctor = file('src/modules/dev-ops/GitHubCIDoctorPanel.tsx');
+const devOpsReleaseHub = file('src/modules/dev-ops/DevOpsReleaseHubPanel.tsx');
+const releaseArtifact = file('src/modules/dev-ops/ReleaseArtifactCenter.tsx');
 const configHealth = file('src/modules/dev-ops/ConfigHealthMonitor.tsx');
 const systemOverview = file('src/modules/dev-ops/SystemOverviewDaemonPanel.tsx');
 const apiMatrix = file('src/modules/system-settings/components/ApiConnectionHealthMatrix.tsx');
@@ -48,6 +50,9 @@ const requiredRoutes = [
   '/api/git/commit-msg',
   '/api/ci-doctor/context',
   '/api/ci-doctor/analyze',
+  '/api/deploy/configs',
+  '/api/deploy/runs',
+  '/api/snapshot',
 ];
 
 for (const route of requiredRoutes) {
@@ -65,6 +70,8 @@ addCheck('Automation Rules uses health panel', automationPanel.includes('Automat
 addCheck('Memory/RAG panel uses daemon routes', memoryPanel.includes('/api/agent-memory/search') && memoryPanel.includes('/api/vectors/search'), 'AIMemoryRagPanel should use daemon memory/vector routes.');
 addCheck('Git Assistant uses daemon routes', gitPanel.includes('/api/git/status') && gitPanel.includes('/api/git/pr-desc'), 'GitAssistantDaemonPanel should use daemon git routes.');
 addCheck('CI Doctor uses daemon routes', ciDoctor.includes('/api/ci-doctor/context') && ciDoctor.includes('/api/ci-doctor/analyze'), 'GitHubCIDoctorPanel should use daemon ci-doctor routes.');
+addCheck('DevOps release hub uses release pipeline routes', devOpsReleaseHub.includes('/api/deploy/configs') && devOpsReleaseHub.includes('/api/snapshot') && devOpsReleaseHub.includes('/api/ci-doctor/context'), 'DevOpsReleaseHubPanel should aggregate Git, CI, deploy and snapshot routes.');
+addCheck('Release Artifacts delegates to DevOps hub', releaseArtifact.includes('DevOpsReleaseHubPanel'), 'ReleaseArtifactCenter should delegate to the DevOps release hub.');
 addCheck('Config Health delegates to system overview', configHealth.includes('SystemOverviewDaemonPanel'), 'ConfigHealthMonitor should use the daemon-backed system overview.');
 addCheck('System Overview uses daemon route', systemOverview.includes('/api/system/overview'), 'SystemOverviewDaemonPanel should call /api/system/overview.');
 addCheck('API health matrix checks assistant routes', apiMatrix.includes('/api/agent-runtime/metrics') && apiMatrix.includes('/api/robot-simulation/status'), 'APIConnectionHealthMatrix should check daemon-backed routes.');
