@@ -9,6 +9,14 @@ import {
   type SoftwareFactoryRunStatus,
   type SoftwareFactoryWorkType,
 } from "./softwareFactoryService";
+import {
+  advanceSoftwareFactoryExecution,
+  blockSoftwareFactoryExecution,
+  createSoftwareFactoryExecution,
+  getSoftwareFactoryExecution,
+  getSoftwareFactoryExecutionStats,
+  listSoftwareFactoryExecutions,
+} from "./softwareFactoryExecutionService";
 
 const router = Router();
 
@@ -45,8 +53,37 @@ router.patch("/runs/:id/status", (req, res) => {
   return res.json({ ok: true, run });
 });
 
+router.post("/runs/:id/executions", (req, res) => {
+  const execution = createSoftwareFactoryExecution(req.params.id);
+  if (!execution) return res.status(404).json({ ok: false, error: "run not found" });
+  return res.status(201).json({ ok: true, execution });
+});
+
+router.get("/executions", (_req, res) => {
+  res.json({ ok: true, executions: listSoftwareFactoryExecutions(), stats: getSoftwareFactoryExecutionStats() });
+});
+
+router.get("/executions/:id", (req, res) => {
+  const execution = getSoftwareFactoryExecution(req.params.id);
+  if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
+  return res.json({ ok: true, execution });
+});
+
+router.post("/executions/:id/advance", (req, res) => {
+  const execution = advanceSoftwareFactoryExecution(req.params.id);
+  if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
+  return res.json({ ok: true, execution });
+});
+
+router.post("/executions/:id/block", (req, res) => {
+  const { reason } = req.body || {};
+  const execution = blockSoftwareFactoryExecution(req.params.id, reason || "blocked by operator");
+  if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
+  return res.json({ ok: true, execution });
+});
+
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats() });
 });
 
 router.post("/seed", (_req, res) => {
