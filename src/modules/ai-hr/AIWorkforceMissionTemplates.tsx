@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { ClipboardCopy, Code, Database, FileCheck2, GitPullRequest, Lock, MessageSquare, ShieldCheck, Sparkles, TestTube2 } from 'lucide-react';
 
 type Template = {
   id: string;
   title: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
   tone: string;
   prompt: string;
   outcome: string;
