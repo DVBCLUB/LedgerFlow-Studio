@@ -18,6 +18,7 @@ const desktopWrapper = file('server/assistant-daemon-desktop.ts');
 const daemon = file('server/assistant-daemon.ts');
 const app = file('src/App.tsx');
 const aiOps = file('src/modules/ai-hr/AIOperationsCenter.tsx');
+const aiCommandHub = file('src/modules/ai-hr/AICommandCenterHubPanel.tsx');
 const robotLab = file('src/modules/ai-hr/RobotLabPanel.tsx');
 const automationPanel = file('src/modules/ai-hr/AutomationRulesPanel.tsx');
 const automationHub = file('src/modules/ai-hr/AutomationRobotControlHubPanel.tsx');
@@ -41,6 +42,10 @@ addCheck('Daemon exports start function', daemon.includes('export function start
 addCheck('Daemon has system overview route', daemon.includes('/api/system/overview'), 'assistant daemon should expose /api/system/overview.');
 
 const requiredRoutes = [
+  '/api/status',
+  '/api/roles',
+  '/api/ai-fabric/health',
+  '/api/control-plane/runs',
   '/api/agent-runtime/metrics',
   '/api/agent-runtime/runs',
   '/api/agent-runtime/emergency-stop',
@@ -89,7 +94,8 @@ addCheck('assistantApi keeps legacy WebAIProfile export', assistantApi.includes(
 addCheck('assistantApi keeps legacy executeWebAI export', assistantApi.includes('export async function executeWebAI'), 'Legacy AI assistant tabs import executeWebAI.');
 addCheck('assistantApi keeps legacy agent runtime exports', assistantApi.includes('export async function fetchAgentRuns') && assistantApi.includes('export async function createAgentRun'), 'PeopleTab and sandbox import agent runtime helpers.');
 
-addCheck('AI Operations uses daemon-backed panel', aiOps.includes('AIOperationsDaemonPanel'), 'AIOperationsCenter should delegate to daemon-backed panel.');
+addCheck('AI Command Center hub uses command routes', aiCommandHub.includes('/api/agent-runtime/metrics') && aiCommandHub.includes('/api/roles') && aiCommandHub.includes('/api/ai-fabric/health') && aiCommandHub.includes('/api/control-plane/runs'), 'AICommandCenterHubPanel should aggregate runtime, roles, fabric and control plane routes.');
+addCheck('AI Operations delegates to AI Command Center hub', aiOps.includes('AICommandCenterHubPanel'), 'AIOperationsCenter should delegate to AICommandCenterHubPanel.');
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
 addCheck('Automation Robot hub uses control routes', automationHub.includes('/api/robot-simulation/status') && automationHub.includes('/api/automation-rules') && automationHub.includes('/api/agent-workflows') && automationHub.includes('/api/notify/events'), 'AutomationRobotControlHubPanel should aggregate robot, automation, workflow, stream and notification routes.');
 addCheck('Automation Rules delegates to Automation Robot hub', automationPanel.includes('AutomationRobotControlHubPanel'), 'AutomationRulesPanel should delegate to the Automation Robot control hub.');
