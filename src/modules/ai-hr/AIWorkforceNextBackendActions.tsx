@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { CheckCircle2, Code2, GitPullRequest, ListChecks, MessageSquare, PackageCheck, ShieldCheck, Wrench } from 'lucide-react';
 
 type ActionItem = {
@@ -7,7 +8,7 @@ type ActionItem = {
   why: string;
   files: string[];
   doneWhen: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 };
 
 const actions: ActionItem[] = [
