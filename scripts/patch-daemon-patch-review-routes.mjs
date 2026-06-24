@@ -7,11 +7,16 @@ const daemonFile = path.join(root, 'server/assistant-daemon.ts');
 const source = fs.readFileSync(daemonFile, 'utf8');
 let next = source;
 
-const importLine = 'import { createPatchReviewSessionsFromRun, listPatchReviewSessions, updatePatchReviewSessionStatus } from "./services/patchReviewSessions";';
-if (!next.includes(importLine)) {
+const reviewImportLine = 'import { createPatchReviewSessionsFromRun, listPatchReviewSessions, updatePatchReviewSessionStatus } from "./services/patchReviewSessions";';
+if (!next.includes(reviewImportLine)) {
   const anchor = '} from "./services/agentRuntime";';
   if (!next.includes(anchor)) throw new Error('Cannot find agentRuntime import anchor in assistant-daemon.ts');
-  next = next.replace(anchor, `${anchor}\n${importLine}`);
+  next = next.replace(anchor, `${anchor}\n${reviewImportLine}`);
+}
+
+const applyImportLine = 'import { applyReviewedPatchSession, rollbackReviewedPatchSession, PATCH_APPLY_PHRASE, PATCH_ROLLBACK_PHRASE } from "./services/patchReviewApply";';
+if (!next.includes(applyImportLine)) {
+  next = next.replace(reviewImportLine, `${reviewImportLine}\n${applyImportLine}`);
 }
 
 const routes = `
@@ -39,12 +44,37 @@ app.patch("/api/patch-review-sessions/:id/status", async (req: Request, res: Res
     res.json({ success: true, session });
   } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
 });
+
+app.post("/api/patch-review-sessions/:id/apply", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ phrase: z.literal(PATCH_APPLY_PHRASE) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: "Patch apply requires exact phrase confirmation." });
+    const result = await applyReviewedPatchSession({ sessionId: req.params.id, phrase: parsed.data.phrase });
+    res.json({ success: true, result });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.post("/api/patch-review-sessions/:id/rollback", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ phrase: z.literal(PATCH_ROLLBACK_PHRASE) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: "Patch rollback requires exact phrase confirmation." });
+    const result = await rollbackReviewedPatchSession({ sessionId: req.params.id, phrase: parsed.data.phrase });
+    res.json({ success: true, result });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
 `;
 
 if (!next.includes('/api/patch-review-sessions')) {
   const anchor = '\n// --- Agent Memory ---';
   if (!next.includes(anchor)) throw new Error('Cannot find Agent Memory route anchor in assistant-daemon.ts');
   next = next.replace(anchor, `${routes}${anchor}`);
+} else {
+  if (!next.includes('/api/patch-review-sessions/:id/apply')) {
+    const anchor = '\n// --- Agent Memory ---';
+    if (!next.includes(anchor)) throw new Error('Cannot find Agent Memory route anchor in assistant-daemon.ts');
+    const applyRoutes = routes.split('app.post("/api/patch-review-sessions/:id/apply"')[1];
+    next = next.replace(anchor, `\napp.post("/api/patch-review-sessions/:id/apply"${applyRoutes}${anchor}`);
+  }
 }
 
 if (next === source) {
