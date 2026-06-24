@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { Activity, GitBranch, Loader2, Network, PlayCircle, PlusCircle, RefreshCw, Server, Terminal } from 'lucide-react';
+import { Activity, GitBranch, Loader2, Network, PlayCircle, PlusCircle, RefreshCw, Rocket, Server, Terminal } from 'lucide-react';
 
 type BackendState = 'idle' | 'loading' | 'online' | 'offline';
 
@@ -37,6 +37,16 @@ interface ProviderProfile {
   note: string;
 }
 
+interface ReleaseItem {
+  id: string;
+  runId: string;
+  channel: string;
+  title: string;
+  status: string;
+  owner: string;
+  deliverable: string;
+}
+
 interface RuntimePayload {
   runs?: FactoryRun[];
   stats?: FactoryStats;
@@ -44,6 +54,8 @@ interface RuntimePayload {
   executions?: FactoryExecution[];
   providerStats?: Record<string, number>;
   providers?: ProviderProfile[];
+  releaseStats?: FactoryStats;
+  releaseItems?: ReleaseItem[];
 }
 
 interface GitPayload {
@@ -108,16 +120,18 @@ export default function FactoryBackendRuntimePanel() {
     setState('loading');
     setError(null);
     try {
-      const [runsResponse, executionsResponse, providersResponse, gitResponse] = await Promise.all([
+      const [runsResponse, executionsResponse, providersResponse, releaseResponse, gitResponse] = await Promise.all([
         fetch(`${API_BASE}/runs`),
         fetch(`${API_BASE}/executions`).catch(() => null),
         fetch(`${API_BASE}/providers`).catch(() => null),
+        fetch(`${API_BASE}/release-kit`).catch(() => null),
         fetch(`${API_BASE}/git/status`).catch(() => null),
       ]);
       if (!runsResponse.ok) throw new Error(`Backend returned ${runsResponse.status}`);
       const runsJson = await runsResponse.json();
       const executionsJson = executionsResponse && executionsResponse.ok ? await executionsResponse.json() : null;
       const providersJson = providersResponse && providersResponse.ok ? await providersResponse.json() : null;
+      const releaseJson = releaseResponse && releaseResponse.ok ? await releaseResponse.json() : null;
       const gitJson = gitResponse && gitResponse.ok ? await gitResponse.json() : null;
       setPayload({
         ...runsJson,
@@ -125,6 +139,8 @@ export default function FactoryBackendRuntimePanel() {
         executionStats: executionsJson?.stats || runsJson.executionStats,
         providers: providersJson?.profiles || [],
         providerStats: providersJson?.stats || runsJson.providerStats,
+        releaseItems: releaseJson?.items || [],
+        releaseStats: releaseJson?.stats || runsJson.releaseStats,
       });
       setGitPayload(gitJson);
       setState('online');
@@ -158,6 +174,9 @@ export default function FactoryBackendRuntimePanel() {
   const executionStats = payload?.executionStats;
   const providerStats = payload?.providerStats;
   const providers = payload?.providers || [];
+  const releaseStats = payload?.releaseStats;
+  const releaseItems = payload?.releaseItems || [];
+  const latestReleaseItem = releaseItems[0];
   const git = gitPayload?.runner;
   const changedFiles = git ? git.status.modified.length + git.status.staged.length + git.status.untracked.length + git.status.deleted.length : 0;
   const busy = state === 'loading' || Boolean(actionState);
@@ -167,7 +186,7 @@ export default function FactoryBackendRuntimePanel() {
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200"><Server className="mr-2 inline h-4 w-4" />Backend runtime</p>
         <h3 className="mt-2 text-xl font-black text-white">Software Factory daemon connection</h3>
-        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-400">UI này gọi daemon cục bộ ở port 3011 để đọc runs, executions, provider profiles, Git runner status và kích hoạt các bước runtime cơ bản.</p>
+        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-400">UI này gọi daemon cục bộ ở port 3011 để đọc runs, executions, provider profiles, release kit, Git runner status và kích hoạt các bước runtime cơ bản.</p>
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <StatusPill state={state} />
@@ -178,12 +197,13 @@ export default function FactoryBackendRuntimePanel() {
     {error && <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold leading-6 text-amber-100">Daemon chưa online hoặc thao tác chưa chạy được: {error}. Chạy server/software-factory-daemon.ts để bật runtime API.</div>}
     {actionState && <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold leading-6 text-cyan-100"><Loader2 className="mr-2 inline h-4 w-4 animate-spin" />Đang chạy: {actionState}</div>}
 
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
       <SmallStat label="runs" value={stats?.total ?? 0} note="factory run records" />
       <SmallStat label="queued" value={stats?.byStatus?.queued ?? 0} note="waiting for execution" />
       <SmallStat label="review" value={stats?.byStatus?.review ?? 0} note="needs founder check" />
       <SmallStat label="executions" value={executionStats?.total ?? 0} note={`${executionStats?.running ?? 0} running`} />
       <SmallStat label="providers" value={providerStats?.total ?? providers.length} note={`${providerStats?.healthy ?? 0} healthy / ${providerStats?.limited ?? 0} limited`} />
+      <SmallStat label="release" value={releaseStats?.total ?? releaseItems.length} note={`${releaseStats?.byStatus?.ready ?? 0} ready / ${releaseStats?.byStatus?.review ?? 0} review`} />
       <SmallStat label="git files" value={changedFiles} note={git ? `branch ${git.branch || 'unknown'}` : 'no git status'} />
     </div>
 
@@ -191,14 +211,17 @@ export default function FactoryBackendRuntimePanel() {
       <div className="mb-3 flex items-center gap-2"><PlusCircle className="h-5 w-5 text-emerald-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Runtime actions</p></div>
       <div className="flex flex-wrap gap-2">
         <ActionButton disabled={busy} onClick={() => runAction('Seed sample runs', () => postJson(`${API_BASE}/seed`))}>Seed runs</ActionButton>
-        <ActionButton disabled={busy} onClick={() => runAction('Create sample run', () => postJson(`${API_BASE}/runs`, { title: 'Founder idea to prototype', workType: 'planning', owner: 'Product Architect', input: 'Create product brief, build plan and launch checklist.' }))}>Create run</ActionButton>
+        <ActionButton disabled={busy} onClick={() => runAction('Create sample run', () => postJson(`${API_BASE}/runs`, { title: 'Founder idea to prototype', workType: 'planning', owner: 'Product Architect', input: 'Create product brief, build plan and release checklist.' }))}>Create run</ActionButton>
         <ActionButton disabled={busy || !latestRun} onClick={() => latestRun && runAction('Start latest run execution', () => postJson(`${API_BASE}/runs/${latestRun.id}/executions`))}>Start latest run</ActionButton>
         <ActionButton disabled={busy || !latestExecution} onClick={() => latestExecution && runAction('Advance latest execution', () => postJson(`${API_BASE}/executions/${latestExecution.id}/advance`))}>Advance execution</ActionButton>
         <ActionButton disabled={busy} onClick={() => runAction('Choose planning provider', () => postJson(`${API_BASE}/providers/choose`, { workKind: 'planning' }))}>Choose provider</ActionButton>
+        <ActionButton disabled={busy} onClick={() => runAction('Seed release kit', () => postJson(`${API_BASE}/release-kit/seed`, { runId: latestRun?.id || 'sample-run' }))}>Seed release kit</ActionButton>
+        <ActionButton disabled={busy} onClick={() => runAction('Create release item', () => postJson(`${API_BASE}/release-kit`, { runId: latestRun?.id || 'sample-run', channel: 'creative_pack', title: 'New creative pack', owner: 'Growth Automation', deliverable: 'Hooks, audience angles and creative checklist' }))}>Create release item</ActionButton>
+        <ActionButton disabled={busy || !latestReleaseItem} onClick={() => latestReleaseItem && runAction('Mark latest release ready', () => patchJson(`${API_BASE}/release-kit/${latestReleaseItem.id}/status`, { status: 'ready', notes: 'Prepared for founder review.' }))}>Mark release ready</ActionButton>
         <ActionButton disabled={busy} onClick={() => runAction('Prepare commit draft', () => postJson(`${API_BASE}/git/commit-draft`))}>Commit draft</ActionButton>
         <ActionButton disabled={busy} onClick={() => runAction('Prepare PR draft', () => postJson(`${API_BASE}/git/pr-draft`, { base: 'main' }))}>PR draft</ActionButton>
       </div>
-      <p className="mt-3 text-[11px] font-semibold leading-5 text-slate-500">Các nút này chỉ gọi API runtime cục bộ, tạo dữ liệu mẫu, chọn provider profile, khởi chạy execution, advance từng bước và tạo draft Git review. Các hành động public release hoặc merge vẫn giữ ở review gate.</p>
+      <p className="mt-3 text-[11px] font-semibold leading-5 text-slate-500">Các nút này chỉ gọi API runtime cục bộ, tạo dữ liệu mẫu, chọn provider profile, quản lý release kit, khởi chạy execution, advance từng bước và tạo draft Git review. Các hành động public release hoặc merge vẫn giữ ở review gate.</p>
     </div>
 
     <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
@@ -211,6 +234,17 @@ export default function FactoryBackendRuntimePanel() {
       </div>
 
       <div className="space-y-2">
+        <div className="mb-2 flex items-center gap-2"><Rocket className="h-5 w-5 text-emerald-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Release kit backend</p></div>
+        {releaseItems.length === 0 ? <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-500">Release kit chưa có dữ liệu. Click Seed release kit.</p> : releaseItems.slice(0, 4).map((item) => <div key={item.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{item.title}</p><span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-emerald-100">{item.status}</span></div>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{item.channel} / {item.owner}</p>
+          <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-600">{item.deliverable}</p>
+        </div>)}
+      </div>
+    </div>
+
+    <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="space-y-2">
         <div className="mb-2 flex items-center gap-2"><Network className="h-5 w-5 text-violet-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Provider runtime</p></div>
         {providers.length === 0 ? <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-500">Provider runtime chưa trả dữ liệu.</p> : providers.slice(0, 4).map((profile) => <div key={profile.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{profile.label}</p><span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-violet-100">{profile.health}</span></div>
@@ -222,17 +256,13 @@ export default function FactoryBackendRuntimePanel() {
           </div>
         </div>)}
       </div>
-    </div>
 
-    <div className="grid gap-4 xl:grid-cols-2">
       <div className="space-y-2">
-        <div className="mb-2 flex items-center gap-2"><GitBranch className="h-5 w-5 text-cyan-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Git runner</p></div>
+        <div className="mb-2 flex items-center gap-2"><GitBranch className="h-5 w-5 text-cyan-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Git runner & execution</p></div>
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <p className="text-xs font-black text-white">Current branch: {git?.branch || 'unknown'}</p>
           <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">Diff: {git?.diff.filesChanged ?? 0} files, {git?.diff.insertions ?? 0} insertions, {git?.diff.deletions ?? 0} deletions.</p>
         </div>
-      </div>
-      <div className="space-y-2">
         <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
           <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-violet-300" /><p className="text-xs font-black text-white">Execution stats</p></div>
           <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">pending {executionStats?.pending ?? 0} / running {executionStats?.running ?? 0} / review {executionStats?.review ?? 0} / complete {executionStats?.complete ?? 0}</p>
