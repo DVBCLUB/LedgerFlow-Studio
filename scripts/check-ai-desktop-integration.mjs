@@ -18,6 +18,7 @@ const desktopWrapper = file('server/assistant-daemon-desktop.ts');
 const daemon = file('server/assistant-daemon.ts');
 const app = file('src/App.tsx');
 const hubDirectory = file('docs/INTEGRATED_HUB_DIRECTORY.md');
+const hubTestPlan = file('docs/INTEGRATED_HUB_TEST_PLAN.md');
 const subNavigation = file('src/components/shared/WorkspaceSubNavigation.tsx');
 const aiOps = file('src/modules/ai-hr/AIOperationsCenter.tsx');
 const aiCommandHub = file('src/modules/ai-hr/AICommandCenterHubPanel.tsx');
@@ -132,6 +133,7 @@ addCheck('assistantApi keeps legacy executeWebAI export', assistantApi.includes(
 addCheck('assistantApi keeps legacy agent runtime exports', assistantApi.includes('export async function fetchAgentRuns') && assistantApi.includes('export async function createAgentRun'), 'PeopleTab and sandbox import agent runtime helpers.');
 
 addCheck('Integrated hub directory exists', hubDirectory.includes('LedgerFlow Integrated Hub Directory') && hubDirectory.includes('AI Command Center') && hubDirectory.includes('Automation & Robot Control') && hubDirectory.includes('Knowledge & Content Studio') && hubDirectory.includes('DevOps & Release Center') && hubDirectory.includes('Security & System Health'), 'docs/INTEGRATED_HUB_DIRECTORY.md should document the main integrated hubs and app locations.');
+addCheck('Integrated hub test plan exists', hubTestPlan.includes('Integrated Hub Test Plan') && hubTestPlan.includes('AI Command Center') && hubTestPlan.includes('Automation & Robot Control') && hubTestPlan.includes('Knowledge & Content Studio') && hubTestPlan.includes('DevOps & Release Center') && hubTestPlan.includes('Release gate'), 'docs/INTEGRATED_HUB_TEST_PLAN.md should document smoke tests and release gates for integrated hubs.');
 addCheck('Hub labels are surfaced in subnavigation', subNavigation.includes('INTEGRATED_HUB_LABELS') && subNavigation.includes('AI Command Center') && subNavigation.includes('Automation & Robot Control') && subNavigation.includes('Knowledge & Content Studio') && subNavigation.includes('DevOps & Release Center') && subNavigation.includes('Security & System Health'), 'WorkspaceSubNavigation should show user-facing hub labels while keeping old route ids.');
 addCheck('AI Command Center hub uses command routes', aiCommandHub.includes('/api/agent-runtime/metrics') && aiCommandHub.includes('/api/roles') && aiCommandHub.includes('/api/ai-fabric/health') && aiCommandHub.includes('/api/control-plane/runs'), 'AICommandCenterHubPanel should aggregate runtime, roles, fabric and control plane routes.');
 addCheck('AI Governance hub uses quality routes', aiGovernance.includes('/api/intent/classify') && aiGovernance.includes('/api/validate') && aiGovernance.includes('/api/explain/traces') && aiGovernance.includes('/api/finetune/pairs') && aiGovernance.includes('/api/telemetry/metrics'), 'AIGovernanceQualityHubPanel should aggregate intent, validation, explainability, fine-tune and telemetry routes.');
