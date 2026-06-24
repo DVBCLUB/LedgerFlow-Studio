@@ -37,6 +37,7 @@ const securityHub = file('src/modules/dev-ops/SecuritySystemHubPanel.tsx');
 const securityControl = file('src/modules/dev-ops/SecurityControlCenter.tsx');
 const configHealth = file('src/modules/dev-ops/ConfigHealthMonitor.tsx');
 const systemOverview = file('src/modules/dev-ops/SystemOverviewDaemonPanel.tsx');
+const platformServices = file('src/modules/dev-ops/PlatformServicesHubPanel.tsx');
 const apiMatrix = file('src/modules/system-settings/components/ApiConnectionHealthMatrix.tsx');
 
 addCheck('React namespace import is present', app.includes("import React,"), 'src/App.tsx must import React namespace for ErrorBoundary.');
@@ -87,6 +88,14 @@ const requiredRoutes = [
   '/api/content/assets',
   '/api/kb/search',
   '/api/context/windows',
+  '/api/jobs',
+  '/api/openapi/routes',
+  '/api/openapi/save',
+  '/api/gateway/health',
+  '/api/gateway/configs',
+  '/api/timeline',
+  '/api/timeline/generate',
+  '/api/robot/generate',
   '/api/git/status',
   '/api/git/diff',
   '/api/git/commit-msg',
@@ -139,8 +148,9 @@ addCheck('Developer Intelligence hub uses dev support routes', developerIntellig
 addCheck('Release Artifacts renders DevOps and Developer Intelligence hubs', releaseArtifact.includes('DevOpsReleaseHubPanel') && releaseArtifact.includes('DeveloperIntelligenceHubPanel'), 'ReleaseArtifactCenter should render DevOps release and Developer Intelligence hub panels.');
 addCheck('Security System hub uses risk/health routes', securityHub.includes('/api/plugins') && securityHub.includes('/api/sast/reports') && securityHub.includes('/api/logs/analyses') && securityHub.includes('/api/perf/profiles'), 'SecuritySystemHubPanel should aggregate plugin, SAST, logs and perf routes.');
 addCheck('Security Control delegates to Security System hub', securityControl.includes('SecuritySystemHubPanel'), 'SecurityControlCenter should delegate to the Security System hub.');
-addCheck('Config Health delegates to system overview', configHealth.includes('SystemOverviewDaemonPanel'), 'ConfigHealthMonitor should use the daemon-backed system overview.');
+addCheck('Config Health renders system overview and Platform Services hubs', configHealth.includes('SystemOverviewDaemonPanel') && configHealth.includes('PlatformServicesHubPanel'), 'ConfigHealthMonitor should render both system overview and platform services panels.');
 addCheck('System Overview uses daemon route', systemOverview.includes('/api/system/overview'), 'SystemOverviewDaemonPanel should call /api/system/overview.');
+addCheck('Platform Services hub uses platform routes', platformServices.includes('/api/jobs') && platformServices.includes('/api/openapi/routes') && platformServices.includes('/api/gateway/health') && platformServices.includes('/api/timeline') && platformServices.includes('/api/robot/generate'), 'PlatformServicesHubPanel should aggregate jobs, OpenAPI, gateway, timeline and robot generator routes.');
 addCheck('API health matrix checks assistant routes', apiMatrix.includes('/api/agent-runtime/metrics') && apiMatrix.includes('/api/robot-simulation/status'), 'APIConnectionHealthMatrix should check daemon-backed routes.');
 
 console.log('\nAI desktop integration contract check');
