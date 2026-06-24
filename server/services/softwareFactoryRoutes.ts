@@ -11,6 +11,7 @@ import {
 } from "./softwareFactoryService";
 import {
   advanceSoftwareFactoryExecution,
+  attachProviderDecisionToExecution,
   blockSoftwareFactoryExecution,
   createSoftwareFactoryExecution,
   getSoftwareFactoryExecution,
@@ -72,7 +73,6 @@ router.post("/runs", (req, res) => {
   if (!title || !input || !validWorkTypes.includes(workType)) {
     return res.status(400).json({ ok: false, error: "title, input and valid workType are required" });
   }
-
   const run = createSoftwareFactoryRun({ title, workType, owner, input, output });
   return res.status(201).json({ ok: true, run });
 });
@@ -85,9 +85,7 @@ router.get("/runs/:id", (req, res) => {
 
 router.patch("/runs/:id/status", (req, res) => {
   const { status, output } = req.body || {};
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ ok: false, error: "valid status is required" });
-  }
+  if (!validStatuses.includes(status)) return res.status(400).json({ ok: false, error: "valid status is required" });
   const run = updateSoftwareFactoryRunStatus(req.params.id, status, output);
   if (!run) return res.status(404).json({ ok: false, error: "run not found" });
   return res.json({ ok: true, run });
@@ -111,6 +109,14 @@ router.get("/executions/:id", (req, res) => {
 
 router.post("/executions/:id/advance", (req, res) => {
   const execution = advanceSoftwareFactoryExecution(req.params.id);
+  if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
+  return res.json({ ok: true, execution });
+});
+
+router.post("/executions/:id/provider-decision", (req, res) => {
+  const { workKind } = req.body || {};
+  if (workKind && !validWorkTypes.includes(workKind)) return res.status(400).json({ ok: false, error: "valid workKind is required" });
+  const execution = attachProviderDecisionToExecution(req.params.id, workKind as SoftwareFactoryWorkKind | undefined);
   if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
   return res.json({ ok: true, execution });
 });
