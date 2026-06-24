@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Activity, AlertTriangle, Archive, Bot, Brain, CheckCircle2, ClipboardList, FileText, GitBranch, RefreshCw, ShieldAlert, Timer, Zap } from 'lucide-react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Activity, AlertTriangle, Archive, Bot, Brain, ClipboardList, FileText, GitBranch, RefreshCw, ShieldAlert, Timer } from 'lucide-react';
 import { daemonFetch } from '../../utils/assistantApi';
 
 type TraceArtifact = { id: string; type: string; summary: string; createdAt?: string };
@@ -55,7 +55,7 @@ function badgeClass(tone: Tone) {
   return 'border-slate-700 bg-slate-900 text-slate-300';
 }
 
-function Badge({ children, tone = 'slate' }: { children: string; tone?: Tone }) {
+function Badge({ children, tone = 'slate' }: { children: ReactNode; tone?: Tone }) {
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${badgeClass(tone)}`}>{children}</span>;
 }
 
