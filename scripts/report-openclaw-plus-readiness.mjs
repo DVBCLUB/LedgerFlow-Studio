@@ -12,6 +12,10 @@ const groups = [
   ['Plugin security policy', 'server/services/pluginSecurityPolicy.ts', ['assessPluginSecurity', 'allowedForHostInvocation', 'signature', 'sandbox']],
   ['Plugin invocation boundary', 'server/services/pluginInvocationBoundary.ts', ['decidePluginInvocation', 'auditPluginInvocationDecision', 'sandbox_required']],
   ['Plugin runtime patcher', 'scripts/patch-plugin-runtime-boundary.mjs', ['pluginInvocationBoundary', 'decidePluginInvocation', 'auditPluginInvocationDecision']],
+  ['Robot capability registry', 'server/services/robotCapabilityRegistry.ts', ['listRobotCapabilities', 'validateRobotCapabilityRequest', 'simulation', 'hardware']],
+  ['Robot adapter boundary', 'server/services/robotAdapterBoundary.ts', ['Robot Adapter Boundary', 'acceptRobotCommand', 'RobotSafetyEnvelope', 'replayRunbook']],
+  ['Automation scheduler loop', 'server/services/automationSchedulerLoop.ts', ['runAutomationSchedulerTick', 'startAutomationScheduler', 'stopAutomationScheduler', 'getAutomationSchedulerStatus']],
+  ['Automation rule engine', 'server/services/automationRuleEngine.ts', ['fireAutomationEvent', 'requiresApproval', 'executionLog', 'robot.emergency_stop']],
   ['Local orchestration', 'scripts/patch-ai-workforce-local.mjs', ['patch-daemon-agent-reject-route.mjs', 'patch-plugin-runtime-boundary.mjs', 'patch-ai-ops-safety-runbook-panel.mjs']],
   ['AI Workforce UI shell', 'src/modules/ai-hr/AIOperationsCenter.tsx', ['AIWorkforceMissionControl', 'AIWorkforcePatchReviewSessions', 'AIWorkforcePluginSecurityGuard']],
 ];
