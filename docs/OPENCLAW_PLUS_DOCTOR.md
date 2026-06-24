@@ -6,7 +6,7 @@ LedgerFlow AI Workforce is designed to be OpenClaw-like, but stricter: local age
 
 ```bash
 git pull origin main
-node scripts/openclaw-plus-doctor.mjs --full
+npm run ai:openclaw-plus:full
 ```
 
 This runs local AI Workforce patchers, contract checks, rejection governance checks, OpenClaw+ parity checks, readiness report, lint, and build.
@@ -14,7 +14,7 @@ This runs local AI Workforce patchers, contract checks, rejection governance che
 ## Faster check while developing
 
 ```bash
-node scripts/openclaw-plus-doctor.mjs
+npm run ai:openclaw-plus
 ```
 
 This skips lint/build but still runs the AI Workforce patcher and the OpenClaw+ checks.
@@ -22,10 +22,20 @@ This skips lint/build but still runs the AI Workforce patcher and the OpenClaw+ 
 ## Check only, without patching
 
 ```bash
-node scripts/openclaw-plus-doctor.mjs --skip-patch
+npm run ai:openclaw-plus:check
 ```
 
 Use this after you already ran `node scripts/patch-ai-workforce-local.mjs` and want to verify the current working tree.
+
+## Direct node commands
+
+```bash
+node scripts/openclaw-plus-doctor.mjs
+node scripts/openclaw-plus-doctor.mjs --full
+node scripts/openclaw-plus-doctor.mjs --skip-patch
+```
+
+These are equivalent to the npm aliases above.
 
 ## Key safety guarantees
 
