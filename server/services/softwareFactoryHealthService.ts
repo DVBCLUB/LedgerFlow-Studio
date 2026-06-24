@@ -1,6 +1,8 @@
 import { getSoftwareFactoryAssetStats } from "./softwareFactoryAssetService";
 import { getSoftwareFactoryAuditStats } from "./softwareFactoryAuditLogService";
 import { getSoftwareFactoryCommandStats } from "./softwareFactoryCommandRunner";
+import { getSoftwareFactoryConnectorConfigStats } from "./softwareFactoryConnectorConfig";
+import { getSoftwareFactoryConnectorStats } from "./softwareFactoryConnectorCatalog";
 import { getSoftwareFactoryExecutionStats } from "./softwareFactoryExecutionService";
 import { getSoftwareFactoryProviderStats } from "./softwareFactoryProviderRuntime";
 import { getSoftwareFactoryReleaseStats } from "./softwareFactoryReleaseKitService";
@@ -26,6 +28,8 @@ export function getSoftwareFactoryHealthSummary() {
   const runStats = getSoftwareFactoryStats();
   const executionStats = getSoftwareFactoryExecutionStats();
   const providerStats = getSoftwareFactoryProviderStats();
+  const connectorStats = getSoftwareFactoryConnectorStats();
+  const connectorConfigStats = getSoftwareFactoryConnectorConfigStats();
   const releaseStats = getSoftwareFactoryReleaseStats();
   const assetStats = getSoftwareFactoryAssetStats();
   const commandStats = getSoftwareFactoryCommandStats();
@@ -52,6 +56,13 @@ export function getSoftwareFactoryHealthSummary() {
       status: providerStats.healthy === 0 ? "blocked" : providerStats.paused > 0 || providerStats.limited > 0 ? "attention" : "healthy",
       value: providerStats.total,
       detail: `${providerStats.healthy} healthy / ${providerStats.limited} limited / ${providerStats.paused} paused`,
+    },
+    {
+      id: "connectors",
+      label: "Connectors",
+      status: connectorConfigStats.configured === 0 && connectorConfigStats.notRequired === 0 ? "blocked" : connectorConfigStats.missing > 0 ? "attention" : "healthy",
+      value: connectorStats.total,
+      detail: `${connectorConfigStats.configured} configured / ${connectorConfigStats.missing} missing / ${connectorConfigStats.notRequired} not required`,
     },
     {
       id: "commands",
