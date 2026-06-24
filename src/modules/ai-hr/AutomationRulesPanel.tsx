@@ -1,4 +1,4 @@
-import { Bot, Cable, Code, Database, GitBranch, PlayCircle, Rocket, ShieldCheck, Terminal, Zap } from 'lucide-react';
+import { Bot, Cable, Database, PlayCircle, Rocket, Terminal, Zap } from 'lucide-react';
 import AutomationRobotControlHubPanel from './AutomationRobotControlHubPanel';
 import AutomationBridgeHubPanel from './AutomationBridgeHubPanel';
 
@@ -33,6 +33,15 @@ const routes = [
   ['Approved Assisted Connectors', 'Các connector được bật trong phạm vi hợp lệ, có log nguồn và giới hạn hành động.', 'controlled'],
   ['IDE Capacity Pool', 'Cursor, Claude Code, Antigravity, VS Code extension và Google AI Studio.', 'dev'],
   ['Capacity Balancer', 'Nếu nguồn A tạm đầy, chuyển sang nguồn B/C đã được founder cấu hình; nếu không còn nguồn thì đưa vào Approval Inbox.', 'safe'],
+];
+
+const commercializationLanes = [
+  ['Landing Page', 'Hero, pricing, FAQ, screenshots, demo GIF, CTA và tracking checklist.'],
+  ['Short Video Pack', 'Script 15s/30s/60s, shot list, voiceover, caption, thumbnail prompt.'],
+  ['Store Listing', 'Tên sản phẩm, mô tả, keywords, icon prompt, screenshot checklist.'],
+  ['Ad Kit', 'Hook, angle, audience, creative variants, UTM và budget guardrail.'],
+  ['Launch QA', 'Checklist bản build, links, analytics, privacy, support và rollback note.'],
+  ['Revenue Review', 'Gói giá, offer, funnel, CAC/LTV giả lập và next experiment.'],
 ];
 
 const outputs = ['Source code', 'Build artifacts', 'Game assets', 'AI images/video', 'Docs & prompts', 'GitHub PR/diff', 'Landing page', 'Ad creatives'];
@@ -72,6 +81,11 @@ function SoftwareFactoryAutomationBrief() {
         <div className="space-y-3">{routes.map(([name, detail, mode]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{name}</p><Pill tone={mode === 'primary' ? 'emerald' : mode === 'controlled' ? 'violet' : mode === 'dev' ? 'cyan' : 'amber'}>{mode}</Pill></div><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div>
       </Card>
     </section>
+
+    <Card>
+      <div className="mb-4 flex items-center gap-2"><PlayCircle className="h-5 w-5 text-emerald-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Commercialization lanes</h3></div>
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{commercializationLanes.map(([name, detail]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><p className="text-xs font-black text-white">{name}</p><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div>
+    </Card>
 
     <section className="grid gap-4 xl:grid-cols-3">
       <Card><div className="mb-4 flex items-center gap-2"><Bot className="h-5 w-5 text-emerald-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">AI work cells</h3></div><div className="space-y-2">{['Product Architect', 'Coding Swarm', 'Game and Media Cell', 'QA and Release', 'Growth Automation', 'Monetization Analyst'].map((item) => <p key={item} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3 text-xs font-bold text-slate-300">• {item}</p>)}</div></Card>
