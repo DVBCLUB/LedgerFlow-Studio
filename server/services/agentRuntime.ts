@@ -9,8 +9,8 @@ import { readSecureJson, writeSecureJson } from './secureJsonStore.ts';
 import { signRecord, verifyRecord } from './signedRecords.ts';
 import { publish } from './agentEventBus.ts';
 
-export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped';
-export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped';
+export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
+export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
 
 export interface AgentRunStep {
   id: string; index: number; toolId: AgentToolId; title: string; successCriteria: string; status: AgentRunStepStatus;
@@ -85,7 +85,7 @@ export async function advanceAgentRun(id: string) {
   return mutate(async (store) => {
     const run = store.runs[id]; if (!run) throw new Error('Agent run not found.');
     if (store.emergencyStop) throw new Error(`Agent runtime emergency stop is active${store.stopReason ? `: ${store.stopReason}` : '.'}`);
-    if (['completed', 'failed', 'stopped'].includes(run.status)) return run;
+    if (['completed', 'failed', 'stopped', 'rejected'].includes(run.status)) return run;
     if (!run.startedAt) run.startedAt = new Date().toISOString();
     if (Date.now() - Date.parse(run.startedAt) > run.maxRuntimeMs) { run.status = 'stopped'; run.stoppedReason = 'Runtime budget exceeded.'; run.completedAt = new Date().toISOString(); return run; }
     for (const step of run.steps) {
@@ -145,10 +145,27 @@ export async function approveAgentRunStep(runId: string, input: { stepId: string
   await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'step.approved', target: input.stepId, risk: 'MEDIUM', status: 'approved', summary: `Approved signed step for ${runId}.`, evidence: { runId, fingerprint: input.fingerprint } }); return run;
 }
 
+export async function rejectAgentRunStep(runId: string, input: { stepId: string; fingerprint?: string; reason?: string }) {
+  const reason = input.reason?.trim() || 'Founder rejected the approval request.';
+  const run = await mutate((store) => {
+    const current = store.runs[runId]; if (!current) throw new Error('Agent run not found.');
+    const step = current.steps.find((item) => item.id === input.stepId); if (!step || step.status !== 'waiting_approval') throw new Error('Step is not waiting for approval.');
+    if (input.fingerprint && step.approvalFingerprint !== input.fingerprint) throw new Error('Rejection fingerprint does not match the reviewed step.');
+    const now = new Date().toISOString();
+    step.status = 'rejected'; step.completedAt = now; step.observation = reason;
+    current.status = 'rejected'; current.stoppedReason = reason; current.completedAt = now; current.updatedAt = now;
+    current.observations.push(`Rejected ${step.toolId}: ${reason}`);
+    current.steps.filter((item) => ['queued', 'running', 'waiting_approval'].includes(item.status)).forEach((item) => { if (item.id !== step.id) item.status = 'stopped'; });
+    publish('agent.step.rejected', { runId: current.id, stepId: step.id, toolId: step.toolId, reason }).catch(() => undefined);
+    return current;
+  });
+  await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'step.rejected', target: input.stepId, risk: 'MEDIUM', status: 'rejected', summary: reason, evidence: { runId, fingerprint: input.fingerprint } });
+  return run;
+}
+
 export async function stopAgentRun(id: string, reason: string) { return mutate((store) => { const run = store.runs[id]; if (!run) throw new Error('Agent run not found.'); run.status = 'stopped'; run.stoppedReason = reason; run.completedAt = new Date().toISOString(); run.updatedAt = run.completedAt; run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; }); return run; }); }
 export async function setAgentRuntimeEmergencyStop(active: boolean, reason?: string) { return mutate((store) => { store.emergencyStop = active; store.stopReason = active ? reason || 'Founder emergency stop.' : undefined; if (active) Object.values(store.runs).filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).forEach((run) => { run.status = 'stopped'; run.stoppedReason = store.stopReason; run.completedAt = new Date().toISOString(); run.updatedAt = run.completedAt; run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; }); }); return { emergencyStop: store.emergencyStop, reason: store.stopReason }; }); }
 export async function listAgentRuns(limit = 50) { await writeQueue.catch(() => undefined); const store = await readStoreUnsafe(); return { emergencyStop: store.emergencyStop, stopReason: store.stopReason, encrypted: true, runs: Object.values(store.runs).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, Math.max(1, Math.min(limit, 200))) }; }
 export async function getAgentRun(id: string) { await writeQueue.catch(() => undefined); return (await readStoreUnsafe()).runs[id] || null; }
-export async function getAgentRuntimeMetrics() { const { runs, emergencyStop } = await listAgentRuns(200); const steps = runs.flatMap((run) => run.steps); const completedDurations = steps.filter((step) => step.startedAt && step.completedAt).map((step) => Date.parse(step.completedAt!) - Date.parse(step.startedAt!)); return { emergencyStop, totalRuns: runs.length, activeRuns: runs.filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).length, waitingApproval: runs.filter((run) => run.status === 'waiting_approval').length, completedRuns: runs.filter((run) => run.status === 'completed').length, failedRuns: runs.filter((run) => run.status === 'failed').length, artifactCount: runs.reduce((sum, run) => sum + run.artifacts.length, 0), averageStepLatencyMs: completedDurations.length ? Math.round(completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length) : 0, aiPlannedRuns: runs.filter((run) => run.planner === 'ai').length, fallbackPlannedRuns: runs.filter((run) => Boolean(run.plannerFallbackReason)).length };
+export async function getAgentRuntimeMetrics() { const { runs, emergencyStop } = await listAgentRuns(200); const steps = runs.flatMap((run) => run.steps); const completedDurations = steps.filter((step) => step.startedAt && step.completedAt).map((step) => Date.parse(step.completedAt!) - Date.parse(step.startedAt!)); return { emergencyStop, totalRuns: runs.length, activeRuns: runs.filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).length, waitingApproval: runs.filter((run) => run.status === 'waiting_approval').length, completedRuns: runs.filter((run) => run.status === 'completed').length, failedRuns: runs.filter((run) => run.status === 'failed').length, rejectedRuns: runs.filter((run) => run.status === 'rejected').length, artifactCount: runs.reduce((sum, run) => sum + run.artifacts.length, 0), averageStepLatencyMs: completedDurations.length ? Math.round(completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length) : 0, aiPlannedRuns: runs.filter((run) => run.planner === 'ai').length, fallbackPlannedRuns: runs.filter((run) => Boolean(run.plannerFallbackReason)).length };
 }
-
