@@ -1,0 +1,50 @@
+name: OpenClaw Plus
+
+on:
+  pull_request:
+    paths:
+      - 'server/services/**'
+      - 'src/modules/ai-hr/**'
+      - 'scripts/**'
+      - 'docs/OPENCLAW_PLUS_DOCTOR.md'
+      - 'package.json'
+      - '.github/workflows/openclaw-plus.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'server/services/**'
+      - 'src/modules/ai-hr/**'
+      - 'scripts/**'
+      - 'docs/OPENCLAW_PLUS_DOCTOR.md'
+      - 'package.json'
+      - '.github/workflows/openclaw-plus.yml'
+  workflow_dispatch:
+
+jobs:
+  openclaw-plus-check:
+    name: OpenClaw+ check-only
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: OpenClaw+ package aliases
+        run: node scripts/check-openclaw-plus-package-scripts.mjs
+
+      - name: OpenClaw+ doctor check-only
+        run: npm run ai:openclaw-plus:check
+
+      - name: OpenClaw+ readiness report
+        if: always()
+        run: node scripts/report-openclaw-plus-readiness.mjs
