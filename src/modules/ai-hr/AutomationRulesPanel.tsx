@@ -52,6 +52,20 @@ const routes = [
   ['Capacity Balancer', 'Nếu nguồn A tạm đầy, chuyển sang nguồn B/C đã được founder cấu hình; nếu không còn nguồn thì đưa vào Approval Inbox.', 'safe'],
 ];
 
+const artifactBoard = [
+  ['Generated code', 'Source tree, patch set, README, install guide và test note.'],
+  ['Build package', 'Web bundle, desktop package, mobile build hoặc game export.'],
+  ['Media assets', 'Image prompts, thumbnails, short video scripts và demo storyboard.'],
+  ['Launch assets', 'Landing copy, store listing, ad variants và release notes.'],
+];
+
+const reviewBoard = [
+  ['Spec match', 'So sánh output với PRD, platform, style và success criteria.'],
+  ['Build health', 'Tóm tắt install, test, build log và lỗi còn lại.'],
+  ['Market readiness', 'Kiểm tra demo, pricing, landing page và creative pack.'],
+  ['Founder gate', 'Các bước rủi ro cao được chuyển sang Approval Inbox.'],
+];
+
 const commercializationLanes = [
   ['Landing Page', 'Hero, pricing, FAQ, screenshots, demo GIF, CTA và tracking checklist.'],
   ['Short Video Pack', 'Script 15s/30s/60s, shot list, voiceover, caption, thumbnail prompt.'],
@@ -108,6 +122,11 @@ function SoftwareFactoryAutomationBrief() {
         <div className="mb-4 flex items-center gap-2"><Cable className="h-5 w-5 text-violet-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Provider and capacity router</h3></div>
         <div className="space-y-3">{routes.map(([name, detail, mode]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{name}</p><Pill tone={mode === 'primary' ? 'emerald' : mode === 'controlled' ? 'violet' : mode === 'dev' ? 'cyan' : 'amber'}>{mode}</Pill></div><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div>
       </Card>
+    </section>
+
+    <section className="grid gap-4 xl:grid-cols-2">
+      <Card><div className="mb-4 flex items-center gap-2"><Database className="h-5 w-5 text-emerald-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Artifact board</h3></div><div className="grid gap-3 md:grid-cols-2">{artifactBoard.map(([name, detail]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><p className="text-xs font-black text-white">{name}</p><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div></Card>
+      <Card><div className="mb-4 flex items-center gap-2"><Zap className="h-5 w-5 text-amber-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Review board</h3></div><div className="grid gap-3 md:grid-cols-2">{reviewBoard.map(([name, detail]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><p className="text-xs font-black text-white">{name}</p><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div></Card>
     </section>
 
     <Card>
