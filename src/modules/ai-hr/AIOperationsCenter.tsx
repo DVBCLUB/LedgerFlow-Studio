@@ -4,6 +4,7 @@ import AIWorkforcePatchReviewSessions from './AIWorkforcePatchReviewSessions';
 import AIWorkforceMobileCommandCenter from './AIWorkforceMobileCommandCenter';
 import AIWorkforceMissionTemplates from './AIWorkforceMissionTemplates';
 import AIWorkforceToolCatalog from './AIWorkforceToolCatalog';
+import AIWorkforcePluginSecurityGuard from './AIWorkforcePluginSecurityGuard';
 import AICommandCenterHubPanel from './AICommandCenterHubPanel';
 import AIGovernanceQualityHubPanel from './AIGovernanceQualityHubPanel';
 
@@ -16,6 +17,7 @@ export default function AIOperationsCenter() {
       <AIWorkforceMobileCommandCenter />
       <AIWorkforceMissionTemplates />
       <AIWorkforceToolCatalog />
+      <AIWorkforcePluginSecurityGuard />
 
       <details className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
         <summary className="cursor-pointer select-none text-sm font-black text-white">
