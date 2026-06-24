@@ -1,3 +1,3 @@
-import AIOperationsDaemonPanel from './AIOperationsDaemonPanel';
+import AICommandCenterHubPanel from './AICommandCenterHubPanel';
 
-export default AIOperationsDaemonPanel;
+export default AICommandCenterHubPanel;
