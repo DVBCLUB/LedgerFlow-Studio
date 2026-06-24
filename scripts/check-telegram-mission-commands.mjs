@@ -32,10 +32,12 @@ if (!failed) {
     'createAgentRun',
     'advanceAgentRun',
     'approveAgentRunStep',
+    'rejectAgentRunStep',
     'stopAgentRun',
     'setAgentRuntimeEmergencyStop',
     "'/mission create",
     "'/mission approve",
+    "'/mission reject",
     "'/ai emergency-stop",
   ];
   for (const token of required) {
