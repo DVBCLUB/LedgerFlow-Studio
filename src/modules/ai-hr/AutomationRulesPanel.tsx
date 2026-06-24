@@ -1,3 +1,3 @@
-import AutomationRulesHealthPanel from './AutomationRulesHealthPanel';
+import AutomationRobotControlHubPanel from './AutomationRobotControlHubPanel';
 
-export default AutomationRulesHealthPanel;
+export default AutomationRobotControlHubPanel;
