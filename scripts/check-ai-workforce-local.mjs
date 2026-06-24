@@ -8,6 +8,7 @@ const checks = [
   ['npm', ['run', 'check:telegram-missions']],
   ['npm', ['run', 'check:patch-review-sessions']],
   [process.execPath, [path.join(root, 'scripts/check-plugin-security-guard.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-ai-workforce-ui-wiring.mjs')]],
 ];
 
 for (const [command, args] of checks) {
