@@ -41,6 +41,17 @@ import {
   type SoftwareFactoryReleaseChannel,
   type SoftwareFactoryReleaseStatus,
 } from "./softwareFactoryReleaseKitService";
+import {
+  createSoftwareFactoryAsset,
+  getSoftwareFactoryAsset,
+  getSoftwareFactoryAssetStats,
+  listSoftwareFactoryAssets,
+  readSoftwareFactoryAssetContent,
+  seedSoftwareFactoryAssets,
+  updateSoftwareFactoryAssetStatus,
+  type SoftwareFactoryAssetKind,
+  type SoftwareFactoryAssetStatus,
+} from "./softwareFactoryAssetService";
 
 const router = Router();
 
@@ -49,6 +60,8 @@ const validStatuses: SoftwareFactoryRunStatus[] = ["draft", "queued", "running",
 const validProviderHealth: SoftwareFactoryProviderHealth[] = ["healthy", "limited", "paused"];
 const validReleaseChannels: SoftwareFactoryReleaseChannel[] = ["landing_page", "short_video", "store_listing", "creative_pack", "email_draft", "social_draft"];
 const validReleaseStatuses: SoftwareFactoryReleaseStatus[] = ["draft", "ready", "review", "scheduled", "complete"];
+const validAssetKinds: SoftwareFactoryAssetKind[] = ["code", "package", "media", "document", "release", "log"];
+const validAssetStatuses: SoftwareFactoryAssetStatus[] = ["new", "checked", "linked", "stored"];
 
 router.get("/runs", (_req, res) => {
   res.json({ ok: true, runs: listSoftwareFactoryRuns(), stats: getSoftwareFactoryStats() });
@@ -128,6 +141,44 @@ router.patch("/providers/:id/health", (req, res) => {
   return res.json({ ok: true, profile, stats: getSoftwareFactoryProviderStats() });
 });
 
+router.get("/assets", (_req, res) => {
+  res.json({ ok: true, assets: listSoftwareFactoryAssets(), stats: getSoftwareFactoryAssetStats() });
+});
+
+router.post("/assets", (req, res) => {
+  const { runId, kind, title, fileName, content, notes } = req.body || {};
+  if (!runId || !title || typeof content !== "string" || !validAssetKinds.includes(kind)) {
+    return res.status(400).json({ ok: false, error: "runId, title, content and valid kind are required" });
+  }
+  const asset = createSoftwareFactoryAsset({ runId, kind, title, fileName, content, notes });
+  return res.status(201).json({ ok: true, asset, stats: getSoftwareFactoryAssetStats() });
+});
+
+router.get("/assets/:id", (req, res) => {
+  const asset = getSoftwareFactoryAsset(req.params.id);
+  if (!asset) return res.status(404).json({ ok: false, error: "asset not found" });
+  return res.json({ ok: true, asset });
+});
+
+router.get("/assets/:id/content", (req, res) => {
+  const result = readSoftwareFactoryAssetContent(req.params.id);
+  if (!result) return res.status(404).json({ ok: false, error: "asset not found" });
+  return res.json({ ok: true, ...result });
+});
+
+router.patch("/assets/:id/status", (req, res) => {
+  const { status, notes } = req.body || {};
+  if (!validAssetStatuses.includes(status)) return res.status(400).json({ ok: false, error: "valid status is required" });
+  const asset = updateSoftwareFactoryAssetStatus(req.params.id, status, notes);
+  if (!asset) return res.status(404).json({ ok: false, error: "asset not found" });
+  return res.json({ ok: true, asset, stats: getSoftwareFactoryAssetStats() });
+});
+
+router.post("/assets/seed", (req, res) => {
+  const { runId } = req.body || {};
+  res.json({ ok: true, assets: seedSoftwareFactoryAssets(runId || "sample-run"), stats: getSoftwareFactoryAssetStats() });
+});
+
 router.get("/release-kit", (_req, res) => {
   res.json({ ok: true, items: listSoftwareFactoryReleaseItems(), stats: getSoftwareFactoryReleaseStats() });
 });
@@ -196,7 +247,7 @@ router.post("/git/pr-draft", async (req, res) => {
 });
 
 router.get("/stats", (_req, res) => {
-  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats() });
+  res.json({ ok: true, stats: getSoftwareFactoryStats(), executionStats: getSoftwareFactoryExecutionStats(), providerStats: getSoftwareFactoryProviderStats(), releaseStats: getSoftwareFactoryReleaseStats(), assetStats: getSoftwareFactoryAssetStats() });
 });
 
 router.post("/seed", (_req, res) => {
