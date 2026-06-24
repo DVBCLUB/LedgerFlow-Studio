@@ -1,3 +1,3 @@
-import AIMemoryRagPanel from '../ai-hr/AIMemoryRagPanel';
+import KnowledgeContentHubPanel from '../ai-hr/KnowledgeContentHubPanel';
 
-export default AIMemoryRagPanel;
+export default KnowledgeContentHubPanel;
