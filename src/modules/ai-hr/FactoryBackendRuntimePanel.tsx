@@ -1,0 +1,139 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Activity, GitBranch, Loader2, PlayCircle, RefreshCw, Server, Terminal } from 'lucide-react';
+
+type BackendState = 'idle' | 'loading' | 'online' | 'offline';
+
+interface FactoryRun {
+  id: string;
+  title: string;
+  status: string;
+  workType: string;
+  owner: string;
+  updatedAt: string;
+}
+
+interface FactoryStats {
+  total: number;
+  byStatus: Record<string, number>;
+}
+
+interface RuntimePayload {
+  runs?: FactoryRun[];
+  stats?: FactoryStats;
+  executionStats?: Record<string, number>;
+}
+
+interface GitPayload {
+  runner?: {
+    branch: string;
+    status: { staged: string[]; modified: string[]; untracked: string[]; deleted: string[] };
+    diff: { filesChanged: number; insertions: number; deletions: number; summary: string };
+  };
+}
+
+const API_BASE = 'http://localhost:3011/api/software-factory';
+
+function SmallStat({ label, value, note }: { label: string; value: string | number; note: string }) {
+  return <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{label}</p>
+    <p className="mt-1 text-2xl font-black text-white">{value}</p>
+    <p className="mt-1 text-[11px] font-bold leading-5 text-slate-500">{note}</p>
+  </div>;
+}
+
+function StatusPill({ state }: { state: BackendState }) {
+  const className = state === 'online'
+    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-100'
+    : state === 'offline'
+      ? 'border-rose-500/30 bg-rose-500/10 text-rose-100'
+      : 'border-slate-700 bg-slate-900 text-slate-300';
+  return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase tracking-wider ${className}`}>{state}</span>;
+}
+
+export default function FactoryBackendRuntimePanel() {
+  const [state, setState] = useState<BackendState>('idle');
+  const [payload, setPayload] = useState<RuntimePayload | null>(null);
+  const [gitPayload, setGitPayload] = useState<GitPayload | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = async () => {
+    setState('loading');
+    setError(null);
+    try {
+      const [runsResponse, gitResponse] = await Promise.all([
+        fetch(`${API_BASE}/runs`),
+        fetch(`${API_BASE}/git/status`).catch(() => null),
+      ]);
+      if (!runsResponse.ok) throw new Error(`Backend returned ${runsResponse.status}`);
+      const runsJson = await runsResponse.json();
+      const gitJson = gitResponse && gitResponse.ok ? await gitResponse.json() : null;
+      setPayload(runsJson);
+      setGitPayload(gitJson);
+      setState('online');
+    } catch (err) {
+      setState('offline');
+      setError(err instanceof Error ? err.message : 'Cannot connect to Software Factory daemon');
+    }
+  };
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
+  const latestRuns = useMemo(() => (payload?.runs || []).slice(0, 4), [payload]);
+  const stats = payload?.stats;
+  const executionStats = payload?.executionStats;
+  const git = gitPayload?.runner;
+  const changedFiles = git ? git.status.modified.length + git.status.staged.length + git.status.untracked.length + git.status.deleted.length : 0;
+
+  return <section className="space-y-4 rounded-[2rem] border border-emerald-400/20 bg-slate-950/55 p-5 text-left shadow-xl shadow-slate-950/20">
+    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200"><Server className="mr-2 inline h-4 w-4" />Backend runtime</p>
+        <h3 className="mt-2 text-xl font-black text-white">Software Factory daemon connection</h3>
+        <p className="mt-2 max-w-4xl text-sm font-semibold leading-6 text-slate-400">UI này gọi daemon cục bộ ở port 3011 để đọc runs, execution stats và Git runner status.</p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <StatusPill state={state} />
+        <button onClick={refresh} disabled={state === 'loading'} className="inline-flex items-center gap-2 rounded-2xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-black text-slate-200 hover:border-emerald-400/40 disabled:opacity-60">
+          {state === 'loading' ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />} Refresh
+        </button>
+      </div>
+    </div>
+
+    {error && <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold leading-6 text-amber-100">Daemon chưa online hoặc chưa chạy: {error}. Chạy server/software-factory-daemon.ts để bật runtime API.</div>}
+
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <SmallStat label="runs" value={stats?.total ?? 0} note="factory run records" />
+      <SmallStat label="queued" value={stats?.byStatus?.queued ?? 0} note="waiting for execution" />
+      <SmallStat label="review" value={stats?.byStatus?.review ?? 0} note="needs founder check" />
+      <SmallStat label="executions" value={executionStats?.total ?? 0} note={`${executionStats?.running ?? 0} running`} />
+      <SmallStat label="git files" value={changedFiles} note={git ? `branch ${git.branch || 'unknown'}` : 'no git status'} />
+    </div>
+
+    <div className="grid gap-4 xl:grid-cols-2">
+      <div className="space-y-2">
+        <div className="mb-2 flex items-center gap-2"><PlayCircle className="h-5 w-5 text-emerald-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Latest runs</p></div>
+        {latestRuns.length === 0 ? <p className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-bold text-slate-500">No backend runs yet. Use POST /api/software-factory/seed or create a run.</p> : latestRuns.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="flex items-start justify-between gap-3"><p className="text-xs font-black text-white">{run.title}</p><span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-1 text-[10px] font-black uppercase tracking-wider text-cyan-100">{run.status}</span></div>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{run.workType} / {run.owner}</p>
+        </div>)}
+      </div>
+      <div className="space-y-2">
+        <div className="mb-2 flex items-center gap-2"><GitBranch className="h-5 w-5 text-cyan-300" /><p className="text-xs font-black uppercase tracking-[0.2em] text-white">Git runner</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <p className="text-xs font-black text-white">Current branch: {git?.branch || 'unknown'}</p>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">Diff: {git?.diff.filesChanged ?? 0} files, {git?.diff.insertions ?? 0} insertions, {git?.diff.deletions ?? 0} deletions.</p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="flex items-center gap-2"><Activity className="h-4 w-4 text-violet-300" /><p className="text-xs font-black text-white">Execution stats</p></div>
+          <p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">pending {executionStats?.pending ?? 0} / running {executionStats?.running ?? 0} / review {executionStats?.review ?? 0} / complete {executionStats?.complete ?? 0}</p>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="flex items-center gap-2"><Terminal className="h-4 w-4 text-amber-300" /><p className="text-xs font-black text-white">API base</p></div>
+          <p className="mt-2 break-all text-[11px] font-semibold leading-5 text-slate-500">{API_BASE}</p>
+        </div>
+      </div>
+    </div>
+  </section>;
+}
