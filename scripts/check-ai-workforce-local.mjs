@@ -13,6 +13,8 @@ const checks = [
   [process.execPath, [path.join(root, 'scripts/check-plugin-security-guard.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-plugin-invocation-boundary.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-plugin-runtime-boundary-patcher.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-robot-capability-registry.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-automation-scheduler-loop.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-ai-workforce-ui-wiring.mjs')]],
   [process.execPath, [path.join(root, 'scripts/report-openclaw-plus-readiness.mjs')]],
 ];
