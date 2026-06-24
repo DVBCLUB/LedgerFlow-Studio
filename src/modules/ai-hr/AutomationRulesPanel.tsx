@@ -28,6 +28,23 @@ const factoryPipeline = [
   ['Go-to-market', 'Tạo landing page, video ngắn, nội dung YouTube/TikTok/Facebook, quảng cáo, pricing và release checklist.'],
 ];
 
+const intakeFields = [
+  ['Product idea', 'Mô tả sản phẩm cần tạo: app, game, tool, extension, mobile app hoặc video AI.'],
+  ['Target platform', 'PC, web, Android, iOS, desktop, browser extension, YouTube, TikTok hoặc Facebook.'],
+  ['Success criteria', 'Điều kiện hoàn tất: chạy được, có build, có video demo, có landing page hoặc có bản release.'],
+  ['Style constraints', 'Phong cách UI, gameplay, công nghệ, ngôn ngữ, brand voice và giới hạn không được vượt.'],
+  ['Output package', 'Chọn gói đầu ra: code only, prototype, release build, marketing pack hoặc full launch kit.'],
+  ['Review policy', 'Chọn bước nào AI được tự chạy và bước nào cần founder duyệt trước khi tiếp tục.'],
+];
+
+const runQueue = [
+  ['Draft PRD', 'Product Architect', 'ready'],
+  ['Generate repo plan', 'Coding Swarm', 'ready'],
+  ['Build prototype', 'GitHub IDE Runner', 'queued'],
+  ['Create demo script', 'Growth Automation', 'ready'],
+  ['Prepare release checklist', 'QA and Release', 'review'],
+];
+
 const routes = [
   ['Official API Pool', 'OpenAI, Gemini, Anthropic, Grok, DeepSeek và các AI agent API.', 'primary'],
   ['Approved Assisted Connectors', 'Các connector được bật trong phạm vi hợp lệ, có log nguồn và giới hạn hành động.', 'controlled'],
@@ -69,6 +86,17 @@ function SoftwareFactoryAutomationBrief() {
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Routing</p><p className="mt-2 text-2xl font-black text-white">Hybrid</p><p className="mt-1 text-[11px] font-bold text-slate-500">API, assisted connector, IDE capacity, agent API.</p></Card>
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Control</p><p className="mt-2 text-2xl font-black text-white">Human gated</p><p className="mt-1 text-[11px] font-bold text-slate-500">Publish, payment, merge main cần duyệt.</p></Card>
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Outputs</p><p className="mt-2 text-2xl font-black text-white">Code + media</p><p className="mt-1 text-[11px] font-bold text-slate-500">App/game/tool/video/ads/assets.</p></Card>
+    </section>
+
+    <section className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
+      <Card>
+        <div className="mb-4 flex items-center gap-2"><Database className="h-5 w-5 text-cyan-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Factory intake console</h3></div>
+        <div className="grid gap-3 md:grid-cols-2">{intakeFields.map(([name, detail]) => <div key={name} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><p className="text-xs font-black text-white">{name}</p><p className="mt-2 text-[11px] font-semibold leading-5 text-slate-500">{detail}</p></div>)}</div>
+      </Card>
+      <Card>
+        <div className="mb-4 flex items-center gap-2"><Terminal className="h-5 w-5 text-emerald-300" /><h3 className="text-sm font-black uppercase tracking-[0.22em] text-white">Run queue preview</h3></div>
+        <div className="space-y-2">{runQueue.map(([task, owner, status]) => <div key={task} className="rounded-2xl border border-slate-800 bg-slate-950/75 p-3"><div className="flex items-start justify-between gap-3"><div><p className="text-xs font-black text-white">{task}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{owner}</p></div><Pill tone={status === 'review' ? 'amber' : status === 'queued' ? 'cyan' : 'emerald'}>{status}</Pill></div></div>)}</div>
+      </Card>
     </section>
 
     <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
