@@ -17,6 +17,12 @@ import {
   getSoftwareFactoryExecutionStats,
   listSoftwareFactoryExecutions,
 } from "./softwareFactoryExecutionService";
+import {
+  createSoftwareFactoryWorkBranch,
+  getSoftwareFactoryGitRunnerStatus,
+  prepareSoftwareFactoryCommitDraft,
+  prepareSoftwareFactoryPullRequestDraft,
+} from "./softwareFactoryGitRunner";
 
 const router = Router();
 
@@ -80,6 +86,41 @@ router.post("/executions/:id/block", (req, res) => {
   const execution = blockSoftwareFactoryExecution(req.params.id, reason || "blocked by operator");
   if (!execution) return res.status(404).json({ ok: false, error: "execution not found" });
   return res.json({ ok: true, execution });
+});
+
+router.get("/git/status", async (_req, res) => {
+  try {
+    res.json({ ok: true, runner: await getSoftwareFactoryGitRunnerStatus() });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+router.post("/git/branch", async (req, res) => {
+  try {
+    const { branchName } = req.body || {};
+    if (!branchName) return res.status(400).json({ ok: false, error: "branchName is required" });
+    res.json({ ok: true, result: await createSoftwareFactoryWorkBranch(branchName) });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+router.post("/git/commit-draft", async (_req, res) => {
+  try {
+    res.json({ ok: true, draft: await prepareSoftwareFactoryCommitDraft() });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+router.post("/git/pr-draft", async (req, res) => {
+  try {
+    const { base } = req.body || {};
+    res.json({ ok: true, draft: await prepareSoftwareFactoryPullRequestDraft(base || "main") });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 router.get("/stats", (_req, res) => {
