@@ -1,5 +1,6 @@
 import AIWorkforceMissionControl from './AIWorkforceMissionControl';
 import AIWorkforceMissionTemplates from './AIWorkforceMissionTemplates';
+import AIWorkforceToolCatalog from './AIWorkforceToolCatalog';
 import AICommandCenterHubPanel from './AICommandCenterHubPanel';
 import AIGovernanceQualityHubPanel from './AIGovernanceQualityHubPanel';
 
@@ -8,6 +9,7 @@ export default function AIOperationsCenter() {
     <div className="space-y-6">
       <AIWorkforceMissionControl />
       <AIWorkforceMissionTemplates />
+      <AIWorkforceToolCatalog />
 
       <details className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
         <summary className="cursor-pointer select-none text-sm font-black text-white">
