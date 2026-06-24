@@ -4,7 +4,7 @@ import { askAI, daemonFetch } from '../../utils/assistantApi';
 
 type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
 type Metrics = { emergencyStop?: boolean; totalRuns?: number; activeRuns?: number; waitingApproval?: number; completedRuns?: number; failedRuns?: number; artifactCount?: number };
-type AgentStep = { id: string; title?: string; toolId?: string; status?: string; observation?: string };
+type AgentStep = { id: string; title?: string; toolId?: string; status?: string; observation?: string; risk?: string; requiresApproval?: boolean; approvalFingerprint?: string; approvalSignature?: string };
 type AgentRun = { id: string; goal: string; status: string; planner?: string; plannerSummary?: string; createdAt: string; updatedAt?: string; steps?: AgentStep[]; artifacts?: Array<{ id: string; type: string; summary: string; createdAt: string }> };
 type MemoryHit = { id?: string; title?: string; body?: string; summary?: string; citation?: string; tags?: string[] | string };
 type Role = { id: string; emoji?: string; group?: string };
@@ -12,6 +12,7 @@ type HubData = { status: Record<string, unknown> | null; metrics: Metrics; runs:
 
 const DEFAULT_GOAL = 'Review LedgerFlow AI workforce, produce a safe implementation plan, and list approvals needed before any external action.';
 const DEFAULT_QUERY = 'LedgerFlow AI operations memory safety runtime approval';
+const APPROVAL_PHRASE = 'APPROVE AGENT STEP';
 
 function readArray<T>(value: unknown, key: string): T[] {
   if (Array.isArray(value)) return value as T[];
@@ -117,6 +118,37 @@ export default function AIWorkforceMissionControl() {
     finally { setBusy(false); }
   };
 
+  const advanceRun = async (runId: string) => {
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(runId)}/advance`, { method: 'POST' }, 60000);
+      setMessage(`Advanced mission ${runId}.`);
+      await load(query);
+    } catch (err: any) { setError(err?.message || 'Cannot advance mission.'); }
+    finally { setBusy(false); }
+  };
+
+  const stopRun = async (runId: string) => {
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(runId)}/stop`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'Founder stopped from AI Workforce Mission Control.' }) }, 10000);
+      setMessage(`Stopped mission ${runId}.`);
+      await load(query);
+    } catch (err: any) { setError(err?.message || 'Cannot stop mission.'); }
+    finally { setBusy(false); }
+  };
+
+  const approveStep = async (run: AgentRun, step: AgentStep) => {
+    if (!step.approvalFingerprint) { setError('This step is missing an approval fingerprint. Advance the run again or inspect the daemon state.'); return; }
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(run.id)}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stepId: step.id, fingerprint: step.approvalFingerprint, signature: step.approvalSignature, phrase: APPROVAL_PHRASE }) }, 60000);
+      setMessage(`Approved ${step.toolId || 'step'} for ${run.id}.`);
+      await load(query);
+    } catch (err: any) { setError(err?.message || 'Cannot approve step.'); }
+    finally { setBusy(false); }
+  };
+
   const toggleStop = async (active: boolean) => {
     setBusy(true); setError(''); setMessage('');
     try {
@@ -172,11 +204,11 @@ export default function AIWorkforceMissionControl() {
 
     <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
       <Section title="Mission Queue" subtitle="Các agent run đang planned/running/waiting approval." icon={<Bot className="h-4 w-4" />}>
-        <div className="space-y-2">{missionQueue.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><Badge tone={toneForStatus(run.status)}>{run.status}</Badge><Badge>{run.planner || 'planner'}</Badge></div><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{run.plannerSummary && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{run.plannerSummary}</p>}<div className="mt-3 grid gap-2 sm:grid-cols-2">{(run.steps || []).slice(0, 4).map((step) => <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2"><p className="text-[10px] font-black uppercase text-cyan-300">{step.status || 'queued'} • {step.toolId || 'tool'}</p><p className="mt-1 line-clamp-2 text-xs font-bold text-slate-300">{step.title || step.observation || 'Step pending'}</p></div>)}</div></div>)}{missionQueue.length === 0 && <EmptyState>No active mission. Create one from Mission Builder.</EmptyState>}</div>
+        <div className="space-y-2">{missionQueue.map((run) => <div key={run.id} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex flex-wrap items-center justify-between gap-2"><Badge tone={toneForStatus(run.status)}>{run.status}</Badge><Badge>{run.planner || 'planner'}</Badge></div><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{run.plannerSummary && <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">{run.plannerSummary}</p>}<div className="mt-3 grid gap-2 sm:grid-cols-2">{(run.steps || []).slice(0, 4).map((step) => <div key={step.id} className="rounded-xl border border-slate-800 bg-slate-900/70 p-2"><p className="text-[10px] font-black uppercase text-cyan-300">{step.status || 'queued'} • {step.toolId || 'tool'}</p><p className="mt-1 line-clamp-2 text-xs font-bold text-slate-300">{step.title || step.observation || 'Step pending'}</p></div>)}</div><div className="mt-3 flex flex-wrap gap-2"><button onClick={() => void advanceRun(run.id)} disabled={busy || emergency || String(run.status).toLowerCase().includes('waiting')} className="rounded-xl border border-cyan-500/30 bg-cyan-950/30 px-3 py-2 text-xs font-black text-cyan-100 disabled:opacity-40">Advance</button><button onClick={() => void stopRun(run.id)} disabled={busy} className="rounded-xl border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-xs font-black text-rose-100 disabled:opacity-40">Stop</button></div></div>)}{missionQueue.length === 0 && <EmptyState>No active mission. Create one from Mission Builder.</EmptyState>}</div>
       </Section>
 
       <Section title="Approval Gate" subtitle="Tách riêng các mission cần founder review trước khi có side effect." icon={<ShieldAlert className="h-4 w-4" />}>
-        <div className="space-y-2">{waitingRuns.map((run) => <div key={run.id} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3"><Badge tone="amber">waiting approval</Badge><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{(run.steps || []).filter((step) => String(step.status).includes('waiting')).slice(0, 3).map((step) => <p key={step.id} className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-xs font-bold text-amber-100">{step.toolId}: {step.title || 'Approval required'}</p>)}</div>)}{waitingRuns.length === 0 && <EmptyState>No approval is waiting right now.</EmptyState>}</div>
+        <div className="space-y-2">{waitingRuns.map((run) => <div key={run.id} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3"><Badge tone="amber">waiting approval</Badge><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{(run.steps || []).filter((step) => String(step.status).includes('waiting')).slice(0, 3).map((step) => <div key={step.id} className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2"><p className="text-xs font-bold text-amber-100">{step.toolId}: {step.title || 'Approval required'}</p><p className="mt-1 break-all text-[10px] font-semibold text-slate-500">fingerprint: {step.approvalFingerprint || 'missing'}</p><div className="mt-2 flex flex-wrap gap-2"><Badge tone={toneForStatus(step.risk)}>{step.risk || 'risk'}</Badge><button onClick={() => void approveStep(run, step)} disabled={busy || !step.approvalFingerprint || emergency} className="rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-3 py-1.5 text-[10px] font-black text-emerald-100 disabled:opacity-40">Approve Step</button></div></div>)}</div>)}{waitingRuns.length === 0 && <EmptyState>No approval is waiting right now.</EmptyState>}</div>
       </Section>
     </section>
 
