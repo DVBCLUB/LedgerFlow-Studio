@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Bot, Cable, Database, PlayCircle, Rocket, Terminal, Zap } from 'lucide-react';
 import FactoryCatalogStatusPanel from './FactoryCatalogStatusPanel';
+import FactoryHealthSummaryPanel from './FactoryHealthSummaryPanel';
 import FactoryBackendRuntimePanel from './FactoryBackendRuntimePanel';
 import FactoryExecutionDecisionPanel from './FactoryExecutionDecisionPanel';
 import FactoryCommandRunnerPanel from './FactoryCommandRunnerPanel';
@@ -97,6 +98,7 @@ function SoftwareFactoryAutomationBrief() {
     </section>
 
     <FactoryCatalogStatusPanel />
+    <FactoryHealthSummaryPanel />
     <FactoryBackendRuntimePanel />
     <FactoryExecutionDecisionPanel />
     <FactoryCommandRunnerPanel />
