@@ -262,7 +262,7 @@ function evaluateConditions(rule: AutomationRule, event: AutomationEvent): boole
 async function executeAction(action: AutomationAction, event: AutomationEvent, ruleId: string): Promise<{ executed: boolean; skipped: boolean; reason?: string }> {
   if (action.requiresApproval) {
     await appendAuditEvent({
-      actor: 'automation-engine',
+      actor: 'system',
       workspace: 'ai-ops',
       action: 'automation.action.pending_approval',
       target: ruleId,
@@ -280,7 +280,7 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
       const message = String(action.params.message || '');
       console.log(`[AutomationRules][${level.toUpperCase()}] Rule triggered: ${message} | Event: ${event.type}`);
       await appendAuditEvent({
-        actor: 'automation-engine',
+        actor: 'system',
         workspace: 'ai-ops',
         action: 'automation.rule.triggered',
         target: ruleId,
@@ -295,12 +295,12 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
     case 'send_notification': {
       // Safely delegates to Telegram or in-app — never auto-sends without explicit connector
       await appendAuditEvent({
-        actor: 'automation-engine',
+        actor: 'system',
         workspace: 'ai-ops',
         action: 'automation.notification.queued',
         target: ruleId,
         risk: 'MEDIUM',
-        status: 'queued',
+        status: 'planned',
         summary: `Notification queued: ${action.params.message || ''}`,
         evidence: { ruleId, channel: action.params.channel, eventId: event.id },
       });
@@ -309,7 +309,7 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
 
     case 'update_status': {
       await appendAuditEvent({
-        actor: 'automation-engine',
+        actor: 'system',
         workspace: 'ai-ops',
         action: 'automation.status.update',
         target: String(action.params.targetId || 'unknown'),
@@ -327,7 +327,7 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
     case 'webhook_post': {
       // These actions always require human approval by policy
       await appendAuditEvent({
-        actor: 'automation-engine',
+        actor: 'system',
         workspace: 'ai-ops',
         action: `automation.${action.type}.pending`,
         target: ruleId,
