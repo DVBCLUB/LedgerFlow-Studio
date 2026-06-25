@@ -15,7 +15,7 @@ const scripts = pkg.scripts || {};
 const expected = {
   'ai:openclaw-plus': 'node scripts/openclaw-plus-doctor.mjs',
   'ai:openclaw-plus:full': 'node scripts/openclaw-plus-doctor.mjs --full',
-  'ai:openclaw-plus:check': 'node scripts/openclaw-plus-doctor.mjs --skip-patch',
+  'ai:openclaw-plus:check': 'node scripts/patch-ai-workforce-local.mjs && node scripts/openclaw-plus-doctor.mjs --skip-patch',
   'check:openclaw-plus': 'node scripts/check-ai-workforce-local.mjs',
 };
 
