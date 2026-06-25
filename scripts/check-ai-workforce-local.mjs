@@ -8,6 +8,7 @@ const checks = [
   ['npm', ['run', 'check:telegram-missions']],
   ['npm', ['run', 'check:patch-review-sessions']],
   [process.execPath, [path.join(root, 'scripts/check-openclaw-plus-package-scripts.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-audit-contracts.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-draft-patch-manifest.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-patch-review-guard.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-plugin-security-guard.mjs')]],
