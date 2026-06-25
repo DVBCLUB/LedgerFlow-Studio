@@ -56,7 +56,7 @@
     "desktop:pack": "npm run build && npm run prepare:icons && electron-builder --dir && npm run release:notes",
     "desktop:dist": "npm run desktop:pack",
     "clean": "node scripts/clean.mjs",
-    "lint": "tsc --noEmit",
+    "lint": "tsc -p tsconfig.lint.json --noEmit",
     "test": "node --test --experimental-strip-types server/services/localAuth.test.ts server/services/localDatabase.test.ts server/services/webAiPolicy.test.ts src/app/companyNavigation.test.ts server/services/webAiTaskRouter.test.ts server/services/webAiAutomator.test.ts server/services/codingContext.test.ts server/services/agentRuntimeFoundation.test.ts server/services/agentRuntimeSafety.test.ts",
     "assistant:start": "tsx server/assistant-daemon.ts",
     "assistant:cli": "tsx scripts/ai-assistant-cli.ts",
