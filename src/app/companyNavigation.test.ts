@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { COMPANY_WORKSPACES, companyOSLanes, CORE_TABS, LEGACY_TABS, isCoreTab } from './companyNavigation.ts';
+import { resolveWorkspaceSubTab } from './workspaceSubtabAliases.ts';
 import {
   AI_WORK_ORDER_LIBRARY,
   DECISION_LOG_TEMPLATES,
@@ -31,6 +32,25 @@ test('core and legacy tabs are separated for cleaner navigation', () => {
   assert.equal(CORE_TABS.length, COMPANY_WORKSPACES.length);
   assert.ok(CORE_TABS.every((tab) => isCoreTab(tab)));
   assert.ok(LEGACY_TABS.every((tab) => !isCoreTab(tab)));
+});
+
+test('legacy workspace subtab aliases resolve to streamlined subtabs', () => {
+  assert.equal(resolveWorkspaceSubTab('ceo_command', 'overview', ['brief', 'daily_weekly', 'library', 'sop_rd']), 'brief');
+  assert.equal(resolveWorkspaceSubTab('ceo_command', 'risk', ['brief', 'daily_weekly', 'library', 'sop_rd']), 'sop_rd');
+  assert.equal(resolveWorkspaceSubTab('product_studio', 'pricing_lab', ['strategy', 'roadmap', 'offer_pricing', 'launch_readiness']), 'offer_pricing');
+  assert.equal(resolveWorkspaceSubTab('growth_sales', 'leads_outreach', ['dashboard', 'content_studio', 'market_research', 'sales_crm', 'retention_partners']), 'sales_crm');
+  assert.equal(resolveWorkspaceSubTab('ai_staff_sandbox', 'staff_assistants', ['overview', 'agents', 'automations', 'knowledge_prompts', 'quality', 'labs']), 'agents');
+  assert.equal(resolveWorkspaceSubTab('ai_staff_sandbox', 'python_sql', ['overview', 'agents', 'automations', 'knowledge_prompts', 'quality', 'labs']), 'labs');
+  assert.equal(resolveWorkspaceSubTab('system_settings', 'ci_doctor', ['general', 'ai_gateway', 'integrations', 'security', 'backup_data', 'developer_console']), 'developer_console');
+});
+
+test('workspace subtab resolver preserves valid ids and rejects unknown ids', () => {
+  const validIds = ['overview', 'agents', 'automations', 'knowledge_prompts', 'quality', 'labs'] as const;
+
+  assert.equal(resolveWorkspaceSubTab('ai_staff_sandbox', 'agents', validIds), 'agents');
+  assert.equal(resolveWorkspaceSubTab('ai_staff_sandbox', 'not_real', validIds), undefined);
+  assert.equal(resolveWorkspaceSubTab('unknown_workspace', 'agents', validIds), 'agents');
+  assert.equal(resolveWorkspaceSubTab('unknown_workspace', 'staff_assistants', validIds), undefined);
 });
 
 test('operating knowledge layer has usable seeds and safety boundaries', () => {
