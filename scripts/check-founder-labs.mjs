@@ -7,6 +7,7 @@ const dockPath = path.join(componentDir, 'shared', 'FounderLabsDock.tsx');
 const backupPath = path.join(componentDir, 'LabsBackupRestore.tsx');
 const companyOsGuardrailsPath = path.join(root, 'docs', 'COMPANY_OS_GUARDRAILS.md');
 const mainPath = path.join(root, 'src', 'main.tsx');
+const workspaceRendererPath = path.join(root, 'src', 'app', 'WorkspaceRenderer.tsx');
 
 const requiredBackupOnlyKeys = ['ledgerflow-founder-labs-last-backup-v1'];
 
@@ -98,6 +99,7 @@ const dockContent = readFile('src/components/shared/FounderLabsDock.tsx', { stri
 const backupContent = readFile('src/components/LabsBackupRestore.tsx', { stripComments: true });
 const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
 const mainContent = readFile('src/main.tsx', { stripComments: true });
+const workspaceRendererContent = readFile('src/app/WorkspaceRenderer.tsx', { stripComments: true });
 const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? stripSourceComments(fs.readFileSync(analyticsWorkspacePath, 'utf8')) : '';
 if (!fs.existsSync(analyticsWorkspacePath)) {
   errors.push(`Missing file: ${path.relative(root, analyticsWorkspacePath)}`);
@@ -113,8 +115,16 @@ function findDuplicates(values) {
   return [...duplicates];
 }
 
-if (!mainContent.includes('ErpApp') || !analyticsWorkspaceContent.includes('FounderLabsDock embedded')) {
-  errors.push('ERP runtime does not expose FounderLabsDock through the embedded Analytics workspace.');
+const hasRuntimeEntry =
+  mainContent.includes('createRoot') ||
+  mainContent.includes('ReactDOM') ||
+  mainContent.includes('<App');
+const rendersFounderLabsDock =
+  /<FounderLabsDock\s+embedded\s*\/>/.test(workspaceRendererContent) ||
+  analyticsWorkspaceContent.includes('FounderLabsDock embedded');
+
+if (!hasRuntimeEntry || !rendersFounderLabsDock) {
+  errors.push('ERP runtime does not expose FounderLabsDock through WorkspaceRenderer or the embedded Analytics workspace.');
 }
 
 if (companyOsGuardrailsContent && !companyOsGuardrailsContent.includes('Company OS is a Founder Labs module, not a replacement for the main LedgerFlow app.')) {
