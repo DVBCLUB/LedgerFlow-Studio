@@ -8,6 +8,13 @@ const desktopIconPath = path.join(root, 'build', 'icon.ico');
 const errors = [];
 const warnings = [];
 
+const desktopBuildDefaults = {
+  files: ['dist/**/*', 'desktop/**/*', 'build/**/*', 'package.json'],
+  win: { icon: 'build/icon.ico', target: ['dir'] },
+  mac: { target: 'dmg' },
+  linux: { target: 'AppImage' },
+};
+
 function readJson(filePath) {
   try {
     return JSON.parse(fs.readFileSync(filePath, 'utf8'));
@@ -15,6 +22,16 @@ function readJson(filePath) {
     errors.push(`Cannot parse JSON file: ${filePath} - ${error.message}`);
     return null;
   }
+}
+
+function effectiveBuildConfig(build) {
+  return {
+    ...build,
+    files: Array.isArray(build.files) && build.files.length ? build.files : desktopBuildDefaults.files,
+    win: { ...desktopBuildDefaults.win, ...(build.win || {}) },
+    mac: { ...desktopBuildDefaults.mac, ...(build.mac || {}) },
+    linux: { ...desktopBuildDefaults.linux, ...(build.linux || {}) },
+  };
 }
 
 if (!fs.existsSync(packagePath)) {
@@ -36,7 +53,7 @@ if (pkg) {
     errors.push('package.json main must be desktop/main.cjs for Electron packaging.');
   }
 
-  const build = pkg.build || {};
+  const build = effectiveBuildConfig(pkg.build || {});
   if (build.appId !== 'com.ledgerflow.hub') {
     errors.push('build.appId must be com.ledgerflow.hub.');
   }
@@ -49,7 +66,11 @@ if (pkg) {
     errors.push('build.artifactName must be LedgerFlow-Hub-${version}-${arch}.${ext}.');
   }
 
-  const requiredFiles = ['dist/**/*', 'desktop/**/*', 'build/**/*', 'package.json'];
+  if (!pkg.build?.files) {
+    warnings.push('package.json build.files is not declared; desktop check used safe defaults. Add files explicitly before release packaging.');
+  }
+
+  const requiredFiles = desktopBuildDefaults.files;
   const configuredFiles = Array.isArray(build.files) ? build.files : [];
   for (const requiredFile of requiredFiles) {
     if (!configuredFiles.includes(requiredFile)) {
