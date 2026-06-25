@@ -59,9 +59,13 @@ if (!failed) {
 if (exists(botFile)) {
   const bot = read(botFile);
   if (!bot.includes('tryHandleTelegramMissionCommand(chatId, text, sendMessage)')) {
-    console.warn('Warning: telegramBot.ts is not patched yet. Run npm run ai:patch-telegram-missions locally.');
+    console.error('telegramBot.ts must call tryHandleTelegramMissionCommand(chatId, text, sendMessage). Run node scripts/patch-telegram-mission-commands.mjs first.');
+    failed = true;
   }
+} else {
+  console.error('Missing server/services/telegramBot.ts');
+  failed = true;
 }
 
 if (failed) process.exit(1);
-console.log('Telegram mission, robot and automation command service is present. If telegramBot.ts warning appears, run npm run ai:patch-telegram-missions.');
+console.log('Telegram mission, robot and automation command service is wired into telegramBot.ts.');
