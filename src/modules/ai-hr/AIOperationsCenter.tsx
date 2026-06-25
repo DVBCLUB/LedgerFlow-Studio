@@ -7,10 +7,6 @@ import AIWorkforceMobileCommandCenter from './AIWorkforceMobileCommandCenter';
 import AIWorkforceMissionTemplates from './AIWorkforceMissionTemplates';
 import AIWorkforceToolCatalog from './AIWorkforceToolCatalog';
 import AIWorkforcePluginSecurityGuard from './AIWorkforcePluginSecurityGuard';
-import AIWorkforcePatchSafetyRunbook from './AIWorkforcePatchSafetyRunbook';
-import AIWorkforceRobotAutomationBridge from './AIWorkforceRobotAutomationBridge';
-import AIWorkforceSkillDirectory from './AIWorkforceSkillDirectory';
-import AIWorkforceSkillInvocationPlanner from './AIWorkforceSkillInvocationPlanner';
 import AICommandCenterHubPanel from './AICommandCenterHubPanel';
 import AIGovernanceQualityHubPanel from './AIGovernanceQualityHubPanel';
 
@@ -26,10 +22,6 @@ export default function AIOperationsCenter() {
       <AIWorkforceMissionTemplates />
       <AIWorkforceToolCatalog />
       <AIWorkforcePluginSecurityGuard />
-      <AIWorkforcePatchSafetyRunbook />
-      <AIWorkforceRobotAutomationBridge />
-      <AIWorkforceSkillDirectory />
-      <AIWorkforceSkillInvocationPlanner />
 
       <details className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
         <summary className="cursor-pointer select-none text-sm font-black text-white">
