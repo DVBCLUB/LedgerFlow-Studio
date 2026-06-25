@@ -7,15 +7,25 @@ const file = path.join(root, 'server/assistant-daemon.ts');
 const source = fs.readFileSync(file, 'utf8');
 let next = source;
 
+function findImportAnchor() {
+  return [
+    'import express, { Request, Response, NextFunction } from "express";',
+    "import express, { Request, Response, NextFunction } from 'express';",
+    "import express, { Request, Response } from 'express';",
+    'import express, { Request, Response } from "express";',
+  ].find((anchor) => next.includes(anchor));
+}
+
 const imports = [
-  "import { listRobotCapabilities, getRobotCapability, auditRobotCapabilityRequest } from './services/robotCapabilityRegistry';",
-  "import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './services/automationSchedulerLoop';",
+  'import { listRobotCapabilities, getRobotCapability, auditRobotCapabilityRequest } from "./services/robotCapabilityRegistry";',
+  'import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from "./services/automationSchedulerLoop";',
 ];
 
 for (const importLine of imports) {
-  if (!next.includes(importLine)) {
-    const anchor = "import express, { Request, Response } from 'express';";
-    if (!next.includes(anchor)) throw new Error('Cannot find express import anchor.');
+  const moduleName = importLine.match(/\.\/services\/[^"]+/)?.[0];
+  if (!next.includes(importLine) && (!moduleName || !next.includes(moduleName))) {
+    const anchor = findImportAnchor();
+    if (!anchor) throw new Error('Cannot find express import anchor.');
     next = next.replace(anchor, `${anchor}\n${importLine}`);
   }
 }
