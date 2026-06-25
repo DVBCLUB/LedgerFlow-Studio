@@ -47,7 +47,8 @@ if (fs.existsSync(doctorFile)) {
 if (fs.existsSync(opsFile)) {
   const source = fs.readFileSync(opsFile, 'utf8');
   if (!source.includes('AIWorkforceSkillDirectory')) {
-    console.warn('Warning: AIOperationsCenter.tsx is not patched yet. Run npm run ai:openclaw-plus locally.');
+    console.error('AIOperationsCenter.tsx must render AIWorkforceSkillDirectory so the panel is visible in the app.');
+    failed = true;
   }
 }
 
