@@ -43,7 +43,20 @@ jobs:
         run: node scripts/check-openclaw-plus-package-scripts.mjs
 
       - name: OpenClaw+ doctor check-only
-        run: npm run ai:openclaw-plus:check
+        shell: bash
+        run: |
+          set +e
+          npm run ai:openclaw-plus:check 2>&1 | tee openclaw-plus.log
+          status=${PIPESTATUS[0]}
+          exit "$status"
+
+      - name: Upload OpenClaw+ log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclaw-plus-log
+          path: openclaw-plus.log
+          if-no-files-found: ignore
 
       - name: OpenClaw+ readiness report
         if: always()
