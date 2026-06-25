@@ -12,17 +12,30 @@ if (!fs.existsSync(packageFile)) {
 
 const pkg = JSON.parse(fs.readFileSync(packageFile, 'utf8'));
 const scripts = pkg.scripts || {};
-const expected = {
+const exactExpected = {
   'ai:openclaw-plus': 'node scripts/openclaw-plus-doctor.mjs',
   'ai:openclaw-plus:full': 'node scripts/openclaw-plus-doctor.mjs --full',
-  'ai:openclaw-plus:check': 'node scripts/openclaw-plus-doctor.mjs --skip-patch',
   'check:openclaw-plus': 'node scripts/check-ai-workforce-local.mjs',
 };
 
 let failed = false;
-for (const [name, command] of Object.entries(expected)) {
+for (const [name, command] of Object.entries(exactExpected)) {
   if (scripts[name] !== command) {
     console.error(`Missing or mismatched script ${name}: expected "${command}"`);
+    failed = true;
+  }
+}
+
+const checkCommand = String(scripts['ai:openclaw-plus:check'] || '');
+for (const token of [
+  'npm run ai:patch-daemon-tools',
+  'npm run ai:patch-daemon-hardening',
+  'npm run ai:patch-telegram-missions',
+  'npm run ai:patch-patch-review-routes',
+  'node scripts/openclaw-plus-doctor.mjs --skip-patch',
+]) {
+  if (!checkCommand.includes(token)) {
+    console.error(`ai:openclaw-plus:check missing required command segment: ${token}`);
     failed = true;
   }
 }
