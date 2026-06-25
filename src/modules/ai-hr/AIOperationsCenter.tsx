@@ -3,9 +3,13 @@ import AIWorkforceOpenClawReadiness from './AIWorkforceOpenClawReadiness';
 import AIWorkforceNextBackendActions from './AIWorkforceNextBackendActions';
 import AIWorkforceMissionTrace from './AIWorkforceMissionTrace';
 import AIWorkforcePatchReviewSessions from './AIWorkforcePatchReviewSessions';
+import AIWorkforcePatchSafetyRunbook from './AIWorkforcePatchSafetyRunbook';
 import AIWorkforceMobileCommandCenter from './AIWorkforceMobileCommandCenter';
 import AIWorkforceMissionTemplates from './AIWorkforceMissionTemplates';
 import AIWorkforceToolCatalog from './AIWorkforceToolCatalog';
+import AIWorkforceSkillDirectory from './AIWorkforceSkillDirectory';
+import AIWorkforceSkillInvocationPlanner from './AIWorkforceSkillInvocationPlanner';
+import AIWorkforceRobotAutomationBridge from './AIWorkforceRobotAutomationBridge';
 import AIWorkforcePluginSecurityGuard from './AIWorkforcePluginSecurityGuard';
 import AICommandCenterHubPanel from './AICommandCenterHubPanel';
 import AIGovernanceQualityHubPanel from './AIGovernanceQualityHubPanel';
@@ -18,9 +22,13 @@ export default function AIOperationsCenter() {
       <AIWorkforceNextBackendActions />
       <AIWorkforceMissionTrace />
       <AIWorkforcePatchReviewSessions />
+      <AIWorkforcePatchSafetyRunbook />
       <AIWorkforceMobileCommandCenter />
       <AIWorkforceMissionTemplates />
       <AIWorkforceToolCatalog />
+      <AIWorkforceSkillDirectory />
+      <AIWorkforceSkillInvocationPlanner />
+      <AIWorkforceRobotAutomationBridge />
       <AIWorkforcePluginSecurityGuard />
 
       <details className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
