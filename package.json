@@ -124,9 +124,27 @@
     "appId": "com.ledgerflow.hub",
     "productName": "LedgerFlow Hub",
     "artifactName": "LedgerFlow-Hub-${version}-${arch}.${ext}",
+    "files": [
+      "dist/**/*",
+      "desktop/**/*",
+      "build/**/*",
+      "package.json"
+    ],
     "directories": {
       "output": "release",
       "buildResources": "build"
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": [
+        "dir"
+      ]
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
     }
   }
 }
