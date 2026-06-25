@@ -44,7 +44,7 @@ jobs:
           "Desktop build resources:"
           Get-ChildItem build -ErrorAction SilentlyContinue | Select-Object FullName, Length
 
-      - name: Build desktop setup and portable exe
+      - name: Build desktop unpacked Windows app
         run: npx electron-builder@24.13.3 --publish never --config.asar=false
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
@@ -55,31 +55,45 @@ jobs:
           if (-not (Test-Path release)) {
             throw "Missing release folder. electron-builder did not create output."
           }
-          $exeFiles = Get-ChildItem release -Filter *.exe -Recurse
-          if ($exeFiles.Count -eq 0) {
-            throw "No .exe setup/portable file was generated in release/."
+
+          "Electron builder release output:"
+          Get-ChildItem release -Recurse | Select-Object FullName, Length
+
+          $appDir = Join-Path "release" "win-unpacked"
+          $appExe = Join-Path $appDir "LedgerFlow Hub.exe"
+          if (-not (Test-Path $appDir)) {
+            throw "Missing release/win-unpacked. The Windows workflow expects package.json win.target to include dir."
           }
+          if (-not (Test-Path $appExe)) {
+            throw "Missing LedgerFlow Hub.exe inside release/win-unpacked. Refusing to upload a debug-only artifact."
+          }
+
+          $appBytes = (Get-ChildItem $appDir -Recurse -File | Measure-Object -Property Length -Sum).Sum
+          if ($appBytes -lt 10000000) {
+            throw "Windows app payload is suspiciously small ($appBytes bytes). Refusing to upload broken artifact."
+          }
+
           New-Item -ItemType Directory -Force -Path windows-download | Out-Null
-          Copy-Item release\*.exe windows-download\ -Force
-          if (Test-Path release\*.blockmap) { Copy-Item release\*.blockmap windows-download\ -Force }
-          if (Test-Path release\*.yml) { Copy-Item release\*.yml windows-download\ -Force }
+          Copy-Item $appDir (Join-Path "windows-download" "LedgerFlow Hub") -Recurse -Force
           @'
           LedgerFlow Hub - Windows App
 
           Day la goi tai danh cho nguoi dung Windows.
 
           Cach dung:
-          1. Giai nen file zip nay.
-          2. Bam file .exe ben trong de mo/cai dat LedgerFlow Hub.
-          3. Neu Windows hien SmartScreen, chon More info > Run anyway.
+          1. Giai nen artifact zip nay.
+          2. Mo thu muc LedgerFlow Hub.
+          3. Bam LedgerFlow Hub.exe de chay ung dung.
+          4. Neu Windows hien SmartScreen, chon More info > Run anyway.
 
           Luu y:
           - Day KHONG phai source code zip.
+          - Day la ban Windows unpacked app folder, khong phai installer.
           - Neu muon code/sua app, hay dung repo GitHub.
-          - Neu muon chi su dung app, chi can file .exe trong thu muc nay.
           '@ | Set-Content -Encoding UTF8 windows-download\START_HERE.txt
+
           "Generated user download package:"
-          Get-ChildItem windows-download | Select-Object Name, Length
+          Get-ChildItem windows-download -Recurse | Select-Object FullName, Length
 
       - name: Upload Windows user download zip
         uses: actions/upload-artifact@v4
