@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { AlertTriangle, CheckCircle2, Gauge, Lock, PlayCircle, RefreshCw, ShieldAlert, ShieldCheck, TerminalSquare } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Gauge, Lock, PlayCircle, RefreshCw, ShieldAlert, ShieldCheck, SquareTerminal } from 'lucide-react';
 import { daemonFetch } from '../../utils/assistantApi';
 
 type OpenClawSkill = {
@@ -112,7 +112,7 @@ export default function AIWorkforceSkillInvocationPlanner() {
   return <section className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
     <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><TerminalSquare className="mr-2 inline h-4 w-4" />Skill Invocation Planner</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><SquareTerminal className="mr-2 inline h-4 w-4" />Skill Invocation Planner</p>
         <h3 className="mt-2 text-lg font-black text-white">Plan before execute</h3>
         <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Gọi gateway để biết skill sẽ là dry-run, pending approval hay blocked. Panel này không thực thi side effect.</p>
       </div>
