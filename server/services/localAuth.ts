@@ -1,5 +1,6 @@
 import { randomBytes, timingSafeEqual } from "crypto";
 import type { NextFunction, Request, Response } from "express";
+import { getLocalAuthSetupError, readConfiguredLocalAuthPassword } from "./authService.ts";
 
 const SESSION_COOKIE = "ledgerflow_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -22,10 +23,7 @@ function sameSecret(left: string, right: string): boolean {
 }
 
 function configuredPassword(): { password: string; usesDevPassword: boolean } | null {
-  const explicit = process.env.LOCAL_AUTH_DEV_PASSWORD;
-  if (explicit) return { password: explicit, usesDevPassword: false };
-  const localRuntime = process.env.NODE_ENV !== "production" || process.env.ELECTRON_DESKTOP === "true";
-  return localRuntime ? { password: "admin123", usesDevPassword: true } : null;
+  return readConfiguredLocalAuthPassword();
 }
 
 function cookieValue(token: string, maxAgeSeconds: number): string {
@@ -42,7 +40,7 @@ function cookieValue(token: string, maxAgeSeconds: number): string {
 
 export function createLocalSession(email: string, password: string) {
   const auth = configuredPassword();
-  if (!auth) throw new Error("LOCAL_AUTH_DEV_PASSWORD must be configured for a hosted production runtime.");
+  if (!auth) throw new Error(getLocalAuthSetupError());
   if (!sameSecret(password, auth.password)) return null;
   const token = randomBytes(32).toString("base64url");
   const stored = { email, role: "owner" as const, loggedInAt: new Date().toISOString(), expiresAt: Date.now() + SESSION_TTL_MS };
