@@ -1,4 +1,4 @@
-import { appendAuditEvent } from './auditLog.ts';
+import { appendAuditEvent, type AuditActor } from './auditLog.ts';
 import { getOpenClawSkill, type OpenClawSkill } from './openClawSkillRegistry.ts';
 
 export type OpenClawSkillInvocationActor = 'founder' | 'ai-agent' | 'automation' | 'system';
@@ -17,6 +17,12 @@ export interface OpenClawSkillInvocationDecision {
   skill: OpenClawSkill | null;
   reason: string;
   nextStep: string;
+}
+
+function auditActorFromInvocationActor(actor: OpenClawSkillInvocationActor): AuditActor {
+  if (actor === 'founder') return 'founder';
+  if (actor === 'ai-agent') return 'ai-agent';
+  return 'system';
 }
 
 function isHardwareSkill(skill: OpenClawSkill) {
@@ -67,7 +73,7 @@ export function decideOpenClawSkillInvocation(input: OpenClawSkillInvocationRequ
 export async function auditOpenClawSkillInvocation(input: OpenClawSkillInvocationRequest) {
   const decision = decideOpenClawSkillInvocation(input);
   await appendAuditEvent({
-    actor: input.actor === 'ai-agent' ? 'ai-agent' : input.actor,
+    actor: auditActorFromInvocationActor(input.actor),
     workspace: 'OpenClaw Skill Gateway',
     action: decision.mode === 'blocked' ? 'openclaw.skill.blocked' : decision.mode === 'pending_approval' ? 'openclaw.skill.pending_approval' : 'openclaw.skill.dry_run',
     target: input.skillId,
@@ -75,7 +81,7 @@ export async function auditOpenClawSkillInvocation(input: OpenClawSkillInvocatio
     status: decision.mode === 'blocked' ? 'rejected' : decision.mode === 'pending_approval' ? 'pending_approval' : 'sandbox',
     summary: decision.reason,
     connectorId: 'openclaw-skill-gateway',
-    evidence: { skill: decision.skill, payload: input.payload, reason: input.reason, nextStep: decision.nextStep },
+    evidence: { skill: decision.skill, invocationActor: input.actor, payload: input.payload, reason: input.reason, nextStep: decision.nextStep },
   });
   return decision;
 }
