@@ -20,6 +20,21 @@ function responseStub() {
   };
 }
 
+test("session login fails closed when no local password is configured", () => {
+  const previousPassword = process.env.LOCAL_AUTH_DEV_PASSWORD;
+  delete process.env.LOCAL_AUTH_DEV_PASSWORD;
+  try {
+    const oldDefault = "admin" + "123";
+    assert.throws(
+      () => createLocalSession("owner@ledgerflow.local", oldDefault),
+      /LOCAL_AUTH_DEV_PASSWORD must be configured/,
+    );
+  } finally {
+    if (previousPassword === undefined) delete process.env.LOCAL_AUTH_DEV_PASSWORD;
+    else process.env.LOCAL_AUTH_DEV_PASSWORD = previousPassword;
+  }
+});
+
 test("session cookie authorizes requests and logout revokes it", () => {
   const previousPassword = process.env.LOCAL_AUTH_DEV_PASSWORD;
   process.env.LOCAL_AUTH_DEV_PASSWORD = "test-password";
@@ -69,4 +84,3 @@ test("middleware rejects anonymous requests and accepts configured bearer token"
     else process.env.LEDGERFLOW_API_TOKEN = previousToken;
   }
 });
-
