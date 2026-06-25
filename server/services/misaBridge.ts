@@ -1,4 +1,5 @@
-import * as XLSX from 'xlsx';
+import type * as XLSX from 'xlsx';
+import { DEFAULT_SPREADSHEET_IMPORT_LIMITS, readWorkbookWithGuard, worksheetToRowsWithGuard } from './spreadsheetImportGuard';
 
 export type MISAJournalRow = {
   date: string;
@@ -79,7 +80,7 @@ function col(headers: string[], ...names: string[]): number {
 }
 
 function parseSheet(ws: XLSX.WorkSheet): MISAJournalRow[] {
-  const data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) as unknown[][];
+  const data = worksheetToRowsWithGuard(ws, DEFAULT_SPREADSHEET_IMPORT_LIMITS);
   const headerIndex = findHeader(data);
   if (headerIndex < 0) return [];
 
@@ -94,7 +95,7 @@ function parseSheet(ws: XLSX.WorkSheet): MISAJournalRow[] {
   if ([dateCol, debitCol, creditCol, amountCol].some((idx) => idx < 0)) return [];
 
   return data
-    .slice(headerIndex + 1)
+    .slice(headerIndex + 1, headerIndex + 1 + DEFAULT_SPREADSHEET_IMPORT_LIMITS.maxRowsPerSheet)
     .map((row): MISAJournalRow => {
       const amount = parseAmount(row[amountCol]);
       return {
@@ -118,10 +119,12 @@ export function importMISAWorkbook(fileBuffer: Buffer): MISAImportResult {
   let entries: MISAJournalRow[] = [];
 
   try {
-    const wb = XLSX.read(fileBuffer, { type: 'buffer', cellDates: false });
-    const names = ['NKCT', 'NKC', 'Nhật ký chung', 'SoCai', 'Sổ cái', 'Sheet1', ...wb.SheetNames];
-    for (const name of names) {
-      const ws = wb.Sheets[name];
+    const { workbook, sheetNames } = readWorkbookWithGuard(fileBuffer);
+    const names = ['NKCT', 'NKC', 'Nhật ký chung', 'SoCai', 'Sổ cái', 'Sheet1', ...sheetNames];
+    const uniqueNames = [...new Set(names)];
+
+    for (const name of uniqueNames) {
+      const ws = workbook.Sheets[name];
       if (!ws) continue;
       entries = parseSheet(ws);
       if (entries.length) break;
