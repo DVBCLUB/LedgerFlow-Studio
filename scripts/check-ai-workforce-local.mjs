@@ -18,6 +18,7 @@ const checks = [
   [process.execPath, [path.join(root, 'scripts/check-openclaw-skill-invocation-gateway.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-openclaw-skill-invocation-routes.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-openclaw-skill-directory-ui.mjs')]],
+  [process.execPath, [path.join(root, 'scripts/check-openclaw-skill-invocation-planner-ui.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-robot-capability-registry.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-automation-scheduler-loop.mjs')]],
   [process.execPath, [path.join(root, 'scripts/check-robot-automation-daemon-routes.mjs')]],
