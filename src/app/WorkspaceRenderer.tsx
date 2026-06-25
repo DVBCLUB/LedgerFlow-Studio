@@ -1,5 +1,6 @@
 import React, { Suspense, useState } from 'react';
 import { TabType } from './companyNavigation';
+import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
 import WorkspaceSubNavigation from '../components/shared/WorkspaceSubNavigation';
 import {
   Briefcase, CheckCircle2, ClipboardList, Target, BookOpen, Bot, LayoutList,
@@ -238,31 +239,42 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
     system_settings: 'general',
   });
 
-  // Sync subtab from hash if present
+  const subTabs = SUB_TABS_CONFIG[activeSegment] || [];
+  const validSubTabIds = subTabs.map((tab) => tab.id);
+  const currentSubTabId =
+    resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds)
+    || subTabs[0]?.id
+    || '';
+
+  // Sync subtab from hash if present, including aliases for legacy deep links.
   React.useEffect(() => {
     const hash = window.location.hash;
     const match = hash.match(/\?subtab=([^&]+)/);
     if (match && match[1]) {
-      const subTabId = match[1];
+      const subTabId = decodeURIComponent(match[1]);
       const validSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
-      if (validSubTabs.some((t) => t.id === subTabId)) {
+      const normalizedSubTabId = resolveWorkspaceSubTab(
+        activeSegment,
+        subTabId,
+        validSubTabs.map((tab) => tab.id),
+      );
+
+      if (normalizedSubTabId) {
         setActiveSubTabs((prev) => ({
           ...prev,
-          [activeSegment]: subTabId,
+          [activeSegment]: normalizedSubTabId,
         }));
       }
     }
   }, [activeSegment]);
 
-  const subTabs = SUB_TABS_CONFIG[activeSegment] || [];
-  const currentSubTabId = activeSubTabs[activeSegment] || '';
-
   const handleSubTabChange = (newSubTabId: string) => {
+    const normalizedSubTabId = resolveWorkspaceSubTab(activeSegment, newSubTabId, validSubTabIds) || newSubTabId;
     setActiveSubTabs((prev) => ({
       ...prev,
-      [activeSegment]: newSubTabId,
+      [activeSegment]: normalizedSubTabId,
     }));
-    window.location.hash = `/${activeSegment}?subtab=${newSubTabId}`;
+    window.location.hash = `/${activeSegment}?subtab=${normalizedSubTabId}`;
   };
 
   const nav = onNavigate || (() => {});
