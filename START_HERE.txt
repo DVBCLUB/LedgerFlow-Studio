@@ -8,12 +8,14 @@ NEU BAN CHI MUON DUNG PHAN MEM:
 
 DANG NHAP BAN DESKTOP/LOCAL:
 - Email: nhap email local cua ban, vi du founder@ledgerflow.local
-- Pass mac dinh local/dev: admin123
-- Production: dat VITE_LOCAL_AUTH_PASSWORD trong env de doi mat khau.
+- Mat khau: dat LOCAL_AUTH_DEV_PASSWORD trong file .env hoac trong hosting secret truoc khi dang nhap.
+- Neu can automation/webhook khong dung cookie trinh duyet, dat them LEDGERFLOW_API_TOKEN.
+- Chi tiet: docs/AUTH_SETUP.md
 
 Ghi chu:
-- Day la dang nhap local de mo app tren may tinh. Mat khau mac dinh chi dung cho local/dev.
+- Khong co mat khau mac dinh trong source code.
 - Supabase/GitHub/AI Gateway la cau hinh tich hop ben trong app, khong phai tai khoan de mo app.
+- Khong chia se LOCAL_AUTH_DEV_PASSWORD, LEDGERFLOW_API_TOKEN, API key, token, password qua screenshot hoac log.
 - Sau nay se nang cap Auth/Role Center cho Admin, Ke toan, Thu kho, HCNS, Sep, Dev.
 
 NEU BAN DANG CAM BO SOURCE CODE NAY VA MUON TU TAO FILE .EXE:
@@ -39,6 +41,7 @@ TRONG APP:
 TAI LIEU QUAN TRONG:
 - AGENTS.md: huong dan cho AI/agent khi sua repo.
 - docs/PROJECT_STRUCTURE.md: ban do cau truc project.
+- docs/AUTH_SETUP.md: huong dan cau hinh dang nhap local va token automation.
 - docs/AI_GATEWAY.md: huong dan AI Gateway.
 - docs/INTEGRATION_HUB.md: huong dan trung tam tich hop.
 - docs/CI_DOCTOR.md: huong dan xu ly loi CI.
