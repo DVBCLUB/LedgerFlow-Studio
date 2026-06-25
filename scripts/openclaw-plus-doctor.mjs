@@ -12,6 +12,7 @@ const patchSteps = skipPatch ? [] : [
   ['patch OpenClaw skill invocation route', process.execPath, ['scripts/patch-daemon-openclaw-skill-invocation-routes.mjs']],
   ['patch robot automation UI panel', process.execPath, ['scripts/patch-ai-ops-robot-automation-panel.mjs']],
   ['patch OpenClaw skill directory UI panel', process.execPath, ['scripts/patch-ai-ops-skill-directory-panel.mjs']],
+  ['patch OpenClaw skill invocation planner UI panel', process.execPath, ['scripts/patch-ai-ops-skill-invocation-planner-panel.mjs']],
 ];
 
 const steps = [
