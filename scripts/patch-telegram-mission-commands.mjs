@@ -12,27 +12,26 @@ let next = source;
 if (!next.includes(importLine)) {
   const anchor = 'import fs from "fs";';
   if (!next.includes(anchor)) throw new Error('Cannot find import anchor in telegramBot.ts');
-  next = next.replace(anchor, `${anchor}\n${importLine}`);
+  next = next.replace(anchor, [anchor, importLine].join('\n'));
 }
 
-const hook = `
-      if (await tryHandleTelegramMissionCommand(chatId, text, sendMessage)) {
-        return;
-      }
-`;
+const hook = [
+  '      if (await tryHandleTelegramMissionCommand(chatId, text, sendMessage)) {',
+  '        return;',
+  '      }',
+].join('\n');
 
 if (!next.includes('tryHandleTelegramMissionCommand(chatId, text, sendMessage)')) {
-  const anchor = '    try {\n      switch (command.toLowerCase()) {';
+  const anchor = [
+    '    try {',
+    '      switch (command.toLowerCase()) {',
+  ].join('\n');
   if (!next.includes(anchor)) throw new Error('Cannot find command switch anchor in telegramBot.ts');
-  next = next.replace(anchor, `    try {${hook}\n      switch (command.toLowerCase()) {`);
-}
-
-const helpLine = '`/mission create "goal"` — Tạo AI Workforce mission';
-if (!next.includes(helpLine)) {
-  const anchor = '      \\`/status\\` — Xem trạng thái các AI provider';
-  if (next.includes(anchor)) {
-    next = next.replace(anchor, `      \\`/status\\` — Xem trạng thái các AI provider\n${helpLine}\n\\`/mission status latest\\` — Xem mission gần nhất\n\\`/mission approvals\\` — Xem approval đang chờ\n\\`/mission approve <runId> <stepId> <fingerprint>\\` — Duyệt step an toàn\n\\`/mission stop latest\\` — Dừng mission gần nhất\n\\`/ai emergency-stop on|off\\` — Khóa/mở AI Workforce`);
-  }
+  next = next.replace(anchor, [
+    '    try {',
+    hook,
+    '      switch (command.toLowerCase()) {',
+  ].join('\n'));
 }
 
 if (next === source) {
