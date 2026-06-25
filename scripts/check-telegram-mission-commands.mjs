@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -23,6 +24,14 @@ if (!exists(serviceFile)) {
 if (!exists(patcherFile)) {
   console.error('Missing scripts/patch-telegram-mission-commands.mjs');
   failed = true;
+}
+
+if (!failed) {
+  const patch = spawnSync(process.execPath, [patcherFile], { cwd: root, stdio: 'inherit' });
+  if (patch.status !== 0) {
+    console.error('Failed to patch telegramBot.ts before checking mission command wiring.');
+    failed = true;
+  }
 }
 
 if (!failed) {
