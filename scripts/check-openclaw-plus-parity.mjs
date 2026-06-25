@@ -42,8 +42,15 @@ const targets = [
   {
     label: 'AI Workforce UI',
     file: 'src/modules/ai-hr/AIOperationsCenter.tsx',
-    tokens: ['AIWorkforceMissionControl', 'AIWorkforcePatchReviewSessions', 'AIWorkforcePluginSecurityGuard'],
-    warningOnly: true,
+    tokens: [
+      'AIWorkforceMissionControl',
+      'AIWorkforcePatchReviewSessions',
+      'AIWorkforcePatchSafetyRunbook',
+      'AIWorkforceSkillDirectory',
+      'AIWorkforceSkillInvocationPlanner',
+      'AIWorkforceRobotAutomationBridge',
+      'AIWorkforcePluginSecurityGuard',
+    ],
   },
 ];
 
@@ -55,18 +62,16 @@ for (const target of targets) {
   total += target.tokens.length;
   const abs = path.join(root, target.file);
   if (!fs.existsSync(abs)) {
-    const message = `Missing ${target.label}: ${target.file}`;
-    if (target.warningOnly) console.warn(`Warning: ${message}`);
-    else { console.error(message); failed = true; }
+    console.error(`Missing ${target.label}: ${target.file}`);
+    failed = true;
     continue;
   }
   const source = fs.readFileSync(abs, 'utf8');
   for (const token of target.tokens) {
     if (source.includes(token)) passed += 1;
     else {
-      const message = `${target.label} missing token: ${token}`;
-      if (target.warningOnly) console.warn(`Warning: ${message}`);
-      else { console.error(message); failed = true; }
+      console.error(`${target.label} missing token: ${token}`);
+      failed = true;
     }
   }
 }
