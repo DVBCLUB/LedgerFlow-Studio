@@ -61,6 +61,12 @@ const searchDirs = [
   path.join(root, 'src', 'components', 'agent-ops', 'tabs')
 ];
 
+function stripSourceComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
+
 function findComponentFile(name) {
   for (const dir of searchDirs) {
     for (const ext of ['.tsx', '.ts', '.jsx', '.js']) {
@@ -78,13 +84,23 @@ const analyticsWorkspacePath = findComponentFile('AnalyticsWorkspace') || path.j
 const errors = [];
 const warnings = [];
 
-function readFile(relativePath) {
+function readFile(relativePath, { stripComments = false } = {}) {
   const fullPath = path.join(root, relativePath);
   if (!fs.existsSync(fullPath)) {
     errors.push(`Missing file: ${relativePath}`);
     return '';
   }
-  return fs.readFileSync(fullPath, 'utf8');
+  const source = fs.readFileSync(fullPath, 'utf8');
+  return stripComments ? stripSourceComments(source) : source;
+}
+
+const dockContent = readFile('src/components/shared/FounderLabsDock.tsx', { stripComments: true });
+const backupContent = readFile('src/components/LabsBackupRestore.tsx', { stripComments: true });
+const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
+const mainContent = readFile('src/main.tsx', { stripComments: true });
+const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? stripSourceComments(fs.readFileSync(analyticsWorkspacePath, 'utf8')) : '';
+if (!fs.existsSync(analyticsWorkspacePath)) {
+  errors.push(`Missing file: ${path.relative(root, analyticsWorkspacePath)}`);
 }
 
 function findDuplicates(values) {
@@ -95,15 +111,6 @@ function findDuplicates(values) {
     seen.add(value);
   }
   return [...duplicates];
-}
-
-const dockContent = readFile('src/components/shared/FounderLabsDock.tsx');
-const backupContent = readFile('src/components/LabsBackupRestore.tsx');
-const companyOsGuardrailsContent = readFile('docs/COMPANY_OS_GUARDRAILS.md');
-const mainContent = readFile('src/main.tsx');
-const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? fs.readFileSync(analyticsWorkspacePath, 'utf8') : '';
-if (!fs.existsSync(analyticsWorkspacePath)) {
-  errors.push(`Missing file: ${path.relative(root, analyticsWorkspacePath)}`);
 }
 
 if (!mainContent.includes('ErpApp') || !analyticsWorkspaceContent.includes('FounderLabsDock embedded')) {
@@ -151,12 +158,11 @@ for (const lab of requiredLabs) {
   }
 
   const componentRelativePath = path.relative(root, existingPath).replace(/\\/g, '/');
-  const componentContent = fs.readFileSync(existingPath, 'utf8');
+  const componentContent = stripSourceComments(fs.readFileSync(existingPath, 'utf8'));
   if (!/export\s+default/.test(componentContent)) {
     errors.push(`Founder Lab component has no default export: ${componentRelativePath}`);
   }
 
-  // Calculate relative import path from FounderLabsDock (which is in src/components/shared)
   const relFromDock = path.relative(path.join(root, 'src', 'components', 'shared'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
   const importPath = relFromDock.startsWith('.') ? relFromDock : './' + relFromDock;
 
@@ -207,4 +213,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`LedgerFlow Founder Labs integrity check passed: ${requiredLabs.length} labs verified.`);
+console.log(`LedgerFlow Founder Labs integrity check passed without comment-only wiring: ${requiredLabs.length} labs verified.`);
