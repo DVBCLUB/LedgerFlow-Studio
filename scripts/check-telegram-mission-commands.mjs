@@ -41,12 +41,12 @@ if (!failed) {
     'runAutomationSchedulerTick',
     'startAutomationScheduler',
     'stopAutomationScheduler',
-    "'/mission create",
-    "'/mission approve",
-    "'/mission reject",
-    "'/robot capabilities",
-    "'/automation scheduler status",
-    "'/ai emergency-stop",
+    '/mission create',
+    '/mission approve',
+    '/mission reject',
+    '/robot capabilities',
+    '/automation scheduler status',
+    '/ai emergency-stop',
   ];
   for (const token of required) {
     if (!service.includes(token)) {
@@ -59,9 +59,10 @@ if (!failed) {
 if (exists(botFile)) {
   const bot = read(botFile);
   if (!bot.includes('tryHandleTelegramMissionCommand(chatId, text, sendMessage)')) {
-    console.warn('Warning: telegramBot.ts is not patched yet. Run npm run ai:patch-telegram-missions locally.');
+    console.error('telegramBot.ts is not patched yet. Run npm run ai:patch-telegram-missions locally.');
+    failed = true;
   }
 }
 
 if (failed) process.exit(1);
-console.log('Telegram mission, robot and automation command service is present. If telegramBot.ts warning appears, run npm run ai:patch-telegram-missions.');
+console.log('Telegram mission, robot and automation command service is present and wired into telegramBot.ts.');
