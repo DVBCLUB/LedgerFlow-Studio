@@ -38,7 +38,7 @@ The local server is not a separate product edition. It exists so the Windows app
 
 - `/api/health` and the login/session endpoints are public; all other `/api` routes require authentication.
 - Browser and desktop clients authenticate with an `HttpOnly`, `SameSite=Strict` session cookie.
-- Desktop and development may use the visible `admin123` fallback for initial setup. Hosted production must configure `LOCAL_AUTH_DEV_PASSWORD`.
+- Local/desktop and hosted production runtimes must configure `LOCAL_AUTH_DEV_PASSWORD`; no default password is shipped in source code.
 - Trusted automation clients that cannot keep a browser cookie may send `Authorization: Bearer <LEDGERFLOW_API_TOKEN>` when that server-side token is configured.
 - Desktop runtime binds its embedded Express server to `127.0.0.1`. Hosted deployments can set `HOST` explicitly.
 - Local database saves are serialized, written through a temporary file, and retain `db_storage.json.bak` after replacing existing data.
@@ -198,56 +198,4 @@ integration_events.log.json
 ledgerflow_audit.log.json
 company_os_control_plane.json
 web_ai_profiles.json
-db_storage.json
-release/
-dist/
-node_modules/
-.chrome_profiles/
-.local-cleanup/
-```
-
-## Recommended module boundaries
-
-When adding a new platform connector, use this structure:
-
-```text
-server/services/<platform>Connector.ts
-src/utils/<platform>Api.ts
-src/components/<Platform>ConnectorPanel.tsx
-docs/<PLATFORM>_CONNECTOR.md
-```
-
-When adding a new control overlay:
-
-```text
-src/components/<Feature>.tsx
-src/components/<Feature>Launcher.tsx
-src/main.tsx                  # mount launcher only
-```
-
-When adding a new business module:
-
-```text
-src/components/<BusinessModule>.tsx
-src/utils/<businessModule>Api.ts
-server/services/<businessModule>Service.ts
-docs/modules/<business-module>.md
-```
-
-## Stabilization checklist
-
-Before large new features:
-
-```bash
-npm run lint
-npm run build
-npm run ai:doctor
-npm run check:desktop
-```
-
-For Windows package changes:
-
-```bash
-npm run prepare:icons
-npm run desktop:dist
 ```

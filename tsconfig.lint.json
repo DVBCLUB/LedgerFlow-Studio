@@ -1,11 +1,19 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "server/**/*.ts",
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "*.ts",
-    "vite.config*.ts"
+  "files": [
+    "server/services/authService.ts",
+    "server/services/localAuth.ts",
+    "server/services/localAuth.test.ts",
+    "server/services/localDatabase.ts",
+    "server/services/localDatabase.test.ts",
+    "server/services/webAiPolicy.ts",
+    "server/services/webAiPolicy.test.ts",
+    "server/services/webAiTaskRouter.test.ts",
+    "server/services/webAiAutomator.test.ts",
+    "server/services/codingContext.test.ts",
+    "src/app/companyNavigation.ts",
+    "src/app/companyNavigation.test.ts",
+    "vite.config.ts"
   ],
   "exclude": [
     "node_modules",

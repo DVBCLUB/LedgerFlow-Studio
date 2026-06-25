@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -23,6 +24,14 @@ if (!exists(serviceFile)) {
 if (!exists(patcherFile)) {
   console.error('Missing scripts/patch-telegram-mission-commands.mjs');
   failed = true;
+}
+
+if (!failed) {
+  const patch = spawnSync(process.execPath, [patcherFile], { cwd: root, stdio: 'inherit' });
+  if (patch.status !== 0) {
+    console.error('Failed to patch telegramBot.ts before checking mission command wiring.');
+    failed = true;
+  }
 }
 
 if (!failed) {
@@ -59,9 +68,13 @@ if (!failed) {
 if (exists(botFile)) {
   const bot = read(botFile);
   if (!bot.includes('tryHandleTelegramMissionCommand(chatId, text, sendMessage)')) {
-    console.warn('Warning: telegramBot.ts is not patched yet. Run npm run ai:patch-telegram-missions locally.');
+    console.error('telegramBot.ts must call tryHandleTelegramMissionCommand(chatId, text, sendMessage). Run node scripts/patch-telegram-mission-commands.mjs first.');
+    failed = true;
   }
+} else {
+  console.error('Missing server/services/telegramBot.ts');
+  failed = true;
 }
 
 if (failed) process.exit(1);
-console.log('Telegram mission, robot and automation command service is present. If telegramBot.ts warning appears, run npm run ai:patch-telegram-missions.');
+console.log('Telegram mission, robot and automation command service is wired into telegramBot.ts.');

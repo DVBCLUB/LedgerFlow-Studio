@@ -26,7 +26,11 @@ class ProviderError extends Error {
 }
 
 const DEFAULT_PROXY_URL = process.env.AI_PROXY_URL ?? "http://127.0.0.1:4000";
-const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "sk-ledgerflow-local-2026";
+const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY?.trim() || "";
+
+function proxyHeaders(): Record<string, string> {
+  return DEFAULT_PROXY_KEY ? { Authorization: `Bearer ${DEFAULT_PROXY_KEY}` } : {};
+}
 
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
   const entries = await getEnabledAIKeyEntries();
@@ -116,7 +120,7 @@ export async function* streamAIWithFallback(messages: ChatMessage[], options: Ca
 export async function checkAIRouterHealth(): Promise<boolean> {
   const entries = await getEnabledAIKeyEntries();
   if (entries.length > 0) return true;
-  try { const r = await fetch(`${DEFAULT_PROXY_URL}/health`, { headers: { Authorization: `Bearer ${DEFAULT_PROXY_KEY}` } }); return r.ok; } catch { return false; }
+  try { const r = await fetch(`${DEFAULT_PROXY_URL}/health`, { headers: proxyHeaders() }); return r.ok; } catch { return false; }
 }
 
 export async function diagnoseAIRouter(): Promise<AIRouterDiagnostics> {
@@ -139,7 +143,7 @@ export async function diagnoseAIRouter(): Promise<AIRouterDiagnostics> {
   if (entries.length === 0) {
     const started = Date.now();
     try {
-      const r = await fetch(`${DEFAULT_PROXY_URL}/health`, { headers: { Authorization: `Bearer ${DEFAULT_PROXY_KEY}` } });
+      const r = await fetch(`${DEFAULT_PROXY_URL}/health`, { headers: proxyHeaders() });
       const status = r.ok ? "ok" : "error";
       await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, mode: "diagnostic", status, latencyMs: Date.now() - started, promptChars: 0, outputChars: 0, error: r.ok ? undefined : `HTTP ${r.status}` });
       results.push({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, status, latencyMs: Date.now() - started, message: r.ok ? "LiteLLM proxy reachable" : `HTTP ${r.status}` });
@@ -258,12 +262,12 @@ async function* streamOllama(entry: DecryptedAIKeyEntry, messages: ChatMessage[]
 }
 
 async function callLiteLLMProxy(messages: ChatMessage[], options: CallAIOptions): Promise<CallAIResult> {
-  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEFAULT_PROXY_KEY}` }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false }) });
+  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", ...proxyHeaders() }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false }) });
   const data = await readJson(response); if (!response.ok) throw providerHttpError("litellm-proxy", response.status, data);
   return { content: data?.choices?.[0]?.message?.content ?? "", modelUsed: data?.model, raw: data };
 }
 async function* streamLiteLLMProxy(messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
-  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEFAULT_PROXY_KEY}` }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: true }) });
+  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", ...proxyHeaders() }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: true }) });
   if (!response.ok || !response.body) throw providerHttpError("litellm-proxy", response.status, await readJson(response));
   for await (const event of parseSSE(response)) { const delta = event?.choices?.[0]?.delta?.content; if (delta) yield delta; }
 }

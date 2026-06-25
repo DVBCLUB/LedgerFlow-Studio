@@ -6,14 +6,18 @@ const errors = [];
 const warnings = [];
 
 const requiredExampleKeys = [
+  'AI_PROXY_KEY',
   'GEMINI_API_KEY',
   'PMSTUDY',
   'VITE_SUPABASE_URL',
   'VITE_SUPABASE_ANON_KEY',
   'SUPABASE_URL',
   'SUPABASE_ANON_KEY',
+  'SUPABASE_SERVICE_KEY',
   'APP_URL',
-  'PORT'
+  'PORT',
+  'LOCAL_AUTH_DEV_PASSWORD',
+  'LEDGERFLOW_API_TOKEN'
 ];
 
 const envExamplePath = path.join(root, '.env.example');
@@ -28,8 +32,12 @@ if (!fs.existsSync(envExamplePath)) {
     }
   }
 
-  if (/MY_GEMINI_API_KEY|MY_APP_URL|AIza[0-9A-Za-z_-]{20,}/.test(envExample)) {
+  if (/MY_GEMINI_API_KEY|MY_APP_URL|AIza[0-9A-Za-z_-]{20,}|sk-ledgerflow-local/i.test(envExample)) {
     errors.push('.env.example contains placeholder or key-looking values that should not be shipped.');
+  }
+
+  if (/^AI_PROXY_KEY=sk-/m.test(envExample)) {
+    errors.push('.env.example must not ship key-looking AI_PROXY_KEY values. Leave it empty or use a neutral placeholder.');
   }
 }
 
@@ -44,14 +52,14 @@ function listFiles(dir) {
   });
 }
 
-const scannedFiles = ['src', 'server.ts', 'desktop', 'scripts', 'vite.config.ts', 'package.json']
+const scannedFiles = ['src', 'server.ts', 'server', 'desktop', 'scripts', 'vite.config.ts', 'package.json', 'START_HERE.txt', 'docs/PROJECT_STRUCTURE.md']
   .flatMap((entry) => {
     const fullPath = path.join(root, entry);
     if (!fs.existsSync(fullPath)) return [];
     if (fs.statSync(fullPath).isDirectory()) return listFiles(entry);
     return [fullPath];
   })
-  .filter((file) => ['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs', '.json'].includes(path.extname(file)));
+  .filter((file) => ['.ts', '.tsx', '.js', '.jsx', '.cjs', '.mjs', '.json', '.txt', '.md'].includes(path.extname(file)));
 
 for (const file of scannedFiles) {
   const relative = path.relative(root, file).replaceAll(path.sep, '/');
@@ -67,6 +75,10 @@ for (const file of scannedFiles) {
 
   if (/GEMINI_API_KEY\s*=\s*["'][^"']+["']/.test(content)) {
     warnings.push(`${relative} assigns GEMINI_API_KEY directly. Confirm this is not a secret.`);
+  }
+
+  if (relative !== 'scripts/check-env-config.mjs' && /\badmin123\b|ledgerflow2026|sk-ledgerflow-local/i.test(content)) {
+    errors.push(`${relative} contains a hardcoded local/default credential. Use env placeholders instead.`);
   }
 }
 

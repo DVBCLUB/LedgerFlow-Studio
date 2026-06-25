@@ -31,6 +31,10 @@ const automationHub = file('src/modules/ai-hr/AutomationRobotControlHubPanel.tsx
 const automationBridge = file('src/modules/ai-hr/AutomationBridgeHubPanel.tsx');
 const memoryPanel = file('src/modules/ai-hr/AIMemoryRagPanel.tsx');
 const knowledgeHub = file('src/modules/ai-hr/KnowledgeContentHubPanel.tsx');
+const patchSafetyRunbook = file('src/modules/ai-hr/AIWorkforcePatchSafetyRunbook.tsx');
+const skillDirectory = file('src/modules/ai-hr/AIWorkforceSkillDirectory.tsx');
+const skillPlanner = file('src/modules/ai-hr/AIWorkforceSkillInvocationPlanner.tsx');
+const robotAutomationBridge = file('src/modules/ai-hr/AIWorkforceRobotAutomationBridge.tsx');
 const projectMemory = file('src/modules/analytics-sandbox/ProjectMemoryDecisionLog.tsx');
 const gitPanel = file('src/modules/dev-ops/GitAssistantDaemonPanel.tsx');
 const ciDoctor = file('src/modules/dev-ops/GitHubCIDoctorPanel.tsx');
@@ -123,6 +127,9 @@ const requiredRoutes = [
   '/api/sast/reports',
   '/api/logs/analyses',
   '/api/perf/profiles',
+  '/api/openclaw-skills',
+  '/api/robot-capabilities',
+  '/api/automation-scheduler/status',
 ];
 
 for (const route of requiredRoutes) {
@@ -142,6 +149,11 @@ addCheck('Hub labels are surfaced in subnavigation', subNavigation.includes('INT
 addCheck('AI Command Center hub uses command routes', aiCommandHub.includes('/api/agent-runtime/metrics') && aiCommandHub.includes('/api/roles') && aiCommandHub.includes('/api/ai-fabric/health') && aiCommandHub.includes('/api/control-plane/runs'), 'AICommandCenterHubPanel should aggregate runtime, roles, fabric and control plane routes.');
 addCheck('AI Governance hub uses quality routes', aiGovernance.includes('/api/intent/classify') && aiGovernance.includes('/api/validate') && aiGovernance.includes('/api/explain/traces') && aiGovernance.includes('/api/finetune/pairs') && aiGovernance.includes('/api/telemetry/metrics'), 'AIGovernanceQualityHubPanel should aggregate intent, validation, explainability, fine-tune and telemetry routes.');
 addCheck('AI Operations renders command and governance hubs', aiOps.includes('AICommandCenterHubPanel') && aiOps.includes('AIGovernanceQualityHubPanel'), 'AIOperationsCenter should render both AI Command Center and Governance panels.');
+addCheck('AI Operations renders OpenClaw panels', aiOps.includes('AIWorkforcePatchSafetyRunbook') && aiOps.includes('AIWorkforceSkillDirectory') && aiOps.includes('AIWorkforceSkillInvocationPlanner') && aiOps.includes('AIWorkforceRobotAutomationBridge'), 'AIOperationsCenter should render OpenClaw safety, skill and robot automation panels.');
+addCheck('OpenClaw safety runbook is visible', patchSafetyRunbook.includes('Patch Safety Runbook') && patchSafetyRunbook.includes('Safety checklist'), 'AIWorkforcePatchSafetyRunbook should provide visible safety guidance.');
+addCheck('OpenClaw skill directory uses daemon route', skillDirectory.includes('/api/openclaw-skills') && skillDirectory.includes('OpenClaw Skill Directory'), 'AIWorkforceSkillDirectory should call the daemon OpenClaw skill route.');
+addCheck('OpenClaw skill planner uses daemon route', skillPlanner.includes('/api/openclaw-skills') && skillPlanner.includes('plan-invocation'), 'AIWorkforceSkillInvocationPlanner should call skill planning endpoints.');
+addCheck('Robot automation bridge uses daemon routes', robotAutomationBridge.includes('/api/robot-capabilities') && robotAutomationBridge.includes('/api/automation-scheduler/status'), 'AIWorkforceRobotAutomationBridge should call robot capability and scheduler routes.');
 addCheck('Robot Lab uses daemonFetch', robotLab.includes('daemonFetch') && robotLab.includes('/api/robot-simulation/status'), 'RobotLabPanel should call daemon-backed robot simulation routes.');
 addCheck('Automation Robot hub uses control routes', automationHub.includes('/api/robot-simulation/status') && automationHub.includes('/api/automation-rules') && automationHub.includes('/api/agent-workflows') && automationHub.includes('/api/notify/events'), 'AutomationRobotControlHubPanel should aggregate robot, automation, workflow, stream and notification routes.');
 addCheck('Automation Bridge hub uses bridge routes', automationBridge.includes('/api/webhooks/rules') && automationBridge.includes('/api/tools') && automationBridge.includes('/api/swarm/agents') && automationBridge.includes('/api/telemetry/latest'), 'AutomationBridgeHubPanel should aggregate webhook, tool router, swarm and telemetry routes.');

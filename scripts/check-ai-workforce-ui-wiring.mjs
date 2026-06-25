@@ -49,9 +49,10 @@ if (fs.existsSync(files.oneShotPatcher)) {
 if (fs.existsSync(files.ops)) {
   const source = fs.readFileSync(files.ops, 'utf8');
   if (!source.includes('AIWorkforcePatchSafetyRunbook')) {
-    console.warn('Warning: AIOperationsCenter.tsx is not patched yet. Run node scripts/patch-ai-workforce-local.mjs locally.');
+    console.error('AIOperationsCenter.tsx must render AIWorkforcePatchSafetyRunbook so the panel is visible in the app.');
+    failed = true;
   }
 }
 
 if (failed) process.exit(1);
-console.log('AI Workforce UI wiring check completed. Warnings identify local patching still needed.');
+console.log('AI Workforce UI wiring check completed.');

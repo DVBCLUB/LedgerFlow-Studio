@@ -41,7 +41,8 @@ if (fs.existsSync(oneShotFile)) {
 if (fs.existsSync(daemonFile)) {
   const source = fs.readFileSync(daemonFile, 'utf8');
   if (!source.includes('/api/robot-capabilities') || !source.includes('/api/automation-scheduler/status')) {
-    console.warn('Warning: assistant-daemon.ts is not patched yet. Run node scripts/patch-ai-workforce-local.mjs locally.');
+    console.error('assistant-daemon.ts must include robot capability and automation scheduler routes before this check runs. Run node scripts/patch-ai-workforce-local.mjs first.');
+    failed = true;
   }
 }
 

@@ -9,6 +9,7 @@ const mainPath = path.join(root, 'src', 'main.tsx');
 const dockPath = path.join(componentDir, 'shared', 'FounderLabsDock.tsx');
 const workspaceRendererPath = path.join(root, 'src', 'app', 'WorkspaceRenderer.tsx');
 const companyNavPath = path.join(root, 'src', 'app', 'companyNavigation.ts');
+const ledgerAccountingWorkspacePath = path.join(root, 'src', 'modules', 'finance-accounting', 'LedgerAccountingWorkspace.tsx');
 const searchDirs = [
   path.join(root, 'src', 'modules', 'product-studio'),
   path.join(root, 'src', 'modules', 'marketing-growth'),
@@ -21,6 +22,12 @@ const searchDirs = [
   path.join(root, 'src', 'components'),
   path.join(root, 'src', 'components', 'agent-ops', 'tabs')
 ];
+
+function stripSourceComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+}
 
 function findComponentFile(name) {
   for (const dir of searchDirs) {
@@ -35,7 +42,6 @@ function findComponentFile(name) {
 }
 
 const analyticsWorkspacePath = findComponentFile('AnalyticsWorkspace') || path.join(componentDir, 'AnalyticsWorkspace.tsx');
-
 
 function parseRegistryComponents() {
   if (!fs.existsSync(registryPath)) {
@@ -109,12 +115,13 @@ for (const moduleName of criticalModules) {
   }
 }
 
-const appContent = fs.existsSync(appPath) ? fs.readFileSync(appPath, 'utf8') : '';
-const mainContent = fs.existsSync(mainPath) ? fs.readFileSync(mainPath, 'utf8') : '';
-const dockContent = fs.existsSync(dockPath) ? fs.readFileSync(dockPath, 'utf8') : '';
-const workspaceRendererContent = fs.existsSync(workspaceRendererPath) ? fs.readFileSync(workspaceRendererPath, 'utf8') : '';
-const companyNavContent = fs.existsSync(companyNavPath) ? fs.readFileSync(companyNavPath, 'utf8') : '';
-const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? fs.readFileSync(analyticsWorkspacePath, 'utf8') : '';
+const appContent = fs.existsSync(appPath) ? stripSourceComments(fs.readFileSync(appPath, 'utf8')) : '';
+const mainContent = fs.existsSync(mainPath) ? stripSourceComments(fs.readFileSync(mainPath, 'utf8')) : '';
+const dockContent = fs.existsSync(dockPath) ? stripSourceComments(fs.readFileSync(dockPath, 'utf8')) : '';
+const workspaceRendererContent = fs.existsSync(workspaceRendererPath) ? stripSourceComments(fs.readFileSync(workspaceRendererPath, 'utf8')) : '';
+const companyNavContent = fs.existsSync(companyNavPath) ? stripSourceComments(fs.readFileSync(companyNavPath, 'utf8')) : '';
+const analyticsWorkspaceContent = fs.existsSync(analyticsWorkspacePath) ? stripSourceComments(fs.readFileSync(analyticsWorkspacePath, 'utf8')) : '';
+const ledgerAccountingWorkspaceContent = fs.existsSync(ledgerAccountingWorkspacePath) ? stripSourceComments(fs.readFileSync(ledgerAccountingWorkspacePath, 'utf8')) : '';
 
 const dockHostedRoutes = new Set([
   '/strategic_labs',
@@ -137,13 +144,14 @@ const dockHostedComponents = new Set([
 const rendersFounderLabsDock =
   appContent.includes('FounderLabsDock') ||
   mainContent.includes('FounderLabsDock') ||
+  workspaceRendererContent.includes('FounderLabsDock') ||
   (workspaceRendererContent.includes('AnalyticsWorkspace') && analyticsWorkspaceContent.includes('FounderLabsDock'));
 
 if (dockHostedComponents.size > 0 && !rendersFounderLabsDock) {
   errors.push('App/main runtime does not render FounderLabsDock. Dock-hosted simulation modules would be hidden from the app.');
 }
 
-if (mainContent.includes('FounderLabsDock') && !mainContent.includes("./components/FounderLabsDock")) {
+if (mainContent.includes('FounderLabsDock') && !mainContent.includes('./components/FounderLabsDock')) {
   warnings.push('src/main.tsx mentions FounderLabsDock but may not import it from ./components/FounderLabsDock.tsx.');
 }
 
@@ -152,18 +160,20 @@ for (const moduleName of criticalModules) {
   if (!existingPath) continue;
 
   const projectRelPath = path.relative(root, existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
-  
-  // Calculate relative paths from WorkspaceRenderer and FounderLabsDock
+
   const relFromRenderer = path.relative(path.join(root, 'src', 'app'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
   const relFromDock = path.relative(path.join(root, 'src', 'components', 'shared'), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
   const relFromAnalytics = path.relative(path.dirname(analyticsWorkspacePath), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
+  const relFromLedgerAccounting = path.relative(path.dirname(ledgerAccountingWorkspacePath), existingPath).replace(/\\/g, '/').replace(/\.tsx?$|\.jsx?$/, '');
 
   const appOrRendererLoadsModule =
     appContent.includes(relFromRenderer) ||
     workspaceRendererContent.includes(relFromRenderer) ||
     analyticsWorkspaceContent.includes(relFromAnalytics) ||
+    ledgerAccountingWorkspaceContent.includes(relFromLedgerAccounting) ||
     appContent.includes(projectRelPath) ||
-    workspaceRendererContent.includes(projectRelPath);
+    workspaceRendererContent.includes(projectRelPath) ||
+    ledgerAccountingWorkspaceContent.includes(moduleName);
 
   const dockLoadsModule = dockContent.includes(relFromDock);
 
@@ -176,7 +186,7 @@ for (const moduleName of criticalModules) {
   }
 
   if (!dockHostedComponents.has(moduleName) && !appOrRendererLoadsModule) {
-    errors.push(`WorkspaceRenderer.tsx does not lazy-load routed registry module: ${moduleName}`);
+    errors.push(`WorkspaceRenderer.tsx or its nested workspace does not load routed registry module: ${moduleName}`);
   }
 }
 
@@ -218,4 +228,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`LedgerFlow simulation integrity check passed: ${criticalModules.length} registry modules verified.`);
+console.log(`LedgerFlow simulation integrity check passed: ${criticalModules.length} registry modules verified without comment-only wiring.`);

@@ -36,7 +36,8 @@ if (fs.existsSync(doctorFile)) {
 if (fs.existsSync(daemonFile)) {
   const source = fs.readFileSync(daemonFile, 'utf8');
   if (!source.includes('/api/openclaw-skills')) {
-    console.warn('Warning: assistant-daemon.ts is not patched yet. Run npm run ai:openclaw-plus locally.');
+    console.error('assistant-daemon.ts must include /api/openclaw-skills before this check runs. Run node scripts/patch-ai-workforce-local.mjs first.');
+    failed = true;
   }
 }
 

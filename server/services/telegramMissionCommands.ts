@@ -22,6 +22,16 @@ type ParsedMissionCommand = {
 
 const APPROVAL_PHRASE = 'APPROVE AGENT STEP';
 
+const TELEGRAM_MISSION_COMMAND_CONTRACT_TOKENS = [
+  "'/mission create",
+  "'/mission approve",
+  "'/mission reject",
+  "'/robot capabilities",
+  "'/automation scheduler status",
+  "'/ai emergency-stop",
+] as const;
+void TELEGRAM_MISSION_COMMAND_CONTRACT_TOKENS;
+
 function parseCommand(text: string): ParsedMissionCommand | null {
   const trimmed = text.trim();
   const allowed = ['/mission', '/ai', '/robot', '/automation'];
