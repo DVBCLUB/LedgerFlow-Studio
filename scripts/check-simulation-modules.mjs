@@ -134,9 +134,14 @@ const dockHostedComponents = new Set([
   'ExperimentDashboard'
 ]);
 
+const workspaceRendererEmbedsFounderLabsDock =
+  workspaceRendererContent.includes('FounderLabsDock embedded') ||
+  workspaceRendererContent.includes('<FounderLabsDock');
+
 const rendersFounderLabsDock =
   appContent.includes('FounderLabsDock') ||
   mainContent.includes('FounderLabsDock') ||
+  workspaceRendererEmbedsFounderLabsDock ||
   (workspaceRendererContent.includes('AnalyticsWorkspace') && analyticsWorkspaceContent.includes('FounderLabsDock'));
 
 if (dockHostedComponents.size > 0 && !rendersFounderLabsDock) {
