@@ -27,7 +27,7 @@ const daemon = read(daemonFile);
 
 const missingInRegistry = sharedIds.filter((id) => !registryIds.includes(id));
 const missingInShared = registryIds.filter((id) => !sharedIds.includes(id));
-const missingInDaemonSchema = sharedIds.filter((id) => !daemon.includes(`"${id}"`) && !daemon.includes(`'${id}'`));
+const daemonUsesSharedEnum = daemon.includes('z.enum(AGENT_TOOL_IDS)') && daemon.includes("import { AGENT_TOOL_IDS }");
 
 let failed = false;
 if (missingInRegistry.length) {
@@ -39,10 +39,10 @@ if (missingInShared.length) {
   console.error(`Missing in agentToolIds.ts: ${missingInShared.join(', ')}`);
 }
 
-if (missingInDaemonSchema.length) {
-  console.warn(`Warning: daemon schema may not accept these shared tools yet: ${missingInDaemonSchema.join(', ')}`);
-  console.warn('This is non-blocking for build, but it must be fixed before claiming full OpenClaw parity.');
+if (!daemonUsesSharedEnum) {
+  failed = true;
+  console.error('assistant-daemon.ts is not using shared AGENT_TOOL_IDS. Run npm run ai:patch-daemon-tools.');
 }
 
 if (failed) process.exit(1);
-console.log(`Agent tool IDs are aligned between shared IDs and registry: ${sharedIds.length} shared IDs, ${registryIds.length} registry contracts.`);
+console.log(`Agent tool IDs are fully aligned: ${sharedIds.length} shared IDs, ${registryIds.length} registry contracts, daemon schema uses AGENT_TOOL_IDS.`);
