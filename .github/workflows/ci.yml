@@ -48,7 +48,20 @@ jobs:
         run: npm test
 
       - name: Build web/server bundle
-        run: npm run build
+        shell: bash
+        run: |
+          set +e
+          npm run build 2>&1 | tee build.log
+          status=${PIPESTATUS[0]}
+          exit "$status"
+
+      - name: Upload build log
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ledgerflow-ci-build-log
+          path: build.log
+          if-no-files-found: ignore
 
       - name: Runtime API smoke test
         run: npm run check:runtime

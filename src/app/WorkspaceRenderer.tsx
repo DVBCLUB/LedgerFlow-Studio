@@ -172,71 +172,46 @@ const AutomationRulesPanel     = React.lazy(() => import('../modules/ai-hr/Autom
 // ─── Subtabs Configuration ────────────────────────────────────────────────────
 const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon?: LucideIcon }[]> = {
   ceo_command: [
-    { id: 'brief', label: 'Bảng chiến lược', icon: Briefcase },
-    { id: 'daily_weekly', label: 'CEO Standup & Lịch tuần', icon: Activity },
-    { id: 'library', label: 'Cơ sở tri thức (RAG)', icon: Database },
-    { id: 'sop_rd', label: 'Quy trình SOP & Kiểm định', icon: ShieldCheck }
+    { id: 'brief', label: 'Overview', icon: Briefcase },
+    { id: 'daily_weekly', label: 'Standup', icon: Activity },
+    { id: 'library', label: 'Knowledge', icon: Database },
+    { id: 'sop_rd', label: 'SOP & Risk', icon: ShieldCheck }
   ],
   product_studio: [
-    { id: 'ideas_moat', label: 'Ý tưởng & Lợi thế (Moats)', icon: Target },
-    { id: 'dev_hub', label: 'Phát triển & Lộ trình', icon: FolderKanban },
-    { id: 'game_studio', label: 'Game Studio', icon: PlayCircle },
-    { id: 'pricing', label: 'Gói bán & Định giá', icon: Coins },
-    { id: 'tasks_progress', label: 'Quản lý công việc & Tiến độ', icon: LayoutList },
-    { id: 'deploy', label: 'Pháp lý & Thanh toán', icon: PlayCircle }
+    { id: 'strategy', label: 'Strategy', icon: Target },
+    { id: 'roadmap', label: 'Roadmap', icon: FolderKanban },
+    { id: 'offer_pricing', label: 'Offer & Pricing', icon: Coins },
+    { id: 'launch_readiness', label: 'Launch Readiness', icon: PlayCircle }
   ],
   growth_sales: [
-    { id: 'campaign_funnel', label: 'Chiến dịch & Phễu (SEO)', icon: BarChart3 },
-    { id: 'content_zalo', label: 'Nội dung & Zalo Hub', icon: Mail },
-    { id: 'video_creator', label: 'Video & Media Lab', icon: PlayCircle },
-    { id: 'market_research', label: 'Khảo sát & Nghiên cứu', icon: MessageSquare },
-    { id: 'rollout', label: 'Bảng điều hành & QA', icon: Code },
-    { id: 'leads_outreach', label: 'Phễu Lead & Tiếp cận', icon: UsersRound },
-    { id: 'ltv_nps', label: 'Giữ chân & NPS', icon: UserCheck },
-    { id: 'affiliate', label: 'Đại lý & Liên kết', icon: Sparkles },
-    { id: 'pricing_lab', label: 'Phòng thí nghiệm giá', icon: Coins }
+    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+    { id: 'content_studio', label: 'Content Studio', icon: Mail },
+    { id: 'market_research', label: 'Market Research', icon: MessageSquare },
+    { id: 'sales_crm', label: 'Sales CRM', icon: UsersRound },
+    { id: 'retention_partners', label: 'Retention & Partners', icon: UserCheck }
   ],
   finance_accounting: [
-    { id: 'ledger_accounting', label: 'Sổ cái & Định khoản VAS', icon: Database },
-    { id: 'reports', label: 'Báo cáo tài chính', icon: Calculator },
-    { id: 'revenue', label: 'Doanh thu & Dòng tiền', icon: TrendingUp },
-    { id: 'founder_review', label: 'Founder Review', icon: ClipboardList },
-    { id: 'runway_advisory', label: 'Runway & Cố vấn rủi ro', icon: ShieldCheck },
-    { id: 'approval', label: 'Phê duyệt chứng từ', icon: CheckCircle },
-    { id: 'coso', label: 'Kiểm toán nội bộ COSO', icon: ShieldCheck }
+    { id: 'ledger', label: 'Ledger', icon: Database },
+    { id: 'reports', label: 'Reports', icon: Calculator },
+    { id: 'cashflow', label: 'Cashflow', icon: TrendingUp },
+    { id: 'approval', label: 'Approval', icon: CheckCircle },
+    { id: 'audit', label: 'Audit & Control', icon: ShieldCheck }
   ],
   ai_staff_sandbox: [
-    { id: 'staff_assistants', label: 'Đội ngũ & Trợ lý AI', icon: Bot },
-    { id: 'ai_ops', label: 'AI Operations Center', icon: Cpu },
-    { id: 'robot_lab', label: 'Robot Lab', icon: Bot },
-    { id: 'automation_rules', label: 'Automation Rules', icon: Zap },
-    { id: 'prompt_labs', label: 'Kỹ nghệ Prompts & Labs', icon: Cpu },
-    { id: 'quality', label: 'Kiểm định chất lượng', icon: ShieldCheck },
-    { id: 'python_sql_datascience', label: 'Python & SQL Sandbox', icon: Terminal },
-    { id: 'browser_sim', label: 'Browser Simulation', icon: Globe },
-    { id: 'finance_ds', label: 'Financial Data Science', icon: TrendingUp },
-    { id: 'project_memory', label: 'Project Memory Log', icon: BookOpen },
-    { id: 'ai_game_studio', label: 'Studio AI, Game & Mạng', icon: Code },
-    { id: 'simulation', label: 'Kinh tế học mô phỏng', icon: PlayCircle }
+    { id: 'overview', label: 'Overview', icon: Bot },
+    { id: 'agents', label: 'Agents', icon: UsersRound },
+    { id: 'automations', label: 'Automations', icon: Zap },
+    { id: 'knowledge_prompts', label: 'Knowledge & Prompts', icon: BookOpen },
+    { id: 'quality', label: 'Quality', icon: ShieldCheck },
+    { id: 'labs', label: 'Labs', icon: FlaskConical }
   ],
   system_settings: [
-    { id: 'general', label: 'Cài đặt hệ thống', icon: Settings },
-    { id: 'connections', label: 'Tích hợp platform', icon: Network },
-    { id: 'audit', label: 'Audit Trail', icon: ShieldAlert },
-    { id: 'build_monitor', label: 'Build Monitor', icon: Terminal },
-    { id: 'config_health', label: 'Config Health', icon: Activity },
-    { id: 'security', label: 'Security Control', icon: ShieldCheck },
-    { id: 'merge_readiness', label: 'Merge Readiness', icon: GitCommit },
-    { id: 'pr_control', label: 'PR Control', icon: GitPullRequest },
-    { id: 'patch_diff', label: 'Patch Diff Review', icon: FileDiff },
-    { id: 'release_artifact', label: 'Release Artifacts', icon: Package },
-    { id: 'rollback', label: 'Rollback Center', icon: Rewind },
-    { id: 'sandbox_patch', label: 'Sandbox Patch', icon: FlaskConical },
-    { id: 'ci_recovery', label: 'CI Recovery', icon: RefreshCw },
-    { id: 'ci_run', label: 'CI Run Inspector', icon: Search },
-    { id: 'dev_handoff', label: 'Dev Handoff', icon: Send },
-    { id: 'ci_doctor', label: 'CI Doctor', icon: Stethoscope },
-    { id: 'approved_pr', label: 'Approved PR', icon: CheckCircle }
+    { id: 'general', label: 'General', icon: Settings },
+    { id: 'ai_gateway', label: 'AI Gateway', icon: Key },
+    { id: 'integrations', label: 'Integrations', icon: Network },
+    { id: 'security', label: 'Security', icon: ShieldCheck },
+    { id: 'backup_data', label: 'Backup & Data', icon: Package },
+    { id: 'developer_console', label: 'Developer Console', icon: Terminal }
   ]
 };
 
@@ -251,10 +226,10 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
   // Store sub-tab active IDs keyed by the parent segment
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
     ceo_command: 'brief',
-    product_studio: 'ideas_moat',
-    growth_sales: 'campaign_funnel',
-    finance_accounting: 'ledger_accounting',
-    ai_staff_sandbox: 'staff_assistants',
+    product_studio: 'strategy',
+    growth_sales: 'dashboard',
+    finance_accounting: 'ledger',
+    ai_staff_sandbox: 'overview',
     system_settings: 'general',
   });
 
@@ -345,22 +320,32 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
         {/* 2. Product Studio */}
         {activeSegment === 'product_studio' && (
           <>
-            {currentSubTabId === 'ideas_moat' && (
+            {currentSubTabId === 'strategy' && (
               <div className="space-y-6">
                 <SoloFounderBusiness />
                 <MoatDefensibilityTracker />
+                <section className="grid gap-4 lg:grid-cols-2 text-left">
+                  {PRODUCT_IDEA_PORTFOLIO.map((item) => (
+                    <Card key={item.idea}>
+                      <p className="text-[10px] font-black uppercase text-emerald-300">Idea Portfolio</p>
+                      <h2 className="mt-2 text-sm font-black text-white">{item.idea}</h2>
+                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Người dùng: {item.targetUser}</p>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-cyan-200">Pain {item.pain}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-emerald-200">MVP {item.mvpCheapness}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-sky-200">Dist {item.distribution}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-amber-200">Risk {item.technicalRisk}</span>
+                      </div>
+                      <p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">MVP: {item.firstMvp}</p>
+                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Monetization: {item.monetization}</p>
+                    </Card>
+                  ))}
+                </section>
               </div>
             )}
-            {currentSubTabId === 'dev_hub' && (
+            {currentSubTabId === 'roadmap' && (
               <div className="space-y-6">
                 <GuerrillaProductHub />
-                <WebAccountingRoadmap />
-              </div>
-            )}
-            {currentSubTabId === 'pricing' && <PricingOfferBuilder />}
-            {currentSubTabId === 'game_studio' && <GameStudioBuilder />}
-            {currentSubTabId === 'tasks_progress' && (
-              <div className="space-y-6">
                 <WebAccountingRoadmap />
                 <section className="grid gap-4 lg:grid-cols-2 text-left">
                   {AI_AGENT_WORK_ORDER_BOARD.map((item) => (
@@ -383,44 +368,60 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
                 </section>
               </div>
             )}
-            {currentSubTabId === 'deploy' && <DeployBusiness />}
+            {currentSubTabId === 'offer_pricing' && (
+              <div className="space-y-6">
+                <PricingOfferBuilder />
+                <PricingStrategyLab />
+              </div>
+            )}
+            {currentSubTabId === 'launch_readiness' && (
+              <div className="space-y-6">
+                <DeployBusiness />
+                <Card>
+                  <h2 className="text-sm font-black text-white">Launch readiness guardrails</h2>
+                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">
+                    Mỗi release nhỏ phải có input/output rõ, không làm người dùng hiểu nhầm đây là ERP hoặc tư vấn kế toán/pháp lý chính thức.
+                  </p>
+                  <div className="mt-4 grid gap-2 md:grid-cols-2">
+                    <BulletList items={RELEASE_READINESS_CHECKLIST} className="text-emerald-100" />
+                  </div>
+                </Card>
+              </div>
+            )}
           </>
         )}
 
         {/* 3. Marketing & Growth */}
         {activeSegment === 'growth_sales' && (
           <>
-            {currentSubTabId === 'campaign_funnel' && (
+            {currentSubTabId === 'dashboard' && (
               <div className="space-y-6">
                 <AdCampaignSimulator />
                 <MarketingCommandCenter />
                 <MarketingV2LaunchPlaybookPanel />
+                <MarketingV2ExecutionBoardPanel />
+                <MarketingV2QAConsole />
                 <MarketingSuite />
                 <GoogleKeywordStrategy />
                 <MarketingFunnelLab />
+                <MarketingGrowthV2Workspace />
               </div>
             )}
-            {currentSubTabId === 'content_zalo' && (
+            {currentSubTabId === 'content_studio' && (
               <div className="space-y-6">
                 <LandingPageCopyLab />
                 <EmailSequenceBuilder />
                 <ZaloMarketingHub />
+                <AIContentVideoLab />
               </div>
             )}
-            {currentSubTabId === 'video_creator' && <AIContentVideoLab />}
             {currentSubTabId === 'market_research' && (
               <div className="space-y-6">
                 <SyntheticSurveyBuilder />
                 <MarketSurveySimulator />
               </div>
             )}
-            {currentSubTabId === 'rollout' && (
-              <div className="space-y-6">
-                <MarketingV2ExecutionBoardPanel />
-                <MarketingV2QAConsole />
-              </div>
-            )}
-            {currentSubTabId === 'leads_outreach' && (
+            {currentSubTabId === 'sales_crm' && (
               <div className="space-y-6">
                 <SalesRoleplayLab />
                 <OutboundSalesHub />
@@ -428,28 +429,30 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
                 <LeadScoringEngine />
               </div>
             )}
-
-            {currentSubTabId === 'ltv_nps' && (
+            {currentSubTabId === 'retention_partners' && (
               <div className="space-y-6">
                 <CustomerLTVDashboard />
                 <NPSReviewManager />
+                <AffiliateReferralHub />
               </div>
             )}
-            {currentSubTabId === 'affiliate' && <AffiliateReferralHub />}
-            {currentSubTabId === 'pricing_lab' && <PricingStrategyLab />}
           </>
         )}
 
         {/* 4. Tài chính & Kế toán */}
         {activeSegment === 'finance_accounting' && (
           <>
-            {currentSubTabId === 'ledger_accounting' && <LedgerAccountingWorkspace />}
+            {currentSubTabId === 'ledger' && <LedgerAccountingWorkspace />}
             {currentSubTabId === 'reports' && <FinancialReportsVN />}
-            {currentSubTabId === 'revenue' && <RevenueDashboard />}
-            {currentSubTabId === 'founder_review' && <FounderReviewChecklist />}
-            {currentSubTabId === 'runway_advisory' && <AdvisoryBoardReport />}
+            {currentSubTabId === 'cashflow' && (
+              <div className="space-y-6">
+                <RevenueDashboard />
+                <AdvisoryBoardReport />
+                <FounderReviewChecklist />
+              </div>
+            )}
             {currentSubTabId === 'approval' && <ApprovalWorkflow />}
-            {currentSubTabId === 'coso' && (
+            {currentSubTabId === 'audit' && (
               <div className="space-y-6">
                 <TaxAuditSimulator />
                 <InternalAuditWorkspace />
@@ -461,41 +464,48 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
         {/* 5. AI Workforce & Labs */}
         {activeSegment === 'ai_staff_sandbox' && (
           <>
-            {currentSubTabId === 'staff_assistants' && (
+            {currentSubTabId === 'overview' && (
+              <div className="space-y-6">
+                <AIOperationsCenter />
+                <AgentAssemblyBuilder />
+                <AIOutputQualityReview />
+              </div>
+            )}
+            {currentSubTabId === 'agents' && (
               <div className="space-y-6">
                 <AgentAssemblyBuilder />
                 <PeopleTab />
                 <AIAssistantLauncher />
               </div>
             )}
-            {currentSubTabId === 'ai_ops' && <AIOperationsCenter />}
-            {currentSubTabId === 'robot_lab' && <RobotLabPanel />}
-            {currentSubTabId === 'automation_rules' && <AutomationRulesPanel />}
-            {currentSubTabId === 'prompt_labs' && (
+            {currentSubTabId === 'automations' && (
+              <div className="space-y-6">
+                <AutomationRulesPanel />
+                <RobotLabPanel />
+                <BrowserSimulationPlanner />
+              </div>
+            )}
+            {currentSubTabId === 'knowledge_prompts' && (
               <div className="space-y-6">
                 <PromptPlayground />
                 <AdvancedAIEngine />
+                <ProjectMemoryDecisionLog />
               </div>
             )}
             {currentSubTabId === 'quality' && <AIOutputQualityReview />}
-            {currentSubTabId === 'python_sql_datascience' && (
+            {currentSubTabId === 'labs' && (
               <div className="space-y-6">
                 <PythonSandbox />
                 <DataScienceEngineering />
-              </div>
-            )}
-            {currentSubTabId === 'browser_sim' && <BrowserSimulationPlanner />}
-            {currentSubTabId === 'finance_ds' && <FinancialDataScienceLab />}
-            {currentSubTabId === 'project_memory' && <ProjectMemoryDecisionLog />}
-            {currentSubTabId === 'ai_game_studio' && (
-              <div className="space-y-6">
+                <FinancialDataScienceLab />
+                <GameStudioBuilder />
                 <GameAndMLWorkbench />
                 <MLApplied />
                 <AIEcosystemArchitecture />
+                <GeminiPlayground />
+                <FounderLabsDock embedded />
               </div>
             )}
-            {currentSubTabId === 'simulation' && <FounderLabsDock embedded />}
-
           </>
         )}
 
@@ -503,22 +513,39 @@ export default function WorkspaceRenderer({ activeSegment, onNavigate }: Workspa
         {activeSegment === 'system_settings' && (
           <>
             {currentSubTabId === 'general' && <SystemSettingsPanel />}
-            {currentSubTabId === 'connections' && <IntegrationHub />}
-            {currentSubTabId === 'audit' && <AuditTrailPanel />}
-            {currentSubTabId === 'build_monitor' && <BuildMonitorPanel />}
-            {currentSubTabId === 'config_health' && <ConfigHealthMonitor />}
+            {currentSubTabId === 'ai_gateway' && <SystemSettingsPanel />}
+            {currentSubTabId === 'integrations' && <IntegrationHub />}
             {currentSubTabId === 'security' && <SecurityControlCenter />}
-            {currentSubTabId === 'merge_readiness' && <MergeReadinessCenter />}
-            {currentSubTabId === 'pr_control' && <PRControlCenter />}
-            {currentSubTabId === 'patch_diff' && <PatchDiffReviewCenter />}
-            {currentSubTabId === 'release_artifact' && <ReleaseArtifactCenter />}
-            {currentSubTabId === 'rollback' && <RollbackCenter />}
-            {currentSubTabId === 'sandbox_patch' && <SandboxPatchWorkspace />}
-            {currentSubTabId === 'ci_recovery' && <CIRecoveryQueue />}
-            {currentSubTabId === 'ci_run' && <CIRunInspectorPanel />}
-            {currentSubTabId === 'dev_handoff' && <DevHandoffLauncher />}
-            {currentSubTabId === 'ci_doctor' && <GitHubCIDoctorLauncher />}
-            {currentSubTabId === 'approved_pr' && <ApprovedPrLauncher />}
+            {currentSubTabId === 'backup_data' && (
+              <div className="space-y-6">
+                <SystemSettingsPanel />
+                <ArtifactInspectorPanel />
+                <AuditTrailPanel />
+              </div>
+            )}
+            {currentSubTabId === 'developer_console' && (
+              <div className="space-y-6">
+                <Card>
+                  <h2 className="text-sm font-black text-white">Developer Console</h2>
+                  <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">
+                    Các công cụ build, CI, PR, patch và rollback được gom vào một khu nâng cao để giao diện hằng ngày không bị rối.
+                  </p>
+                </Card>
+                <ConfigHealthMonitor />
+                <BuildMonitorPanel />
+                <MergeReadinessCenter />
+                <PRControlCenter />
+                <PatchDiffReviewCenter />
+                <ReleaseArtifactCenter />
+                <RollbackCenter />
+                <SandboxPatchWorkspace />
+                <CIRecoveryQueue />
+                <CIRunInspectorPanel />
+                <DevHandoffLauncher />
+                <GitHubCIDoctorLauncher />
+                <ApprovedPrLauncher />
+              </div>
+            )}
           </>
         )}
       </Suspense>
