@@ -16,6 +16,7 @@ const expected = {
   'ai:openclaw-plus': 'node scripts/openclaw-plus-doctor.mjs',
   'ai:openclaw-plus:full': 'node scripts/openclaw-plus-doctor.mjs --full',
   'ai:openclaw-plus:check': 'node scripts/openclaw-plus-doctor.mjs --skip-patch',
+  'check:openclaw-plus': 'node scripts/check-ai-workforce-local.mjs',
 };
 
 let failed = false;
@@ -24,6 +25,11 @@ for (const [name, command] of Object.entries(expected)) {
     console.error(`Missing or mismatched script ${name}: expected "${command}"`);
     failed = true;
   }
+}
+
+if (!String(scripts.prebuild || '').includes('npm run check:openclaw-plus')) {
+  console.error('prebuild does not run npm run check:openclaw-plus');
+  failed = true;
 }
 
 if (failed) process.exit(1);
