@@ -1,4 +1,5 @@
 import type * as XLSX from 'xlsx';
+import { auditEvent, createCorrelationId, logEvent } from './observability';
 import { DEFAULT_SPREADSHEET_IMPORT_LIMITS, readWorkbookWithGuard, worksheetToRowsWithGuard } from './spreadsheetImportGuard';
 
 export type MISAJournalRow = {
@@ -117,6 +118,13 @@ function parseSheet(ws: XLSX.WorkSheet): MISAJournalRow[] {
 export function importMISAWorkbook(fileBuffer: Buffer): MISAImportResult {
   const errors: string[] = [];
   let entries: MISAJournalRow[] = [];
+  const correlationId = createCorrelationId('import');
+  const auditContext = { correlationId, actorType: 'system' as const, module: 'misaBridge' };
+
+  auditEvent('import', 'misa.workbook.import.started', 'pending', auditContext, {
+    fileBytes: Buffer.isBuffer(fileBuffer) ? fileBuffer.length : 0,
+    limits: DEFAULT_SPREADSHEET_IMPORT_LIMITS,
+  });
 
   try {
     const { workbook, sheetNames } = readWorkbookWithGuard(fileBuffer);
@@ -136,9 +144,28 @@ export function importMISAWorkbook(fileBuffer: Buffer): MISAImportResult {
 
   const dates = entries.map((entry) => entry.date).sort();
   const accounts = [...new Set(entries.flatMap((entry) => [entry.debitAccount, entry.creditAccount]).filter((account): account is string => Boolean(account)))].sort();
+  const success = errors.length === 0 && entries.length > 0;
+
+  if (success) {
+    auditEvent('import', 'misa.workbook.import.completed', 'success', auditContext, {
+      importedRows: entries.length,
+      uniqueAccounts: accounts.length,
+      dateRange: { from: dates[0] || '', to: dates[dates.length - 1] || '' },
+    });
+  } else {
+    auditEvent('import', 'misa.workbook.import.blocked', 'blocked', auditContext, {
+      errorCount: errors.length,
+      errors,
+      importedRows: entries.length,
+    });
+    logEvent('warn', 'misa.workbook.import.blocked', 'MISA workbook import did not produce importable entries.', auditContext, {
+      errorCount: errors.length,
+      importedRows: entries.length,
+    });
+  }
 
   return {
-    success: errors.length === 0 && entries.length > 0,
+    success,
     totalRows: entries.length,
     importedRows: entries.length,
     skippedRows: 0,
