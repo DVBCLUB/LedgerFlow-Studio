@@ -1,8 +1,5 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "noResolve": true
-  },
   "include": [
     "server/**/*.ts",
     "src/**/*.ts",
@@ -13,8 +10,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "release",
-    "scripts/**/*.mjs",
-    "src/utils/assistantApi.ts"
+    "release"
   ]
 }
