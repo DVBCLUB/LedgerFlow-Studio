@@ -86,7 +86,7 @@ const daemonChanged = patchFile(daemonPath, (initialSource) => {
   source = replaceOnce(
     source,
     'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";',
-    'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";\nimport { buildRuntimeGroundedContext, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";',
+    'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";\nimport { buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";',
     'AI Workforce Runtime Hub import',
   );
 
@@ -117,6 +117,12 @@ app.post("/api/ai-workforce/safety-preview", async (req: Request, res: Response)
 app.post("/api/ai-workforce/pr-readiness", async (req: Request, res: Response) => {
   try {
     const report = await scoreRuntimePRReadiness(req.body as any);
+    res.json({ ok: true, report });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/pr-control", async (req: Request, res: Response) => {
+  try {
+    const report = await buildRuntimePRControlReport(req.body as any);
     res.json({ ok: true, report });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });
