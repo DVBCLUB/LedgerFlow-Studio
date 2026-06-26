@@ -78,6 +78,7 @@ export default function AIWorkforceRuntimePanel() {
   const readiness = dashboard?.readiness;
   const observability = dashboard?.observability;
   const storeStats = dashboard?.storeStats;
+  const tooling = dashboard?.tooling;
   const recentRecords = dashboard?.recentRecords || [];
   const offline = Boolean(error && !dashboard);
 
@@ -91,7 +92,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope và chấm PR readiness.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness và xem MCP tool health.
             </p>
           </div>
         </div>
@@ -108,10 +109,11 @@ export default function AIWorkforceRuntimePanel() {
         </div>
       )}
 
-      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <MiniMetric label="Readiness" value={readiness ? `${readiness.grade} · ${readiness.overallScore}/5` : '—'} detail="Điểm runtime readiness động" />
         <MiniMetric label="Runs" value={observability?.runs ?? '—'} detail="AI run metrics đã ghi" />
         <MiniMetric label="Blocked rate" value={observability ? `${Math.round((observability.blockedRate || 0) * 100)}%` : '—'} detail="Tác vụ bị safety chặn" />
+        <MiniMetric label="Tool health" value={tooling ? `${tooling.summary.healthy}/${tooling.summary.total}` : '—'} detail="MCP manifests healthy/total" />
         <MiniMetric label="Runtime records" value={storeStats?.total ?? '—'} detail="Context, safety, PR readiness, snapshot" />
       </div>
 
@@ -130,7 +132,7 @@ export default function AIWorkforceRuntimePanel() {
         </button>
       </div>
 
-      <div className="mt-5 grid gap-4 xl:grid-cols-2">
+      <div className="mt-5 grid gap-4 xl:grid-cols-3">
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
           <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase text-cyan-300">
             <Bot className="h-4 w-4" /> Recent runtime records
@@ -144,6 +146,24 @@ export default function AIWorkforceRuntimePanel() {
               </div>
             )) : (
               <p className="text-xs font-semibold text-slate-500">Chưa có runtime record hoặc daemon chưa online.</p>
+            )}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div className="mb-3 flex items-center gap-2 text-xs font-black uppercase text-emerald-300">
+            <ShieldCheck className="h-4 w-4" /> MCP tool health
+          </div>
+          <div className="space-y-2">
+            {tooling?.health?.length ? tooling.health.slice(0, 6).map((row: any) => (
+              <div key={row.toolId} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-xs font-black text-white">{row.toolId}</p>
+                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black uppercase text-slate-300">{row.health}</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-slate-400">score {row.score}/100 · failures {row.failures}</p>
+              </div>
+            )) : (
+              <p className="text-xs font-semibold text-slate-500">Chưa có MCP tool telemetry.</p>
             )}
           </div>
         </div>
