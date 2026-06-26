@@ -28,7 +28,7 @@ test('AI baseline suite scores expected output signals', () => {
   const suite = evaluateAIBaselineSuite(AI_WORKFORCE_BASELINE_TASKS, {
     'memory-grounding-smoke': 'Answer includes source, confidence, and contradiction review.',
     'software-factory-smoke': 'PR handoff includes diff risk, CI summary, and readiness score.',
-    'automation-safety-smoke': 'Safety envelope includes allowlist and replay but not the final keyword.',
+    'automation-safety-smoke': 'Safety envelope includes allowlist, replay, and emergency stop.',
   });
 
   assert.equal(suite.results.length, 3);
