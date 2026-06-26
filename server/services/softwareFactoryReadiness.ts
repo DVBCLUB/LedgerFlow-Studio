@@ -1,4 +1,4 @@
-export type PRCheckStatus = 'success' | 'failure' | 'pending' | 'skipped';
+export type PRCheckStatus = 'success' | 'failure' | 'pending' | 'skipped' | 'cancelled';
 export type FileRisk = 'low' | 'medium' | 'high';
 export type PRReadinessVerdict = 'ready' | 'needs_review' | 'blocked';
 
@@ -21,6 +21,8 @@ export interface SoftwareFactoryReadinessInput {
   checks: PRCheckInput[];
   ciLogSummary?: string;
   hasHumanApproval?: boolean;
+  hasSecurityApproval?: boolean;
+  hasDataApproval?: boolean;
   hasRollbackPlan?: boolean;
   touchesSecurity?: boolean;
   touchesDataModel?: boolean;
@@ -54,6 +56,24 @@ const HIGH_RISK_PATTERNS = [
   /desktop\/main\.cjs$/,
 ];
 
+const SECURITY_PATTERNS = [
+  /auth/i,
+  /security/i,
+  /token/i,
+  /credential/i,
+  /secret/i,
+  /\.env/i,
+];
+
+const DATA_PATTERNS = [
+  /migrations?\//i,
+  /schema/i,
+  /database/i,
+  /supabase/i,
+  /localDatabase/i,
+  /db\//i,
+];
+
 const MEDIUM_RISK_PATTERNS = [
   /package\.json$/,
   /server\//i,
@@ -75,6 +95,15 @@ function classifyFileRisk(file: PRChangedFileInput): FileRiskAssessment {
     reasons.push('runtime or app path');
   }
 
+  if (SECURITY_PATTERNS.some((pattern) => pattern.test(file.filename))) {
+    risk = 'high';
+    reasons.push('security-sensitive path');
+  }
+  if (DATA_PATTERNS.some((pattern) => pattern.test(file.filename)) && risk !== 'high') {
+    risk = 'medium';
+    reasons.push('data/model path');
+  }
+
   if (totalChanges > 600) {
     risk = 'high';
     reasons.push('large diff');
@@ -84,14 +113,14 @@ function classifyFileRisk(file: PRChangedFileInput): FileRiskAssessment {
   }
 
   if (!reasons.length) reasons.push('small isolated change');
-  return { filename: file.filename, risk, reasons };
+  return { filename: file.filename, risk, reasons: Array.from(new Set(reasons)) };
 }
 
 function scoreChecks(checks: PRCheckInput[]) {
   if (!checks.length) return { score: 0, blockers: ['No CI/check evidence was provided.'], warnings: [] as string[] };
-  const failures = checks.filter((check) => check.status === 'failure');
+  const failures = checks.filter((check) => check.status === 'failure' || check.status === 'cancelled');
   const pending = checks.filter((check) => check.status === 'pending');
-  const success = checks.filter((check) => check.status === 'success');
+  const success = checks.filter((check) => check.status === 'success' || check.status === 'skipped');
   const blockers = failures.map((check) => `Required check failed: ${check.name}`);
   const warnings = pending.map((check) => `Check still pending: ${check.name}`);
   const score = checks.length ? Math.round((success.length / checks.length) * 30) : 0;
@@ -102,6 +131,8 @@ export function scoreSoftwareFactoryReadiness(input: SoftwareFactoryReadinessInp
   const fileRisks = input.changedFiles.map(classifyFileRisk);
   const highRiskFiles = fileRisks.filter((file) => file.risk === 'high');
   const mediumRiskFiles = fileRisks.filter((file) => file.risk === 'medium');
+  const touchesSecurity = Boolean(input.touchesSecurity || fileRisks.some((file) => file.reasons.some((reason) => reason.includes('security'))));
+  const touchesDataModel = Boolean(input.touchesDataModel || fileRisks.some((file) => file.reasons.some((reason) => reason.includes('data/model'))));
   const checkScore = scoreChecks(input.checks);
   const blockers = [...checkScore.blockers];
   const warnings = [...checkScore.warnings];
@@ -112,13 +143,19 @@ export function scoreSoftwareFactoryReadiness(input: SoftwareFactoryReadinessInp
   if (!input.changedFiles.length) blockers.push('No changed files were provided.');
   if (highRiskFiles.length) {
     score -= Math.min(25, highRiskFiles.length * 8);
-    requiredApprovals.push('Technical owner approval for high-risk files');
+    requiredApprovals.push('technical-owner');
   }
   if (mediumRiskFiles.length) score -= Math.min(12, mediumRiskFiles.length * 2);
-  if (input.touchesSecurity) requiredApprovals.push('Security review');
-  if (input.touchesDataModel) requiredApprovals.push('Data/model migration review');
-  if ((input.touchesSecurity || input.touchesDataModel || highRiskFiles.length) && !input.hasHumanApproval) {
-    blockers.push('Human approval is required for security, data model, or high-risk file changes.');
+  if (touchesSecurity) requiredApprovals.push('security');
+  if (touchesDataModel) requiredApprovals.push('data-owner');
+  if (highRiskFiles.length && !input.hasHumanApproval) {
+    blockers.push('Human approval is required for high-risk file changes.');
+  }
+  if (touchesSecurity && !input.hasSecurityApproval) {
+    blockers.push('Security approval is required for security-sensitive changes.');
+  }
+  if (touchesDataModel && !input.hasDataApproval) {
+    blockers.push('Data-owner approval is required for data/model changes.');
   }
   if (!input.hasRollbackPlan) {
     score -= 10;
