@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Activity,
+  AlertTriangle,
   Bot,
   BrainCircuit,
   CheckCircle2,
@@ -11,13 +12,17 @@ import {
   PlayCircle,
   ShieldCheck,
   Sparkles,
+  Target,
   Zap,
 } from 'lucide-react';
 import {
+  AI_WORKFORCE_BACKLOG,
   AI_WORKFORCE_CAPABILITIES,
+  AI_WORKFORCE_GAP_MATRIX,
   AI_WORKFORCE_LANES,
   AI_WORKFORCE_METRICS,
   AI_WORKFORCE_RUNBOOK,
+  AI_WORKFORCE_UPGRADE_BACKLOG,
 } from '../../data/aiWorkforceCommandCenter';
 
 const statusStyles: Record<string, string> = {
@@ -25,6 +30,9 @@ const statusStyles: Record<string, string> = {
   ready: 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200',
   guarded: 'border-amber-500/30 bg-amber-500/10 text-amber-200',
   planned: 'border-slate-500/30 bg-slate-500/10 text-slate-200',
+  achieved: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
+  partial: 'border-amber-500/30 bg-amber-500/10 text-amber-200',
+  gap: 'border-rose-500/30 bg-rose-500/10 text-rose-200',
 };
 
 const capabilityIcon: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -55,6 +63,9 @@ function TinyList({ items }: { items: string[] }) {
 
 export default function AIWorkforceCommandCenter() {
   const backgroundCount = AI_WORKFORCE_CAPABILITIES.filter((capability) => capability.backgroundMode).length;
+  const achievedCount = AI_WORKFORCE_GAP_MATRIX.filter((row) => row.status === 'achieved').length;
+  const partialCount = AI_WORKFORCE_GAP_MATRIX.filter((row) => row.status === 'partial').length;
+  const gapCount = AI_WORKFORCE_GAP_MATRIX.filter((row) => row.status === 'gap').length;
 
   return (
     <div className="space-y-6">
@@ -79,9 +90,9 @@ export default function AIWorkforceCommandCenter() {
               <p className="mt-1 text-[11px] font-semibold text-emerald-100">capabilities chạy nền</p>
             </div>
             <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-4">
-              <p className="text-[10px] font-black uppercase text-cyan-200">Safety Gate</p>
-              <p className="mt-2 text-2xl font-black text-white">ON</p>
-              <p className="mt-1 text-[11px] font-semibold text-cyan-100">audit + checkpoint</p>
+              <p className="text-[10px] font-black uppercase text-cyan-200">Readiness</p>
+              <p className="mt-2 text-2xl font-black text-white">{achievedCount}/{AI_WORKFORCE_GAP_MATRIX.length}</p>
+              <p className="mt-1 text-[11px] font-semibold text-cyan-100">đạt chuẩn nâng cấp</p>
             </div>
           </div>
         </div>
@@ -96,6 +107,82 @@ export default function AIWorkforceCommandCenter() {
           </ShellCard>
         ))}
       </section>
+
+      <ShellCard className="border-amber-500/20">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-200">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-black text-white">Gap Matrix — đánh giá phần chưa đạt</h2>
+              <p className="text-xs font-semibold text-slate-400">
+                Đạt: {achievedCount} • Một phần: {partialCount} • Còn thiếu lớn: {gapCount}
+              </p>
+            </div>
+          </div>
+          <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase text-violet-200">
+            OpenClaw+ readiness
+          </span>
+        </div>
+        <div className="mt-5 grid gap-4 xl:grid-cols-2">
+          {AI_WORKFORCE_GAP_MATRIX.map((row) => (
+            <div key={row.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Target</p>
+                  <h3 className="mt-1 text-sm font-black text-white">{row.target}</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${statusStyles[row.status]}`}>
+                    {row.status}
+                  </span>
+                  <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[10px] font-black text-white">
+                    {row.score}/5
+                  </span>
+                </div>
+              </div>
+              <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Hiện tại: {row.current}</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-[10px] font-black uppercase text-rose-300">Chưa đạt</p>
+                  <TinyList items={row.missing} />
+                </div>
+                <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-3">
+                  <p className="text-[10px] font-black uppercase text-cyan-300">Nâng cấp tiếp</p>
+                  <p className="mt-2 text-xs font-bold leading-6 text-cyan-100">{row.upgrade}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ShellCard>
+
+      <ShellCard className="border-violet-500/20">
+        <div className="flex items-center gap-3">
+          <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3 text-violet-200">
+            <Target className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-black text-white">Upgrade Backlog</h2>
+            <p className="text-xs font-semibold text-slate-400">Các nâng cấp còn thiếu được xếp ưu tiên theo rủi ro và tác động hệ thống.</p>
+          </div>
+        </div>
+        <div className="mt-5 grid gap-3 lg:grid-cols-4">
+          {AI_WORKFORCE_UPGRADE_BACKLOG.map((item) => (
+            <div key={item.title} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+              <div className="flex items-center justify-between gap-2">
+                <span className="rounded-full border border-violet-500/20 bg-violet-500/10 px-3 py-1 text-[10px] font-black text-violet-200">{item.priority}</span>
+                <span className="rounded-full border border-slate-700 bg-slate-950 px-3 py-1 text-[10px] font-black uppercase text-slate-300">{item.mode}</span>
+              </div>
+              <h3 className="mt-3 text-sm font-black text-white">{item.title}</h3>
+              <div className="mt-3">
+                <TinyList items={item.acceptance} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </ShellCard>
 
       <section className="grid gap-4 xl:grid-cols-3">
         {AI_WORKFORCE_LANES.map((lane) => (
