@@ -12,6 +12,10 @@ import {
   type SoftwareFactoryReadinessInput,
 } from './softwareFactoryReadiness.ts';
 import {
+  buildSoftwareFactoryPRControlReport,
+  type SoftwareFactoryPullRequestInput,
+} from './softwareFactoryPrControl.ts';
+import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
@@ -141,6 +145,34 @@ export async function scoreRuntimePRReadiness(input: SoftwareFactoryReadinessInp
     safetyBlocks: report.blockers.length,
   });
 
+  return report;
+}
+
+export async function buildRuntimePRControlReport(input: SoftwareFactoryPullRequestInput) {
+  const startedAt = Date.now();
+  const report = buildSoftwareFactoryPRControlReport(input);
+  await appendAIWorkforceRuntimeRecord({
+    id: report.id,
+    type: 'pr_readiness',
+    payload: report,
+  });
+  await appendAIWorkforceAuditEvent({
+    action: 'pr_readiness_scored',
+    severity: report.mergeGate.mode === 'blocked' ? 'critical' : report.mergeGate.mode === 'human_review_required' ? 'warning' : 'info',
+    actor: 'Software Factory PR Control',
+    summary: `PR control merge gate: ${report.mergeGate.mode} (${report.readiness.score}/100).`,
+    entityId: input.id,
+    metadata: { mergeGate: report.mergeGate, evidence: report.evidence, auditFingerprint: report.auditFingerprint },
+  });
+  recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: 'Software Factory PR Control',
+    toolId: 'draft_patch',
+    status: report.mergeGate.allowed ? 'success' : report.mergeGate.mode === 'blocked' ? 'blocked' : 'needs_review',
+    latencyMs: Date.now() - startedAt,
+    qualityScore: report.readiness.score / 100,
+    safetyBlocks: report.mergeGate.mode === 'blocked' ? report.mergeGate.reasons.length : 0,
+  });
   return report;
 }
 
