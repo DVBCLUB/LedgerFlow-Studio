@@ -25,6 +25,23 @@ export type AIWorkforceRunbookStep = {
   evidence: string;
 };
 
+export type AIWorkforceGapRow = {
+  id: string;
+  target: string;
+  current: string;
+  score: number;
+  status: 'achieved' | 'partial' | 'gap';
+  missing: string[];
+  upgrade: string;
+};
+
+export type AIWorkforceBacklogItem = {
+  priority: 'P0' | 'P1' | 'P2';
+  title: string;
+  mode: 'background' | 'human_review' | 'lab_only';
+  acceptance: string[];
+};
+
 export const AI_WORKFORCE_CAPABILITIES: AIWorkforceCapability[] = [
   {
     id: 'agent-orchestration',
@@ -138,9 +155,111 @@ export const AI_WORKFORCE_RUNBOOK: AIWorkforceRunbookStep[] = [
   },
 ];
 
+export const AI_WORKFORCE_GAP_MATRIX: AIWorkforceGapRow[] = [
+  {
+    id: 'orchestration',
+    target: 'Multi-agent orchestration',
+    current: 'Đã có pipeline templates, step approval và resume flow.',
+    score: 4,
+    status: 'achieved',
+    missing: ['Mission planner tự chọn pipeline/tool theo intent', 'Dependency graph và SLA tracking'],
+    upgrade: 'Thêm mission planner để biến yêu cầu founder thành work order có pipeline, tool, risk và artifact.',
+  },
+  {
+    id: 'memory_rag_kg',
+    target: 'Memory + RAG + Knowledge Graph',
+    current: 'Có company memory injection và read_knowledge tool.',
+    score: 3,
+    status: 'partial',
+    missing: ['Source map bắt buộc', 'Contradiction detector', 'Knowledge graph entity/relationship'],
+    upgrade: 'Nâng memory thành grounded context pack có source id, confidence và contradiction flag.',
+  },
+  {
+    id: 'mcp_tool_registry',
+    target: 'MCP/tool registry',
+    current: 'Có tool contracts, permission, risk, timeout, attempts và approval policy.',
+    score: 4,
+    status: 'achieved',
+    missing: ['MCP manifest import/export', 'Credential scope per connector', 'Tool health telemetry'],
+    upgrade: 'Bổ sung MCP-compatible manifest schema và health score cho từng connector/tool.',
+  },
+  {
+    id: 'computer_browser_robotics',
+    target: 'Computer/browser/robot automation',
+    current: 'Có browser_check, robot_inspect và robot_move có approval.',
+    score: 3,
+    status: 'partial',
+    missing: ['Screenshot/action replay evidence', 'UI surface allowlist', 'Emergency stop contract'],
+    upgrade: 'Giữ lab-only và thêm replay evidence, allowlist, emergency stop trước khi chạy thực tế.',
+  },
+  {
+    id: 'software_factory',
+    target: 'Self-healing software factory',
+    current: 'Có software product pipeline, draft_patch, QA và DevOps handoff.',
+    score: 4,
+    status: 'achieved',
+    missing: ['Diff risk classifier', 'CI log summarizer', 'PR readiness score'],
+    upgrade: 'Thêm PR readiness scoring trước khi handoff/merge.',
+  },
+  {
+    id: 'workflow_engine',
+    target: 'Durable workflow engine',
+    current: 'Có durable queue: dedupe, lease, retry, dead-letter, retry-dead-letter, prune.',
+    score: 4,
+    status: 'achieved',
+    missing: ['Visual graph cho nested missions', 'Mission SLA escalation'],
+    upgrade: 'Đưa queue health và SLA vào AI Factory dashboard.',
+  },
+  {
+    id: 'safety_governance',
+    target: 'Safety/governance',
+    current: 'High-risk tools yêu cầu approval, fingerprint binding và token một lần.',
+    score: 4,
+    status: 'achieved',
+    missing: ['Persistent audit trail', 'Risk policy theo role/environment'],
+    upgrade: 'Persist safety event và hiển thị approval history trong tab Quality.',
+  },
+  {
+    id: 'benchmark_observability',
+    target: 'Benchmark/observability',
+    current: 'Đã có dashboard tĩnh; bản nâng cấp này thêm readiness service động.',
+    score: 2,
+    status: 'gap',
+    missing: ['Latency/cost per tool', 'Quality score per output', 'Regression benchmark suite'],
+    upgrade: 'Ghi run metrics và benchmark các task chuẩn theo từng agent lane.',
+  },
+];
+
+export const AI_WORKFORCE_UPGRADE_BACKLOG: AIWorkforceBacklogItem[] = [
+  {
+    priority: 'P0',
+    title: 'Grounded context pack cho Memory/RAG/Knowledge Graph',
+    mode: 'background',
+    acceptance: ['Source id cho từng memory item', 'Contradiction flag', 'Confidence score hiển thị trong AI Factory'],
+  },
+  {
+    priority: 'P1',
+    title: 'Computer/browser/robot safety envelope',
+    mode: 'lab_only',
+    acceptance: ['Allowlist UI surface', 'Action replay evidence', 'Emergency stop contract'],
+  },
+  {
+    priority: 'P1',
+    title: 'Benchmark + observability suite',
+    mode: 'background',
+    acceptance: ['Latency/cost metrics', 'Quality score', 'Baseline regression tasks'],
+  },
+  {
+    priority: 'P2',
+    title: 'MCP manifest + connector health telemetry',
+    mode: 'human_review',
+    acceptance: ['Manifest schema', 'Credential scope', 'Tool health score'],
+  },
+];
+
 export const AI_WORKFORCE_METRICS = [
+  { label: 'Readiness grade', value: 'B-', detail: 'Đã có nền agent runtime, queue và safety; còn thiếu RAG source map và benchmark động.' },
   { label: 'Background-ready capabilities', value: '4/5', detail: 'Agent, memory, MCP/tool và software factory có thể chạy nền có kiểm soát.' },
   { label: 'Human checkpoint coverage', value: '100%', detail: 'Tác vụ ghi/xóa/gửi/merge/thiết bị ngoài luôn cần review hoặc audit.' },
-  { label: 'Core lanes', value: '3', detail: 'Mission Control, Knowledge Spine và Execution Layer.' },
-  { label: 'Runbook stages', value: '5', detail: 'Intake → Plan → Execute → Review → Ship/Learn.' },
+  { label: 'Gap rows tracked', value: `${AI_WORKFORCE_GAP_MATRIX.length}`, detail: 'Ma trận mới theo dõi achieved/partial/gap để ưu tiên nâng cấp.' },
 ];
