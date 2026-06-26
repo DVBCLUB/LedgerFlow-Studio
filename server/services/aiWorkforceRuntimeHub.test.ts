@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { resetAIRunMetricsForTest } from './aiBenchmarkObservability.ts';
 import { createEmergencyStopContract } from './automationSafetyEnvelope.ts';
+import { clearAIWorkforceOperationalLedgerForTest } from './aiWorkforceOperationalLedger.ts';
 import { clearAIWorkforceRuntimeStoreForTest, getAIWorkforceRuntimeStoreStats } from './aiWorkforceRuntimeStore.ts';
 import {
   buildRuntimeGroundedContext,
@@ -15,19 +16,24 @@ import {
 
 async function withRuntimeStore(t: any) {
   const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'ledgerflow-aiw-runtime-'));
-  const previous = process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
+  const previousRuntime = process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
+  const previousLedger = process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE;
   process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = path.join(directory, 'runtime.json');
+  process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE = path.join(directory, 'ledger.json');
   resetAIRunMetricsForTest();
   await clearAIWorkforceRuntimeStoreForTest();
+  await clearAIWorkforceOperationalLedgerForTest();
   t.after(async () => {
-    if (previous === undefined) delete process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
-    else process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = previous;
+    if (previousRuntime === undefined) delete process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
+    else process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = previousRuntime;
+    if (previousLedger === undefined) delete process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE;
+    else process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE = previousLedger;
     resetAIRunMetricsForTest();
     await fs.promises.rm(directory, { recursive: true, force: true });
   });
 }
 
-test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard, and MCP tool telemetry', async (t) => {
+test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard, MCP telemetry, and operational ledger', async (t) => {
   await withRuntimeStore(t);
 
   const context = await buildRuntimeGroundedContext({
@@ -69,6 +75,9 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard
   assert.ok(dashboard.tooling.summary.total >= 10);
   assert.ok(dashboard.tooling.manifests.some((manifest: any) => manifest.id === 'robot_move' && manifest.approval.required));
   assert.ok(dashboard.tooling.health.some((row: any) => row.toolId === 'robot_move'));
+  assert.ok(dashboard.ledger.graphStats.totalGraphs >= 1);
+  assert.ok(dashboard.ledger.auditStats.totalEvents >= 3);
+  assert.ok(dashboard.ledger.trendStats.totalSnapshots >= 1);
 
   const stats = await getAIWorkforceRuntimeStoreStats();
   assert.ok(stats.byType.context_pack >= 1);
