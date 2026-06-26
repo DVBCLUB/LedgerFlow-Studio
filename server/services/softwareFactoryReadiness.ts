@@ -107,7 +107,7 @@ export function scoreSoftwareFactoryReadiness(input: SoftwareFactoryReadinessInp
   const warnings = [...checkScore.warnings];
   const requiredApprovals: string[] = [];
 
-  let score = 40 + checkScore.score;
+  let score = 55 + checkScore.score;
 
   if (!input.changedFiles.length) blockers.push('No changed files were provided.');
   if (highRiskFiles.length) {
