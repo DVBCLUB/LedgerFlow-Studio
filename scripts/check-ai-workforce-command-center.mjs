@@ -15,6 +15,8 @@ const requiredFiles = [
   'server/services/automationSafetyEnvelope.test.ts',
   'server/services/softwareFactoryReadiness.ts',
   'server/services/softwareFactoryReadiness.test.ts',
+  'server/services/softwareFactoryPrControl.ts',
+  'server/services/softwareFactoryPrControl.test.ts',
   'server/services/mcpToolManifestRegistry.ts',
   'server/services/mcpToolManifestRegistry.test.ts',
   'server/services/aiWorkforceOperationalLedger.ts',
@@ -45,7 +47,9 @@ const requiredTokens = [
   'createSampleGroundedContextPack',
   'previewSampleAutomationSafety',
   'scoreSamplePRReadiness',
+  'buildSamplePRControlReport',
   'Live Runtime Hub',
+  'PR Control',
   'Gap Matrix',
   'Upgrade Backlog',
   'assessAIWorkforceReadiness',
@@ -59,6 +63,11 @@ const requiredTokens = [
   'createEmergencyStopContract',
   'scoreSoftwareFactoryReadiness',
   'assertSoftwareFactoryReady',
+  'buildSoftwareFactoryPRControlReport',
+  'assertPRControlMergeAllowed',
+  'reviewerChecklist',
+  'releaseNotesDraft',
+  'mergeGate',
   'buildMCPToolManifest',
   'exportMCPToolManifestCatalog',
   'validateMCPToolManifest',
@@ -78,11 +87,13 @@ const requiredTokens = [
   'buildRuntimeGroundedContext',
   'previewRuntimeAutomation',
   'scoreRuntimePRReadiness',
+  'buildRuntimePRControlReport',
   'getAIWorkforceRuntimeDashboard',
   '/api/ai-workforce/runtime',
   '/api/ai-workforce/context-pack',
   '/api/ai-workforce/safety-preview',
   '/api/ai-workforce/pr-readiness',
+  '/api/ai-workforce/pr-control',
   'Grounded Context Pack',
   'PR readiness',
   'safety envelope',
@@ -103,4 +114,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, runtime UI, MCP tooling, operational ledger, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, runtime UI, PR control, MCP tooling, operational ledger, upgrade services, and runtime hub contracts look healthy.');
