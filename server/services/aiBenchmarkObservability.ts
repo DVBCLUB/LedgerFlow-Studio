@@ -42,6 +42,7 @@ export interface AIObservabilitySummary {
 }
 
 const metrics: AIRunMetric[] = [];
+type AIRunMetricDraft = Omit<AIRunMetric, 'id' | 'createdAt'>;
 
 function round(value: number, digits = 3) {
   const factor = 10 ** digits;
@@ -55,11 +56,11 @@ function percentile(values: number[], p: number) {
   return sorted[index];
 }
 
-function makeId(metric: Omit<AIRunMetric, 'id' | 'createdAt'>, createdAt: string) {
+function makeId(metric: AIRunMetricDraft, createdAt: string) {
   return `ai_run_${metric.lane}_${metric.agentRole}_${createdAt}`.replace(/[^a-zA-Z0-9_]+/g, '_');
 }
 
-export function recordAIRunMetric(metric: Omit<AIRunMetric, 'id' | 'createdAt'> & { id?: string; createdAt?: string }): AIRunMetric {
+export function recordAIRunMetric(metric: AIRunMetricDraft & { id?: string; createdAt?: string }): AIRunMetric {
   if (metric.latencyMs < 0) throw new Error('latencyMs must be non-negative.');
   if (metric.qualityScore !== undefined && (metric.qualityScore < 0 || metric.qualityScore > 1)) {
     throw new Error('qualityScore must be between 0 and 1.');
@@ -156,7 +157,7 @@ export const AI_WORKFORCE_BASELINE_TASKS: AIBaselineTask[] = [
     id: 'automation-safety-smoke',
     lane: 'execution-layer',
     prompt: 'Validate robot/browser action safety.',
-    expectedSignals: ['allowlist', 'replay', 'emergency stop'],
+    expectedSignals: ['allowlist', 'replay', 'emergency-stop'],
     minQualityScore: 0.67,
   },
 ];
