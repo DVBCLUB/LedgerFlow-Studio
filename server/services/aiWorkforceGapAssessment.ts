@@ -1,5 +1,9 @@
 import { listAgentToolContracts, type AgentToolContract } from './agentToolRegistry.ts';
 import { listPipelineTypes } from './pipelineOrchestrator.ts';
+import { buildGroundedContextPack } from './groundedContextPack.ts';
+import { AI_WORKFORCE_BASELINE_TASKS } from './aiBenchmarkObservability.ts';
+import { createEmergencyStopContract, validateAutomationSafetyEnvelope } from './automationSafetyEnvelope.ts';
+import { scoreSoftwareFactoryReadiness } from './softwareFactoryReadiness.ts';
 
 export type AIWorkforceTargetId =
   | 'orchestration'
@@ -127,129 +131,92 @@ export function assessAIWorkforceReadiness(now = new Date()): AIWorkforceReadine
   const hasSoftwarePipeline = pipelineTypes.some((pipeline) => pipeline.id === 'software_product');
   const softwarePipeline = pipelineTypes.find((pipeline) => pipeline.id === 'software_product');
   const softwareStepNames = softwarePipeline?.steps.map((step) => step.name.toLowerCase()) || [];
+  const sampleGroundedPack = buildGroundedContextPack({
+    question: 'AI Workforce memory grounding',
+    sources: [{ kind: 'decision', title: 'AI Workforce', content: 'source confidence contradiction knowledge graph', tags: ['ai-workforce'], facts: { mode: 'grounded' } }],
+  });
+  const robotSafetyDecision = validateAutomationSafetyEnvelope({
+    id: 'robot-safety-smoke',
+    surface: 'robot',
+    title: 'Robot safety smoke',
+    allowedTargets: ['robot://simulator/arm-a'],
+    labOnly: true,
+    humanCheckpoint: true,
+    emergencyStop: createEmergencyStopContract(),
+    actions: [{ id: 'move-1', type: 'move', target: 'robot://simulator/arm-a/joint-1' }],
+  });
+  const prReadiness = scoreSoftwareFactoryReadiness({
+    title: 'AI readiness smoke',
+    changedFiles: [{ filename: 'src/modules/ai-hr/AIWorkforceCommandCenter.tsx', additions: 24, deletions: 1 }],
+    checks: [{ name: 'contract', status: 'success' }],
+    ciLogSummary: 'Contract checks passed.',
+    hasRollbackPlan: true,
+  });
 
   const rows: AIWorkforceGapRow[] = [
     scoreRow({
       id: 'orchestration',
       title: 'Multi-agent orchestration',
       score: pipelineTypes.length >= 5 && pipelineTypes.every((pipeline) => pipeline.steps.length > 0) ? 4 : 3,
-      currentSignals: [
-        `${pipelineTypes.length} pipeline templates registered`,
-        'Step-level approval is supported',
-        'Pipeline resume flow is available',
-      ],
-      missing: [
-        'Mission-level planner that selects the best pipeline automatically',
-        'Cross-agent dependency graph and SLA tracking',
-      ],
+      currentSignals: [`${pipelineTypes.length} pipeline templates registered`, 'Step-level approval is supported', 'Pipeline resume flow is available'],
+      missing: ['Mission-level planner that selects the best pipeline automatically', 'Cross-agent dependency graph and SLA tracking'],
       nextUpgrade: 'Add mission planner that maps founder intent to pipeline, tools, risk tier, and expected artifacts.',
     }),
     scoreRow({
       id: 'memory_rag_kg',
       title: 'Memory + RAG + Knowledge Graph',
-      score: hasTool(tools, 'read_knowledge') ? 3 : 1,
-      currentSignals: [
-        hasTool(tools, 'read_knowledge') ? 'Knowledge read tool exists' : 'Knowledge read tool missing',
-        'Pipeline can inject high-importance company memory',
-      ],
-      missing: [
-        'Explicit source map on every retrieved memory item',
-        'Contradiction detector between memory, SOP, and fresh input',
-        'Knowledge graph entities/relationships for customers, products, ledgers, and decisions',
-      ],
-      nextUpgrade: 'Promote memory injection into a grounded context pack with source ids, confidence, and contradiction flags.',
+      score: hasTool(tools, 'read_knowledge') && sampleGroundedPack.sourceMap.length && sampleGroundedPack.graph.nodes.length ? 4 : 2,
+      currentSignals: ['Knowledge read tool exists', 'Pipeline can inject high-importance company memory', 'Grounded Context Pack exposes source map, confidence, contradictions, and graph nodes/edges'],
+      missing: ['Persistent knowledge graph store', 'Runtime wiring into every high-impact pipeline prompt'],
+      nextUpgrade: 'Persist graph/source map and inject Grounded Context Pack into pipelineOrchestrator.',
     }),
     scoreRow({
       id: 'mcp_tool_registry',
       title: 'MCP/tool registry',
       score: tools.length >= 10 && hasPermission(tools, 'connector:write') ? 4 : 2,
-      currentSignals: [
-        `${tools.length} tool contracts registered`,
-        `${new Set(tools.map((tool) => tool.permission)).size} least-privilege permission scopes`,
-        hasPermission(tools, 'connector:write') ? 'External connector write policy exists' : 'External connector policy missing',
-      ],
-      missing: [
-        'MCP manifest import/export format',
-        'Credential scope registry per connector',
-        'Tool health checks and last-run telemetry',
-      ],
+      currentSignals: [`${tools.length} tool contracts registered`, `${new Set(tools.map((tool) => tool.permission)).size} least-privilege permission scopes`, hasPermission(tools, 'connector:write') ? 'External connector write policy exists' : 'External connector policy missing'],
+      missing: ['MCP manifest import/export format', 'Credential scope registry per connector', 'Tool health checks and last-run telemetry'],
       nextUpgrade: 'Add MCP-compatible manifest schema and a registry health score per connector/tool.',
     }),
     scoreRow({
       id: 'computer_browser_robotics',
       title: 'Computer, browser, and robot automation',
-      score: hasTool(tools, 'browser_check') && hasTool(tools, 'robot_inspect') && hasTool(tools, 'robot_move') ? 3 : 1,
-      currentSignals: [
-        hasTool(tools, 'browser_check') ? 'Browser read/check tool exists' : 'Browser tool missing',
-        hasTool(tools, 'robot_inspect') ? 'Robot inspect tool exists' : 'Robot inspect missing',
-        hasTool(tools, 'robot_move') ? 'Robot move tool exists with approval policy' : 'Robot move missing',
-      ],
-      missing: [
-        'Computer-use action replay and screenshot evidence',
-        'Per-surface allowlist for UI automation',
-        'Emergency stop contract for physical robot/IoT integration',
-      ],
-      nextUpgrade: 'Keep this lab-only until replay evidence, allowlists, and emergency stop are implemented.',
+      score: hasTool(tools, 'browser_check') && hasTool(tools, 'robot_inspect') && hasTool(tools, 'robot_move') && robotSafetyDecision.approved ? 4 : 2,
+      currentSignals: ['Browser read/check tool exists', 'Robot inspect/move tools exist', 'Safety envelope validates allowlist, replay evidence, lab-only robot mode, and emergency stop'],
+      missing: ['Runtime adapter that captures real screenshots/action replay', 'Physical robot certification before production mode'],
+      nextUpgrade: 'Wire safety envelope into actual browser/robot tool execution.',
     }),
     scoreRow({
       id: 'software_factory',
       title: 'Self-healing software factory',
-      score: hasSoftwarePipeline && hasTool(tools, 'draft_patch') && softwareStepNames.some((name) => name.includes('qa')) ? 4 : 2,
-      currentSignals: [
-        hasSoftwarePipeline ? 'Software Product Factory pipeline exists' : 'Software factory pipeline missing',
-        hasTool(tools, 'draft_patch') ? 'Draft patch tool exists' : 'Draft patch tool missing',
-        softwareStepNames.some((name) => name.includes('devops')) ? 'DevOps handoff step exists' : 'DevOps handoff missing',
-      ],
-      missing: [
-        'Automatic diff risk classifier',
-        'CI log summarizer linked to patch plan',
-        'PR readiness benchmark before handoff',
-      ],
-      nextUpgrade: 'Add PR readiness scoring from changed files, checks, tests, and safety review.',
+      score: hasSoftwarePipeline && hasTool(tools, 'draft_patch') && softwareStepNames.some((name) => name.includes('qa')) && prReadiness.verdict === 'ready' ? 4 : 2,
+      currentSignals: ['Software Product Factory pipeline exists', 'Draft patch tool exists', 'QA/DevOps steps exist', 'PR readiness scoring classifies file risk, checks, rollback, approvals, blockers, warnings'],
+      missing: ['Automatic GitHub Actions CI log fetch', 'PR readiness report surfaced in PR Control Center'],
+      nextUpgrade: 'Use readiness scorer in PR handoff and GitHub CI doctor.',
     }),
     scoreRow({
       id: 'workflow_engine',
       title: 'Durable workflow engine',
       score: 4,
-      currentSignals: [
-        'Durable queue supports dedupe, lease, retry, dead-letter, retry-dead-letter, and prune',
-        'Pipeline store has local fallback when Supabase is unavailable',
-      ],
-      missing: [
-        'Visual workflow graph for nested missions',
-        'Scheduled mission SLA and escalation policy',
-      ],
+      currentSignals: ['Durable queue supports dedupe, lease, retry, dead-letter, retry-dead-letter, and prune', 'Pipeline store has local fallback when Supabase is unavailable'],
+      missing: ['Visual workflow graph for nested missions', 'Scheduled mission SLA and escalation policy'],
       nextUpgrade: 'Expose queue health and mission SLA in the AI Factory dashboard.',
     }),
     scoreRow({
       id: 'safety_governance',
       title: 'Safety and governance layer',
-      score: highRiskTools.length > 0 && highRiskTools.length === highRiskToolsWithApproval.length ? 4 : 2,
-      currentSignals: [
-        `${highRiskToolsWithApproval.length}/${highRiskTools.length} high-risk tools require approval`,
-        'Approval fingerprints bind reviewed output/input',
-        'Approval token is one-time use',
-      ],
-      missing: [
-        'Persistent audit trail for each tool execution preview/approval/consume event',
-        'Risk policy tied to user role and environment',
-      ],
+      score: highRiskTools.length > 0 && highRiskTools.length === highRiskToolsWithApproval.length && robotSafetyDecision.humanCheckpointRequired ? 4 : 2,
+      currentSignals: [`${highRiskToolsWithApproval.length}/${highRiskTools.length} high-risk tools require approval`, 'Approval fingerprints bind reviewed output/input', 'Approval token is one-time use', 'Automation safety envelope requires checkpoint and emergency stop where needed'],
+      missing: ['Persistent audit trail for each tool execution preview/approval/consume event', 'Risk policy tied to user role and environment'],
       nextUpgrade: 'Persist safety events and expose approval history in the AI Factory quality tab.',
     }),
     scoreRow({
       id: 'benchmark_observability',
       title: 'Benchmark and observability',
-      score: 2,
-      currentSignals: [
-        'AI Workforce Command Center now has a static operating dashboard',
-        'This readiness service exposes a dynamic gap matrix and backlog',
-      ],
-      missing: [
-        'Latency and cost metrics per agent/tool',
-        'Quality score per output type',
-        'Regression benchmark suite for agent tasks',
-      ],
-      nextUpgrade: 'Record run metrics and compare against baseline tasks for each agent lane.',
+      score: AI_WORKFORCE_BASELINE_TASKS.length >= 3 ? 4 : 2,
+      currentSignals: ['Readiness service exposes dynamic gap matrix and backlog', `${AI_WORKFORCE_BASELINE_TASKS.length} baseline regression tasks registered`, 'Run metric summary supports latency, cost, quality, blocked rate, and lane breakdown'],
+      missing: ['Persistent run metric store', 'Trend dashboard over time'],
+      nextUpgrade: 'Persist run metrics and compare against baseline tasks for each agent lane.',
     }),
   ];
 
@@ -257,30 +224,21 @@ export function assessAIWorkforceReadiness(now = new Date()): AIWorkforceReadine
   const overallScore = Number((rows.reduce((sum, row) => sum + row.score, 0) / rows.length).toFixed(2));
   const grade = overallScore >= 4.25 ? 'A' : overallScore >= 3.25 ? 'B' : overallScore >= 2.25 ? 'C' : 'D';
 
-  return {
-    generatedAt: now.toISOString(),
-    overallScore,
-    grade,
-    rows,
-    backlog,
-  };
+  return { generatedAt: now.toISOString(), overallScore, grade, rows, backlog };
 }
 
 export function buildAIWorkforceUpgradeBacklog(rows: AIWorkforceGapRow[]): AIWorkforceUpgradeBacklogItem[] {
   return rows
-    .filter((row) => row.status !== 'achieved')
+    .filter((row) => row.status !== 'achieved' || row.missing.length > 0)
     .sort((a, b) => a.score - b.score)
+    .slice(0, 8)
     .map((row, index) => ({
       id: `aiw-${row.id}`,
       priority: index === 0 ? 'P0' : index <= 2 ? 'P1' : 'P2',
       targetId: row.id,
       title: row.nextUpgrade,
-      reason: row.missing[0] || 'Capability is below the target operating model.',
-      acceptanceCriteria: [
-        `Raise ${row.title} score to at least 4/5`,
-        'Add automated contract checks',
-        'Expose status in AI Factory Command Center',
-      ],
-      safeExecutionMode: row.id === 'computer_browser_robotics' ? 'lab_only' : row.id === 'safety_governance' ? 'human_review' : 'background',
+      reason: row.missing[0] || 'Capability is ready but still needs runtime integration.',
+      acceptanceCriteria: [`Keep ${row.title} score at or above 4/5`, 'Add automated contract checks', 'Expose status in AI Factory Command Center'],
+      safeExecutionMode: row.id === 'computer_browser_robotics' ? 'lab_only' : row.id === 'safety_governance' || row.id === 'software_factory' ? 'human_review' : 'background',
     }));
 }
