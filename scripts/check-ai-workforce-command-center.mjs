@@ -13,6 +13,9 @@ const requiredFiles = [
   'server/services/automationSafetyEnvelope.test.ts',
   'server/services/softwareFactoryReadiness.ts',
   'server/services/softwareFactoryReadiness.test.ts',
+  'server/services/aiWorkforceRuntimeStore.ts',
+  'server/services/aiWorkforceRuntimeHub.ts',
+  'server/services/aiWorkforceRuntimeHub.test.ts',
   'scripts/patch-ai-workforce-command-center.mjs',
 ];
 
@@ -44,10 +47,20 @@ const requiredTokens = [
   'createEmergencyStopContract',
   'scoreSoftwareFactoryReadiness',
   'assertSoftwareFactoryReady',
+  'appendAIWorkforceRuntimeRecord',
+  'buildRuntimeGroundedContext',
+  'previewRuntimeAutomation',
+  'scoreRuntimePRReadiness',
+  'getAIWorkforceRuntimeDashboard',
+  '/api/ai-workforce/runtime',
+  '/api/ai-workforce/context-pack',
+  '/api/ai-workforce/safety-preview',
+  '/api/ai-workforce/pr-readiness',
   'Grounded Context Pack',
   'PR readiness',
   'safety envelope',
   'AI Workforce overview slot',
+  'AI Workforce Runtime Hub route block',
 ];
 
 for (const token of requiredTokens) {
@@ -62,4 +75,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center and upgrade contracts look healthy.');
+console.log('AI Workforce Command Center, upgrade services, and runtime hub contracts look healthy.');
