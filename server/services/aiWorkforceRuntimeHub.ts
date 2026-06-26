@@ -17,6 +17,7 @@ import {
   summarizeAIObservability,
 } from './aiBenchmarkObservability.ts';
 import { assessAIWorkforceReadiness } from './aiWorkforceGapAssessment.ts';
+import { exportMCPToolManifestCatalog, type MCPToolRunSignal } from './mcpToolManifestRegistry.ts';
 import {
   appendAIWorkforceRuntimeRecord,
   getAIWorkforceRuntimeStoreStats,
@@ -25,6 +26,18 @@ import {
 
 export interface RuntimeGroundedContextOptions extends GroundedContextRequest {
   highImpact?: boolean;
+}
+
+function toMCPToolRunSignals(): MCPToolRunSignal[] {
+  return listAIRunMetrics()
+    .filter((metric) => metric.toolId)
+    .map((metric) => ({
+      toolId: metric.toolId!,
+      ok: metric.status === 'success' || metric.status === 'needs_review',
+      latencyMs: metric.latencyMs,
+      createdAt: metric.createdAt,
+      error: metric.status === 'failed' || metric.status === 'blocked' ? metric.status : undefined,
+    }));
 }
 
 export async function buildRuntimeGroundedContext(options: RuntimeGroundedContextOptions) {
@@ -48,7 +61,7 @@ export async function buildRuntimeGroundedContext(options: RuntimeGroundedContex
   recordAIRunMetric({
     lane: 'knowledge-spine',
     agentRole: 'Memory Agent',
-    toolId: 'grounded_context_pack',
+    toolId: 'read_knowledge',
     status: guard.ok ? 'success' : 'blocked',
     latencyMs: Date.now() - startedAt,
     qualityScore: pack.confidence,
@@ -69,7 +82,7 @@ export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
   recordAIRunMetric({
     lane: 'execution-layer',
     agentRole: 'Automation Safety Agent',
-    toolId: `${plan.surface}_safety_envelope`,
+    toolId: plan.surface === 'robot' ? 'robot_move' : plan.surface === 'browser' ? 'browser_check' : 'terminal_check',
     status: decision.approved ? (decision.humanCheckpointRequired ? 'needs_review' : 'success') : 'blocked',
     latencyMs: Date.now() - startedAt,
     qualityScore: decision.approved ? 0.95 : 0.35,
@@ -90,7 +103,7 @@ export async function scoreRuntimePRReadiness(input: SoftwareFactoryReadinessInp
   recordAIRunMetric({
     lane: 'mission-control',
     agentRole: 'Software Factory Agent',
-    toolId: 'pr_readiness_scorer',
+    toolId: 'draft_patch',
     status: report.verdict === 'ready' ? 'success' : report.verdict === 'needs_review' ? 'needs_review' : 'blocked',
     latencyMs: Date.now() - startedAt,
     qualityScore: report.score / 100,
@@ -100,15 +113,21 @@ export async function scoreRuntimePRReadiness(input: SoftwareFactoryReadinessInp
   return report;
 }
 
+export function getAIWorkforceToolManifestCatalog() {
+  return exportMCPToolManifestCatalog(toMCPToolRunSignals());
+}
+
 export async function getAIWorkforceRuntimeDashboard() {
   const readiness = assessAIWorkforceReadiness();
   const observability = summarizeAIObservability(listAIRunMetrics());
+  const tooling = getAIWorkforceToolManifestCatalog();
   const storeStats = await getAIWorkforceRuntimeStoreStats();
   const recentRecords = await listAIWorkforceRuntimeRecords({ limit: 10 });
   const dashboard = {
     generatedAt: new Date().toISOString(),
     readiness,
     observability,
+    tooling,
     storeStats,
     recentRecords,
   };
@@ -120,6 +139,7 @@ export async function getAIWorkforceRuntimeDashboard() {
       readinessGrade: readiness.grade,
       readinessScore: readiness.overallScore,
       observability,
+      toolingSummary: tooling.summary,
       storeStats,
     },
   });
