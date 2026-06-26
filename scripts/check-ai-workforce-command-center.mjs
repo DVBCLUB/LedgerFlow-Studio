@@ -44,7 +44,9 @@ const requiredTokens = [
   'createEmergencyStopContract',
   'scoreSoftwareFactoryReadiness',
   'assertSoftwareFactoryReady',
-  'AgentAssemblyBuilder lazy import',
+  'Grounded Context Pack',
+  'PR readiness scoring',
+  'safety envelope',
   'AI Workforce overview slot',
 ];
 
