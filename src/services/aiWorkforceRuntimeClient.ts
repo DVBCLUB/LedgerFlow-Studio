@@ -86,6 +86,33 @@ export async function scoreSamplePRReadiness() {
   });
 }
 
+export async function buildSamplePRControlReport() {
+  return requestAIWorkforce<{ ok: true; report: any }>('/api/ai-workforce/pr-control', {
+    method: 'POST',
+    body: JSON.stringify({
+      id: 'ui-pr-control-smoke',
+      title: 'AI Workforce PR Control smoke',
+      url: 'https://github.com/DVBCLUB/LedgerFlow-Studio/pull/42',
+      author: 'DVBCLUB',
+      baseBranch: 'main',
+      headBranch: 'ai-workforce-implementation',
+      changedFiles: [
+        { filename: 'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx', additions: 80, deletions: 2 },
+        { filename: 'server/services/softwareFactoryPrControl.ts', additions: 140, deletions: 0 },
+      ],
+      checks: [
+        { name: 'npm test', status: 'success' },
+        { name: 'contract check', status: 'success' },
+      ],
+      ciLogSummary: 'PR Control smoke checks passed.',
+      hasRollbackPlan: true,
+      hasHumanApproval: true,
+      requestedReviewers: ['founder'],
+      labels: ['runtime', 'software-factory'],
+    }),
+  });
+}
+
 export async function checkAIWorkforceRuntimeHealth(): Promise<AIWorkforceRuntimeHealth> {
   try {
     await fetchAIWorkforceRuntimeDashboard();
