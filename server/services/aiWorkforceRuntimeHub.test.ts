@@ -9,6 +9,7 @@ import { clearAIWorkforceOperationalLedgerForTest } from './aiWorkforceOperation
 import { clearAIWorkforceRuntimeStoreForTest, getAIWorkforceRuntimeStoreStats } from './aiWorkforceRuntimeStore.ts';
 import {
   buildRuntimeGroundedContext,
+  buildRuntimePRControlReport,
   getAIWorkforceRuntimeDashboard,
   previewRuntimeAutomation,
   scoreRuntimePRReadiness,
@@ -33,7 +34,7 @@ async function withRuntimeStore(t: any) {
   });
 }
 
-test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard, MCP telemetry, and operational ledger', async (t) => {
+test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR control, dashboard, MCP telemetry, and operational ledger', async (t) => {
   await withRuntimeStore(t);
 
   const context = await buildRuntimeGroundedContext({
@@ -68,21 +69,37 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard
   });
   assert.equal(readiness.verdict, 'ready');
 
+  const prControl = await buildRuntimePRControlReport({
+    id: '42',
+    title: 'Runtime Hub PR Control smoke',
+    baseBranch: 'main',
+    headBranch: 'ai-workforce-implementation',
+    changedFiles: [{ filename: 'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx', additions: 24, deletions: 1 }],
+    checks: [{ name: 'npm test', status: 'success' }],
+    ciLogSummary: 'All checks passed.',
+    hasRollbackPlan: true,
+    hasHumanApproval: true,
+    requestedReviewers: ['founder'],
+    labels: ['runtime'],
+  });
+  assert.equal(prControl.mergeGate.allowed, true);
+  assert.equal(prControl.mergeGate.mode, 'auto_merge_ready');
+
   const dashboard = await getAIWorkforceRuntimeDashboard();
-  assert.ok(dashboard.observability.runs >= 3);
-  assert.ok(dashboard.storeStats.total >= 3);
+  assert.ok(dashboard.observability.runs >= 4);
+  assert.ok(dashboard.storeStats.total >= 4);
   assert.equal(dashboard.readiness.rows.length, 8);
   assert.ok(dashboard.tooling.summary.total >= 10);
   assert.ok(dashboard.tooling.manifests.some((manifest: any) => manifest.id === 'robot_move' && manifest.approval.required));
   assert.ok(dashboard.tooling.health.some((row: any) => row.toolId === 'robot_move'));
   assert.ok(dashboard.ledger.graphStats.totalGraphs >= 1);
-  assert.ok(dashboard.ledger.auditStats.totalEvents >= 3);
+  assert.ok(dashboard.ledger.auditStats.totalEvents >= 4);
   assert.ok(dashboard.ledger.trendStats.totalSnapshots >= 1);
 
   const stats = await getAIWorkforceRuntimeStoreStats();
   assert.ok(stats.byType.context_pack >= 1);
   assert.ok(stats.byType.safety_decision >= 1);
-  assert.ok(stats.byType.pr_readiness >= 1);
+  assert.ok(stats.byType.pr_readiness >= 2);
   assert.ok(stats.byType.runtime_snapshot >= 1);
 });
 
