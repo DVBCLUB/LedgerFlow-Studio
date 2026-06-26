@@ -16,7 +16,6 @@ import {
   Zap,
 } from 'lucide-react';
 import {
-  AI_WORKFORCE_BACKLOG,
   AI_WORKFORCE_CAPABILITIES,
   AI_WORKFORCE_GAP_MATRIX,
   AI_WORKFORCE_LANES,
