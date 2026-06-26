@@ -124,9 +124,22 @@ export function validateMCPToolManifest(manifest: MCPToolManifest) {
   if (manifest.execution === 'connector' && manifest.credentialScopes.every((scope) => !scope.required)) {
     errors.push('Connector tools require at least one required credential scope.');
   }
-  const fingerprint = manifest.fingerprint;
-  const { fingerprint: _ignored, ...withoutFingerprint } = manifest;
-  if (fingerprint !== stableFingerprint(withoutFingerprint)) errors.push('Manifest fingerprint mismatch.');
+  const manifestFingerprint = manifest.fingerprint;
+  const withoutFingerprint: Omit<MCPToolManifest, 'fingerprint'> = {
+    schemaVersion: manifest.schemaVersion,
+    id: manifest.id,
+    name: manifest.name,
+    description: manifest.description,
+    version: manifest.version,
+    permission: manifest.permission,
+    risk: manifest.risk,
+    execution: manifest.execution,
+    approval: manifest.approval,
+    runtime: manifest.runtime,
+    credentialScopes: manifest.credentialScopes,
+    healthCheck: manifest.healthCheck,
+  };
+  if (manifestFingerprint !== stableFingerprint(withoutFingerprint)) errors.push('Manifest fingerprint mismatch.');
   return { ok: errors.length === 0, errors };
 }
 
