@@ -27,7 +27,7 @@ async function withRuntimeStore(t: any) {
   });
 }
 
-test('AI Workforce Runtime Hub persists context, safety, PR readiness, and dashboard records', async (t) => {
+test('AI Workforce Runtime Hub persists context, safety, PR readiness, dashboard, and MCP tool telemetry', async (t) => {
   await withRuntimeStore(t);
 
   const context = await buildRuntimeGroundedContext({
@@ -66,6 +66,9 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, and dashb
   assert.ok(dashboard.observability.runs >= 3);
   assert.ok(dashboard.storeStats.total >= 3);
   assert.equal(dashboard.readiness.rows.length, 8);
+  assert.ok(dashboard.tooling.summary.total >= 10);
+  assert.ok(dashboard.tooling.manifests.some((manifest: any) => manifest.id === 'robot_move' && manifest.approval.required));
+  assert.ok(dashboard.tooling.health.some((row: any) => row.toolId === 'robot_move'));
 
   const stats = await getAIWorkforceRuntimeStoreStats();
   assert.ok(stats.byType.context_pack >= 1);
