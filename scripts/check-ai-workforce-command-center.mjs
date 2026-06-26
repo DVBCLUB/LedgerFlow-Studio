@@ -45,7 +45,7 @@ const requiredTokens = [
   'scoreSoftwareFactoryReadiness',
   'assertSoftwareFactoryReady',
   'Grounded Context Pack',
-  'PR readiness scoring',
+  'PR readiness',
   'safety envelope',
   'AI Workforce overview slot',
 ];
