@@ -20,7 +20,7 @@ test('software factory readiness marks safe PR handoff as ready', () => {
   assert.equal(assertSoftwareFactoryReady(report), true);
 });
 
-test('software factory readiness blocks risky PR without approval', () => {
+test('software factory readiness blocks risky PR without scoped approvals', () => {
   const report = scoreSoftwareFactoryReadiness({
     title: 'Change auth service and migration',
     changedFiles: [
@@ -37,8 +37,11 @@ test('software factory readiness blocks risky PR without approval', () => {
   });
 
   assert.equal(report.verdict, 'blocked');
-  assert.ok(report.requiredApprovals.includes('Security review'));
-  assert.ok(report.requiredApprovals.includes('Data/model migration review'));
+  assert.ok(report.requiredApprovals.includes('technical-owner'));
+  assert.ok(report.requiredApprovals.includes('security'));
+  assert.ok(report.requiredApprovals.includes('data-owner'));
   assert.ok(report.blockers.some((blocker) => blocker.includes('Required check failed')));
+  assert.ok(report.blockers.some((blocker) => blocker.includes('Security approval')));
+  assert.ok(report.blockers.some((blocker) => blocker.includes('Data-owner approval')));
   assert.throws(() => assertSoftwareFactoryReady(report), /not ready/);
 });
