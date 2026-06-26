@@ -1,6 +1,7 @@
 import React from 'react';
-import { Activity, AlertTriangle, Bot, CheckCircle2, Database, Gauge, Loader2, PlayCircle, ShieldCheck, WifiOff } from 'lucide-react';
+import { Activity, AlertTriangle, Bot, CheckCircle2, Database, Gauge, GitBranch, Loader2, PlayCircle, ShieldCheck, WifiOff } from 'lucide-react';
 import {
+  buildSamplePRControlReport,
   createSampleGroundedContextPack,
   fetchAIWorkforceRuntimeDashboard,
   previewSampleAutomationSafety,
@@ -10,7 +11,7 @@ import {
 const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-left shadow-xl shadow-slate-950/20';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 
-type RuntimeAction = 'dashboard' | 'context' | 'safety' | 'readiness';
+type RuntimeAction = 'dashboard' | 'context' | 'safety' | 'readiness' | 'pr-control';
 
 function MiniMetric({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
   return (
@@ -64,7 +65,9 @@ export default function AIWorkforceRuntimePanel() {
           ? await previewSampleAutomationSafety()
           : action === 'readiness'
             ? await scoreSamplePRReadiness()
-            : await fetchAIWorkforceRuntimeDashboard();
+            : action === 'pr-control'
+              ? await buildSamplePRControlReport()
+              : await fetchAIWorkforceRuntimeDashboard();
       setLastResult({ type: action, response });
       const refreshed = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(refreshed.dashboard);
@@ -93,7 +96,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, xem MCP tool health và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, chạy PR Control, xem MCP tool health và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -119,7 +122,7 @@ export default function AIWorkforceRuntimePanel() {
         <MiniMetric label="Graph nodes" value={ledger?.graphStats?.totalNodes ?? '—'} detail="Knowledge graph persisted" />
       </div>
 
-      <div className="mt-5 grid gap-3 lg:grid-cols-3">
+      <div className="mt-5 grid gap-3 lg:grid-cols-4">
         <button className={buttonClass} onClick={() => runAction('context')} disabled={Boolean(loading)}>
           {loading === 'context' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
           Build context pack
@@ -131,6 +134,10 @@ export default function AIWorkforceRuntimePanel() {
         <button className={buttonClass} onClick={() => runAction('readiness')} disabled={Boolean(loading)}>
           {loading === 'readiness' ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}
           Score PR readiness
+        </button>
+        <button className={buttonClass} onClick={() => runAction('pr-control')} disabled={Boolean(loading)}>
+          {loading === 'pr-control' ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+          PR Control
         </button>
       </div>
 
