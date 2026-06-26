@@ -24,6 +24,7 @@ function replaceOnce(source, search, replacement, label) {
 
 const rendererPath = path.resolve('src/app/WorkspaceRenderer.tsx');
 const daemonPath = path.resolve('server/assistant-daemon.ts');
+const commandCenterPath = path.resolve('src/modules/ai-hr/AIWorkforceCommandCenter.tsx');
 
 const rendererChanged = patchFile(rendererPath, (initialSource) => {
   let source = initialSource;
@@ -54,6 +55,26 @@ const rendererChanged = patchFile(rendererPath, (initialSource) => {
     "            {currentSubTabId === 'labs' && (\n              <div className=\"space-y-6\">\n                <PythonSandbox />",
     "            {currentSubTabId === 'labs' && (\n              <div className=\"space-y-6\">\n                <AIWorkforceCommandCenter />\n                <PythonSandbox />",
     'AI Workforce labs slot',
+  );
+
+  return source;
+});
+
+const commandCenterChanged = patchFile(commandCenterPath, (initialSource) => {
+  let source = initialSource;
+
+  source = replaceOnce(
+    source,
+    "} from '../../data/aiWorkforceCommandCenter';",
+    "} from '../../data/aiWorkforceCommandCenter';\nimport AIWorkforceRuntimePanel from './AIWorkforceRuntimePanel';",
+    'AI Workforce Runtime Panel import',
+  );
+
+  source = replaceOnce(
+    source,
+    "      <ShellCard className=\"border-amber-500/20\">",
+    "      <AIWorkforceRuntimePanel />\n\n      <ShellCard className=\"border-amber-500/20\">",
+    'AI Workforce Runtime Panel slot',
   );
 
   return source;
@@ -111,6 +132,9 @@ app.post("/api/ai-workforce/pr-readiness", async (req: Request, res: Response) =
 
 if (rendererChanged) console.log('AI Workforce Command Center patched into WorkspaceRenderer.');
 else console.log('AI Workforce Command Center patch already applied.');
+
+if (commandCenterChanged) console.log('AI Workforce Runtime Panel patched into Command Center.');
+else console.log('AI Workforce Runtime Panel already applied.');
 
 if (daemonChanged) console.log('AI Workforce Runtime Hub routes patched into assistant-daemon.');
 else console.log('AI Workforce Runtime Hub routes already applied.');
