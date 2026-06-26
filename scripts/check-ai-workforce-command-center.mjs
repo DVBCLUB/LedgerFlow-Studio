@@ -17,6 +17,8 @@ const requiredFiles = [
   'server/services/softwareFactoryReadiness.test.ts',
   'server/services/mcpToolManifestRegistry.ts',
   'server/services/mcpToolManifestRegistry.test.ts',
+  'server/services/aiWorkforceOperationalLedger.ts',
+  'server/services/aiWorkforceOperationalLedger.test.ts',
   'server/services/aiWorkforceRuntimeStore.ts',
   'server/services/aiWorkforceRuntimeHub.ts',
   'server/services/aiWorkforceRuntimeHub.test.ts',
@@ -64,6 +66,14 @@ const requiredTokens = [
   'credentialScopes',
   'fingerprint',
   'tooling',
+  'persistKnowledgeGraphFromContextPack',
+  'appendAIWorkforceAuditEvent',
+  'appendAIWorkforceTrendSnapshot',
+  'getAIWorkforceOperationalLedgerDashboard',
+  'auditStats',
+  'trendStats',
+  'graphStats',
+  'ledger',
   'appendAIWorkforceRuntimeRecord',
   'buildRuntimeGroundedContext',
   'previewRuntimeAutomation',
@@ -93,4 +103,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, runtime UI, MCP tooling, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, runtime UI, MCP tooling, operational ledger, upgrade services, and runtime hub contracts look healthy.');
