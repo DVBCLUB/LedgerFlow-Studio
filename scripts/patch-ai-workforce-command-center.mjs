@@ -83,8 +83,13 @@ function ensureRuntimeHubRoutes(source) {
 const rendererPath = path.resolve('src/app/WorkspaceRenderer.tsx');
 const daemonPath = path.resolve('server/assistant-daemon.ts');
 const commandCenterPath = path.resolve('src/modules/ai-hr/AIWorkforceCommandCenter.tsx');
+const operationsCenterPath = path.resolve('src/modules/ai-hr/AIOperationsCenter.tsx');
 
-const rendererChanged = patchFile(rendererPath, (initialSource) => {
+const operationsCenterSource = fs.existsSync(operationsCenterPath) ? fs.readFileSync(operationsCenterPath, 'utf8') : '';
+const hasDirectCommandCenter = operationsCenterSource.includes("import AIWorkforceCommandCenter from './AIWorkforceCommandCenter';") && operationsCenterSource.includes('<AIWorkforceCommandCenter />');
+const hasDirectRuntimePanel = operationsCenterSource.includes("import AIWorkforceRuntimePanel from './AIWorkforceRuntimePanel';") && operationsCenterSource.includes('<AIWorkforceRuntimePanel />');
+
+const rendererChanged = hasDirectCommandCenter ? false : patchFile(rendererPath, (initialSource) => {
   let source = initialSource;
 
   source = replaceOnce(
@@ -118,7 +123,7 @@ const rendererChanged = patchFile(rendererPath, (initialSource) => {
   return source;
 });
 
-const commandCenterChanged = patchFile(commandCenterPath, (initialSource) => {
+const commandCenterChanged = hasDirectRuntimePanel ? false : patchFile(commandCenterPath, (initialSource) => {
   let source = initialSource;
 
   source = replaceOnce(
@@ -145,10 +150,12 @@ const daemonChanged = patchFile(daemonPath, (initialSource) => {
   return source;
 });
 
-if (rendererChanged) console.log('AI Workforce Command Center patched into WorkspaceRenderer.');
+if (hasDirectCommandCenter) console.log('AI Workforce Command Center is directly mounted in AIOperationsCenter.');
+else if (rendererChanged) console.log('AI Workforce Command Center patched into WorkspaceRenderer.');
 else console.log('AI Workforce Command Center patch already applied.');
 
-if (commandCenterChanged) console.log('AI Workforce Runtime Panel patched into Command Center.');
+if (hasDirectRuntimePanel) console.log('AI Workforce Runtime Panel is directly mounted in AIOperationsCenter.');
+else if (commandCenterChanged) console.log('AI Workforce Runtime Panel patched into Command Center.');
 else console.log('AI Workforce Runtime Panel already applied.');
 
 if (daemonChanged) console.log('AI Workforce Runtime Hub routes patched into assistant-daemon.');
