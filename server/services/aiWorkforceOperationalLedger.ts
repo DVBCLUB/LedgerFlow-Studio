@@ -10,6 +10,7 @@ export type AIWorkforceAuditAction =
   | 'safety_previewed'
   | 'pr_readiness_scored'
   | 'github_pr_control_scored'
+  | 'mission_planned'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
 
