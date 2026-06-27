@@ -38,11 +38,35 @@ export interface SQLiteReadyLocalStoreOptions<State extends Record<string, unkno
   serializeState?: (state: State) => unknown;
 }
 
+export interface ConfiguredAIWorkforceLocalStoreOptions<State extends Record<string, unknown>> extends JsonFileLocalStoreOptions<State> {
+  key: string;
+  driverName?: AIWorkforceLocalStoreDriverName;
+  sqliteReadyEngine?: SQLiteReadyLocalStoreEngine;
+}
+
+export interface AIWorkforceLocalStoreSnapshot<State extends Record<string, unknown>> {
+  version: 1;
+  exportedAt: string;
+  driver: AIWorkforceLocalStoreDriverName;
+  file: string;
+  state: State;
+}
+
+export interface AIWorkforceLocalStoreMigrationPlan {
+  fromDriver: AIWorkforceLocalStoreDriverName;
+  toDriver: AIWorkforceLocalStoreDriverName;
+  requiresExternalEngine: boolean;
+  steps: string[];
+}
+
 export interface AIWorkforceLocalStore<State extends Record<string, unknown>> {
   driver: AIWorkforceLocalStoreDriver<State>;
   read(): Promise<State>;
   mutate<Result>(mutator: (state: State) => Result | Promise<Result>): Promise<Result>;
   clear(): Promise<void>;
+  exportSnapshot(): Promise<AIWorkforceLocalStoreSnapshot<State>>;
+  importSnapshot(snapshot: AIWorkforceLocalStoreSnapshot<State> | State): Promise<State>;
+  migrationPlan(targetDriver: AIWorkforceLocalStoreDriverName): AIWorkforceLocalStoreMigrationPlan;
   stats(): Promise<{
     driver: string;
     file: string;
@@ -58,6 +82,34 @@ function safeJsonObject(value: unknown): Record<string, unknown> {
 
 function defaultNormalize<State extends Record<string, unknown>>(emptyState: () => State) {
   return (parsed: unknown) => ({ ...emptyState(), ...safeJsonObject(parsed) }) as State;
+}
+
+function isSnapshot<State extends Record<string, unknown>>(value: AIWorkforceLocalStoreSnapshot<State> | State): value is AIWorkforceLocalStoreSnapshot<State> {
+  return Boolean(value && typeof value === 'object' && (value as AIWorkforceLocalStoreSnapshot<State>).version === 1 && (value as AIWorkforceLocalStoreSnapshot<State>).state);
+}
+
+export function resolveAIWorkforceLocalStoreDriverName(value = process.env.AI_WORKFORCE_STORAGE_DRIVER): AIWorkforceLocalStoreDriverName {
+  if (!value || value === 'json' || value === 'json-file') return 'json-file';
+  if (value === 'sqlite' || value === 'sqlite-ready') return 'sqlite-ready';
+  throw new Error(`Unsupported AI Workforce storage driver: ${value}. Expected json-file or sqlite-ready.`);
+}
+
+export function buildAIWorkforceLocalStoreMigrationPlan(fromDriver: AIWorkforceLocalStoreDriverName, toDriver: AIWorkforceLocalStoreDriverName): AIWorkforceLocalStoreMigrationPlan {
+  const sameDriver = fromDriver === toDriver;
+  return {
+    fromDriver,
+    toDriver,
+    requiresExternalEngine: toDriver === 'sqlite-ready',
+    steps: sameDriver
+      ? ['No migration is required because source and target storage drivers match.']
+      : [
+        'Export a versioned AIWorkforceLocalStoreSnapshot from the source store.',
+        'Validate the snapshot version and normalized state shape.',
+        toDriver === 'sqlite-ready' ? 'Initialize the SQLite/SQLCipher engine and ensure schema exists.' : 'Initialize the JSON file driver path.',
+        'Import the snapshot state into the target store through the same local-first facade.',
+        'Run runtime dashboard smoke checks and compare storage stats before switching traffic.',
+      ],
+  };
 }
 
 function createQueuedLocalStore<State extends Record<string, unknown>>(driver: AIWorkforceLocalStoreDriver<State>): AIWorkforceLocalStore<State> {
@@ -86,6 +138,26 @@ function createQueuedLocalStore<State extends Record<string, unknown>>(driver: A
     async clear() {
       await saveQueue.catch(() => undefined);
       await driver.clear();
+    },
+    async exportSnapshot() {
+      await saveQueue.catch(() => undefined);
+      return {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        driver: driver.name,
+        file: driver.path(),
+        state: await driver.read(),
+      };
+    },
+    importSnapshot(snapshot: AIWorkforceLocalStoreSnapshot<State> | State) {
+      return queued(async () => {
+        const state = isSnapshot(snapshot) ? snapshot.state : snapshot;
+        await driver.write(state);
+        return state;
+      });
+    },
+    migrationPlan(targetDriver: AIWorkforceLocalStoreDriverName) {
+      return buildAIWorkforceLocalStoreMigrationPlan(driver.name, targetDriver);
     },
     async stats() {
       await saveQueue.catch(() => undefined);
@@ -190,4 +262,19 @@ export function createSQLiteReadyLocalStore<State extends Record<string, unknown
   };
 
   return createQueuedLocalStore(driver);
+}
+
+export function createConfiguredAIWorkforceLocalStore<State extends Record<string, unknown>>(options: ConfiguredAIWorkforceLocalStoreOptions<State>): AIWorkforceLocalStore<State> {
+  const driverName = options.driverName || resolveAIWorkforceLocalStoreDriverName();
+  if (driverName === 'json-file') return createJsonFileLocalStore(options);
+  if (!options.sqliteReadyEngine) {
+    throw new Error('AI_WORKFORCE_STORAGE_DRIVER=sqlite-ready requires a SQLiteReadyLocalStoreEngine.');
+  }
+  return createSQLiteReadyLocalStore({
+    key: options.key,
+    engine: options.sqliteReadyEngine,
+    emptyState: options.emptyState,
+    normalizeState: options.normalizeState,
+    serializeState: options.serializeState,
+  });
 }
