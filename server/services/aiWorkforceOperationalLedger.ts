@@ -1,8 +1,7 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { createHash } from 'node:crypto';
 import type { GroundedContextPack, KnowledgeGraphEdge, KnowledgeGraphNode } from './groundedContextPack.ts';
 import type { AIObservabilitySummary } from './aiBenchmarkObservability.ts';
+import { createJsonFileLocalStore } from './aiWorkforceLocalStore.ts';
 
 export type AIWorkforceAuditSeverity = 'info' | 'warning' | 'critical';
 export type AIWorkforceAuditAction =
@@ -10,6 +9,7 @@ export type AIWorkforceAuditAction =
   | 'context_pack_blocked'
   | 'safety_previewed'
   | 'pr_readiness_scored'
+  | 'github_pr_control_scored'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
 
@@ -52,16 +52,10 @@ export interface AIWorkforceTrendSnapshot {
   createdAt: string;
 }
 
-interface AIWorkforceOperationalLedgerStore {
+interface AIWorkforceOperationalLedgerStore extends Record<string, unknown> {
   graphs: Record<string, AIWorkforceGraphRecord>;
   auditEvents: Record<string, AIWorkforceAuditEvent>;
   trendSnapshots: Record<string, AIWorkforceTrendSnapshot>;
-}
-
-let saveQueue = Promise.resolve();
-
-function getLedgerFile() {
-  return path.resolve(process.cwd(), process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE || 'ai_workforce_operational_ledger.local.json');
 }
 
 function stableId(prefix: string, value: unknown) {
@@ -72,37 +66,18 @@ function emptyStore(): AIWorkforceOperationalLedgerStore {
   return { graphs: {}, auditEvents: {}, trendSnapshots: {} };
 }
 
-async function readStore(): Promise<AIWorkforceOperationalLedgerStore> {
-  try {
-    const parsed = JSON.parse(await fs.promises.readFile(getLedgerFile(), 'utf8'));
+const ledgerStore = createJsonFileLocalStore<AIWorkforceOperationalLedgerStore>({
+  filePath: () => process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE || 'ai_workforce_operational_ledger.local.json',
+  emptyState: emptyStore,
+  normalizeState: (parsed) => {
+    const candidate = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Partial<AIWorkforceOperationalLedgerStore> : {};
     return {
-      graphs: parsed?.graphs && typeof parsed.graphs === 'object' ? parsed.graphs : {},
-      auditEvents: parsed?.auditEvents && typeof parsed.auditEvents === 'object' ? parsed.auditEvents : {},
-      trendSnapshots: parsed?.trendSnapshots && typeof parsed.trendSnapshots === 'object' ? parsed.trendSnapshots : {},
+      graphs: candidate.graphs && typeof candidate.graphs === 'object' ? candidate.graphs : {},
+      auditEvents: candidate.auditEvents && typeof candidate.auditEvents === 'object' ? candidate.auditEvents : {},
+      trendSnapshots: candidate.trendSnapshots && typeof candidate.trendSnapshots === 'object' ? candidate.trendSnapshots : {},
     };
-  } catch (error: any) {
-    if (error?.code === 'ENOENT') return emptyStore();
-    throw error;
-  }
-}
-
-async function writeStore(store: AIWorkforceOperationalLedgerStore) {
-  const file = getLedgerFile();
-  await fs.promises.mkdir(path.dirname(file), { recursive: true });
-  const tempFile = `${file}.${process.pid}.${Date.now()}.tmp`;
-  try {
-    await fs.promises.writeFile(tempFile, JSON.stringify(store, null, 2), 'utf8');
-    await fs.promises.rename(tempFile, file);
-  } finally {
-    await fs.promises.rm(tempFile, { force: true }).catch(() => undefined);
-  }
-}
-
-function queued<T>(operation: () => Promise<T>) {
-  const next = saveQueue.then(operation, operation);
-  saveQueue = next.then(() => undefined, () => undefined);
-  return next;
-}
+  },
+});
 
 export function persistKnowledgeGraphFromContextPack(pack: GroundedContextPack, createdAt = new Date().toISOString()) {
   const record: AIWorkforceGraphRecord = {
@@ -117,25 +92,22 @@ export function persistKnowledgeGraphFromContextPack(pack: GroundedContextPack, 
     createdAt,
   };
 
-  return queued(async () => {
-    const store = await readStore();
+  return ledgerStore.mutate((store) => {
     store.graphs[record.id] = record;
-    await writeStore(store);
     return record;
   });
 }
 
 export function appendAIWorkforceAuditEvent(event: Omit<AIWorkforceAuditEvent, 'id' | 'createdAt'> & { id?: string; createdAt?: string }) {
+  const createdAt = event.createdAt || new Date().toISOString();
   const fullEvent: AIWorkforceAuditEvent = {
     ...event,
-    id: event.id || stableId('audit', { action: event.action, entityId: event.entityId, createdAt: event.createdAt, metadata: event.metadata }),
-    createdAt: event.createdAt || new Date().toISOString(),
+    id: event.id || stableId('audit', { action: event.action, entityId: event.entityId, createdAt, metadata: event.metadata }),
+    createdAt,
   };
 
-  return queued(async () => {
-    const store = await readStore();
+  return ledgerStore.mutate((store) => {
     store.auditEvents[fullEvent.id] = fullEvent;
-    await writeStore(store);
     return fullEvent;
   });
 }
@@ -148,31 +120,26 @@ export function appendAIWorkforceTrendSnapshot(snapshot: Omit<AIWorkforceTrendSn
     createdAt,
   };
 
-  return queued(async () => {
-    const store = await readStore();
+  return ledgerStore.mutate((store) => {
     store.trendSnapshots[fullSnapshot.id] = fullSnapshot;
-    await writeStore(store);
     return fullSnapshot;
   });
 }
 
 export async function listAIWorkforceAuditEvents(limit = 50) {
-  await saveQueue.catch(() => undefined);
-  return Object.values((await readStore()).auditEvents)
+  return Object.values((await ledgerStore.read()).auditEvents)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, limit);
 }
 
 export async function listAIWorkforceTrendSnapshots(limit = 30) {
-  await saveQueue.catch(() => undefined);
-  return Object.values((await readStore()).trendSnapshots)
+  return Object.values((await ledgerStore.read()).trendSnapshots)
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, limit);
 }
 
 export async function getAIWorkforceOperationalLedgerDashboard() {
-  await saveQueue.catch(() => undefined);
-  const store = await readStore();
+  const store = await ledgerStore.read();
   const graphs = Object.values(store.graphs).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const auditEvents = Object.values(store.auditEvents).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const trendSnapshots = Object.values(store.trendSnapshots).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -180,6 +147,7 @@ export async function getAIWorkforceOperationalLedgerDashboard() {
   const previousTrend = trendSnapshots[1] || null;
   const readinessDelta = latestTrend && previousTrend ? Number((latestTrend.readinessScore - previousTrend.readinessScore).toFixed(2)) : 0;
   const blockedRateDelta = latestTrend && previousTrend ? Number((latestTrend.observability.blockedRate - previousTrend.observability.blockedRate).toFixed(3)) : 0;
+  const storage = await ledgerStore.stats();
 
   return {
     graphStats: {
@@ -202,10 +170,10 @@ export async function getAIWorkforceOperationalLedgerDashboard() {
       blockedRateDelta,
       snapshots: trendSnapshots.slice(0, 12),
     },
+    storage,
   };
 }
 
 export async function clearAIWorkforceOperationalLedgerForTest() {
-  await saveQueue.catch(() => undefined);
-  await fs.promises.rm(getLedgerFile(), { force: true }).catch(() => undefined);
+  await ledgerStore.clear();
 }
