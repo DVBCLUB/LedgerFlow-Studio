@@ -60,6 +60,13 @@ const requiredTokens = [
   'previewSampleAutomationSafety',
   'scoreSamplePRReadiness',
   'buildSamplePRControlReport',
+  'buildGitHubPRControlReport',
+  'Run GitHub PR Control',
+  'GitHub repo',
+  'GitHub API base',
+  'Token không nhập ở UI',
+  'GitHub gate',
+  'changes requested',
   'Live Runtime Hub',
   'PR Control',
   'Gap Matrix',
@@ -155,4 +162,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter + UI, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
