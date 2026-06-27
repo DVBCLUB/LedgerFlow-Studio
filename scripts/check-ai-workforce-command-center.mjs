@@ -89,6 +89,10 @@ const requiredTokens = [
   'scoreRuntimePRReadiness',
   'buildRuntimePRControlReport',
   'getAIWorkforceRuntimeDashboard',
+  'ensureRuntimeHubImport',
+  'ensureRuntimeHubRoutes',
+  'previousImport',
+  'AI Workforce PR Control route upgrade',
   '/api/ai-workforce/runtime',
   '/api/ai-workforce/context-pack',
   '/api/ai-workforce/safety-preview',
@@ -114,4 +118,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, runtime UI, PR control, MCP tooling, operational ledger, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, runtime UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
