@@ -24,13 +24,22 @@ function replaceOnce(source, search, replacement, label) {
 
 function ensureRuntimeHubImport(source) {
   const githubCiImport = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
-  const currentImport = 'import { buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
+  const currentImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
+  const previousPrControlImport = 'import { buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousImport = 'import { buildRuntimeGroundedContext, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
 
   if (source.includes(currentImport)) return source;
+  if (source.includes(previousPrControlImport)) return source.replace(previousPrControlImport, currentImport);
   if (source.includes(previousImport)) return source.replace(previousImport, currentImport);
   return replaceOnce(source, githubCiImport, `${githubCiImport}\n${currentImport}`, 'AI Workforce Runtime Hub import');
 }
+
+const githubPrControlRoute = `app.post("/api/ai-workforce/github-pr-control", async (req: Request, res: Response) => {
+  try {
+    const result = await buildRuntimeGitHubPRControlReport(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});`;
 
 const prControlRoute = `app.post("/api/ai-workforce/pr-control", async (req: Request, res: Response) => {
   try {
@@ -68,14 +77,18 @@ app.post("/api/ai-workforce/safety-preview", async (req: Request, res: Response)
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });
 ${prReadinessRoute}
-${prControlRoute}`;
+${prControlRoute}
+${githubPrControlRoute}`;
 
 function ensureRuntimeHubRoutes(source) {
   const unifiedOverviewAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
 
-  if (source.includes('/api/ai-workforce/pr-control')) return source;
+  if (source.includes('/api/ai-workforce/github-pr-control')) return source;
+  if (source.includes('/api/ai-workforce/pr-control')) {
+    return replaceOnce(source, prControlRoute, `${prControlRoute}\n${githubPrControlRoute}`, 'AI Workforce GitHub PR Control route upgrade');
+  }
   if (source.includes('/api/ai-workforce/pr-readiness')) {
-    return replaceOnce(source, prReadinessRoute, `${prReadinessRoute}\n${prControlRoute}`, 'AI Workforce PR Control route upgrade');
+    return replaceOnce(source, prReadinessRoute, `${prReadinessRoute}\n${prControlRoute}\n${githubPrControlRoute}`, 'AI Workforce PR Control route upgrade');
   }
   return replaceOnce(source, unifiedOverviewAnchor, `${runtimeRouteBlock}\n\n${unifiedOverviewAnchor}`, 'AI Workforce Runtime Hub route block');
 }
