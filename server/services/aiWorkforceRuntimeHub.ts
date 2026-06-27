@@ -177,7 +177,7 @@ export async function buildRuntimePRControlReport(input: SoftwareFactoryPullRequ
   const report = buildSoftwareFactoryPRControlReport(input);
   await appendAIWorkforceRuntimeRecord({
     id: report.id,
-    type: 'pr_readiness',
+    type: 'pr_control',
     payload: report,
   });
   await appendAIWorkforceAuditEvent({
@@ -209,7 +209,7 @@ export async function buildRuntimeGitHubPRControlReport(options: GitHubPRControl
   });
   await appendAIWorkforceRuntimeRecord({
     id: result.report.id,
-    type: 'pr_readiness',
+    type: 'pr_control',
     payload: { report: result.report, adapter: result.adapter },
   });
   await appendAIWorkforceAuditEvent({
