@@ -5,6 +5,7 @@ export type AIWorkforceRuntimeRecordType =
   | 'safety_decision'
   | 'pr_readiness'
   | 'pr_control'
+  | 'mission_plan'
   | 'runtime_snapshot';
 
 export interface AIWorkforceRuntimeRecord<T = unknown> {
