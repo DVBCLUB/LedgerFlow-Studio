@@ -63,8 +63,9 @@ function buildReviewerChecklist(input: SoftwareFactoryPullRequestInput, readines
     'Verify CI/check evidence is attached and current.',
     'Confirm rollback plan is valid for desktop and daemon runtime.',
   ];
+  const highRiskFileCount = readiness.fileRisks.filter((file) => file.risk === 'high').length;
 
-  if (readiness.riskSummary.high > 0) checklist.push('Technical owner must review high-risk paths.');
+  if (highRiskFileCount > 0) checklist.push('Technical owner must review high-risk paths.');
   if (readiness.requiredApprovals.includes('security')) checklist.push('Security approval required before merge.');
   if (readiness.requiredApprovals.includes('data-owner')) checklist.push('Data-owner approval required before merge.');
   if (input.labels?.some((label) => /runtime|daemon|agent|ai/i.test(label))) checklist.push('Run AI Workforce runtime smoke checks after patching daemon routes.');
