@@ -16,6 +16,10 @@ import {
   type SoftwareFactoryPullRequestInput,
 } from './softwareFactoryPrControl.ts';
 import {
+  buildGitHubSoftwareFactoryPRControlReport,
+  type GitHubPRControlAdapterOptions,
+} from './softwareFactoryGithubPrAdapter.ts';
+import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
@@ -195,6 +199,38 @@ export async function buildRuntimePRControlReport(input: SoftwareFactoryPullRequ
   });
   await appendAIWorkforceRunMetric(metric);
   return report;
+}
+
+export async function buildRuntimeGitHubPRControlReport(options: GitHubPRControlAdapterOptions) {
+  const startedAt = Date.now();
+  const result = await buildGitHubSoftwareFactoryPRControlReport({
+    ...options,
+    token: options.token || process.env.GITHUB_TOKEN,
+  });
+  await appendAIWorkforceRuntimeRecord({
+    id: result.report.id,
+    type: 'pr_readiness',
+    payload: { report: result.report, adapter: result.adapter },
+  });
+  await appendAIWorkforceAuditEvent({
+    action: 'github_pr_control_scored',
+    severity: result.report.mergeGate.mode === 'blocked' ? 'critical' : result.report.mergeGate.mode === 'human_review_required' ? 'warning' : 'info',
+    actor: 'GitHub PR Control Adapter',
+    summary: `GitHub PR ${result.adapter.repoFullName}#${result.adapter.prNumber} merge gate: ${result.report.mergeGate.mode}.`,
+    entityId: result.input.id,
+    metadata: { mergeGate: result.report.mergeGate, adapter: result.adapter, auditFingerprint: result.report.auditFingerprint },
+  });
+  const metric = recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: 'GitHub PR Control Adapter',
+    toolId: 'github_pr_control',
+    status: result.report.mergeGate.allowed ? 'success' : result.report.mergeGate.mode === 'blocked' ? 'blocked' : 'needs_review',
+    latencyMs: Date.now() - startedAt,
+    qualityScore: result.report.readiness.score / 100,
+    safetyBlocks: result.report.mergeGate.mode === 'blocked' ? result.report.mergeGate.reasons.length : 0,
+  });
+  await appendAIWorkforceRunMetric(metric);
+  return result;
 }
 
 export async function getAIWorkforceToolManifestCatalog() {
