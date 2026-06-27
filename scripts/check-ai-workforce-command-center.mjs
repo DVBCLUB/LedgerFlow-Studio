@@ -33,6 +33,7 @@ const requiredFiles = [
   'server/services/aiWorkforceRuntimeHub.test.ts',
   'server/services/pipelineOrchestrator.ts',
   'scripts/check-ai-workforce-runtime-routes.mjs',
+  'scripts/patch-assistant-daemon-entrypoint.mjs',
   'scripts/patch-ai-workforce-command-center.mjs',
 ];
 
@@ -101,6 +102,8 @@ const requiredTokens = [
   'AI Workforce daemon runtime smoke test passed',
   'Mock GitHub REST server',
   'dist/assistant-daemon.cjs',
+  'Assistant daemon entrypoint patched to avoid double-starting bundled desktop daemon',
+  'assistant-daemon.cjs',
   'metricStoreStats',
   'reviewerChecklist',
   'releaseNotesDraft',
@@ -166,4 +169,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter + UI, daemon runtime smoke, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter + UI, daemon runtime smoke, entrypoint patch, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
