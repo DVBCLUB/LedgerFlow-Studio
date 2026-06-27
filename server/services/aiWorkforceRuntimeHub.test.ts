@@ -102,17 +102,23 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR contro
   assert.ok(dashboard.ledger.graphStats.totalGraphs >= 1);
   assert.ok(dashboard.ledger.auditStats.totalEvents >= 4);
   assert.ok(dashboard.ledger.trendStats.totalSnapshots >= 1);
+  assert.equal(dashboard.storeStats.storage.driver, 'json-file');
+  assert.equal(dashboard.metricStoreStats.storage.driver, 'json-file');
+  assert.equal(dashboard.ledger.storage.driver, 'json-file');
 
   const stats = await getAIWorkforceRuntimeStoreStats();
   assert.ok(stats.byType.context_pack >= 1);
   assert.ok(stats.byType.safety_decision >= 1);
-  assert.ok(stats.byType.pr_readiness >= 2);
+  assert.ok(stats.byType.pr_readiness >= 1);
+  assert.ok(stats.byType.pr_control >= 1);
   assert.ok(stats.byType.runtime_snapshot >= 1);
+  assert.ok(stats.storage.bytes > 0);
 
   const metricStats = await getAIWorkforceRunMetricStoreStats();
   assert.ok(metricStats.byLane['knowledge-spine'] >= 1);
   assert.ok(metricStats.byLane['execution-layer'] >= 1);
   assert.ok(metricStats.byLane['mission-control'] >= 2);
+  assert.ok(metricStats.storage.bytes > 0);
 });
 
 test('AI Workforce Runtime Hub blocks high-impact context with contradictions', async (t) => {
