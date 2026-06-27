@@ -81,6 +81,7 @@ export default function AIWorkforceRuntimePanel() {
   const readiness = dashboard?.readiness;
   const observability = dashboard?.observability;
   const storeStats = dashboard?.storeStats;
+  const metricStoreStats = dashboard?.metricStoreStats;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
   const recentRecords = dashboard?.recentRecords || [];
@@ -96,7 +97,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, chạy PR Control, xem MCP tool health và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, chạy PR Control, xem MCP tool health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -115,7 +116,7 @@ export default function AIWorkforceRuntimePanel() {
 
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <MiniMetric label="Readiness" value={readiness ? `${readiness.grade} · ${readiness.overallScore}/5` : '—'} detail="Điểm runtime readiness động" />
-        <MiniMetric label="Runs" value={observability?.runs ?? '—'} detail="AI run metrics đã ghi" />
+        <MiniMetric label="Runs" value={observability?.runs ?? '—'} detail={`Persisted ${metricStoreStats?.total ?? '—'} metrics`} />
         <MiniMetric label="Blocked rate" value={observability ? `${Math.round((observability.blockedRate || 0) * 100)}%` : '—'} detail="Tác vụ bị safety chặn" />
         <MiniMetric label="Tool health" value={tooling ? `${tooling.summary.healthy}/${tooling.summary.total}` : '—'} detail="MCP manifests healthy/total" />
         <MiniMetric label="Audit events" value={ledger?.auditStats?.totalEvents ?? '—'} detail="Operational ledger audit trail" />
@@ -156,6 +157,15 @@ export default function AIWorkforceRuntimePanel() {
             )) : (
               <p className="text-xs font-semibold text-slate-500">Chưa có runtime record hoặc daemon chưa online.</p>
             )}
+          </div>
+          <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">Persistent metric store</p>
+            <p className="mt-1 text-xs font-bold text-slate-200">
+              {metricStoreStats ? `${metricStoreStats.total} runs · ${metricStoreStats.lanes?.length || 0} lanes` : 'Waiting for daemon metrics'}
+            </p>
+            <p className="mt-1 truncate text-[11px] font-semibold text-slate-400">
+              latest: {metricStoreStats?.latestMetric?.id || '—'}
+            </p>
           </div>
         </div>
         <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
