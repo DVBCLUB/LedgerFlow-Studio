@@ -8,20 +8,25 @@ if (!fs.existsSync(daemonPath)) {
 }
 
 const source = fs.readFileSync(daemonPath, 'utf8');
-const before = `const isEntryPoint = process.argv[1]?.replace(/\\/g, "/").endsWith("server/assistant-daemon.ts") ||
-  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.js") ||
-  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.cjs");`;
-const after = `const isEntryPoint = process.argv[1]?.replace(/\\/g, "/").endsWith("server/assistant-daemon.ts") ||
-  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.js");`;
 
-if (source.includes(after)) {
+if (!source.includes('assistant-daemon.cjs') && source.includes('endsWith("assistant-daemon.js");')) {
   console.log('Assistant daemon entrypoint patch already applied.');
   process.exit(0);
 }
 
-if (!source.includes(before)) {
-  throw new Error('Cannot patch assistant daemon entrypoint: expected auto-start anchor was not found.');
+const lines = source.split('\n');
+const cjsLineIndex = lines.findIndex((line) => line.includes('assistant-daemon.cjs'));
+
+if (cjsLineIndex === -1) {
+  throw new Error('Cannot patch assistant daemon entrypoint: assistant-daemon.cjs auto-start line was not found.');
 }
 
-fs.writeFileSync(daemonPath, source.replace(before, after));
+if (cjsLineIndex === 0 || !lines[cjsLineIndex - 1].includes('assistant-daemon.js')) {
+  throw new Error('Cannot patch assistant daemon entrypoint: assistant-daemon.js line before cjs auto-start was not found.');
+}
+
+lines.splice(cjsLineIndex, 1);
+lines[cjsLineIndex - 1] = lines[cjsLineIndex - 1].replace(/\s*\|\|\s*$/, ';');
+
+fs.writeFileSync(daemonPath, lines.join('\n'));
 console.log('Assistant daemon entrypoint patched to avoid double-starting bundled desktop daemon.');
