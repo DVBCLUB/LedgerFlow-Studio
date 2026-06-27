@@ -96,6 +96,9 @@ const requiredTokens = [
   'getAIWorkforceRunMetricStoreStats',
   'metricStoreStats',
   'dedupeMetrics',
+  'Persistent metric store',
+  'Persisted ${metricStoreStats',
+  'latest: {metricStoreStats',
   'buildRuntimeGroundedContext',
   'previewRuntimeAutomation',
   'scoreRuntimePRReadiness',
@@ -132,4 +135,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, persistent metrics, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, persistent metrics UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
