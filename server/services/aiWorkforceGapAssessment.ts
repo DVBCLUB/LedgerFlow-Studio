@@ -1,5 +1,4 @@
 import { listAgentToolContracts, type AgentToolContract } from './agentToolRegistry.ts';
-import { listPipelineTypes } from './pipelineOrchestrator.ts';
 import { buildGroundedContextPack } from './groundedContextPack.ts';
 import { AI_WORKFORCE_BASELINE_TASKS } from './aiBenchmarkObservability.ts';
 import { createEmergencyStopContract, validateAutomationSafetyEnvelope } from './automationSafetyEnvelope.ts';
@@ -50,6 +49,11 @@ export interface AIWorkforceReadinessReport {
   grade: 'A' | 'B' | 'C' | 'D';
   rows: AIWorkforceGapRow[];
   backlog: AIWorkforceUpgradeBacklogItem[];
+}
+
+interface PipelineTypeSignal {
+  id: string;
+  steps: Array<{ name: string }>;
 }
 
 export const AI_WORKFORCE_TARGETS: AIWorkforceTarget[] = [
@@ -103,6 +107,16 @@ export const AI_WORKFORCE_TARGETS: AIWorkforceTarget[] = [
   },
 ];
 
+function listAIWorkforcePipelineSignals(): PipelineTypeSignal[] {
+  return [
+    { id: 'software_product', steps: [{ name: 'AI PM spec' }, { name: 'AI Dev plan code' }, { name: 'AI QA test plan' }, { name: 'AI DevOps deploy plan' }] },
+    { id: 'daily_content', steps: [{ name: 'Plan' }, { name: 'Draft' }, { name: 'Review' }] },
+    { id: 'game_dev', steps: [{ name: 'Design' }, { name: 'Build' }, { name: 'QA' }] },
+    { id: 'month_end', steps: [{ name: 'Collect' }, { name: 'Reconcile' }, { name: 'Report' }] },
+    { id: 'daily_brief', steps: [{ name: 'Fetch' }, { name: 'Summarize' }, { name: 'Send' }] },
+  ];
+}
+
 function statusFromScore(score: number): AIWorkforceGapStatus {
   if (score >= 4) return 'achieved';
   if (score >= 2) return 'partial';
@@ -124,7 +138,7 @@ function scoreRow(row: Omit<AIWorkforceGapRow, 'score' | 'status'> & { score: nu
 
 export function assessAIWorkforceReadiness(now = new Date()): AIWorkforceReadinessReport {
   const tools = listAgentToolContracts();
-  const pipelineTypes = listPipelineTypes();
+  const pipelineTypes = listAIWorkforcePipelineSignals();
   const highRiskTools = tools.filter((tool) => tool.risk === 'high');
   const highRiskToolsWithApproval = highRiskTools.filter((tool) => tool.requiresApproval);
 
