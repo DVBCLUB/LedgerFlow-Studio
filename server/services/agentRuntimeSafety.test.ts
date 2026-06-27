@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 import { advanceAgentRun, approveAgentRunStep, createAgentRun, setAgentRuntimeEmergencyStop } from './agentRuntime.ts';
 import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from './agentMemoryStore.ts';
+import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from './agentToolExecutionGate.ts';
 import { setRobotEmergencyStop, simulateRobotCommand } from './robotConnector.ts';
 
 test('agent runtime executes safe steps and waits for fingerprint-bound approval', async (t) => {
@@ -63,6 +64,39 @@ test('memory search excludes drafts until reviewed and returns citations', async
   assert.match(results[0].citation, new RegExp(memory.id));
 });
 
+test('agent tool execution gate attaches automation safety decision and consumes approval once', () => {
+  const preview = createAgentToolExecutionPreview({
+    toolId: 'draft_patch',
+    title: 'Draft reviewed code patch',
+    target: 'agent-tool://draft_patch',
+    executionMode: 'simulation',
+  });
+
+  assert.equal(preview.safetyDecision.approved, true);
+  assert.equal(preview.safetyDecision.humanCheckpointRequired, true);
+  assert.equal(preview.safetyPlan.surface, 'computer');
+  assert.equal(preview.requiresApproval, true);
+
+  assert.throws(() => consumeAgentToolExecution({ toolId: 'draft_patch', title: 'Draft reviewed code patch', target: 'agent-tool://draft_patch', executionMode: 'simulation', previewId: preview.id }), /approval token/i);
+  const approval = approveAgentToolExecution(preview.id, preview.fingerprint);
+  const consumed = consumeAgentToolExecution({ toolId: 'draft_patch', title: 'Draft reviewed code patch', target: 'agent-tool://draft_patch', executionMode: 'simulation', previewId: preview.id, approvalToken: approval.approvalToken });
+  assert.equal(consumed.id, preview.id);
+  assert.throws(() => consumeAgentToolExecution({ toolId: 'draft_patch', title: 'Draft reviewed code patch', target: 'agent-tool://draft_patch', executionMode: 'simulation', previewId: preview.id, approvalToken: approval.approvalToken }), /expired|required/);
+});
+
+test('agent tool execution gate blocks non-allowlisted automation targets', () => {
+  assert.throws(
+    () => createAgentToolExecutionPreview({
+      toolId: 'browser_check',
+      title: 'Read unsafe browser target',
+      target: 'browser://external/admin',
+      payload: { allowedTargets: ['browser://sandbox'] },
+      executionMode: 'simulation',
+    }),
+    /non-allowlisted/,
+  );
+});
+
 test('robot connector remains simulation-only and enforces safety limits', () => {
   setRobotEmergencyStop(false);
   assert.throws(() => simulateRobotCommand({ command: 'move', position: { x: 10, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 } }), /approvalPhrase|approval phrase/i);
@@ -76,4 +110,3 @@ test('robot connector remains simulation-only and enforces safety limits', () =>
   assert.throws(() => simulateRobotCommand({ command: 'home' }), /emergency stop/);
   setRobotEmergencyStop(false);
 });
-
