@@ -191,6 +191,27 @@ try {
     throw new Error('/api/ai-workforce/context-pack did not return a context pack.');
   }
 
+  const missionPlan = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-plan', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      goal: 'Plan a smoke mission for AI Workforce Runtime Hub with PR control, rollback notes, audit trail and metric evidence.',
+      owner: 'Founder',
+      domains: ['software factory', 'runtime'],
+      constraints: ['preserve audit trail'],
+      repoFullName: 'DVBCLUB/LedgerFlow-Studio',
+      prNumber: 42,
+      allowAutomation: true,
+      sources: [{ kind: 'sop', title: 'Mission Planner Smoke SOP', content: 'Mission planner route must return steps, tool route, approvals, context pack and audit trail.', tags: ['mission-planner'], confidence: 0.92 }],
+    }),
+  });
+  if (!missionPlan.response.ok || missionPlan.json?.ok !== true || !missionPlan.json?.plan?.id) {
+    throw new Error('/api/ai-workforce/mission-plan did not return a mission plan.');
+  }
+  if (!missionPlan.json?.plan?.steps?.some((step) => step.toolId === 'github_pr_control')) {
+    throw new Error('Mission Planner smoke did not route a GitHub PR Control step.');
+  }
+
   const githubControl = await fetchJson(DAEMON_URL, '/api/ai-workforce/github-pr-control', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -214,11 +235,11 @@ try {
   }
 
   const finalDashboard = await fetchJson(DAEMON_URL, '/api/ai-workforce/runtime');
-  if (!finalDashboard.response.ok || Number(finalDashboard.json?.dashboard?.metricStoreStats?.total || 0) < 2) {
+  if (!finalDashboard.response.ok || Number(finalDashboard.json?.dashboard?.metricStoreStats?.total || 0) < 3) {
     throw new Error('AI Workforce runtime dashboard did not include persisted metric store stats after smoke actions.');
   }
 
-  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
+  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
 } catch (error) {
   console.error('\nAI Workforce daemon runtime smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));
