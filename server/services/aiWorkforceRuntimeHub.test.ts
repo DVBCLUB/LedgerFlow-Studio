@@ -6,6 +6,7 @@ import test from 'node:test';
 import { resetAIRunMetricsForTest } from './aiBenchmarkObservability.ts';
 import { createEmergencyStopContract } from './automationSafetyEnvelope.ts';
 import { clearAIWorkforceOperationalLedgerForTest } from './aiWorkforceOperationalLedger.ts';
+import { clearAIWorkforceRunMetricStoreForTest, getAIWorkforceRunMetricStoreStats } from './aiWorkforceRunMetricStore.ts';
 import { clearAIWorkforceRuntimeStoreForTest, getAIWorkforceRuntimeStoreStats } from './aiWorkforceRuntimeStore.ts';
 import {
   buildRuntimeGroundedContext,
@@ -19,22 +20,27 @@ async function withRuntimeStore(t: any) {
   const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'ledgerflow-aiw-runtime-'));
   const previousRuntime = process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
   const previousLedger = process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE;
+  const previousMetrics = process.env.AI_WORKFORCE_RUN_METRIC_STORE_FILE;
   process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = path.join(directory, 'runtime.json');
   process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE = path.join(directory, 'ledger.json');
+  process.env.AI_WORKFORCE_RUN_METRIC_STORE_FILE = path.join(directory, 'metrics.json');
   resetAIRunMetricsForTest();
   await clearAIWorkforceRuntimeStoreForTest();
   await clearAIWorkforceOperationalLedgerForTest();
+  await clearAIWorkforceRunMetricStoreForTest();
   t.after(async () => {
     if (previousRuntime === undefined) delete process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
     else process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = previousRuntime;
     if (previousLedger === undefined) delete process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE;
     else process.env.AI_WORKFORCE_OPERATIONAL_LEDGER_FILE = previousLedger;
+    if (previousMetrics === undefined) delete process.env.AI_WORKFORCE_RUN_METRIC_STORE_FILE;
+    else process.env.AI_WORKFORCE_RUN_METRIC_STORE_FILE = previousMetrics;
     resetAIRunMetricsForTest();
     await fs.promises.rm(directory, { recursive: true, force: true });
   });
 }
 
-test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR control, dashboard, MCP telemetry, and operational ledger', async (t) => {
+test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR control, dashboard, MCP telemetry, operational ledger, and run metrics', async (t) => {
   await withRuntimeStore(t);
 
   const context = await buildRuntimeGroundedContext({
@@ -88,6 +94,7 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR contro
   const dashboard = await getAIWorkforceRuntimeDashboard();
   assert.ok(dashboard.observability.runs >= 4);
   assert.ok(dashboard.storeStats.total >= 4);
+  assert.ok(dashboard.metricStoreStats.total >= 4);
   assert.equal(dashboard.readiness.rows.length, 8);
   assert.ok(dashboard.tooling.summary.total >= 10);
   assert.ok(dashboard.tooling.manifests.some((manifest: any) => manifest.id === 'robot_move' && manifest.approval.required));
@@ -101,6 +108,11 @@ test('AI Workforce Runtime Hub persists context, safety, PR readiness, PR contro
   assert.ok(stats.byType.safety_decision >= 1);
   assert.ok(stats.byType.pr_readiness >= 2);
   assert.ok(stats.byType.runtime_snapshot >= 1);
+
+  const metricStats = await getAIWorkforceRunMetricStoreStats();
+  assert.ok(metricStats.byLane['knowledge-spine'] >= 1);
+  assert.ok(metricStats.byLane['execution-layer'] >= 1);
+  assert.ok(metricStats.byLane['mission-control'] >= 2);
 });
 
 test('AI Workforce Runtime Hub blocks high-impact context with contradictions', async (t) => {
