@@ -19,7 +19,13 @@ import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
+  type AIRunMetric,
 } from './aiBenchmarkObservability.ts';
+import {
+  appendAIWorkforceRunMetric,
+  getAIWorkforceRunMetricStoreStats,
+  listAIWorkforceRunMetrics,
+} from './aiWorkforceRunMetricStore.ts';
 import { assessAIWorkforceReadiness } from './aiWorkforceGapAssessment.ts';
 import { exportMCPToolManifestCatalog, type MCPToolRunSignal } from './mcpToolManifestRegistry.ts';
 import {
@@ -38,8 +44,19 @@ export interface RuntimeGroundedContextOptions extends GroundedContextRequest {
   highImpact?: boolean;
 }
 
-function toMCPToolRunSignals(): MCPToolRunSignal[] {
-  return listAIRunMetrics()
+function dedupeMetrics(metrics: AIRunMetric[]) {
+  const byId = new Map<string, AIRunMetric>();
+  for (const metric of metrics) byId.set(metric.id, metric);
+  return Array.from(byId.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+async function listRuntimeObservabilityMetrics() {
+  const persisted = await listAIWorkforceRunMetrics({ limit: 1000 });
+  return dedupeMetrics([...persisted, ...listAIRunMetrics()]);
+}
+
+function toMCPToolRunSignals(metrics: AIRunMetric[]): MCPToolRunSignal[] {
+  return metrics
     .filter((metric) => metric.toolId)
     .map((metric) => ({
       toolId: metric.toolId!,
@@ -77,7 +94,7 @@ export async function buildRuntimeGroundedContext(options: RuntimeGroundedContex
     entityId: pack.id,
     metadata: { highImpact: Boolean(options.highImpact), confidence: pack.confidence, contradictions: pack.contradictions.length },
   });
-  recordAIRunMetric({
+  const metric = recordAIRunMetric({
     lane: 'knowledge-spine',
     agentRole: 'Memory Agent',
     toolId: 'read_knowledge',
@@ -86,6 +103,7 @@ export async function buildRuntimeGroundedContext(options: RuntimeGroundedContex
     qualityScore: pack.confidence,
     safetyBlocks: guard.ok ? 0 : 1,
   });
+  await appendAIWorkforceRunMetric(metric);
 
   return { pack, guard };
 }
@@ -106,7 +124,7 @@ export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
     entityId: plan.id,
     metadata: { surface: plan.surface, mode: decision.mode, issues: decision.issues, replaySteps: decision.replay.length },
   });
-  recordAIRunMetric({
+  const metric = recordAIRunMetric({
     lane: 'execution-layer',
     agentRole: 'Automation Safety Agent',
     toolId: plan.surface === 'robot' ? 'robot_move' : plan.surface === 'browser' ? 'browser_check' : 'terminal_check',
@@ -115,6 +133,7 @@ export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
     qualityScore: decision.approved ? 0.95 : 0.35,
     safetyBlocks: decision.approved ? 0 : decision.issues.length,
   });
+  await appendAIWorkforceRunMetric(metric);
 
   return decision;
 }
@@ -135,7 +154,7 @@ export async function scoreRuntimePRReadiness(input: SoftwareFactoryReadinessInp
     entityId: input.title,
     metadata: { score: report.score, blockers: report.blockers, warnings: report.warnings, requiredApprovals: report.requiredApprovals },
   });
-  recordAIRunMetric({
+  const metric = recordAIRunMetric({
     lane: 'mission-control',
     agentRole: 'Software Factory Agent',
     toolId: 'draft_patch',
@@ -144,6 +163,7 @@ export async function scoreRuntimePRReadiness(input: SoftwareFactoryReadinessInp
     qualityScore: report.score / 100,
     safetyBlocks: report.blockers.length,
   });
+  await appendAIWorkforceRunMetric(metric);
 
   return report;
 }
@@ -164,7 +184,7 @@ export async function buildRuntimePRControlReport(input: SoftwareFactoryPullRequ
     entityId: input.id,
     metadata: { mergeGate: report.mergeGate, evidence: report.evidence, auditFingerprint: report.auditFingerprint },
   });
-  recordAIRunMetric({
+  const metric = recordAIRunMetric({
     lane: 'mission-control',
     agentRole: 'Software Factory PR Control',
     toolId: 'draft_patch',
@@ -173,18 +193,21 @@ export async function buildRuntimePRControlReport(input: SoftwareFactoryPullRequ
     qualityScore: report.readiness.score / 100,
     safetyBlocks: report.mergeGate.mode === 'blocked' ? report.mergeGate.reasons.length : 0,
   });
+  await appendAIWorkforceRunMetric(metric);
   return report;
 }
 
-export function getAIWorkforceToolManifestCatalog() {
-  return exportMCPToolManifestCatalog(toMCPToolRunSignals());
+export async function getAIWorkforceToolManifestCatalog() {
+  return exportMCPToolManifestCatalog(toMCPToolRunSignals(await listRuntimeObservabilityMetrics()));
 }
 
 export async function getAIWorkforceRuntimeDashboard() {
   const readiness = assessAIWorkforceReadiness();
-  const observability = summarizeAIObservability(listAIRunMetrics());
-  const tooling = getAIWorkforceToolManifestCatalog();
+  const observabilityMetrics = await listRuntimeObservabilityMetrics();
+  const observability = summarizeAIObservability(observabilityMetrics);
+  const tooling = await getAIWorkforceToolManifestCatalog();
   const storeStats = await getAIWorkforceRuntimeStoreStats();
+  const metricStoreStats = await getAIWorkforceRunMetricStoreStats();
   const recentRecords = await listAIWorkforceRuntimeRecords({ limit: 10 });
   await appendAIWorkforceTrendSnapshot({
     readinessGrade: readiness.grade,
@@ -197,7 +220,7 @@ export async function getAIWorkforceRuntimeDashboard() {
     severity: tooling.summary.blocked > 0 || observability.blockedRate > 0.2 ? 'warning' : 'info',
     actor: 'Runtime Hub',
     summary: `Runtime snapshot created with readiness ${readiness.grade} (${readiness.overallScore}/5).`,
-    metadata: { runs: observability.runs, blockedRate: observability.blockedRate, toolingSummary: tooling.summary },
+    metadata: { runs: observability.runs, blockedRate: observability.blockedRate, toolingSummary: tooling.summary, metricStoreStats },
   });
   const ledger = await getAIWorkforceOperationalLedgerDashboard();
   const dashboard = {
@@ -207,6 +230,7 @@ export async function getAIWorkforceRuntimeDashboard() {
     tooling,
     ledger,
     storeStats,
+    metricStoreStats,
     recentRecords,
   };
   await appendAIWorkforceRuntimeRecord({
@@ -223,6 +247,7 @@ export async function getAIWorkforceRuntimeDashboard() {
         auditEvents: ledger.auditStats.totalEvents,
         trendSnapshots: ledger.trendStats.totalSnapshots,
       },
+      metricStoreStats,
       storeStats,
     },
   });
