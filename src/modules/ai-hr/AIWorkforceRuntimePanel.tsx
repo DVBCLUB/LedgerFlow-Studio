@@ -1,6 +1,7 @@
 import React from 'react';
 import { Activity, AlertTriangle, Bot, CheckCircle2, Database, Gauge, GitBranch, Loader2, PlayCircle, ShieldCheck, WifiOff } from 'lucide-react';
 import {
+  buildGitHubPRControlReport,
   buildSamplePRControlReport,
   createSampleGroundedContextPack,
   fetchAIWorkforceRuntimeDashboard,
@@ -10,8 +11,9 @@ import {
 
 const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-left shadow-xl shadow-slate-950/20';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
+const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-500/60';
 
-type RuntimeAction = 'dashboard' | 'context' | 'safety' | 'readiness' | 'pr-control';
+type RuntimeAction = 'dashboard' | 'context' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
 
 function MiniMetric({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
   return (
@@ -31,11 +33,18 @@ function JsonPreview({ value }: { value: unknown }) {
   );
 }
 
+function normalizeRepo(value: string) {
+  return value.trim().replace(/^https:\/\/github\.com\//i, '').replace(/\/$/, '');
+}
+
 export default function AIWorkforceRuntimePanel() {
   const [loading, setLoading] = React.useState<RuntimeAction | null>('dashboard');
   const [error, setError] = React.useState<string | null>(null);
   const [dashboard, setDashboard] = React.useState<any>(null);
   const [lastResult, setLastResult] = React.useState<any>(null);
+  const [githubRepo, setGithubRepo] = React.useState('DVBCLUB/LedgerFlow-Studio');
+  const [githubPrNumber, setGithubPrNumber] = React.useState('42');
+  const [githubApiBaseUrl, setGithubApiBaseUrl] = React.useState('');
 
   const refreshDashboard = React.useCallback(async () => {
     setLoading('dashboard');
@@ -67,7 +76,9 @@ export default function AIWorkforceRuntimePanel() {
             ? await scoreSamplePRReadiness()
             : action === 'pr-control'
               ? await buildSamplePRControlReport()
-              : await fetchAIWorkforceRuntimeDashboard();
+              : action === 'github-pr-control'
+                ? await runGitHubPRControl()
+                : await fetchAIWorkforceRuntimeDashboard();
       setLastResult({ type: action, response });
       const refreshed = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(refreshed.dashboard);
@@ -78,14 +89,27 @@ export default function AIWorkforceRuntimePanel() {
     }
   }
 
+  async function runGitHubPRControl() {
+    const repoFullName = normalizeRepo(githubRepo);
+    const prNumber = Number.parseInt(githubPrNumber, 10);
+    if (!/^[-_.A-Za-z0-9]+\/[-_.A-Za-z0-9]+$/.test(repoFullName)) {
+      throw new Error('GitHub PR Control cần repo dạng owner/name, ví dụ DVBCLUB/LedgerFlow-Studio.');
+    }
+    if (!Number.isInteger(prNumber) || prNumber <= 0) {
+      throw new Error('GitHub PR Control cần PR number hợp lệ.');
+    }
+    return buildGitHubPRControlReport({ repoFullName, prNumber, apiBaseUrl: githubApiBaseUrl });
+  }
+
   const readiness = dashboard?.readiness;
   const observability = dashboard?.observability;
-  const storeStats = dashboard?.storeStats;
   const metricStoreStats = dashboard?.metricStoreStats;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
   const recentRecords = dashboard?.recentRecords || [];
   const offline = Boolean(error && !dashboard);
+  const lastGitHubReport = lastResult?.type === 'github-pr-control' ? lastResult?.response?.report : null;
+  const lastGitHubAdapter = lastResult?.type === 'github-pr-control' ? lastResult?.response?.adapter : null;
 
   return (
     <section className={`${cardClass} border-cyan-500/20`}>
@@ -97,7 +121,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, chạy PR Control, xem MCP tool health, persistent metric store và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -110,7 +134,7 @@ export default function AIWorkforceRuntimePanel() {
       {error && (
         <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-bold leading-6 text-amber-100">
           <div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4" /> <span>{error}</span></div>
-          <p className="mt-2 text-[11px] text-amber-200/80">Runtime Hub sẽ hoạt động khi assistant daemon đang chạy và patch script đã được chạy.</p>
+          <p className="mt-2 text-[11px] text-amber-200/80">Runtime Hub sẽ hoạt động khi assistant daemon đang chạy, patch script đã được chạy, và GitHub adapter có token trong daemon env khi repo cần quyền private.</p>
         </div>
       )}
 
@@ -138,8 +162,40 @@ export default function AIWorkforceRuntimePanel() {
         </button>
         <button className={buttonClass} onClick={() => runAction('pr-control')} disabled={Boolean(loading)}>
           {loading === 'pr-control' ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
-          PR Control
+          Sample PR Control
         </button>
+      </div>
+
+      <div className="mt-5 rounded-3xl border border-violet-500/20 bg-violet-500/5 p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <div className="flex-1">
+            <label className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">GitHub repo</label>
+            <input className={inputClass} value={githubRepo} onChange={(event) => setGithubRepo(event.target.value)} placeholder="owner/name" />
+          </div>
+          <div className="w-full lg:w-32">
+            <label className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">PR #</label>
+            <input className={inputClass} value={githubPrNumber} onChange={(event) => setGithubPrNumber(event.target.value.replace(/[^0-9]/g, ''))} placeholder="42" inputMode="numeric" />
+          </div>
+          <div className="flex-1">
+            <label className="text-[10px] font-black uppercase tracking-[0.16em] text-violet-300">GitHub API base</label>
+            <input className={inputClass} value={githubApiBaseUrl} onChange={(event) => setGithubApiBaseUrl(event.target.value)} placeholder="Optional, default https://api.github.com" />
+          </div>
+          <button className={buttonClass} onClick={() => runAction('github-pr-control')} disabled={Boolean(loading)}>
+            {loading === 'github-pr-control' ? <Loader2 className="h-4 w-4 animate-spin" /> : <GitBranch className="h-4 w-4" />}
+            Run GitHub PR Control
+          </button>
+        </div>
+        <p className="mt-3 text-[11px] font-semibold leading-5 text-slate-400">
+          Token không nhập ở UI. Với repo private, đặt `GITHUB_TOKEN` trong môi trường daemon để adapter đọc changed files, reviews, check-runs và commit statuses an toàn.
+        </p>
+        {lastGitHubReport && (
+          <div className="mt-4 grid gap-3 md:grid-cols-4">
+            <MiniMetric label="GitHub gate" value={lastGitHubReport.mergeGate?.mode || '—'} detail={lastGitHubReport.mergeGate?.allowed ? 'Allowed by PR Control' : 'Blocked/review required'} />
+            <MiniMetric label="Score" value={lastGitHubReport.readiness?.score ?? '—'} detail={lastGitHubReport.readiness?.verdict || 'readiness verdict'} />
+            <MiniMetric label="Files" value={lastGitHubReport.evidence?.filesChanged ?? '—'} detail={`${lastGitHubReport.evidence?.additions ?? 0}+ / ${lastGitHubReport.evidence?.deletions ?? 0}-`} />
+            <MiniMetric label="Approvals" value={lastGitHubAdapter?.approvals?.approvedBy?.length ?? '—'} detail={`changes requested ${lastGitHubAdapter?.approvals?.changesRequestedBy?.length ?? 0}`} />
+          </div>
+        )}
       </div>
 
       <div className="mt-5 grid gap-4 xl:grid-cols-4">
