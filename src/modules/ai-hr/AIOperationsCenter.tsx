@@ -1,3 +1,4 @@
+import AIWorkforceCommandCenter from './AIWorkforceCommandCenter';
 import AIWorkforceMissionControl from './AIWorkforceMissionControl';
 import AIWorkforceOpenClawReadiness from './AIWorkforceOpenClawReadiness';
 import AIWorkforceNextBackendActions from './AIWorkforceNextBackendActions';
@@ -13,6 +14,7 @@ import AIGovernanceQualityHubPanel from './AIGovernanceQualityHubPanel';
 export default function AIOperationsCenter() {
   return (
     <div className="space-y-6">
+      <AIWorkforceCommandCenter />
       <AIWorkforceMissionControl />
       <AIWorkforceOpenClawReadiness />
       <AIWorkforceNextBackendActions />
