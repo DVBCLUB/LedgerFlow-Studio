@@ -2,6 +2,7 @@ import fs from 'node:fs';
 
 const requiredFiles = [
   'src/data/aiWorkforceCommandCenter.ts',
+  'src/modules/ai-hr/AIOperationsCenter.tsx',
   'src/modules/ai-hr/AIWorkforceCommandCenter.tsx',
   'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx',
   'src/services/aiWorkforceRuntimeClient.ts',
@@ -41,6 +42,10 @@ const requiredTokens = [
   'AI_WORKFORCE_RUNBOOK',
   'AI_WORKFORCE_GAP_MATRIX',
   'AI_WORKFORCE_UPGRADE_BACKLOG',
+  "import AIWorkforceCommandCenter from './AIWorkforceCommandCenter';",
+  "import AIWorkforceRuntimePanel from './AIWorkforceRuntimePanel';",
+  '<AIWorkforceCommandCenter />',
+  '<AIWorkforceRuntimePanel />',
   'AIWorkforceCommandCenter',
   'AIWorkforceRuntimePanel',
   'fetchAIWorkforceRuntimeDashboard',
@@ -91,6 +96,8 @@ const requiredTokens = [
   'getAIWorkforceRuntimeDashboard',
   'ensureRuntimeHubImport',
   'ensureRuntimeHubRoutes',
+  'hasDirectCommandCenter',
+  'hasDirectRuntimePanel',
   'previousImport',
   'AI Workforce PR Control route upgrade',
   '/api/ai-workforce/runtime',
@@ -118,4 +125,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, runtime UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
