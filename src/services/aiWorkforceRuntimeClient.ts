@@ -113,6 +113,17 @@ export async function buildSamplePRControlReport() {
   });
 }
 
+export async function buildGitHubPRControlReport(input: { repoFullName: string; prNumber: number; apiBaseUrl?: string }) {
+  return requestAIWorkforce<{ ok: true; input: any; report: any; adapter: any }>('/api/ai-workforce/github-pr-control', {
+    method: 'POST',
+    body: JSON.stringify({
+      repoFullName: input.repoFullName,
+      prNumber: input.prNumber,
+      ...(input.apiBaseUrl?.trim() ? { apiBaseUrl: input.apiBaseUrl.trim() } : {}),
+    }),
+  });
+}
+
 export async function checkAIWorkforceRuntimeHealth(): Promise<AIWorkforceRuntimeHealth> {
   try {
     await fetchAIWorkforceRuntimeDashboard();
