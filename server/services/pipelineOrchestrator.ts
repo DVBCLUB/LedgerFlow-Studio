@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { callAI } from './aiClient';
 import { getAgentRole } from './agentRoles';
 import { createApprovalFingerprint } from './agentToolRegistry';
+import { buildPipelineStepGroundedContext } from './aiWorkforcePipelineContextGuard';
 import { getLocalPipeline, saveLocalPipeline } from './pipelineStore';
 
 export type PipelineType =
@@ -263,6 +264,10 @@ async function persistPipeline(pipeline: Pipeline) {
   });
 }
 
+function isHighImpactPipelineStep(pipeline: Pipeline, stepRequiresApproval: boolean) {
+  return stepRequiresApproval || pipeline.type === 'software_product' || pipeline.type === 'month_end' || pipeline.type === 'game_dev';
+}
+
 export async function startPipeline(
   pipelineType: PipelineType,
   input: Record<string, unknown>,
@@ -317,11 +322,29 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
     }
 
     const taskPrompt = stepDef.buildPrompt(pipeline.input, prevOutputs);
-    step.prompt = memoryContext ? `${memoryContext}\n\n${taskPrompt}` : taskPrompt;
+    const grounded = buildPipelineStepGroundedContext({
+      pipelineId: pipeline.id,
+      pipelineType: pipeline.type,
+      stepId: step.id,
+      stepName: step.name,
+      agentRole: step.agentRole,
+      prompt: taskPrompt,
+      userInput: pipeline.input,
+      memoryContext,
+      previousOutputs: prevOutputs,
+      highImpact: isHighImpactPipelineStep(pipeline, stepDef.requiresApproval),
+    });
+    step.prompt = grounded.groundedPrompt;
     step.context = {
       ...(step.context || {}),
       memoryInjected: Boolean(memoryContext),
       pipelineType: pipeline.type,
+      groundedContextPackId: grounded.pack.id,
+      groundedContextConfidence: grounded.confidence,
+      groundedContextSources: grounded.sourceCount,
+      groundedContextContradictions: grounded.contradictionCount,
+      groundedContextHighImpact: grounded.highImpact,
+      groundedContextGuardOk: grounded.guard.ok,
     };
     step.status = 'running';
     step.startedAt = new Date().toISOString();
@@ -330,6 +353,15 @@ async function executePipelineSteps(pipeline: Pipeline, template: PipelineTempla
     pipeline.currentStepIndex = index;
     pipeline.updatedAt = new Date().toISOString();
     await persistPipeline(pipeline);
+
+    if (!grounded.guard.ok) {
+      step.status = 'failed';
+      step.error = `Grounded context guard rejected pipeline step: ${grounded.guard.error}`;
+      pipeline.status = 'failed';
+      pipeline.updatedAt = new Date().toISOString();
+      await persistPipeline(pipeline);
+      return;
+    }
 
     try {
       const output = await executeAgentPrompt(step.agentRole, step.prompt);
