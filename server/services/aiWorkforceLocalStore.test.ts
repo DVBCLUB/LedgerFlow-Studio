@@ -3,7 +3,14 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { createJsonFileLocalStore, createSQLiteReadyLocalStore, type SQLiteReadyLocalStoreEngine } from './aiWorkforceLocalStore.ts';
+import {
+  buildAIWorkforceLocalStoreMigrationPlan,
+  createConfiguredAIWorkforceLocalStore,
+  createJsonFileLocalStore,
+  createSQLiteReadyLocalStore,
+  resolveAIWorkforceLocalStoreDriverName,
+  type SQLiteReadyLocalStoreEngine,
+} from './aiWorkforceLocalStore.ts';
 
 interface SmokeState extends Record<string, unknown> {
   records: Record<string, { id: string; value: number; createdAt: string }>;
@@ -13,6 +20,11 @@ async function withTempFile(t: any) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'ledgerflow-aiw-local-store-'));
   t.after(async () => fs.rm(directory, { recursive: true, force: true }));
   return path.join(directory, 'store.json');
+}
+
+function normalizeSmokeState(parsed: unknown): SmokeState {
+  const candidate = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Partial<SmokeState> : {};
+  return { records: candidate.records && typeof candidate.records === 'object' ? candidate.records : {} };
 }
 
 function createMockSQLiteEngine(file = 'mock-ai-workforce.sqlite'): SQLiteReadyLocalStoreEngine & { schemaCalls: () => number; writes: () => number } {
@@ -51,10 +63,7 @@ test('JSON local-first store queues mutations, writes atomically and reports sto
   const store = createJsonFileLocalStore<SmokeState>({
     filePath: () => file,
     emptyState: () => ({ records: {} }),
-    normalizeState: (parsed) => {
-      const candidate = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Partial<SmokeState> : {};
-      return { records: candidate.records && typeof candidate.records === 'object' ? candidate.records : {} };
-    },
+    normalizeState: normalizeSmokeState,
   });
 
   const writes = Array.from({ length: 8 }, (_, index) => store.mutate((state) => {
@@ -100,10 +109,7 @@ test('SQLite-ready local-first store uses the same facade with a mockable engine
     key: 'runtime-store',
     engine,
     emptyState: () => ({ records: {} }),
-    normalizeState: (parsed) => {
-      const candidate = parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Partial<SmokeState> : {};
-      return { records: candidate.records && typeof candidate.records === 'object' ? candidate.records : {} };
-    },
+    normalizeState: normalizeSmokeState,
   });
 
   await store.mutate((state) => {
@@ -128,4 +134,68 @@ test('SQLite-ready local-first store uses the same facade with a mockable engine
 
   await store.clear();
   assert.deepEqual(await store.read(), { records: {} });
+});
+
+test('configured store selects JSON by default and SQLite-ready with an injected engine', async (t) => {
+  const file = await withTempFile(t);
+  const jsonStore = createConfiguredAIWorkforceLocalStore<SmokeState>({
+    key: 'runtime-store',
+    filePath: () => file,
+    emptyState: () => ({ records: {} }),
+    normalizeState: normalizeSmokeState,
+    driverName: resolveAIWorkforceLocalStoreDriverName('json-file'),
+  });
+  assert.equal(jsonStore.driver.name, 'json-file');
+
+  const engine = createMockSQLiteEngine('/tmp/configured-ai-workforce.sqlite');
+  const sqliteStore = createConfiguredAIWorkforceLocalStore<SmokeState>({
+    key: 'runtime-store',
+    filePath: () => file,
+    emptyState: () => ({ records: {} }),
+    normalizeState: normalizeSmokeState,
+    driverName: resolveAIWorkforceLocalStoreDriverName('sqlite-ready'),
+    sqliteReadyEngine: engine,
+  });
+  assert.equal(sqliteStore.driver.name, 'sqlite-ready');
+
+  assert.throws(() => resolveAIWorkforceLocalStoreDriverName('bad-driver'), /Unsupported AI Workforce storage driver/);
+  assert.throws(() => createConfiguredAIWorkforceLocalStore<SmokeState>({
+    key: 'runtime-store',
+    filePath: () => file,
+    emptyState: () => ({ records: {} }),
+    driverName: 'sqlite-ready',
+  }), /requires a SQLiteReadyLocalStoreEngine/);
+});
+
+test('migration snapshot exports JSON state and imports it into SQLite-ready target', async (t) => {
+  const file = await withTempFile(t);
+  const source = createJsonFileLocalStore<SmokeState>({
+    filePath: () => file,
+    emptyState: () => ({ records: {} }),
+    normalizeState: normalizeSmokeState,
+  });
+  await source.mutate((state) => {
+    state.records.migrate = { id: 'migrate', value: 42, createdAt: '2026-01-03T00:00:00.000Z' };
+  });
+
+  const snapshot = await source.exportSnapshot();
+  assert.equal(snapshot.version, 1);
+  assert.equal(snapshot.driver, 'json-file');
+  assert.equal(snapshot.state.records.migrate.value, 42);
+
+  const target = createSQLiteReadyLocalStore<SmokeState>({
+    key: 'runtime-store',
+    engine: createMockSQLiteEngine('/tmp/migrated-ai-workforce.sqlite'),
+    emptyState: () => ({ records: {} }),
+    normalizeState: normalizeSmokeState,
+  });
+  const plan = source.migrationPlan('sqlite-ready');
+  assert.equal(plan.fromDriver, 'json-file');
+  assert.equal(plan.toDriver, 'sqlite-ready');
+  assert.equal(plan.requiresExternalEngine, true);
+  assert.ok(plan.steps.some((step) => /Export/.test(step)));
+
+  await target.importSnapshot(snapshot);
+  assert.equal((await target.read()).records.migrate.value, 42);
+  assert.deepEqual(buildAIWorkforceLocalStoreMigrationPlan('json-file', 'json-file').steps, ['No migration is required because source and target storage drivers match.']);
 });
