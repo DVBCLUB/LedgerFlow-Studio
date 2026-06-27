@@ -38,7 +38,7 @@
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",
     "check:desktop": "node scripts/check-desktop-package.mjs",
-    "check:runtime": "node scripts/check-runtime-api.mjs",
+    "check:runtime": "node scripts/check-runtime-api.mjs && node scripts/check-ai-workforce-runtime-routes.mjs",
     "check:offline": "node scripts/check-offline-readiness.mjs",
     "check:offline-vendor-assets": "node scripts/check-offline-vendor-assets.mjs",
     "check:release": "node scripts/finalize-release.mjs --check-only",
