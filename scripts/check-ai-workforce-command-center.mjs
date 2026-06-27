@@ -20,6 +20,8 @@ const requiredFiles = [
   'server/services/softwareFactoryReadiness.test.ts',
   'server/services/softwareFactoryPrControl.ts',
   'server/services/softwareFactoryPrControl.test.ts',
+  'server/services/softwareFactoryGithubPrAdapter.ts',
+  'server/services/softwareFactoryGithubPrAdapter.test.ts',
   'server/services/aiWorkforceRunMetricStore.ts',
   'server/services/aiWorkforceRunMetricStore.test.ts',
   'server/services/mcpToolManifestRegistry.ts',
@@ -81,6 +83,13 @@ const requiredTokens = [
   'assertSoftwareFactoryReady',
   'buildSoftwareFactoryPRControlReport',
   'assertPRControlMergeAllowed',
+  'buildGitHubSoftwareFactoryPRControlReport',
+  'fetchGitHubPullRequestControlInput',
+  'GitHubPRControlAdapterOptions',
+  'GitHub PR Control Adapter',
+  'buildRuntimeGitHubPRControlReport',
+  'github_pr_control_scored',
+  'github_pr_control',
   'reviewerChecklist',
   'releaseNotesDraft',
   'mergeGate',
@@ -119,11 +128,13 @@ const requiredTokens = [
   'hasDirectRuntimePanel',
   'previousImport',
   'AI Workforce PR Control route upgrade',
+  'AI Workforce GitHub PR Control route upgrade',
   '/api/ai-workforce/runtime',
   '/api/ai-workforce/context-pack',
   '/api/ai-workforce/safety-preview',
   '/api/ai-workforce/pr-readiness',
   '/api/ai-workforce/pr-control',
+  '/api/ai-workforce/github-pr-control',
   'Grounded Context Pack',
   'PR readiness',
   'safety envelope',
@@ -144,4 +155,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, persistent metrics UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
