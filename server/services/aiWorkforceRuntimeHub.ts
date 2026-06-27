@@ -20,6 +20,10 @@ import {
   type GitHubPRControlAdapterOptions,
 } from './softwareFactoryGithubPrAdapter.ts';
 import {
+  planAIWorkforceMission,
+  type AIWorkforceMissionPlannerInput,
+} from './aiWorkforceMissionPlanner.ts';
+import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
@@ -110,6 +114,36 @@ export async function buildRuntimeGroundedContext(options: RuntimeGroundedContex
   await appendAIWorkforceRunMetric(metric);
 
   return { pack, guard };
+}
+
+export async function buildRuntimeMissionPlan(input: AIWorkforceMissionPlannerInput) {
+  const startedAt = Date.now();
+  const plan = planAIWorkforceMission(input);
+  await appendAIWorkforceRuntimeRecord({
+    id: plan.id,
+    type: 'mission_plan',
+    payload: plan,
+  });
+  await persistKnowledgeGraphFromContextPack(plan.contextPack);
+  await appendAIWorkforceAuditEvent({
+    action: 'mission_planned',
+    severity: plan.summary.blockedSteps > 0 || !plan.contextGuard.ok ? 'critical' : plan.riskTier === 'critical' || plan.riskTier === 'high' ? 'warning' : 'info',
+    actor: 'Mission Planner',
+    summary: `Mission plan created with ${plan.summary.totalSteps} steps, ${plan.summary.humanApprovals} approval checkpoints, and ${plan.riskTier} risk.`,
+    entityId: plan.id,
+    metadata: { goal: plan.goal, summary: plan.summary, toolRoute: plan.toolRoute, approvalCheckpoints: plan.approvalCheckpoints },
+  });
+  const metric = recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: 'Mission Planner',
+    toolId: 'read_knowledge',
+    status: plan.summary.blockedSteps > 0 || !plan.contextGuard.ok ? 'blocked' : plan.approvalRequired ? 'needs_review' : 'success',
+    latencyMs: Date.now() - startedAt,
+    qualityScore: plan.contextPack.confidence,
+    safetyBlocks: plan.summary.blockedSteps + (plan.contextGuard.ok ? 0 : 1),
+  });
+  await appendAIWorkforceRunMetric(metric);
+  return plan;
 }
 
 export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
