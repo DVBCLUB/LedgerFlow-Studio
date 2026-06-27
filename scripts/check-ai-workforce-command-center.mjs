@@ -107,6 +107,10 @@ const requiredTokens = [
   'Assistant daemon entrypoint patched to avoid double-starting bundled desktop daemon',
   'assistant-daemon.cjs',
   'createJsonFileLocalStore',
+  'createSQLiteReadyLocalStore',
+  'SQLiteReadyLocalStoreEngine',
+  'AIWorkforceLocalStoreDriverName',
+  'sqlite-ready',
   'AIWorkforceLocalStoreDriver',
   'local-first store',
   'json-file',
@@ -177,4 +181,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter + UI, daemon runtime smoke, entrypoint patch, local-first storage abstraction, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, GitHub PR Control adapter + UI, daemon runtime smoke, entrypoint patch, local-first storage abstraction, SQLite-ready storage driver layer, persistent metrics UI, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
