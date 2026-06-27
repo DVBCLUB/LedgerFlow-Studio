@@ -10,6 +10,8 @@ const requiredFiles = [
   'server/services/aiWorkforceGapAssessment.test.ts',
   'server/services/groundedContextPack.ts',
   'server/services/groundedContextPack.test.ts',
+  'server/services/aiWorkforcePipelineContextGuard.ts',
+  'server/services/aiWorkforcePipelineContextGuard.test.ts',
   'server/services/aiBenchmarkObservability.ts',
   'server/services/aiBenchmarkObservability.test.ts',
   'server/services/automationSafetyEnvelope.ts',
@@ -27,6 +29,7 @@ const requiredFiles = [
   'server/services/aiWorkforceRuntimeStore.ts',
   'server/services/aiWorkforceRuntimeHub.ts',
   'server/services/aiWorkforceRuntimeHub.test.ts',
+  'server/services/pipelineOrchestrator.ts',
   'scripts/patch-ai-workforce-command-center.mjs',
 ];
 
@@ -64,6 +67,12 @@ const requiredTokens = [
   'benchmark_observability',
   'buildGroundedContextPack',
   'requireGroundedContextForHighImpact',
+  'buildPipelineStepGroundedContext',
+  'PipelineStepGroundingResult',
+  'GROUNDED PIPELINE CONTEXT',
+  'groundedContextPackId',
+  'groundedContextGuardOk',
+  'groundedContextContradictions',
   'recordAIRunMetric',
   'evaluateAIBaselineSuite',
   'validateAutomationSafetyEnvelope',
@@ -135,4 +144,4 @@ if (gapRowCount < 8) {
   throw new Error(`AI Workforce gap matrix should track at least 8 rows; found ${gapRowCount}`);
 }
 
-console.log('AI Workforce Command Center, direct runtime UI integration, persistent metrics UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
+console.log('AI Workforce Command Center, direct runtime UI integration, pipeline grounded context, persistent metrics UI, PR control, MCP tooling, operational ledger, patch hardening, upgrade services, and runtime hub contracts look healthy.');
