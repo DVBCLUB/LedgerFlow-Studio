@@ -59,6 +59,62 @@ function JsonPreview({ value }: { value: unknown }) {
   );
 }
 
+function ArtifactViewer({ replayArtifact, queue }: { replayArtifact?: any; queue?: any }) {
+  const persistedArtifacts = queue?.steps?.flatMap((step: any) => (step.evidence || []).map((item: any) => ({ ...item, stepTitle: step.title, stepStatus: step.status }))) || [];
+  const artifacts = replayArtifact?.artifacts || persistedArtifacts;
+  const timeline = replayArtifact?.timeline || queue?.timeline || [];
+
+  return (
+    <div className="mt-4 rounded-3xl border border-sky-500/20 bg-sky-500/5 p-4">
+      <div className="grid gap-3 md:grid-cols-4">
+        <MiniMetric label="Replay status" value={replayArtifact?.status || queue?.status || '—'} detail={replayArtifact?.safetyMode ? `safety ${replayArtifact.safetyMode}` : 'queue artifact timeline'} />
+        <MiniMetric label="Fingerprint" value={replayArtifact?.fingerprint ? 'captured' : '—'} detail={replayArtifact?.fingerprint || 'No replay fingerprint yet'} />
+        <MiniMetric label="Artifacts" value={artifacts.length || '—'} detail="Evidence items visible" />
+        <MiniMetric label="Missing evidence" value={replayArtifact?.summary?.missingExpectedEvidence?.length ?? '—'} detail="Expected evidence gaps" />
+      </div>
+      <div className="mt-4 grid gap-3 xl:grid-cols-2">
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">Execution replay timeline</p>
+          <div className="mt-3 space-y-2">
+            {timeline.length ? timeline.slice(0, 8).map((item: any, index: number) => (
+              <div key={`${item.id || item.action || index}`} className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+                <p className="text-xs font-black text-white">#{item.index ?? index} · {item.action || item.actionId || 'timeline event'}</p>
+                <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">{item.summary}</p>
+                {item.evidenceRequired && <p className="mt-1 text-[11px] font-semibold leading-5 text-sky-200">needs: {item.evidenceRequired}</p>}
+              </div>
+            )) : (
+              <p className="text-xs font-semibold text-slate-500">Chưa có replay timeline. Hãy bấm Dry-run tool hoặc Execute sim.</p>
+            )}
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-sky-300">Artifact viewer</p>
+          <div className="mt-3 space-y-2">
+            {artifacts.length ? artifacts.slice(0, 8).map((artifact: any, index: number) => (
+              <div key={artifact.id || `${artifact.title}-${index}`} className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-xs font-black text-white">{artifact.title}</p>
+                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black uppercase text-slate-300">{artifact.kind || 'artifact'}</span>
+                </div>
+                {artifact.stepTitle && <p className="mt-1 text-[11px] font-semibold text-slate-500">{artifact.stepTitle} · {artifact.stepStatus}</p>}
+                <p className="mt-1 line-clamp-3 text-[11px] font-semibold leading-5 text-slate-400">{artifact.value}</p>
+              </div>
+            )) : (
+              <p className="text-xs font-semibold text-slate-500">Chưa có artifact. Execute sim sẽ tạo evidence và gắn vào step.</p>
+            )}
+          </div>
+        </div>
+      </div>
+      {replayArtifact?.summary?.missingExpectedEvidence?.length ? (
+        <div className="mt-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-200">Missing expected evidence</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-amber-100">{replayArtifact.summary.missingExpectedEvidence.join(' · ')}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function normalizeRepo(value: string) {
   return value.trim().replace(/^https:\/\/github\.com\//i, '').replace(/\/$/, '');
 }
@@ -200,6 +256,7 @@ export default function AIWorkforceRuntimePanel() {
   const activeQueue = lastExecutionQueue || missionQueueStats?.latestQueue || null;
   const activeStep = activeQueue ? executableStep(activeQueue) : null;
   const lastToolResult = lastResult?.type === 'queue-tool-preview' ? lastResult?.response?.result : lastResult?.type === 'queue-tool-execute' ? lastResult?.response?.result : null;
+  const replayArtifact = lastToolResult?.replayArtifact;
   const lastGitHubReport = lastResult?.type === 'github-pr-control' ? lastResult?.response?.report : null;
   const lastGitHubAdapter = lastResult?.type === 'github-pr-control' ? lastResult?.response?.adapter : null;
 
@@ -213,7 +270,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: tạo/resume/cancel queue, approve/start/complete từng step, dry-run tool, execute sandbox simulation, preview safety, PR readiness, GitHub PR Control, MCP health, persistent metric store và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: tạo/resume/cancel queue, approve/start/complete từng step, dry-run tool, execute sandbox simulation, xem Evidence Replay Artifact, preview safety, PR readiness, GitHub PR Control, MCP health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -300,9 +357,10 @@ export default function AIWorkforceRuntimePanel() {
               <MiniMetric label="Tool adapter" value={lastToolResult.adapterToolId || '—'} detail={`requested ${lastToolResult.requestedToolId || '—'}`} />
               <MiniMetric label="Tool mode" value={lastToolResult.mode || '—'} detail={lastToolResult.status || 'adapter status'} />
               <MiniMetric label="Safety" value={lastToolResult.safetyDecision?.mode || '—'} detail={lastToolResult.safetyDecision?.approved ? 'approved' : 'blocked/review'} />
-              <MiniMetric label="Evidence" value={lastToolResult.evidence?.length ?? '—'} detail="Generated execution evidence" />
+              <MiniMetric label="Replay" value={replayArtifact?.summary?.replaySteps ?? '—'} detail={`${replayArtifact?.summary?.evidenceItems ?? 0} artifact items`} />
             </div>
           )}
+          <ArtifactViewer replayArtifact={replayArtifact} queue={activeQueue} />
           <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {activeQueue.steps?.slice(0, 6).map((step: any) => (
               <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
