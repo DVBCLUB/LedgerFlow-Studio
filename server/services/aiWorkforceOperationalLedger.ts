@@ -170,11 +170,13 @@ export async function getAIWorkforceOperationalLedgerDashboard() {
       total: auditEvents.length,
       totalEvents: auditEvents.length,
       latestEvent: auditEvents[0] || null,
+      latestEvents: auditEvents.slice(0, 10),
     },
     trendStats: {
       total: trendSnapshots.length,
       totalSnapshots: trendSnapshots.length,
       latestTrend,
+      latestTrends: trendSnapshots.slice(0, 10),
       readinessDelta,
       blockedRateDelta,
     },
