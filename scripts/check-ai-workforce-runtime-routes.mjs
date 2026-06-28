@@ -158,6 +158,7 @@ try {
       AI_WORKFORCE_OPERATIONAL_LEDGER_FILE: path.join(tempDir, 'ledger.json'),
       AI_WORKFORCE_RUN_METRIC_STORE_FILE: path.join(tempDir, 'metrics.json'),
       AI_WORKFORCE_MISSION_QUEUE_STORE_FILE: path.join(tempDir, 'mission-queues.json'),
+      AI_WORKFORCE_MISSION_REVIEW_NOTE_STORE_FILE: path.join(tempDir, 'mission-review-notes.json'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -231,6 +232,36 @@ try {
     throw new Error('/api/ai-workforce/mission-execution-queue did not create a queue.');
   }
 
+  const reviewNote = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-review-note', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      queueId: missionQueue.json.queue.id,
+      reviewer: 'Founder',
+      decision: 'approved',
+      summary: 'Persisted smoke review note approved for handoff.',
+      requestedAction: 'Proceed after CI and snapshot checksum stay green.',
+    }),
+  });
+  if (!reviewNote.response.ok || reviewNote.json?.ok !== true || !reviewNote.json?.note?.id) {
+    throw new Error('/api/ai-workforce/mission-review-note did not persist a review note.');
+  }
+  if (!reviewNote.json?.dossier?.releaseReady || Number(reviewNote.json?.stats?.totalNotes || 0) < 1) {
+    throw new Error('Persisted review note response did not include release-ready dossier and store stats.');
+  }
+
+  const reviewNotes = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-review-notes', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ queueId: missionQueue.json.queue.id }),
+  });
+  if (!reviewNotes.response.ok || reviewNotes.json?.ok !== true || reviewNotes.json?.notes?.length !== 1) {
+    throw new Error('/api/ai-workforce/mission-review-notes did not list the persisted review note.');
+  }
+  if (reviewNotes.json?.dossier?.summary?.approvals !== 1) {
+    throw new Error('Persisted review note dossier did not count the approval.');
+  }
+
   const snapshotExport = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-snapshot-export', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -241,6 +272,12 @@ try {
   }
   if (!snapshotExport.json?.snapshot?.checksum || !snapshotExport.json?.snapshot?.filename?.endsWith('.md')) {
     throw new Error('Mission snapshot export response is missing checksum or Markdown filename.');
+  }
+  if (snapshotExport.json?.persistedReviewNotes !== 1 || !snapshotExport.json?.snapshot?.content?.includes('Persisted smoke review note approved for handoff.')) {
+    throw new Error('Mission snapshot export did not include the persisted review note.');
+  }
+  if (snapshotExport.json?.snapshot?.summary?.reviewNotes !== 1 || snapshotExport.json?.snapshot?.summary?.releaseReady !== true) {
+    throw new Error('Mission snapshot export summary did not include persisted review gate status.');
   }
 
   const githubControl = await fetchJson(DAEMON_URL, '/api/ai-workforce/github-pr-control', {
@@ -270,7 +307,7 @@ try {
     throw new Error('AI Workforce runtime dashboard did not include persisted metric store stats after smoke actions.');
   }
 
-  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
+  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, persisted review notes, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
 } catch (error) {
   console.error('\nAI Workforce daemon runtime smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));
