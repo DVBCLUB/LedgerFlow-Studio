@@ -26,13 +26,14 @@ function sampleQueue() {
   return queue;
 }
 
-test('mission queue snapshot export creates a JSON handoff artifact with checksum, evidence and review notes', () => {
+test('mission queue snapshot export creates a JSON handoff artifact with checksum, evidence, review notes and release gate', () => {
   const queue = sampleQueue();
   const snapshot = buildMissionQueueSnapshotExport(queue, {
     format: 'json',
     createdAt: '2026-06-28T00:00:00.000Z',
     includeRawQueue: true,
     reviewNotes: [{ reviewer: 'Founder', decision: 'approved', summary: 'Approved for handoff.' }],
+    releaseEvidence: { ciStatus: 'success', approvals: 1, requiredApprovals: 1, rollbackConfirmed: true, operatorConfirmed: true, releaseLabel: true },
   });
   const payload = JSON.parse(snapshot.content);
 
@@ -43,33 +44,43 @@ test('mission queue snapshot export creates a JSON handoff artifact with checksu
   assert.equal(snapshot.summary.reviewNotes, 1);
   assert.equal(snapshot.summary.reviewStatus, 'release_ready');
   assert.equal(snapshot.reviewDossier.releaseReady, true);
+  assert.equal(snapshot.summary.releaseGateDecision, 'ready');
+  assert.equal(snapshot.summary.releaseGateReady, true);
+  assert.ok(snapshot.summary.releaseGateScore >= 90);
+  assert.ok(snapshot.releaseGate.checksum.length >= 32);
   assert.ok(snapshot.checksum.length >= 32);
   assert.equal(payload.kind, 'ai_workforce_mission_queue_snapshot');
   assert.ok(payload.nextSafeAction);
   assert.ok(payload.rollbackNote.includes('Partial work exists'));
   assert.ok(payload.handoffSummary.includes(queue.id));
   assert.equal(payload.reviewDossier.notes[0].decision, 'approved');
+  assert.equal(payload.releaseGate.decision, 'ready');
   assert.ok(payload.artifacts.some((item: any) => item.title === 'Execution fingerprint'));
   assert.ok(payload.rawQueue.id === queue.id);
 });
 
-test('mission queue snapshot export creates a Markdown handoff artifact with review notes', () => {
+test('mission queue snapshot export creates a Markdown handoff artifact with review notes and release gate', () => {
   const queue = sampleQueue();
   const snapshot = buildMissionQueueSnapshotExport(queue, {
     format: 'markdown',
     createdAt: '2026-06-28T00:00:00.000Z',
     reviewNotes: [{ reviewer: 'Security', decision: 'blocked', summary: 'Security evidence missing.', requestedAction: 'Attach security evidence.' }],
+    releaseEvidence: { ciStatus: 'pending', approvals: 0, requiredApprovals: 1 },
   });
 
   assert.equal(snapshot.format, 'markdown');
   assert.match(snapshot.filename, /\.md$/);
   assert.equal(snapshot.summary.reviewStatus, 'blocked');
   assert.equal(snapshot.summary.releaseReady, false);
+  assert.equal(snapshot.summary.releaseGateDecision, 'hold');
+  assert.equal(snapshot.summary.releaseGateReady, false);
   assert.ok(snapshot.content.includes('# AI Workforce Mission Queue Snapshot'));
   assert.ok(snapshot.content.includes('## Next safe action'));
   assert.ok(snapshot.content.includes('## Owner handoff'));
   assert.ok(snapshot.content.includes('## Rollback note'));
   assert.ok(snapshot.content.includes('## Operator review notes'));
+  assert.ok(snapshot.content.includes('## Operator release gate'));
+  assert.ok(snapshot.content.includes('Decision: hold'));
   assert.ok(snapshot.content.includes('Security evidence missing'));
   assert.ok(snapshot.content.includes('## Evidence artifacts'));
   assert.ok(snapshot.content.includes('Execution fingerprint'));
