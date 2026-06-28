@@ -7,6 +7,7 @@ export type AIWorkforceRuntimeRecordType =
   | 'pr_control'
   | 'mission_plan'
   | 'mission_execution_queue'
+  | 'mission_tool_execution'
   | 'runtime_snapshot';
 
 export interface AIWorkforceRuntimeRecord<T = unknown> {
