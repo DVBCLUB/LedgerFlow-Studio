@@ -1,3 +1,4 @@
+import './check-ai-workforce-release-gate-retention-policy.mjs';
 import fs from 'node:fs';
 
 const files = [
