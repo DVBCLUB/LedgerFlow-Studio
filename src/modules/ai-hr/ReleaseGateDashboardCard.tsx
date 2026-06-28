@@ -8,14 +8,34 @@ function daemonBaseUrl() {
 }
 
 export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?: any }) {
+  const [liveReleaseGate, setLiveReleaseGate] = React.useState<any>(releaseGate || null);
   const [exportArtifact, setExportArtifact] = React.useState<any>(null);
   const [exportError, setExportError] = React.useState<string | null>(null);
   const [exportLoading, setExportLoading] = React.useState<'json' | 'markdown' | null>(null);
-  if (!releaseGate) return null;
-  const ready = releaseGate.latestReleaseReady === true;
-  const timeline = Array.isArray(releaseGate.timeline) ? releaseGate.timeline : [];
-  const exportHistory = Array.isArray(releaseGate.exportHistory) ? releaseGate.exportHistory : [];
-  const trend = releaseGate.trendAnalytics || {};
+
+  React.useEffect(() => {
+    setLiveReleaseGate(releaseGate || null);
+  }, [releaseGate]);
+
+  if (!liveReleaseGate) return null;
+  const ready = liveReleaseGate.latestReleaseReady === true;
+  const timeline = Array.isArray(liveReleaseGate.timeline) ? liveReleaseGate.timeline : [];
+  const exportHistory = Array.isArray(liveReleaseGate.exportHistory) ? liveReleaseGate.exportHistory : [];
+  const trend = liveReleaseGate.trendAnalytics || {};
+
+  async function refreshReleaseGateDashboardAfterExport(fallbackDashboard?: any) {
+    try {
+      const response = await fetch(`${daemonBaseUrl()}/api/ai-workforce/runtime`);
+      const payload = await response.json().catch(() => ({}));
+      if (response.ok && payload?.dashboard?.releaseGate) {
+        setLiveReleaseGate(payload.dashboard.releaseGate);
+        return;
+      }
+    } catch {
+      // Export succeeded; keep the current panel usable even if refresh is unavailable.
+    }
+    if (fallbackDashboard) setLiveReleaseGate(fallbackDashboard.releaseGate || fallbackDashboard);
+  }
 
   async function exportReleaseGateSummary(format: 'json' | 'markdown') {
     setExportLoading(format);
@@ -29,6 +49,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload?.ok === false) throw new Error(payload?.error || `Release gate export failed: ${response.status}`);
       setExportArtifact(payload.exportArtifact);
+      await refreshReleaseGateDashboardAfterExport(payload.dashboard);
     } catch (err: any) {
       setExportError(err?.message || 'Cannot export release gate summary.');
     } finally {
@@ -46,13 +67,13 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
             <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event, metric evidence, historical timeline và trend analytics surfaced từ Runtime Hub, plus export history.</p>
           </div>
         </div>
-        <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${ready ? 'border-emerald-400/40 text-emerald-100' : 'border-amber-400/40 text-amber-100'}`}>{releaseGate.latestDecision || 'no gate'}</span>
+        <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${ready ? 'border-emerald-400/40 text-emerald-100' : 'border-amber-400/40 text-amber-100'}`}>{liveReleaseGate.latestDecision || 'no gate'}</span>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Score</p><p className="mt-2 text-xl font-black text-white">{releaseGate.latestScore ?? '—'}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Ready</p><p className="mt-2 text-xl font-black text-white">{String(Boolean(releaseGate.latestReleaseReady))}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Gate records</p><p className="mt-2 text-xl font-black text-white">{releaseGate.totalRecords ?? 0}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Exports</p><p className="mt-2 text-xl font-black text-white">{releaseGate.totalExports ?? 0}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Score</p><p className="mt-2 text-xl font-black text-white">{liveReleaseGate.latestScore ?? '—'}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Ready</p><p className="mt-2 text-xl font-black text-white">{String(Boolean(liveReleaseGate.latestReleaseReady))}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Gate records</p><p className="mt-2 text-xl font-black text-white">{liveReleaseGate.totalRecords ?? 0}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Exports</p><p className="mt-2 text-xl font-black text-white">{liveReleaseGate.totalExports ?? 0}</p></div>
       </div>
       <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3">
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Release Gate Trend Analytics</p>
@@ -68,7 +89,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Release Gate Export Summary</p>
-            <p className="mt-2 text-xs font-semibold text-slate-400">Export dashboard, timeline và trend analytics thành JSON hoặc Markdown handoff artifact.</p>
+            <p className="mt-2 text-xs font-semibold text-slate-400">Export dashboard, timeline và trend analytics thành JSON hoặc Markdown handoff artifact. Auto-refresh export history after each export.</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-[10px] font-black uppercase text-emerald-100 disabled:opacity-50" onClick={() => exportReleaseGateSummary('json')} disabled={Boolean(exportLoading)}>{exportLoading === 'json' ? 'Exporting…' : 'Export JSON summary'}</button>
@@ -100,9 +121,9 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
         </div>
       </div>
       <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs font-semibold leading-5 text-slate-300">
-        <p><span className="font-black text-white">Final action:</span> {releaseGate.latestFinalAction || 'No release gate recorded yet.'}</p>
-        <p className="mt-2"><span className="font-black text-white">Checksum:</span> {releaseGate.latestChecksum || '—'}</p>
-        <p className="mt-2"><span className="font-black text-white">Missing evidence:</span> {releaseGate.latestMissingEvidence?.length ? releaseGate.latestMissingEvidence.join('; ') : 'none'}</p>
+        <p><span className="font-black text-white">Final action:</span> {liveReleaseGate.latestFinalAction || 'No release gate recorded yet.'}</p>
+        <p className="mt-2"><span className="font-black text-white">Checksum:</span> {liveReleaseGate.latestChecksum || '—'}</p>
+        <p className="mt-2"><span className="font-black text-white">Missing evidence:</span> {liveReleaseGate.latestMissingEvidence?.length ? liveReleaseGate.latestMissingEvidence.join('; ') : 'none'}</p>
       </div>
       <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3">
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Release Gate Historical Timeline</p>
