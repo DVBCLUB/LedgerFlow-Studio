@@ -33,9 +33,8 @@ app.post("/api/ai-workforce/mission-snapshot-export", async (req: Request, res: 
   try {
     const body = (req.body || {}) as any;
     const format = body.format === "markdown" ? "markdown" : "json";
-    const queue = body.queueId
-      ? await requireMissionExecutionQueue(String(body.queueId))
-      : (await listMissionExecutionQueues({ limit: 1 })).[0];
+    const queues = body.queueId ? [] : await listMissionExecutionQueues({ limit: 1 });
+    const queue = body.queueId ? await requireMissionExecutionQueue(String(body.queueId)) : queues[0];
     if (!queue) return res.status(404).json({ ok: false, error: "No mission execution queue is available for snapshot export." });
     const snapshot = buildMissionQueueSnapshotExport(queue, {
       format,
