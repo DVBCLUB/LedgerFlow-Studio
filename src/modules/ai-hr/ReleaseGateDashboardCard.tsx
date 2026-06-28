@@ -1,0 +1,32 @@
+import React from 'react';
+import { ShieldCheck } from 'lucide-react';
+
+export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?: any }) {
+  if (!releaseGate) return null;
+  const ready = releaseGate.latestReleaseReady === true;
+  return (
+    <div className="mt-5 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex items-start gap-3">
+          <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-200"><ShieldCheck className="h-5 w-5" /></div>
+          <div>
+            <h3 className="text-sm font-black text-white">Release Gate Dashboard</h3>
+            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event và metric evidence surfaced từ Runtime Hub.</p>
+          </div>
+        </div>
+        <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${ready ? 'border-emerald-400/40 text-emerald-100' : 'border-amber-400/40 text-amber-100'}`}>{releaseGate.latestDecision || 'no gate'}</span>
+      </div>
+      <div className="mt-4 grid gap-3 md:grid-cols-4">
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Score</p><p className="mt-2 text-xl font-black text-white">{releaseGate.latestScore ?? '—'}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Ready</p><p className="mt-2 text-xl font-black text-white">{String(Boolean(releaseGate.latestReleaseReady))}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Records</p><p className="mt-2 text-xl font-black text-white">{releaseGate.totalRecords ?? 0}</p></div>
+        <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Metric</p><p className="mt-2 text-xl font-black text-white">{releaseGate.latestMetric?.status || '—'}</p></div>
+      </div>
+      <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs font-semibold leading-5 text-slate-300">
+        <p><span className="font-black text-white">Final action:</span> {releaseGate.latestFinalAction || 'No release gate recorded yet.'}</p>
+        <p className="mt-2"><span className="font-black text-white">Checksum:</span> {releaseGate.latestChecksum || '—'}</p>
+        <p className="mt-2"><span className="font-black text-white">Missing evidence:</span> {releaseGate.latestMissingEvidence?.length ? releaseGate.latestMissingEvidence.join('; ') : 'none'}</p>
+      </div>
+    </div>
+  );
+}
