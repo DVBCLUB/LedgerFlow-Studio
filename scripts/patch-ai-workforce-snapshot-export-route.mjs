@@ -39,6 +39,7 @@ app.post("/api/ai-workforce/mission-snapshot-export", async (req: Request, res: 
     const snapshot = buildMissionQueueSnapshotExport(queue, {
       format,
       includeRawQueue: Boolean(body.includeRawQueue),
+      reviewNotes: Array.isArray(body.reviewNotes) ? body.reviewNotes : [],
     });
     res.json({ ok: true, snapshot });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
