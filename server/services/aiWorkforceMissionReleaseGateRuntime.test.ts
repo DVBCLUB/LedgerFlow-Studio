@@ -10,6 +10,7 @@ import { clearAIWorkforceRuntimeStoreForTest, listAIWorkforceRuntimeRecords } fr
 import { clearAIWorkforceOperationalLedgerForTest, listAIWorkforceAuditEvents } from './aiWorkforceOperationalLedger.ts';
 import { clearAIWorkforceRunMetricStoreForTest, listAIWorkforceRunMetrics } from './aiWorkforceRunMetricStore.ts';
 import { buildRuntimeMissionReleaseGate } from './aiWorkforceMissionReleaseGateRuntime.ts';
+import { getAIWorkforceReleaseGateDashboard } from './aiWorkforceReleaseGateDashboard.ts';
 
 process.env.AI_WORKFORCE_MISSION_QUEUE_STORE_FILE = path.join(os.tmpdir(), `release-gate-q-${process.pid}.json`);
 process.env.AI_WORKFORCE_MISSION_REVIEW_NOTE_STORE_FILE = path.join(os.tmpdir(), `release-gate-n-${process.pid}.json`);
@@ -57,4 +58,10 @@ test('runtime mission release gate stores record, event and metric', async () =>
   assert.equal((await listAIWorkforceRuntimeRecords({ type: 'mission_release_gate' })).length, 1);
   assert.equal((await listAIWorkforceAuditEvents())[0].metadata?.checksum, result.gate.checksum);
   assert.equal((await listAIWorkforceRunMetrics({ lane: 'mission-control' })).some((metric) => metric.toolId === 'mission_release_gate'), true);
+
+  const dashboard = await getAIWorkforceReleaseGateDashboard();
+  assert.equal(dashboard.latestDecision, 'ready');
+  assert.equal(dashboard.latestReleaseReady, true);
+  assert.equal(dashboard.latestChecksum, result.gate.checksum);
+  assert.equal(dashboard.latestMetric?.toolId, 'mission_release_gate');
 });
