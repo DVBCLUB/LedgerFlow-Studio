@@ -3,17 +3,27 @@ import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
 import { appendAIWorkforceAuditEvent } from './aiWorkforceOperationalLedger.ts';
 import { recordAIRunMetric } from './aiBenchmarkObservability.ts';
 import { appendAIWorkforceRunMetric } from './aiWorkforceRunMetricStore.ts';
+import { pruneRuntimeRecordsByType } from './aiWorkforceRuntimeRecordRetention.ts';
+
+const DEFAULT_RELEASE_GATE_EXPORT_RETENTION = 10;
 
 export interface BuildRuntimeReleaseGateExportOptions {
   format?: AIWorkforceReleaseGateExportFormat;
   actor?: string;
   createdAt?: string;
+  retentionLimit?: number;
+}
+
+function resolveRetentionLimit(input?: number) {
+  const raw = input ?? Number(process.env.AI_WORKFORCE_RELEASE_GATE_EXPORT_RETENTION || DEFAULT_RELEASE_GATE_EXPORT_RETENTION);
+  return Number.isFinite(raw) ? Math.max(1, Math.floor(raw)) : DEFAULT_RELEASE_GATE_EXPORT_RETENTION;
 }
 
 export async function buildRuntimeReleaseGateExport(options: BuildRuntimeReleaseGateExportOptions = {}) {
   const startedAt = Date.now();
   const createdAt = options.createdAt || new Date().toISOString();
   const actor = options.actor || 'Mission Operator';
+  const retentionLimit = resolveRetentionLimit(options.retentionLimit);
   const { exportArtifact, dashboard } = await buildAIWorkforceReleaseGateExport({ format: options.format, createdAt });
 
   const runtimeRecord = await appendAIWorkforceRuntimeRecord({
@@ -31,6 +41,7 @@ export async function buildRuntimeReleaseGateExport(options: BuildRuntimeRelease
       timelineItems: exportArtifact.summary.timelineItems,
     },
   });
+  const retention = await pruneRuntimeRecordsByType({ type: 'release_gate_export', keep: retentionLimit });
 
   const auditEvent = await appendAIWorkforceAuditEvent({
     action: 'release_gate_exported',
@@ -45,6 +56,7 @@ export async function buildRuntimeReleaseGateExport(options: BuildRuntimeRelease
       filename: exportArtifact.filename,
       checksum: exportArtifact.checksum,
       summary: exportArtifact.summary,
+      retention,
     },
   });
 
@@ -60,5 +72,5 @@ export async function buildRuntimeReleaseGateExport(options: BuildRuntimeRelease
   });
   await appendAIWorkforceRunMetric(metric);
 
-  return { exportArtifact, dashboard, runtimeRecord, auditEvent, metric };
+  return { exportArtifact, dashboard, runtimeRecord, auditEvent, metric, retention };
 }
