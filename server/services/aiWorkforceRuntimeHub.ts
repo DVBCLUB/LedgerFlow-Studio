@@ -35,6 +35,11 @@ import {
   startStoredMissionExecutionStep,
 } from './aiWorkforceMissionExecutionQueueStore.ts';
 import {
+  executeMissionStepToolSimulation,
+  previewMissionStepToolExecution,
+  type MissionToolExecutionAdapterResult,
+} from './aiWorkforceMissionToolExecutor.ts';
+import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
@@ -117,6 +122,48 @@ async function recordMissionQueueTransition(options: {
     latencyMs: Date.now() - options.startedAt,
     qualityScore: 0.9,
     safetyBlocks: options.safetyBlocks || 0,
+  });
+  await appendAIWorkforceRunMetric(metric);
+}
+
+async function recordMissionToolExecution(options: {
+  result: MissionToolExecutionAdapterResult;
+  queue?: MissionExecutionQueue;
+  action: 'mission_tool_previewed' | 'mission_tool_executed';
+  actor: string;
+  summary: string;
+  startedAt: number;
+  status: AIRunMetric['status'];
+}) {
+  await appendAIWorkforceRuntimeRecord({
+    id: options.result.id,
+    type: 'mission_tool_execution',
+    payload: { result: options.result, queue: options.queue || null },
+  });
+  await appendAIWorkforceAuditEvent({
+    action: options.action,
+    severity: options.status === 'blocked' ? 'warning' : 'info',
+    actor: options.actor,
+    summary: options.summary,
+    entityId: options.result.queueId,
+    metadata: {
+      stepId: options.result.stepId,
+      requestedToolId: options.result.requestedToolId,
+      adapterToolId: options.result.adapterToolId,
+      mode: options.result.mode,
+      status: options.result.status,
+      safetyMode: options.result.safetyDecision.mode,
+      safetyApproved: options.result.safetyDecision.approved,
+    },
+  });
+  const metric = recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: 'Mission Tool Executor',
+    toolId: options.result.adapterToolId,
+    status: options.status,
+    latencyMs: Date.now() - options.startedAt,
+    qualityScore: options.result.safetyDecision.approved ? 0.92 : 0.25,
+    safetyBlocks: options.result.safetyDecision.approved ? 0 : options.result.safetyDecision.issues.length,
   });
   await appendAIWorkforceRunMetric(metric);
 }
@@ -303,6 +350,49 @@ export async function cancelRuntimeMissionExecutionQueue(options: { queueId: str
     metadata: { reason: options.reason },
   });
   return queue;
+}
+
+export async function previewRuntimeMissionStepToolExecution(options: { queueId: string; stepId: string; actor?: string }) {
+  const startedAt = Date.now();
+  const queue = await requireMissionExecutionQueue(options.queueId);
+  const result = previewMissionStepToolExecution(queue, options.stepId);
+  await recordMissionToolExecution({
+    result,
+    queue,
+    action: 'mission_tool_previewed',
+    actor: options.actor || 'Mission Tool Executor',
+    summary: `Mission tool dry-run preview for ${result.requestedToolId} via ${result.adapterToolId}: ${result.status}.`,
+    startedAt,
+    status: result.status === 'approval_required' ? 'needs_review' : 'success',
+  });
+  return result;
+}
+
+export async function executeRuntimeMissionStepToolSimulation(options: { queueId: string; stepId: string; actor?: string }) {
+  const startedAt = Date.now();
+  let queue = await requireMissionExecutionQueue(options.queueId);
+  const step = queue.steps.find((item) => item.id === options.stepId || item.missionStepId === options.stepId);
+  if (!step) throw new Error(`Mission execution step not found: ${options.stepId}`);
+  if (step.status === 'ready') {
+    queue = await startStoredMissionExecutionStep({ queueId: options.queueId, stepId: options.stepId, actor: options.actor || 'Mission Tool Executor' });
+  }
+  const result = executeMissionStepToolSimulation(queue, options.stepId);
+  const completedQueue = await completeStoredMissionExecutionStep({
+    queueId: options.queueId,
+    stepId: options.stepId,
+    actor: options.actor || 'Mission Tool Executor',
+    evidence: result.evidence.map((item) => ({ kind: 'artifact' as const, title: item.title, value: item.value })),
+  });
+  await recordMissionToolExecution({
+    result,
+    queue: completedQueue,
+    action: 'mission_tool_executed',
+    actor: options.actor || 'Mission Tool Executor',
+    summary: `Mission tool simulation executed for ${result.requestedToolId} via ${result.adapterToolId}.`,
+    startedAt,
+    status: 'success',
+  });
+  return { result, queue: completedQueue };
 }
 
 export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
