@@ -10,6 +10,7 @@ function daemonBaseUrl() {
 export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?: any }) {
   const [liveReleaseGate, setLiveReleaseGate] = React.useState<any>(releaseGate || null);
   const [exportArtifact, setExportArtifact] = React.useState<any>(null);
+  const [exportRetention, setExportRetention] = React.useState<any>(null);
   const [exportError, setExportError] = React.useState<string | null>(null);
   const [exportLoading, setExportLoading] = React.useState<'json' | 'markdown' | null>(null);
 
@@ -21,6 +22,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
   const ready = liveReleaseGate.latestReleaseReady === true;
   const timeline = Array.isArray(liveReleaseGate.timeline) ? liveReleaseGate.timeline : [];
   const exportHistory = Array.isArray(liveReleaseGate.exportHistory) ? liveReleaseGate.exportHistory : [];
+  const latestExportRetention = liveReleaseGate.latestExportRetention || exportRetention;
   const trend = liveReleaseGate.trendAnalytics || {};
 
   async function refreshReleaseGateDashboardAfterExport(fallbackDashboard?: any) {
@@ -49,6 +51,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload?.ok === false) throw new Error(payload?.error || `Release gate export failed: ${response.status}`);
       setExportArtifact(payload.exportArtifact);
+      setExportRetention(payload.retention || null);
       await refreshReleaseGateDashboardAfterExport(payload.dashboard);
     } catch (err: any) {
       setExportError(err?.message || 'Cannot export release gate summary.');
@@ -64,7 +67,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-200"><ShieldCheck className="h-5 w-5" /></div>
           <div>
             <h3 className="text-sm font-black text-white">Release Gate Dashboard</h3>
-            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event, metric evidence, historical timeline và trend analytics surfaced từ Runtime Hub, plus export history.</p>
+            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event, metric evidence, historical timeline và trend analytics surfaced từ Runtime Hub, plus export history and retention policy.</p>
           </div>
         </div>
         <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${ready ? 'border-emerald-400/40 text-emerald-100' : 'border-amber-400/40 text-amber-100'}`}>{liveReleaseGate.latestDecision || 'no gate'}</span>
@@ -100,11 +103,15 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
         {exportArtifact && <div className="mt-3 rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs font-semibold leading-5 text-slate-300">
           <p><span className="font-black text-white">Filename:</span> {exportArtifact.filename}</p>
           <p className="mt-1"><span className="font-black text-white">Checksum:</span> {exportArtifact.checksum}</p>
+          {exportRetention && <p className="mt-1"><span className="font-black text-white">Retention:</span> keep {exportRetention.keep}, kept {exportRetention.kept}, removed {exportRetention.removed}</p>}
           <pre className="mt-3 max-h-48 overflow-auto whitespace-pre-wrap rounded-xl border border-slate-800 bg-slate-950 p-3 text-[11px] text-slate-300">{exportArtifact.content}</pre>
         </div>}
       </div>
       <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3">
-        <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Release Gate Export History</p>
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+          <p className="text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">Release Gate Export History</p>
+          <p className="text-[11px] font-bold text-slate-400">Retention: keep {latestExportRetention?.keep ?? '—'}, kept {latestExportRetention?.kept ?? '—'}, removed {latestExportRetention?.removed ?? '—'}</p>
+        </div>
         <div className="mt-3 space-y-2">
           {exportHistory.length ? exportHistory.slice(0, 6).map((item: any) => (
             <div key={item.id || item.checksum} className="rounded-xl border border-slate-800 bg-slate-900/70 px-3 py-2">
