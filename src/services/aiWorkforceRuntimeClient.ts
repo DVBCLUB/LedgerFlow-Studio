@@ -119,6 +119,20 @@ export async function completeMissionExecutionQueueStep(queueId: string, step: a
   });
 }
 
+export async function previewMissionExecutionQueueTool(queueId: string, step: any) {
+  return requestAIWorkforce<{ ok: true; result: any }>('/api/ai-workforce/mission-execution-queue/tool-preview', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, stepId: step.id, actor: 'Founder' }),
+  });
+}
+
+export async function executeMissionExecutionQueueTool(queueId: string, step: any) {
+  return requestAIWorkforce<{ ok: true; result: any; queue: any }>('/api/ai-workforce/mission-execution-queue/tool-execute', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, stepId: step.id, actor: 'Founder' }),
+  });
+}
+
 export async function cancelMissionExecutionQueue(queueId: string) {
   return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/cancel', {
     method: 'POST',
