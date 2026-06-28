@@ -1,3 +1,4 @@
+import './check-ai-workforce-release-gate-trend-analytics.mjs';
 import fs from 'node:fs';
 
 const files = [
