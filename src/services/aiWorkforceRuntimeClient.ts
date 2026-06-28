@@ -140,6 +140,17 @@ export async function cancelMissionExecutionQueue(queueId: string) {
   });
 }
 
+export async function exportMissionQueueSnapshot(input: { queueId?: string; format?: 'json' | 'markdown'; includeRawQueue?: boolean } = {}) {
+  return requestAIWorkforce<{ ok: true; snapshot: any }>('/api/ai-workforce/mission-snapshot-export', {
+    method: 'POST',
+    body: JSON.stringify({
+      ...(input.queueId ? { queueId: input.queueId } : {}),
+      format: input.format || 'json',
+      includeRawQueue: Boolean(input.includeRawQueue),
+    }),
+  });
+}
+
 export async function previewSampleAutomationSafety() {
   return requestAIWorkforce<{ ok: true; decision: any }>('/api/ai-workforce/safety-preview', {
     method: 'POST',
