@@ -40,28 +40,37 @@ async function storedQueue() {
   return queue;
 }
 
-test('runtime mission release gate stores record, event and metric', async () => {
+test('runtime mission release gate stores record, event, metric and historical timeline', async () => {
   await resetStores();
   const queue = await storedQueue();
-  const result = await buildRuntimeMissionReleaseGate({
+  const hold = await buildRuntimeMissionReleaseGate({
+    queueId: queue.id,
+    actor: 'Founder',
+    createdAt: '2026-06-28T00:00:00.000Z',
+    evidence: { ciStatus: 'pending', approvals: 0, requiredApprovals: 1 },
+  });
+  const ready = await buildRuntimeMissionReleaseGate({
     queueId: queue.id,
     actor: 'Founder',
     createdAt: '2026-06-28T00:01:00.000Z',
     evidence: { ciStatus: 'success', approvals: 1, requiredApprovals: 1, snapshotChecksum: 'snapshot_checksum_123', releaseLabel: true, rollbackConfirmed: true, operatorConfirmed: true },
   });
 
-  assert.equal(result.gate.decision, 'ready');
-  assert.equal(result.runtimeRecord.type, 'mission_release_gate');
-  assert.equal(result.auditEvent.action, 'mission_release_gate_recorded');
-  assert.equal(result.metric.toolId, 'mission_release_gate');
+  assert.equal(ready.gate.decision, 'ready');
+  assert.equal(ready.runtimeRecord.type, 'mission_release_gate');
+  assert.equal(ready.auditEvent.action, 'mission_release_gate_recorded');
+  assert.equal(ready.metric.toolId, 'mission_release_gate');
 
-  assert.equal((await listAIWorkforceRuntimeRecords({ type: 'mission_release_gate' })).length, 1);
-  assert.equal((await listAIWorkforceAuditEvents())[0].metadata?.checksum, result.gate.checksum);
+  assert.equal((await listAIWorkforceRuntimeRecords({ type: 'mission_release_gate' })).length, 2);
+  assert.equal((await listAIWorkforceAuditEvents())[0].metadata?.checksum, ready.gate.checksum);
   assert.equal((await listAIWorkforceRunMetrics({ lane: 'mission-control' })).some((metric) => metric.toolId === 'mission_release_gate'), true);
 
   const dashboard = await getAIWorkforceReleaseGateDashboard();
   assert.equal(dashboard.latestDecision, 'ready');
   assert.equal(dashboard.latestReleaseReady, true);
-  assert.equal(dashboard.latestChecksum, result.gate.checksum);
+  assert.equal(dashboard.latestChecksum, ready.gate.checksum);
   assert.equal(dashboard.latestMetric?.toolId, 'mission_release_gate');
+  assert.equal(dashboard.timeline.length, 2);
+  assert.equal(dashboard.timeline[0].decision, 'ready');
+  assert.equal(dashboard.timeline.some((item) => item.checksum === hold.gate.checksum && item.decision === 'hold'), true);
 });
