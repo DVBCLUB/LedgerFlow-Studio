@@ -1,5 +1,6 @@
 export type AIWorkforceRuntimeHealth = 'online' | 'offline' | 'unknown';
 export type MissionReviewDecision = 'approved' | 'needs_changes' | 'blocked' | 'info';
+export type MissionReleaseCiStatus = 'success' | 'pending' | 'failed' | 'unknown';
 
 const DEFAULT_DAEMON_URL = 'http://127.0.0.1:3001';
 
@@ -152,6 +153,23 @@ export async function listMissionQueueReviewNotes(queueId?: string) {
   return requestAIWorkforce<{ ok: true; queueId: string; notes: any[]; dossier: any; stats: any }>('/api/ai-workforce/mission-review-notes', {
     method: 'POST',
     body: JSON.stringify(queueId ? { queueId } : {}),
+  });
+}
+
+export async function buildMissionQueueReleaseGate(input: {
+  queueId: string;
+  ciStatus?: MissionReleaseCiStatus;
+  approvals?: number;
+  requiredApprovals?: number;
+  snapshotChecksum?: string;
+  releaseLabel?: boolean;
+  rollbackConfirmed?: boolean;
+  operatorConfirmed?: boolean;
+  notes?: string[];
+}) {
+  return requestAIWorkforce<{ ok: true; gate: any; dossier: any }>('/api/ai-workforce/mission-release-gate', {
+    method: 'POST',
+    body: JSON.stringify(input),
   });
 }
 
