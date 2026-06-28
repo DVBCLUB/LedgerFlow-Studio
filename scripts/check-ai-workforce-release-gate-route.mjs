@@ -7,6 +7,8 @@ const files = [
   'scripts/patch-ai-workforce-release-gate-route.mjs',
   'scripts/patch-ai-workforce-snapshot-export-ui.mjs',
   'src/services/aiWorkforceRuntimeClient.ts',
+  'src/modules/ai-hr/MissionReleaseGatePanel.tsx',
+  'src/modules/ai-hr/AIOperationsCenter.tsx',
   'dist/assistant-daemon.cjs',
 ];
 
@@ -23,6 +25,11 @@ const tokens = [
   '/api/ai-workforce/mission-release-gate',
   'AI Workforce Mission Release Gate route patched into assistant-daemon',
   'buildMissionQueueReleaseGate',
+  'MissionReleaseGatePanel',
+  'Mission Release Gate',
+  'Run release gate',
+  'Load snapshot checksum',
+  '<MissionReleaseGatePanel />',
   'releaseGateDecision',
   'releaseGateReady',
   'releaseGateScore',
