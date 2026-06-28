@@ -38,7 +38,7 @@ jobs:
 
       - name: Upload typecheck log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: typecheck-log
           path: typecheck.log
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload unit test log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-ci-unit-test-log
           path: unit-test.log
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload build log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-ci-build-log
           path: build.log
@@ -86,7 +86,7 @@ jobs:
 
       - name: Upload runtime smoke log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-runtime-smoke-log
           path: runtime-smoke.log
@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload dist artifact
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-dist
           path: dist/
