@@ -19,6 +19,22 @@ function releaseGateTimelineItem(record: any) {
   };
 }
 
+function releaseGateExportHistoryItem(record: any) {
+  const payload = record?.payload || {};
+  return {
+    id: record?.id,
+    createdAt: record?.createdAt,
+    format: payload.format,
+    filename: payload.filename,
+    checksum: payload.checksum,
+    latestDecision: payload.latestDecision,
+    trendDirection: payload.trendDirection,
+    readyRate: payload.readyRate,
+    timelineItems: payload.timelineItems,
+    summary: payload.summary || {},
+  };
+}
+
 function buildReleaseGateTrendAnalytics(timeline: any[]) {
   const total = timeline.length;
   const decisionBreakdown = timeline.reduce<Record<string, number>>((acc, item) => {
@@ -49,21 +65,32 @@ function buildReleaseGateTrendAnalytics(timeline: any[]) {
 }
 
 export async function getAIWorkforceReleaseGateDashboard() {
-  const [records, auditEvents, metrics] = await Promise.all([
+  const [records, exportRecords, auditEvents, metrics] = await Promise.all([
     listAIWorkforceRuntimeRecords({ type: 'mission_release_gate', limit: 10 }),
+    listAIWorkforceRuntimeRecords({ type: 'release_gate_export', limit: 10 }),
     listAIWorkforceAuditEvents(50),
     listAIWorkforceRunMetrics({ lane: 'mission-control', limit: 50 }),
   ]);
   const latestRecord = records[0] || null;
+  const latestExportRecord = exportRecords[0] || null;
   const latestAuditEvent = auditEvents.find((event) => event.action === 'mission_release_gate_recorded') || null;
+  const latestExportAuditEvent = auditEvents.find((event) => event.action === 'release_gate_exported') || null;
   const latestMetric = metrics.find((metric) => metric.toolId === 'mission_release_gate') || null;
+  const latestExportMetric = metrics.find((metric) => metric.toolId === 'release_gate_export') || null;
   const payload = latestRecord?.payload as any;
   const timeline = records.map(releaseGateTimelineItem);
+  const exportHistory = exportRecords.map(releaseGateExportHistoryItem);
   const trendAnalytics = buildReleaseGateTrendAnalytics(timeline);
 
   return {
     totalRecords: records.length,
+    totalExports: exportRecords.length,
     timeline,
+    exportHistory,
+    latestExport: exportHistory[0] || null,
+    latestExportRecord,
+    latestExportAuditEvent,
+    latestExportMetric,
     trendAnalytics,
     latestRecord,
     latestAuditEvent,
