@@ -157,6 +157,7 @@ try {
       AI_WORKFORCE_RUNTIME_STORE_FILE: path.join(tempDir, 'runtime.json'),
       AI_WORKFORCE_OPERATIONAL_LEDGER_FILE: path.join(tempDir, 'ledger.json'),
       AI_WORKFORCE_RUN_METRIC_STORE_FILE: path.join(tempDir, 'metrics.json'),
+      AI_WORKFORCE_MISSION_QUEUE_STORE_FILE: path.join(tempDir, 'mission-queues.json'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
   });
@@ -212,6 +213,36 @@ try {
     throw new Error('Mission Planner smoke did not route a GitHub PR Control step.');
   }
 
+  const missionQueue = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-execution-queue', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      goal: 'Queue a smoke mission for AI Workforce snapshot export with PR control, rollback notes and evidence handoff.',
+      owner: 'Founder',
+      domains: ['software factory', 'runtime'],
+      constraints: ['preserve audit trail'],
+      repoFullName: 'DVBCLUB/LedgerFlow-Studio',
+      prNumber: 42,
+      allowAutomation: true,
+      sources: [{ kind: 'sop', title: 'Mission Queue Smoke SOP', content: 'Mission queue route must create approval gates and snapshot export must return a reviewable handoff artifact.', tags: ['mission-planner'], confidence: 0.92 }],
+    }),
+  });
+  if (!missionQueue.response.ok || missionQueue.json?.ok !== true || !missionQueue.json?.queue?.id) {
+    throw new Error('/api/ai-workforce/mission-execution-queue did not create a queue.');
+  }
+
+  const snapshotExport = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-snapshot-export', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ queueId: missionQueue.json.queue.id, format: 'markdown' }),
+  });
+  if (!snapshotExport.response.ok || snapshotExport.json?.ok !== true || !snapshotExport.json?.snapshot?.content?.includes('## Next safe action')) {
+    throw new Error('/api/ai-workforce/mission-snapshot-export did not return a Markdown snapshot handoff.');
+  }
+  if (!snapshotExport.json?.snapshot?.checksum || !snapshotExport.json?.snapshot?.filename?.endsWith('.md')) {
+    throw new Error('Mission snapshot export response is missing checksum or Markdown filename.');
+  }
+
   const githubControl = await fetchJson(DAEMON_URL, '/api/ai-workforce/github-pr-control', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
@@ -235,11 +266,11 @@ try {
   }
 
   const finalDashboard = await fetchJson(DAEMON_URL, '/api/ai-workforce/runtime');
-  if (!finalDashboard.response.ok || Number(finalDashboard.json?.dashboard?.metricStoreStats?.total || 0) < 3) {
+  if (!finalDashboard.response.ok || Number(finalDashboard.json?.dashboard?.metricStoreStats?.total || 0) < 4) {
     throw new Error('AI Workforce runtime dashboard did not include persisted metric store stats after smoke actions.');
   }
 
-  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
+  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
 } catch (error) {
   console.error('\nAI Workforce daemon runtime smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));
