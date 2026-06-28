@@ -1,15 +1,22 @@
 import React from 'react';
 import { Loader2, RefreshCw, ShieldCheck } from 'lucide-react';
-import { buildMissionQueueReleaseGate, exportMissionQueueSnapshot, listMissionExecutionQueues, type MissionReleaseCiStatus } from '../../services/aiWorkforceRuntimeClient';
+import { buildMissionQueueReleaseGate, listMissionExecutionQueues, type MissionReleaseCiStatus } from '../../services/aiWorkforceRuntimeClient';
 
 const panelClass = 'rounded-3xl border border-emerald-500/20 bg-slate-950/70 p-5 text-left shadow-xl shadow-slate-950/20';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-black uppercase text-emerald-100 transition hover:bg-emerald-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-emerald-500/60';
+const DEFAULT_DAEMON_URL = 'http://127.0.0.1:3001';
+
+function getDaemonBaseUrl() {
+  const envUrl = (import.meta as any)?.env?.VITE_ASSISTANT_DAEMON_URL;
+  return String(envUrl || DEFAULT_DAEMON_URL).replace(/\/$/, '');
+}
 
 export default function MissionReleaseGatePanel() {
   const [loading, setLoading] = React.useState<'refresh' | 'checksum' | 'gate' | null>(null);
   const [queue, setQueue] = React.useState<any>(null);
   const [gate, setGate] = React.useState<any>(null);
+  const [snapshot, setSnapshot] = React.useState<any>(null);
   const [ciStatus, setCiStatus] = React.useState<MissionReleaseCiStatus>('success');
   const [approvals, setApprovals] = React.useState(1);
   const [requiredApprovals, setRequiredApprovals] = React.useState(1);
@@ -18,6 +25,17 @@ export default function MissionReleaseGatePanel() {
   const [rollbackConfirmed, setRollbackConfirmed] = React.useState(false);
   const [operatorConfirmed, setOperatorConfirmed] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+
+  const releaseEvidence = React.useMemo(() => ({
+    ciStatus,
+    approvals,
+    requiredApprovals,
+    snapshotChecksum,
+    releaseLabel,
+    rollbackConfirmed,
+    operatorConfirmed,
+    notes: ['Release Gate UI Snapshot Binding'],
+  }), [approvals, ciStatus, operatorConfirmed, releaseLabel, requiredApprovals, rollbackConfirmed, snapshotChecksum]);
 
   const refresh = React.useCallback(async () => {
     setLoading('refresh');
@@ -34,15 +52,23 @@ export default function MissionReleaseGatePanel() {
 
   React.useEffect(() => { refresh(); }, [refresh]);
 
-  async function loadChecksum() {
-    if (!queue?.id) return setError('Create or refresh a mission queue before loading checksum.');
+  async function bindSnapshotReleaseGate() {
+    if (!queue?.id) return setError('Create or refresh a mission queue before binding snapshot release gate.');
     setLoading('checksum');
     setError(null);
     try {
-      const response = await exportMissionQueueSnapshot({ queueId: queue.id, format: 'markdown' });
-      setSnapshotChecksum(response.snapshot?.checksum || '');
+      const response = await fetch(`${getDaemonBaseUrl()}/api/ai-workforce/mission-snapshot-export`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ queueId: queue.id, format: 'markdown', releaseEvidence }),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok || payload?.ok === false) throw new Error(payload?.error || `Snapshot release gate binding failed: ${response.status}`);
+      setSnapshot(payload.snapshot);
+      setGate(payload.snapshot?.releaseGate || null);
+      setSnapshotChecksum(payload.snapshot?.checksum || '');
     } catch (err: any) {
-      setError(err?.message || 'Cannot generate snapshot checksum.');
+      setError(err?.message || 'Cannot bind snapshot release gate.');
     } finally {
       setLoading(null);
     }
@@ -55,14 +81,7 @@ export default function MissionReleaseGatePanel() {
     try {
       const response = await buildMissionQueueReleaseGate({
         queueId: queue.id,
-        ciStatus,
-        approvals,
-        requiredApprovals,
-        snapshotChecksum,
-        releaseLabel,
-        rollbackConfirmed,
-        operatorConfirmed,
-        notes: ['Release Gate UI Panel'],
+        ...releaseEvidence,
       });
       setGate(response.gate);
     } catch (err: any) {
@@ -78,7 +97,7 @@ export default function MissionReleaseGatePanel() {
         <div>
           <h2 className="text-base font-black text-white">Mission Release Gate</h2>
           <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-            Nhập CI/evidence, tạo release gate từ persisted review notes và snapshot checksum để xem decision, score, missing evidence và final action.
+            Nhập CI/evidence, bind trực tiếp vào snapshot export hoặc chạy release gate riêng để xem decision, score, missing evidence và final action.
           </p>
         </div>
         <button className={buttonClass} onClick={refresh} disabled={Boolean(loading)}>
@@ -112,7 +131,7 @@ export default function MissionReleaseGatePanel() {
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <button className={buttonClass} onClick={loadChecksum} disabled={Boolean(loading) || !queue?.id}>{loading === 'checksum' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}Load snapshot checksum</button>
+        <button className={buttonClass} onClick={bindSnapshotReleaseGate} disabled={Boolean(loading) || !queue?.id}>{loading === 'checksum' ? <Loader2 className="h-4 w-4 animate-spin" /> : null}Bind snapshot release gate</button>
         <button className={buttonClass} onClick={runGate} disabled={Boolean(loading) || !queue?.id}><ShieldCheck className="h-4 w-4" />Run release gate</button>
       </div>
 
@@ -120,6 +139,7 @@ export default function MissionReleaseGatePanel() {
         <p>Final action: {gate.finalAction}</p>
         <p className="mt-2">Missing evidence: {gate.missingEvidence?.length ? gate.missingEvidence.join('; ') : 'none'}</p>
         <p className="mt-2">Gate checksum: {gate.checksum}</p>
+        <p className="mt-2">Snapshot checksum: {snapshot?.checksum || snapshotChecksum || '—'}</p>
       </div>}
     </section>
   );
