@@ -10,6 +10,7 @@ import { clearAIWorkforceRunMetricStoreForTest, getAIWorkforceRunMetricStoreStat
 import { clearAIWorkforceRuntimeStoreForTest, getAIWorkforceRuntimeStoreStats } from './aiWorkforceRuntimeStore.ts';
 import {
   buildRuntimeGroundedContext,
+  buildRuntimeMissionExecutionQueue,
   buildRuntimeMissionPlan,
   buildRuntimePRControlReport,
   getAIWorkforceRuntimeDashboard,
@@ -41,7 +42,7 @@ async function withRuntimeStore(t: any) {
   });
 }
 
-test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readiness, PR control, dashboard, MCP telemetry, operational ledger, and run metrics', async (t) => {
+test('AI Workforce Runtime Hub persists context, mission plan, execution queue, safety, PR readiness, PR control, dashboard, MCP telemetry, operational ledger, and run metrics', async (t) => {
   await withRuntimeStore(t);
 
   const context = await buildRuntimeGroundedContext({
@@ -54,7 +55,7 @@ test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readin
   assert.equal(context.guard.ok, true);
   assert.equal(context.pack.sourceMap.length, 1);
 
-  const mission = await buildRuntimeMissionPlan({
+  const missionInput = {
     goal: 'Ship AI Workforce Runtime Hub PR with approvals, CI, rollback plan and audit evidence.',
     owner: 'Founder',
     domains: ['github', 'software factory', 'runtime'],
@@ -63,13 +64,21 @@ test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readin
     prNumber: 42,
     allowAutomation: true,
     sources: [
-      { kind: 'sop', title: 'Mission planning SOP', content: 'Mission plans require tool route, approval checkpoint, source map and audit trail.', tags: ['mission-planner'], confidence: 0.94 },
+      { kind: 'sop' as const, title: 'Mission planning SOP', content: 'Mission plans require tool route, approval checkpoint, source map and audit trail.', tags: ['mission-planner'], confidence: 0.94 },
     ],
-  });
+  };
+
+  const mission = await buildRuntimeMissionPlan(missionInput);
   assert.equal(mission.contextGuard.ok, true);
   assert.equal(mission.summary.totalSteps, 5);
   assert.ok(mission.approvalCheckpoints.length >= 3);
   assert.ok(mission.steps.some((step) => step.toolId === 'github_pr_control'));
+
+  const execution = await buildRuntimeMissionExecutionQueue(missionInput);
+  assert.equal(execution.queue.status, 'needs_approval');
+  assert.equal(execution.queue.summary.totalSteps, 5);
+  assert.ok(execution.queue.summary.waitingApprovalSteps >= 3);
+  assert.ok(execution.queue.steps.some((step) => step.approvalPhrase));
 
   const safety = await previewRuntimeAutomation({
     id: 'robot-safe-runtime',
@@ -110,16 +119,17 @@ test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readin
   assert.equal(prControl.mergeGate.mode, 'auto_merge_ready');
 
   const dashboard = await getAIWorkforceRuntimeDashboard();
-  assert.ok(dashboard.observability.runs >= 5);
-  assert.ok(dashboard.storeStats.total >= 5);
-  assert.ok(dashboard.metricStoreStats.total >= 5);
+  assert.ok(dashboard.observability.runs >= 6);
+  assert.ok(dashboard.storeStats.total >= 6);
+  assert.ok(dashboard.metricStoreStats.total >= 6);
   assert.equal(dashboard.readiness.rows.length, 8);
   assert.ok(dashboard.tooling.summary.total >= 10);
   assert.ok(dashboard.tooling.manifests.some((manifest: any) => manifest.id === 'robot_move' && manifest.approval.required));
   assert.ok(dashboard.tooling.health.some((row: any) => row.toolId === 'robot_move'));
-  assert.ok(dashboard.ledger.graphStats.totalGraphs >= 2);
-  assert.ok(dashboard.ledger.auditStats.totalEvents >= 5);
+  assert.ok(dashboard.ledger.graphStats.totalGraphs >= 3);
+  assert.ok(dashboard.ledger.auditStats.totalEvents >= 6);
   assert.ok(dashboard.ledger.auditStats.latestEvents.some((event: any) => event.action === 'mission_planned'));
+  assert.ok(dashboard.ledger.auditStats.latestEvents.some((event: any) => event.action === 'mission_execution_queued'));
   assert.ok(dashboard.ledger.trendStats.totalSnapshots >= 1);
   assert.equal(dashboard.storeStats.storage.driver, 'json-file');
   assert.equal(dashboard.metricStoreStats.storage.driver, 'json-file');
@@ -128,6 +138,7 @@ test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readin
   const stats = await getAIWorkforceRuntimeStoreStats();
   assert.ok(stats.byType.context_pack >= 1);
   assert.ok(stats.byType.mission_plan >= 1);
+  assert.ok(stats.byType.mission_execution_queue >= 1);
   assert.ok(stats.byType.safety_decision >= 1);
   assert.ok(stats.byType.pr_readiness >= 1);
   assert.ok(stats.byType.pr_control >= 1);
@@ -137,7 +148,7 @@ test('AI Workforce Runtime Hub persists context, mission plan, safety, PR readin
   const metricStats = await getAIWorkforceRunMetricStoreStats();
   assert.ok(metricStats.byLane['knowledge-spine'] >= 1);
   assert.ok(metricStats.byLane['execution-layer'] >= 1);
-  assert.ok(metricStats.byLane['mission-control'] >= 3);
+  assert.ok(metricStats.byLane['mission-control'] >= 4);
   assert.ok(metricStats.storage.bytes > 0);
 });
 
