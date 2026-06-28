@@ -1,4 +1,5 @@
 export type AIWorkforceRuntimeHealth = 'online' | 'offline' | 'unknown';
+export type MissionReviewDecision = 'approved' | 'needs_changes' | 'blocked' | 'info';
 
 const DEFAULT_DAEMON_URL = 'http://127.0.0.1:3001';
 
@@ -140,13 +141,27 @@ export async function cancelMissionExecutionQueue(queueId: string) {
   });
 }
 
+export async function saveMissionQueueReviewNote(input: { queueId: string; reviewer: string; decision: MissionReviewDecision; summary: string; requestedAction?: string }) {
+  return requestAIWorkforce<{ ok: true; note: any; notes: any[]; dossier: any; stats: any }>('/api/ai-workforce/mission-review-note', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function listMissionQueueReviewNotes(queueId?: string) {
+  return requestAIWorkforce<{ ok: true; queueId: string; notes: any[]; dossier: any; stats: any }>('/api/ai-workforce/mission-review-notes', {
+    method: 'POST',
+    body: JSON.stringify(queueId ? { queueId } : {}),
+  });
+}
+
 export async function exportMissionQueueSnapshot(input: {
   queueId?: string;
   format?: 'json' | 'markdown';
   includeRawQueue?: boolean;
-  reviewNotes?: Array<{ reviewer: string; decision: 'approved' | 'needs_changes' | 'blocked' | 'info'; summary: string; requestedAction?: string }>;
+  reviewNotes?: Array<{ reviewer: string; decision: MissionReviewDecision; summary: string; requestedAction?: string }>;
 } = {}) {
-  return requestAIWorkforce<{ ok: true; snapshot: any }>('/api/ai-workforce/mission-snapshot-export', {
+  return requestAIWorkforce<{ ok: true; snapshot: any; persistedReviewNotes?: number }>('/api/ai-workforce/mission-snapshot-export', {
     method: 'POST',
     body: JSON.stringify({
       ...(input.queueId ? { queueId: input.queueId } : {}),
