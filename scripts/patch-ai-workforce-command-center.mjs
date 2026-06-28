@@ -24,13 +24,15 @@ function replaceOnce(source, search, replacement, label) {
 
 function ensureRuntimeHubImport(source) {
   const githubCiImport = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
-  const currentImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
+  const currentImport = 'import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";';
+  const previousQueueImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousMissionImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionPlan, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousGitHubPrImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousPrControlImport = 'import { buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousImport = 'import { buildRuntimeGroundedContext, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
 
   if (source.includes(currentImport)) return source;
+  if (source.includes(previousQueueImport)) return source.replace(previousQueueImport, currentImport);
   if (source.includes(previousMissionImport)) return source.replace(previousMissionImport, currentImport);
   if (source.includes(previousGitHubPrImport)) return source.replace(previousGitHubPrImport, currentImport);
   if (source.includes(previousPrControlImport)) return source.replace(previousPrControlImport, currentImport);
@@ -49,6 +51,43 @@ const missionExecutionQueueRoute = `app.post("/api/ai-workforce/mission-executio
   try {
     const result = await buildRuntimeMissionExecutionQueue(req.body as any);
     res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});`;
+
+const missionQueueResumeRoutes = `app.get("/api/ai-workforce/mission-execution-queues", async (req: Request, res: Response) => {
+  try {
+    const result = await listRuntimeMissionExecutionQueues({ limit: Number(req.query.limit || 20), status: req.query.status as any });
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/resume", async (req: Request, res: Response) => {
+  try {
+    const queue = await resumeRuntimeMissionExecutionQueue(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/approve", async (req: Request, res: Response) => {
+  try {
+    const queue = await approveRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/start", async (req: Request, res: Response) => {
+  try {
+    const queue = await startRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/complete", async (req: Request, res: Response) => {
+  try {
+    const queue = await completeRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/cancel", async (req: Request, res: Response) => {
+  try {
+    const queue = await cancelRuntimeMissionExecutionQueue(req.body as any);
+    res.json({ ok: true, queue });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });`;
 
@@ -90,6 +129,7 @@ app.post("/api/ai-workforce/context-pack", async (req: Request, res: Response) =
 });
 ${missionPlanRoute}
 ${missionExecutionQueueRoute}
+${missionQueueResumeRoutes}
 app.post("/api/ai-workforce/safety-preview", async (req: Request, res: Response) => {
   try {
     const decision = await previewRuntimeAutomation(req.body as any);
@@ -103,12 +143,15 @@ ${githubPrControlRoute}`;
 function ensureRuntimeHubRoutes(source) {
   const unifiedOverviewAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
 
-  if (source.includes('/api/ai-workforce/mission-execution-queue')) return source;
+  if (source.includes('/api/ai-workforce/mission-execution-queue/approve')) return source;
+  if (source.includes('/api/ai-workforce/mission-execution-queue')) {
+    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Queue resume route upgrade');
+  }
   if (source.includes('/api/ai-workforce/mission-plan')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionExecutionQueueRoute}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Execution Queue route upgrade');
+    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Execution Queue route upgrade');
   }
   if (source.includes('/api/ai-workforce/context-pack')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionPlanRoute}\n${missionExecutionQueueRoute}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Planner route upgrade');
+    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionPlanRoute}\n${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Planner route upgrade');
   }
   if (source.includes('/api/ai-workforce/github-pr-control')) return source;
   if (source.includes('/api/ai-workforce/pr-control')) {
