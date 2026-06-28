@@ -1,5 +1,7 @@
 import './patch-ai-workforce-release-gate-route.mjs';
 import './patch-ai-workforce-snapshot-release-evidence.mjs';
+import './patch-ai-workforce-release-gate-dashboard-route.mjs';
+import './patch-ai-workforce-release-gate-dashboard-ui.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
