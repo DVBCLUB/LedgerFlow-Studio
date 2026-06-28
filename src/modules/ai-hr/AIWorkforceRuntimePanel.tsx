@@ -9,8 +9,10 @@ import {
   createSampleGroundedContextPack,
   createSampleMissionExecutionQueue,
   createSampleMissionPlan,
+  executeMissionExecutionQueueTool,
   fetchAIWorkforceRuntimeDashboard,
   listMissionExecutionQueues,
+  previewMissionExecutionQueueTool,
   previewSampleAutomationSafety,
   resumeMissionExecutionQueue,
   scoreSamplePRReadiness,
@@ -21,7 +23,23 @@ const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-500/60';
 
-type RuntimeAction = 'dashboard' | 'context' | 'mission-plan' | 'mission-execution-queue' | 'queue-list' | 'queue-resume' | 'queue-approve' | 'queue-start' | 'queue-complete' | 'queue-cancel' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
+type RuntimeAction =
+  | 'dashboard'
+  | 'context'
+  | 'mission-plan'
+  | 'mission-execution-queue'
+  | 'queue-list'
+  | 'queue-resume'
+  | 'queue-approve'
+  | 'queue-start'
+  | 'queue-complete'
+  | 'queue-tool-preview'
+  | 'queue-tool-execute'
+  | 'queue-cancel'
+  | 'safety'
+  | 'readiness'
+  | 'pr-control'
+  | 'github-pr-control';
 
 function MiniMetric({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
   return (
@@ -47,6 +65,10 @@ function normalizeRepo(value: string) {
 
 function firstStep(queue: any, status: string) {
   return queue?.steps?.find((step: any) => step.status === status);
+}
+
+function executableStep(queue: any) {
+  return firstStep(queue, 'running') || firstStep(queue, 'ready');
 }
 
 export default function AIWorkforceRuntimePanel() {
@@ -108,7 +130,8 @@ export default function AIWorkforceRuntimePanel() {
                         ? await runGitHubPRControl()
                         : await fetchAIWorkforceRuntimeDashboard();
       setLastResult({ type: action, response });
-      if ((response as any)?.queue) setMissionQueues((queues) => [(response as any).queue, ...queues.filter((queue) => queue.id !== (response as any).queue.id)]);
+      const nextQueue = (response as any)?.queue;
+      if (nextQueue) setMissionQueues((queues) => [nextQueue, ...queues.filter((queue) => queue.id !== nextQueue.id)]);
       const refreshed = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(refreshed.dashboard);
       await refreshQueues().catch(() => null);
@@ -135,9 +158,19 @@ export default function AIWorkforceRuntimePanel() {
       return startMissionExecutionQueueStep(queue.id, step);
     }
     if (action === 'queue-complete') {
-      const step = firstStep(queue, 'running') || firstStep(queue, 'ready');
+      const step = executableStep(queue);
       if (!step) throw new Error('Không tìm thấy step running/ready để complete.');
       return completeMissionExecutionQueueStep(queue.id, step);
+    }
+    if (action === 'queue-tool-preview') {
+      const step = executableStep(queue);
+      if (!step) throw new Error('Không tìm thấy step running/ready để dry-run tool.');
+      return previewMissionExecutionQueueTool(queue.id, step);
+    }
+    if (action === 'queue-tool-execute') {
+      const step = executableStep(queue);
+      if (!step) throw new Error('Không tìm thấy step running/ready để execute tool.');
+      return executeMissionExecutionQueueTool(queue.id, step);
     }
     return refreshQueues();
   }
@@ -165,6 +198,8 @@ export default function AIWorkforceRuntimePanel() {
   const lastMissionPlan = lastResult?.type === 'mission-plan' ? lastResult?.response?.plan : null;
   const lastExecutionQueue = lastResult?.response?.queue || missionQueues[0] || null;
   const activeQueue = lastExecutionQueue || missionQueueStats?.latestQueue || null;
+  const activeStep = activeQueue ? executableStep(activeQueue) : null;
+  const lastToolResult = lastResult?.type === 'queue-tool-preview' ? lastResult?.response?.result : lastResult?.type === 'queue-tool-execute' ? lastResult?.response?.result : null;
   const lastGitHubReport = lastResult?.type === 'github-pr-control' ? lastResult?.response?.report : null;
   const lastGitHubAdapter = lastResult?.type === 'github-pr-control' ? lastResult?.response?.adapter : null;
 
@@ -178,7 +213,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, lập Mission Plan, tạo/resume/cancel Mission Execution Queue, approve/start/complete từng step, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: tạo/resume/cancel queue, approve/start/complete từng step, dry-run tool, execute sandbox simulation, preview safety, PR readiness, GitHub PR Control, MCP health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -250,14 +285,24 @@ export default function AIWorkforceRuntimePanel() {
             <MiniMetric label="Approval gates" value={activeQueue.summary?.waitingApprovalSteps ?? '—'} detail={`${activeQueue.summary?.approvalsCaptured ?? 0} captured`} />
             <MiniMetric label="Evidence" value={activeQueue.summary?.evidenceItems ?? '—'} detail={`${activeQueue.summary?.completedSteps ?? 0} completed`} />
           </div>
-          <div className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+          <div className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-8">
             <button className={buttonClass} onClick={() => runAction('queue-list')} disabled={Boolean(loading)}>List queues</button>
             <button className={buttonClass} onClick={() => runAction('queue-resume')} disabled={Boolean(loading) || !activeQueue?.id}>Resume</button>
             <button className={buttonClass} onClick={() => runAction('queue-approve')} disabled={Boolean(loading) || !firstStep(activeQueue, 'waiting_approval')}>Approve gate</button>
             <button className={buttonClass} onClick={() => runAction('queue-start')} disabled={Boolean(loading) || !firstStep(activeQueue, 'ready')}>Start ready</button>
-            <button className={buttonClass} onClick={() => runAction('queue-complete')} disabled={Boolean(loading) || !(firstStep(activeQueue, 'running') || firstStep(activeQueue, 'ready'))}>Complete step</button>
+            <button className={buttonClass} onClick={() => runAction('queue-tool-preview')} disabled={Boolean(loading) || !activeStep}>Dry-run tool</button>
+            <button className={buttonClass} onClick={() => runAction('queue-tool-execute')} disabled={Boolean(loading) || !activeStep}>Execute sim</button>
+            <button className={buttonClass} onClick={() => runAction('queue-complete')} disabled={Boolean(loading) || !activeStep}>Complete step</button>
             <button className={buttonClass} onClick={() => runAction('queue-cancel')} disabled={Boolean(loading) || !activeQueue?.id || activeQueue.status === 'cancelled'}>Cancel queue</button>
           </div>
+          {lastToolResult && (
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              <MiniMetric label="Tool adapter" value={lastToolResult.adapterToolId || '—'} detail={`requested ${lastToolResult.requestedToolId || '—'}`} />
+              <MiniMetric label="Tool mode" value={lastToolResult.mode || '—'} detail={lastToolResult.status || 'adapter status'} />
+              <MiniMetric label="Safety" value={lastToolResult.safetyDecision?.mode || '—'} detail={lastToolResult.safetyDecision?.approved ? 'approved' : 'blocked/review'} />
+              <MiniMetric label="Evidence" value={lastToolResult.evidence?.length ?? '—'} detail="Generated execution evidence" />
+            </div>
+          )}
           <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {activeQueue.steps?.slice(0, 6).map((step: any) => (
               <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
