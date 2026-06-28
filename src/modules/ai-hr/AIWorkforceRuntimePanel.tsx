@@ -4,6 +4,7 @@ import {
   buildGitHubPRControlReport,
   buildSamplePRControlReport,
   createSampleGroundedContextPack,
+  createSampleMissionExecutionQueue,
   createSampleMissionPlan,
   fetchAIWorkforceRuntimeDashboard,
   previewSampleAutomationSafety,
@@ -14,7 +15,7 @@ const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-500/60';
 
-type RuntimeAction = 'dashboard' | 'context' | 'mission-plan' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
+type RuntimeAction = 'dashboard' | 'context' | 'mission-plan' | 'mission-execution-queue' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
 
 function MiniMetric({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
   return (
@@ -73,15 +74,17 @@ export default function AIWorkforceRuntimePanel() {
         ? await createSampleGroundedContextPack()
         : action === 'mission-plan'
           ? await createSampleMissionPlan()
-          : action === 'safety'
-            ? await previewSampleAutomationSafety()
-            : action === 'readiness'
-              ? await scoreSamplePRReadiness()
-              : action === 'pr-control'
-                ? await buildSamplePRControlReport()
-                : action === 'github-pr-control'
-                  ? await runGitHubPRControl()
-                  : await fetchAIWorkforceRuntimeDashboard();
+          : action === 'mission-execution-queue'
+            ? await createSampleMissionExecutionQueue()
+            : action === 'safety'
+              ? await previewSampleAutomationSafety()
+              : action === 'readiness'
+                ? await scoreSamplePRReadiness()
+                : action === 'pr-control'
+                  ? await buildSamplePRControlReport()
+                  : action === 'github-pr-control'
+                    ? await runGitHubPRControl()
+                    : await fetchAIWorkforceRuntimeDashboard();
       setLastResult({ type: action, response });
       const refreshed = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(refreshed.dashboard);
@@ -112,6 +115,7 @@ export default function AIWorkforceRuntimePanel() {
   const recentRecords = dashboard?.recentRecords || [];
   const offline = Boolean(error && !dashboard);
   const lastMissionPlan = lastResult?.type === 'mission-plan' ? lastResult?.response?.plan : null;
+  const lastExecutionQueue = lastResult?.type === 'mission-execution-queue' ? lastResult?.response?.queue : null;
   const lastGitHubReport = lastResult?.type === 'github-pr-control' ? lastResult?.response?.report : null;
   const lastGitHubAdapter = lastResult?.type === 'github-pr-control' ? lastResult?.response?.adapter : null;
 
@@ -125,7 +129,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, lập Mission Plan, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, lập Mission Plan, tạo Mission Execution Queue, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -151,7 +155,7 @@ export default function AIWorkforceRuntimePanel() {
         <MiniMetric label="Graph nodes" value={ledger?.graphStats?.totalNodes ?? '—'} detail="Knowledge graph persisted" />
       </div>
 
-      <div className="mt-5 grid gap-3 lg:grid-cols-5">
+      <div className="mt-5 grid gap-3 lg:grid-cols-6">
         <button className={buttonClass} onClick={() => runAction('context')} disabled={Boolean(loading)}>
           {loading === 'context' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Database className="h-4 w-4" />}
           Build context pack
@@ -159,6 +163,10 @@ export default function AIWorkforceRuntimePanel() {
         <button className={buttonClass} onClick={() => runAction('mission-plan')} disabled={Boolean(loading)}>
           {loading === 'mission-plan' ? <Loader2 className="h-4 w-4 animate-spin" /> : <Bot className="h-4 w-4" />}
           Plan mission
+        </button>
+        <button className={buttonClass} onClick={() => runAction('mission-execution-queue')} disabled={Boolean(loading)}>
+          {loading === 'mission-execution-queue' ? <Loader2 className="h-4 w-4 animate-spin" /> : <PlayCircle className="h-4 w-4" />}
+          Queue mission
         </button>
         <button className={buttonClass} onClick={() => runAction('safety')} disabled={Boolean(loading)}>
           {loading === 'safety' ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
@@ -187,6 +195,29 @@ export default function AIWorkforceRuntimePanel() {
               <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
                 <p className="text-xs font-black text-white">{step.title}</p>
                 <p className="mt-1 text-[11px] font-semibold text-slate-400">{step.agentRole} · {step.toolId} · {step.riskTier}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {lastExecutionQueue && (
+        <div className="mt-5 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-4">
+          <div className="grid gap-3 md:grid-cols-4">
+            <MiniMetric label="Queue status" value={lastExecutionQueue.status || '—'} detail={`risk ${lastExecutionQueue.riskTier || '—'}`} />
+            <MiniMetric label="Ready" value={lastExecutionQueue.summary?.readySteps ?? '—'} detail="Steps ready to run" />
+            <MiniMetric label="Approval gates" value={lastExecutionQueue.summary?.waitingApprovalSteps ?? '—'} detail={`${lastExecutionQueue.summary?.approvalsCaptured ?? 0} captured`} />
+            <MiniMetric label="Evidence" value={lastExecutionQueue.summary?.evidenceItems ?? '—'} detail={`${lastExecutionQueue.summary?.completedSteps ?? 0} completed`} />
+          </div>
+          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
+            {lastExecutionQueue.steps?.slice(0, 6).map((step: any) => (
+              <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate text-xs font-black text-white">{step.title}</p>
+                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black uppercase text-slate-300">{step.status}</span>
+                </div>
+                <p className="mt-1 text-[11px] font-semibold text-slate-400">{step.agentRole} · {step.toolId}</p>
+                {step.approvalPhrase && <p className="mt-1 truncate text-[11px] font-semibold text-emerald-300">checkpoint: {step.approvalPhrase}</p>}
               </div>
             ))}
           </div>
