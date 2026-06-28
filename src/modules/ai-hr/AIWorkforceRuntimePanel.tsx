@@ -1,21 +1,27 @@
 import React from 'react';
 import { Activity, AlertTriangle, Bot, CheckCircle2, Database, Gauge, GitBranch, Loader2, PlayCircle, ShieldCheck, WifiOff } from 'lucide-react';
 import {
+  approveMissionExecutionQueueStep,
   buildGitHubPRControlReport,
   buildSamplePRControlReport,
+  cancelMissionExecutionQueue,
+  completeMissionExecutionQueueStep,
   createSampleGroundedContextPack,
   createSampleMissionExecutionQueue,
   createSampleMissionPlan,
   fetchAIWorkforceRuntimeDashboard,
+  listMissionExecutionQueues,
   previewSampleAutomationSafety,
+  resumeMissionExecutionQueue,
   scoreSamplePRReadiness,
+  startMissionExecutionQueueStep,
 } from '../../services/aiWorkforceRuntimeClient';
 
 const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-left shadow-xl shadow-slate-950/20';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
 const inputClass = 'w-full rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-500/60';
 
-type RuntimeAction = 'dashboard' | 'context' | 'mission-plan' | 'mission-execution-queue' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
+type RuntimeAction = 'dashboard' | 'context' | 'mission-plan' | 'mission-execution-queue' | 'queue-list' | 'queue-resume' | 'queue-approve' | 'queue-start' | 'queue-complete' | 'queue-cancel' | 'safety' | 'readiness' | 'pr-control' | 'github-pr-control';
 
 function MiniMetric({ label, value, detail }: { label: string; value: React.ReactNode; detail?: string }) {
   return (
@@ -39,14 +45,25 @@ function normalizeRepo(value: string) {
   return value.trim().replace(/^https:\/\/github\.com\//i, '').replace(/\/$/, '');
 }
 
+function firstStep(queue: any, status: string) {
+  return queue?.steps?.find((step: any) => step.status === status);
+}
+
 export default function AIWorkforceRuntimePanel() {
   const [loading, setLoading] = React.useState<RuntimeAction | null>('dashboard');
   const [error, setError] = React.useState<string | null>(null);
   const [dashboard, setDashboard] = React.useState<any>(null);
   const [lastResult, setLastResult] = React.useState<any>(null);
+  const [missionQueues, setMissionQueues] = React.useState<any[]>([]);
   const [githubRepo, setGithubRepo] = React.useState('DVBCLUB/LedgerFlow-Studio');
   const [githubPrNumber, setGithubPrNumber] = React.useState('42');
   const [githubApiBaseUrl, setGithubApiBaseUrl] = React.useState('');
+
+  const refreshQueues = React.useCallback(async () => {
+    const response = await listMissionExecutionQueues();
+    setMissionQueues(response.queues || []);
+    return response;
+  }, []);
 
   const refreshDashboard = React.useCallback(async () => {
     setLoading('dashboard');
@@ -55,12 +72,13 @@ export default function AIWorkforceRuntimePanel() {
       const response = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(response.dashboard);
       setLastResult({ type: 'runtime-dashboard', response });
+      await refreshQueues().catch(() => null);
     } catch (err: any) {
       setError(err?.message || 'Cannot reach AI Workforce Runtime Hub.');
     } finally {
       setLoading(null);
     }
-  }, []);
+  }, [refreshQueues]);
 
   React.useEffect(() => {
     refreshDashboard();
@@ -76,23 +94,52 @@ export default function AIWorkforceRuntimePanel() {
           ? await createSampleMissionPlan()
           : action === 'mission-execution-queue'
             ? await createSampleMissionExecutionQueue()
-            : action === 'safety'
-              ? await previewSampleAutomationSafety()
-              : action === 'readiness'
-                ? await scoreSamplePRReadiness()
-                : action === 'pr-control'
-                  ? await buildSamplePRControlReport()
-                  : action === 'github-pr-control'
-                    ? await runGitHubPRControl()
-                    : await fetchAIWorkforceRuntimeDashboard();
+            : action === 'queue-list'
+              ? await refreshQueues()
+              : action.startsWith('queue-')
+                ? await runQueueAction(action)
+                : action === 'safety'
+                  ? await previewSampleAutomationSafety()
+                  : action === 'readiness'
+                    ? await scoreSamplePRReadiness()
+                    : action === 'pr-control'
+                      ? await buildSamplePRControlReport()
+                      : action === 'github-pr-control'
+                        ? await runGitHubPRControl()
+                        : await fetchAIWorkforceRuntimeDashboard();
       setLastResult({ type: action, response });
+      if ((response as any)?.queue) setMissionQueues((queues) => [(response as any).queue, ...queues.filter((queue) => queue.id !== (response as any).queue.id)]);
       const refreshed = await fetchAIWorkforceRuntimeDashboard();
       setDashboard(refreshed.dashboard);
+      await refreshQueues().catch(() => null);
     } catch (err: any) {
       setError(err?.message || `AI Workforce runtime action failed: ${action}`);
     } finally {
       setLoading(null);
     }
+  }
+
+  async function runQueueAction(action: RuntimeAction) {
+    const queue = lastResult?.response?.queue || missionQueues[0] || dashboard?.missionQueueStats?.latestQueue;
+    if (!queue?.id) throw new Error('Chưa có Mission Execution Queue để thao tác. Hãy bấm Queue mission trước.');
+    if (action === 'queue-resume') return resumeMissionExecutionQueue(queue.id);
+    if (action === 'queue-cancel') return cancelMissionExecutionQueue(queue.id);
+    if (action === 'queue-approve') {
+      const step = firstStep(queue, 'waiting_approval');
+      if (!step?.approvalPhrase) throw new Error('Không tìm thấy step đang chờ approval.');
+      return approveMissionExecutionQueueStep(queue.id, step);
+    }
+    if (action === 'queue-start') {
+      const step = firstStep(queue, 'ready');
+      if (!step) throw new Error('Không tìm thấy step ready để start.');
+      return startMissionExecutionQueueStep(queue.id, step);
+    }
+    if (action === 'queue-complete') {
+      const step = firstStep(queue, 'running') || firstStep(queue, 'ready');
+      if (!step) throw new Error('Không tìm thấy step running/ready để complete.');
+      return completeMissionExecutionQueueStep(queue.id, step);
+    }
+    return refreshQueues();
   }
 
   async function runGitHubPRControl() {
@@ -110,12 +157,14 @@ export default function AIWorkforceRuntimePanel() {
   const readiness = dashboard?.readiness;
   const observability = dashboard?.observability;
   const metricStoreStats = dashboard?.metricStoreStats;
+  const missionQueueStats = dashboard?.missionQueueStats;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
   const recentRecords = dashboard?.recentRecords || [];
   const offline = Boolean(error && !dashboard);
   const lastMissionPlan = lastResult?.type === 'mission-plan' ? lastResult?.response?.plan : null;
-  const lastExecutionQueue = lastResult?.type === 'mission-execution-queue' ? lastResult?.response?.queue : null;
+  const lastExecutionQueue = lastResult?.response?.queue || missionQueues[0] || null;
+  const activeQueue = lastExecutionQueue || missionQueueStats?.latestQueue || null;
   const lastGitHubReport = lastResult?.type === 'github-pr-control' ? lastResult?.response?.report : null;
   const lastGitHubAdapter = lastResult?.type === 'github-pr-control' ? lastResult?.response?.adapter : null;
 
@@ -129,7 +178,7 @@ export default function AIWorkforceRuntimePanel() {
           <div>
             <h2 className="text-base font-black text-white">Live Runtime Hub</h2>
             <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-300">
-              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, lập Mission Plan, tạo Mission Execution Queue, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
+              Giao diện live cho AI Workforce Runtime Hub: đọc dashboard, tạo grounded context pack, lập Mission Plan, tạo/resume/cancel Mission Execution Queue, approve/start/complete từng step, preview safety envelope, chấm PR readiness, chạy PR Control thật từ GitHub, xem MCP tool health, persistent metric store và audit/trend ledger.
             </p>
           </div>
         </div>
@@ -149,10 +198,10 @@ export default function AIWorkforceRuntimePanel() {
       <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-6">
         <MiniMetric label="Readiness" value={readiness ? `${readiness.grade} · ${readiness.overallScore}/5` : '—'} detail="Điểm runtime readiness động" />
         <MiniMetric label="Runs" value={observability?.runs ?? '—'} detail={`Persisted ${metricStoreStats?.total ?? '—'} metrics`} />
+        <MiniMetric label="Queues" value={missionQueueStats?.total ?? '—'} detail={`${missionQueueStats?.byStatus?.needs_approval ?? 0} need approval`} />
         <MiniMetric label="Blocked rate" value={observability ? `${Math.round((observability.blockedRate || 0) * 100)}%` : '—'} detail="Tác vụ bị safety chặn" />
         <MiniMetric label="Tool health" value={tooling ? `${tooling.summary.healthy}/${tooling.summary.total}` : '—'} detail="MCP manifests healthy/total" />
         <MiniMetric label="Audit events" value={ledger?.auditStats?.totalEvents ?? '—'} detail="Operational ledger audit trail" />
-        <MiniMetric label="Graph nodes" value={ledger?.graphStats?.totalNodes ?? '—'} detail="Knowledge graph persisted" />
       </div>
 
       <div className="mt-5 grid gap-3 lg:grid-cols-6">
@@ -190,27 +239,27 @@ export default function AIWorkforceRuntimePanel() {
             <MiniMetric label="Approvals" value={lastMissionPlan.summary?.humanApprovals ?? '—'} detail="Human checkpoints" />
             <MiniMetric label="Context" value={lastMissionPlan.summary?.contextConfidence ?? '—'} detail={`${lastMissionPlan.summary?.contradictions ?? 0} contradictions`} />
           </div>
-          <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {lastMissionPlan.steps?.slice(0, 6).map((step: any) => (
-              <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
-                <p className="text-xs font-black text-white">{step.title}</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-400">{step.agentRole} · {step.toolId} · {step.riskTier}</p>
-              </div>
-            ))}
-          </div>
         </div>
       )}
 
-      {lastExecutionQueue && (
+      {activeQueue && (
         <div className="mt-5 rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <div className="grid gap-3 md:grid-cols-4">
-            <MiniMetric label="Queue status" value={lastExecutionQueue.status || '—'} detail={`risk ${lastExecutionQueue.riskTier || '—'}`} />
-            <MiniMetric label="Ready" value={lastExecutionQueue.summary?.readySteps ?? '—'} detail="Steps ready to run" />
-            <MiniMetric label="Approval gates" value={lastExecutionQueue.summary?.waitingApprovalSteps ?? '—'} detail={`${lastExecutionQueue.summary?.approvalsCaptured ?? 0} captured`} />
-            <MiniMetric label="Evidence" value={lastExecutionQueue.summary?.evidenceItems ?? '—'} detail={`${lastExecutionQueue.summary?.completedSteps ?? 0} completed`} />
+            <MiniMetric label="Queue status" value={activeQueue.status || '—'} detail={`risk ${activeQueue.riskTier || '—'}`} />
+            <MiniMetric label="Ready" value={activeQueue.summary?.readySteps ?? '—'} detail="Steps ready to run" />
+            <MiniMetric label="Approval gates" value={activeQueue.summary?.waitingApprovalSteps ?? '—'} detail={`${activeQueue.summary?.approvalsCaptured ?? 0} captured`} />
+            <MiniMetric label="Evidence" value={activeQueue.summary?.evidenceItems ?? '—'} detail={`${activeQueue.summary?.completedSteps ?? 0} completed`} />
+          </div>
+          <div className="mt-4 grid gap-2 md:grid-cols-3 xl:grid-cols-6">
+            <button className={buttonClass} onClick={() => runAction('queue-list')} disabled={Boolean(loading)}>List queues</button>
+            <button className={buttonClass} onClick={() => runAction('queue-resume')} disabled={Boolean(loading) || !activeQueue?.id}>Resume</button>
+            <button className={buttonClass} onClick={() => runAction('queue-approve')} disabled={Boolean(loading) || !firstStep(activeQueue, 'waiting_approval')}>Approve gate</button>
+            <button className={buttonClass} onClick={() => runAction('queue-start')} disabled={Boolean(loading) || !firstStep(activeQueue, 'ready')}>Start ready</button>
+            <button className={buttonClass} onClick={() => runAction('queue-complete')} disabled={Boolean(loading) || !(firstStep(activeQueue, 'running') || firstStep(activeQueue, 'ready'))}>Complete step</button>
+            <button className={buttonClass} onClick={() => runAction('queue-cancel')} disabled={Boolean(loading) || !activeQueue?.id || activeQueue.status === 'cancelled'}>Cancel queue</button>
           </div>
           <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
-            {lastExecutionQueue.steps?.slice(0, 6).map((step: any) => (
+            {activeQueue.steps?.slice(0, 6).map((step: any) => (
               <div key={step.id} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2">
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate text-xs font-black text-white">{step.title}</p>
@@ -271,6 +320,12 @@ export default function AIWorkforceRuntimePanel() {
             )) : (
               <p className="text-xs font-semibold text-slate-500">Chưa có runtime record hoặc daemon chưa online.</p>
             )}
+          </div>
+          <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">Persistent mission queues</p>
+            <p className="mt-1 text-xs font-bold text-slate-200">
+              {missionQueueStats ? `${missionQueueStats.total} queues · latest ${missionQueueStats.latestQueue?.status || '—'}` : 'Waiting for queue store'}
+            </p>
           </div>
           <div className="mt-3 rounded-xl border border-cyan-500/20 bg-cyan-500/10 px-3 py-2">
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-cyan-200">Persistent metric store</p>
