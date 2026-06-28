@@ -37,7 +37,7 @@ const tokens = [
   'releaseGateTimelineItem',
   'timeline',
   'Release Gate Historical Timeline',
-  'historical timeline surfaced',
+  'historical timeline và trend analytics surfaced',
   'mission_release_gate',
   'mission_release_gate_recorded',
   'runtimeRecord',
