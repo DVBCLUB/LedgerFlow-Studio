@@ -17,13 +17,17 @@ function replaceOnce(search, replacement, label) {
 }
 
 const importAnchor = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
-const importBlock = `import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";
-import { buildMissionOperatorReleaseGate } from "./services/aiWorkforceMissionReleaseGate";
-import { requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";
-import { buildStoredMissionOperatorReviewDossier } from "./services/aiWorkforceMissionReviewNoteStore";`;
 
 if (!source.includes('buildMissionOperatorReleaseGate')) {
-  replaceOnce(importAnchor, importBlock, 'GitHub CI Doctor import anchor');
+  replaceOnce(importAnchor, `${importAnchor}\nimport { buildMissionOperatorReleaseGate } from "./services/aiWorkforceMissionReleaseGate";`, 'GitHub CI Doctor import anchor');
+}
+
+if (!source.includes('requireMissionExecutionQueue')) {
+  replaceOnce(importAnchor, `${importAnchor}\nimport { requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";`, 'queue store import anchor');
+}
+
+if (!source.includes('buildStoredMissionOperatorReviewDossier')) {
+  replaceOnce(importAnchor, `${importAnchor}\nimport { buildStoredMissionOperatorReviewDossier } from "./services/aiWorkforceMissionReviewNoteStore";`, 'review dossier import anchor');
 }
 
 const routeAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
