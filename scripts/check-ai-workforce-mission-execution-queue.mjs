@@ -73,6 +73,7 @@ const requiredTokens = [
   'Step handoffs',
   'MissionQueueSnapshotExport',
   'buildMissionQueueSnapshotExport',
+  'exportMissionQueueSnapshot',
   'ai_workforce_mission_queue_snapshot',
   'Markdown handoff',
   'JSON handoff artifact',
