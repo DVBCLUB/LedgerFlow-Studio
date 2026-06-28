@@ -8,6 +8,7 @@ import {
 } from './agentToolExecutionGate.ts';
 import { getAgentToolContract, type AgentToolContract } from './agentToolRegistry.ts';
 import type { MissionExecutionQueue, MissionExecutionQueueStep } from './aiWorkforceMissionExecutionQueue.ts';
+import { buildMissionEvidenceReplayArtifact, type MissionEvidenceReplayArtifact } from './aiWorkforceMissionEvidenceReplay.ts';
 
 export type MissionToolExecutionMode = 'dry_run' | 'simulation';
 export type MissionToolExecutionStatus = 'preview_ready' | 'approval_required' | 'executed' | 'blocked';
@@ -26,6 +27,7 @@ export interface MissionToolExecutionAdapterResult {
   approval?: { approvalToken: string; expiresAt: string };
   safetyDecision: AgentToolExecutionPreview['safetyDecision'];
   evidence: Array<{ title: string; value: string }>;
+  replayArtifact: MissionEvidenceReplayArtifact;
   createdAt: string;
 }
 
@@ -97,12 +99,28 @@ function buildInput(queue: MissionExecutionQueue, step: MissionExecutionQueueSte
   };
 }
 
-function buildEvidence(result: Omit<MissionToolExecutionAdapterResult, 'evidence'>) {
+function buildEvidence(result: Omit<MissionToolExecutionAdapterResult, 'evidence' | 'replayArtifact'>) {
   return [
     { title: 'Tool execution adapter', value: `${result.requestedToolId} routed to ${result.adapterToolId} in ${result.mode} mode.` },
     { title: 'Safety decision', value: `${result.safetyDecision.approved ? 'approved' : 'blocked'} · ${result.safetyDecision.mode}` },
     { title: 'Execution fingerprint', value: result.preview.fingerprint },
   ];
+}
+
+function withReplayArtifact(queue: MissionExecutionQueue, step: MissionExecutionQueueStep, partial: Omit<MissionToolExecutionAdapterResult, 'evidence' | 'replayArtifact'>): MissionToolExecutionAdapterResult {
+  const evidence = buildEvidence(partial);
+  const replayArtifact = buildMissionEvidenceReplayArtifact({
+    queue,
+    step,
+    requestedToolId: partial.requestedToolId,
+    adapterToolId: partial.adapterToolId,
+    mode: partial.mode,
+    fingerprint: partial.preview.fingerprint,
+    safetyDecision: partial.safetyDecision,
+    generatedEvidence: evidence,
+    createdAt: partial.createdAt,
+  });
+  return { ...partial, evidence, replayArtifact };
 }
 
 export function previewMissionStepToolExecution(queue: MissionExecutionQueue, stepId: string): MissionToolExecutionAdapterResult {
@@ -127,7 +145,7 @@ export function previewMissionStepToolExecution(queue: MissionExecutionQueue, st
     safetyDecision: preview.safetyDecision,
     createdAt,
   };
-  return { ...partial, evidence: buildEvidence(partial) };
+  return withReplayArtifact(queue, step, partial);
 }
 
 export function executeMissionStepToolSimulation(queue: MissionExecutionQueue, stepId: string): MissionToolExecutionAdapterResult {
@@ -157,5 +175,5 @@ export function executeMissionStepToolSimulation(queue: MissionExecutionQueue, s
     safetyDecision: preview.safetyDecision,
     createdAt,
   };
-  return { ...partial, evidence: buildEvidence(partial) };
+  return withReplayArtifact(queue, step, partial);
 }
