@@ -23,10 +23,13 @@ if (!source.includes('buildRuntimeReleaseGateExport')) {
 }
 
 const oldCall = '    const result = await buildAIWorkforceReleaseGateExport({ format });\n    res.json({ ok: true, exportArtifact: result.exportArtifact, dashboard: result.dashboard });';
-const newCall = '    const result = await buildRuntimeReleaseGateExport({ format, actor: String(body.actor || "Mission Operator") });\n    res.json({ ok: true, exportArtifact: result.exportArtifact, dashboard: result.dashboard, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric });';
+const newCall = '    const result = await buildRuntimeReleaseGateExport({ format, actor: String(body.actor || "Mission Operator") });\n    res.json({ ok: true, exportArtifact: result.exportArtifact, dashboard: result.dashboard, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric, retention: result.retention });';
+const previousCall = '    const result = await buildRuntimeReleaseGateExport({ format, actor: String(body.actor || "Mission Operator") });\n    res.json({ ok: true, exportArtifact: result.exportArtifact, dashboard: result.dashboard, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric });';
 
 if (source.includes(oldCall)) {
   replaceOnce(oldCall, newCall, 'release gate export route response anchor');
+} else if (source.includes(previousCall)) {
+  replaceOnce(previousCall, newCall, 'release gate export retention response anchor');
 }
 
 if (changed) {
