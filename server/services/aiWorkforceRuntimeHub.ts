@@ -24,6 +24,9 @@ import {
   type AIWorkforceMissionPlannerInput,
 } from './aiWorkforceMissionPlanner.ts';
 import {
+  createMissionExecutionQueue,
+} from './aiWorkforceMissionExecutionQueue.ts';
+import {
   listAIRunMetrics,
   recordAIRunMetric,
   summarizeAIObservability,
@@ -144,6 +147,37 @@ export async function buildRuntimeMissionPlan(input: AIWorkforceMissionPlannerIn
   });
   await appendAIWorkforceRunMetric(metric);
   return plan;
+}
+
+export async function buildRuntimeMissionExecutionQueue(input: AIWorkforceMissionPlannerInput) {
+  const startedAt = Date.now();
+  const plan = planAIWorkforceMission(input);
+  const queue = createMissionExecutionQueue(plan);
+  await appendAIWorkforceRuntimeRecord({
+    id: queue.id,
+    type: 'mission_execution_queue',
+    payload: { plan, queue },
+  });
+  await persistKnowledgeGraphFromContextPack(plan.contextPack);
+  await appendAIWorkforceAuditEvent({
+    action: 'mission_execution_queued',
+    severity: queue.status === 'blocked' ? 'critical' : queue.status === 'needs_approval' ? 'warning' : 'info',
+    actor: 'Mission Execution Queue',
+    summary: `Mission execution queue created with ${queue.summary.totalSteps} steps, ${queue.summary.waitingApprovalSteps} approval gates, and ${queue.status} status.`,
+    entityId: queue.id,
+    metadata: { missionId: plan.id, queueStatus: queue.status, summary: queue.summary, riskTier: queue.riskTier },
+  });
+  const metric = recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: 'Mission Execution Queue',
+    toolId: 'read_knowledge',
+    status: queue.status === 'blocked' ? 'blocked' : queue.status === 'needs_approval' ? 'needs_review' : 'success',
+    latencyMs: Date.now() - startedAt,
+    qualityScore: plan.contextPack.confidence,
+    safetyBlocks: queue.summary.blockedSteps,
+  });
+  await appendAIWorkforceRunMetric(metric);
+  return { plan, queue };
 }
 
 export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
