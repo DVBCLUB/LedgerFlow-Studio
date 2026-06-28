@@ -18,16 +18,20 @@ function replaceOnce(search, replacement, label) {
 
 const importAnchor = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
 
-if (!source.includes('buildMissionOperatorReleaseGate')) {
-  replaceOnce(importAnchor, `${importAnchor}\nimport { buildMissionOperatorReleaseGate } from "./services/aiWorkforceMissionReleaseGate";`, 'GitHub CI Doctor import anchor');
+if (!source.includes('buildRuntimeMissionReleaseGate')) {
+  replaceOnce(importAnchor, `${importAnchor}\nimport { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionReleaseGateRuntime";`, 'GitHub CI Doctor import anchor');
 }
 
-if (!source.includes('requireMissionExecutionQueue')) {
-  replaceOnce(importAnchor, `${importAnchor}\nimport { requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";`, 'queue store import anchor');
-}
-
-if (!source.includes('buildStoredMissionOperatorReviewDossier')) {
-  replaceOnce(importAnchor, `${importAnchor}\nimport { buildStoredMissionOperatorReviewDossier } from "./services/aiWorkforceMissionReviewNoteStore";`, 'review dossier import anchor');
+const legacyImports = [
+  'import { buildMissionOperatorReleaseGate } from "./services/aiWorkforceMissionReleaseGate";\n',
+  'import { requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";\n',
+  'import { buildStoredMissionOperatorReviewDossier } from "./services/aiWorkforceMissionReviewNoteStore";\n',
+];
+for (const legacyImport of legacyImports) {
+  if (source.includes(legacyImport)) {
+    source = source.replace(legacyImport, '');
+    changed = true;
+  }
 }
 
 const routeAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
@@ -37,24 +41,31 @@ const routeBlock = `// ---------------------------------------------------------
 app.post("/api/ai-workforce/mission-release-gate", async (req: Request, res: Response) => {
   try {
     const body = (req.body || {}) as any;
-    const queue = await requireMissionExecutionQueue(String(body.queueId || ""));
-    const dossier = await buildStoredMissionOperatorReviewDossier(queue);
-    const gate = buildMissionOperatorReleaseGate(queue, dossier, {
-      ciStatus: body.ciStatus === "success" || body.ciStatus === "pending" || body.ciStatus === "failed" ? body.ciStatus : "unknown",
-      approvals: Number(body.approvals || 0),
-      requiredApprovals: Number(body.requiredApprovals || 1),
-      snapshotChecksum: body.snapshotChecksum ? String(body.snapshotChecksum) : "",
-      releaseLabel: Boolean(body.releaseLabel),
-      rollbackConfirmed: Boolean(body.rollbackConfirmed),
-      operatorConfirmed: Boolean(body.operatorConfirmed),
-      notes: Array.isArray(body.notes) ? body.notes : [],
+    const result = await buildRuntimeMissionReleaseGate({
+      queueId: String(body.queueId || ""),
+      actor: String(body.actor || "Mission Operator"),
+      evidence: {
+        ciStatus: body.ciStatus === "success" || body.ciStatus === "pending" || body.ciStatus === "failed" ? body.ciStatus : "unknown",
+        approvals: Number(body.approvals || 0),
+        requiredApprovals: Number(body.requiredApprovals || 1),
+        snapshotChecksum: body.snapshotChecksum ? String(body.snapshotChecksum) : "",
+        releaseLabel: Boolean(body.releaseLabel),
+        rollbackConfirmed: Boolean(body.rollbackConfirmed),
+        operatorConfirmed: Boolean(body.operatorConfirmed),
+        notes: Array.isArray(body.notes) ? body.notes : [],
+      },
     });
-    res.json({ ok: true, gate, dossier });
+    res.json({ ok: true, gate: result.gate, dossier: result.dossier, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });`;
 
 if (!source.includes('/api/ai-workforce/mission-release-gate')) {
   replaceOnce(routeAnchor, `${routeBlock}\n\n${routeAnchor}`, 'Unified System Overview route anchor');
+} else if (!source.includes('runtimeRecord: result.runtimeRecord')) {
+  const currentRoute = /\/\/ ---------------------------------------------------------------------------\n\/\/ AI Workforce Mission Release Gate endpoint\n\/\/ ---------------------------------------------------------------------------\napp\.post\("\/api\/ai-workforce\/mission-release-gate", async \(req: Request, res: Response\) => \{[\s\S]*?\n\}\);/;
+  if (!currentRoute.test(source)) throw new Error('Cannot patch release gate route: route block not found');
+  source = source.replace(currentRoute, routeBlock);
+  changed = true;
 }
 
 if (changed) {
