@@ -1,3 +1,4 @@
+import './patch-ai-workforce-release-gate-export-smoke.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
