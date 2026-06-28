@@ -19,6 +19,35 @@ function releaseGateTimelineItem(record: any) {
   };
 }
 
+function buildReleaseGateTrendAnalytics(timeline: any[]) {
+  const total = timeline.length;
+  const decisionBreakdown = timeline.reduce<Record<string, number>>((acc, item) => {
+    const key = item.decision || 'unknown';
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const readyCount = timeline.filter((item) => item.releaseReady === true).length;
+  const scores = timeline.map((item) => Number(item.score)).filter((score) => Number.isFinite(score));
+  const averageScore = scores.length ? Number((scores.reduce((sum, score) => sum + score, 0) / scores.length).toFixed(2)) : null;
+  const latestScore = scores.length ? scores[0] : null;
+  const previousScore = scores.length > 1 ? scores[1] : null;
+  const scoreDelta = latestScore !== null && previousScore !== null ? Number((latestScore - previousScore).toFixed(2)) : 0;
+  const trendDirection = scoreDelta > 0 ? 'improving' : scoreDelta < 0 ? 'declining' : 'flat';
+  return {
+    total,
+    readyCount,
+    holdCount: decisionBreakdown.hold || 0,
+    notReadyCount: decisionBreakdown.not_ready || 0,
+    readyRate: total ? Number((readyCount / total).toFixed(3)) : 0,
+    averageScore,
+    latestScore,
+    previousScore,
+    scoreDelta,
+    trendDirection,
+    decisionBreakdown,
+  };
+}
+
 export async function getAIWorkforceReleaseGateDashboard() {
   const [records, auditEvents, metrics] = await Promise.all([
     listAIWorkforceRuntimeRecords({ type: 'mission_release_gate', limit: 10 }),
@@ -30,10 +59,12 @@ export async function getAIWorkforceReleaseGateDashboard() {
   const latestMetric = metrics.find((metric) => metric.toolId === 'mission_release_gate') || null;
   const payload = latestRecord?.payload as any;
   const timeline = records.map(releaseGateTimelineItem);
+  const trendAnalytics = buildReleaseGateTrendAnalytics(timeline);
 
   return {
     totalRecords: records.length,
     timeline,
+    trendAnalytics,
     latestRecord,
     latestAuditEvent,
     latestMetric,
