@@ -5,6 +5,8 @@ const requiredFiles = [
   'server/services/aiWorkforceMissionExecutionQueue.test.ts',
   'server/services/aiWorkforceMissionExecutionQueueStore.ts',
   'server/services/aiWorkforceMissionExecutionQueueStore.test.ts',
+  'server/services/aiWorkforceMissionEvidenceReplay.ts',
+  'server/services/aiWorkforceMissionEvidenceReplay.test.ts',
   'server/services/aiWorkforceMissionToolExecutor.ts',
   'server/services/aiWorkforceMissionToolExecutor.test.ts',
   'server/services/aiWorkforceRuntimeMissionToolExecutor.test.ts',
@@ -47,6 +49,12 @@ const requiredTokens = [
   'toolAliases',
   'github_pr_control',
   'draft_patch',
+  'MissionEvidenceReplayArtifact',
+  'buildMissionEvidenceReplayArtifact',
+  'replayArtifact',
+  'Execution replay timeline',
+  'Artifact viewer',
+  'Missing expected evidence',
   'mission_execution_queue',
   'mission_tool_execution',
   'mission_execution_queued',
@@ -88,4 +96,4 @@ for (const token of requiredTokens) {
   if (!corpus.includes(token)) throw new Error(`Mission Execution Queue contract missing token: ${token}`);
 }
 
-console.log('AI Workforce Mission Execution Queue service, persistent store, tool execution adapter, resume/cancel/tool APIs, daemon bundle routes, UI client, approval gates, evidence trail, and tests are present.');
+console.log('AI Workforce Mission Execution Queue contract is present.');
