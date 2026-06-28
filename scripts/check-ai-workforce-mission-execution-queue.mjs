@@ -27,6 +27,7 @@ const requiredFiles = [
   'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx',
   'src/modules/ai-hr/MissionOperatorRunbookPanel.tsx',
   'src/modules/ai-hr/MissionSnapshotExportPanel.tsx',
+  'src/modules/ai-hr/MissionReviewNoteSavePanel.tsx',
   'src/modules/ai-hr/AIOperationsCenter.tsx',
   'dist/assistant-daemon.cjs',
 ];
@@ -89,6 +90,10 @@ const requiredTokens = [
   'reviewNotes',
   'Operator review note',
   'Review release gate',
+  'MissionReviewNoteSavePanel',
+  'Persisted Review Notes',
+  'Save review note',
+  '<MissionReviewNoteSavePanel />',
   'MissionOperatorRunbookPanel',
   'Mission Operator Runbook',
   'Next safe action',
