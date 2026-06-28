@@ -81,6 +81,51 @@ export async function createSampleMissionExecutionQueue() {
   });
 }
 
+export async function listMissionExecutionQueues(status?: string) {
+  const query = status ? `?status=${encodeURIComponent(status)}` : '';
+  return requestAIWorkforce<{ ok: true; queues: any[]; stats: any }>(`/api/ai-workforce/mission-execution-queues${query}`);
+}
+
+export async function resumeMissionExecutionQueue(queueId: string) {
+  return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/resume', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, actor: 'Founder' }),
+  });
+}
+
+export async function approveMissionExecutionQueueStep(queueId: string, step: any) {
+  return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/approve', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, stepId: step.id, phrase: step.approvalPhrase, approver: 'Founder' }),
+  });
+}
+
+export async function startMissionExecutionQueueStep(queueId: string, step: any) {
+  return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/start', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, stepId: step.id, actor: 'Founder' }),
+  });
+}
+
+export async function completeMissionExecutionQueueStep(queueId: string, step: any) {
+  return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/complete', {
+    method: 'POST',
+    body: JSON.stringify({
+      queueId,
+      stepId: step.id,
+      actor: 'Founder',
+      evidence: [{ kind: 'operator_note', title: 'UI checkpoint evidence', value: `${step.title || step.id} reviewed from Live Runtime Hub.` }],
+    }),
+  });
+}
+
+export async function cancelMissionExecutionQueue(queueId: string) {
+  return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/cancel', {
+    method: 'POST',
+    body: JSON.stringify({ queueId, reason: 'Cancelled from Live Runtime Hub UI.', actor: 'Founder' }),
+  });
+}
+
 export async function previewSampleAutomationSafety() {
   return requestAIWorkforce<{ ok: true; decision: any }>('/api/ai-workforce/safety-preview', {
     method: 'POST',
