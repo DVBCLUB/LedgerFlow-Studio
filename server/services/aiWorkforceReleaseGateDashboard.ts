@@ -2,9 +2,26 @@ import { listAIWorkforceAuditEvents } from './aiWorkforceOperationalLedger.ts';
 import { listAIWorkforceRunMetrics } from './aiWorkforceRunMetricStore.ts';
 import { listAIWorkforceRuntimeRecords } from './aiWorkforceRuntimeStore.ts';
 
+function releaseGateTimelineItem(record: any) {
+  const payload = record?.payload || {};
+  return {
+    id: record?.id,
+    createdAt: record?.createdAt,
+    queueId: payload.queueId,
+    missionId: payload.missionId,
+    decision: payload.decision,
+    releaseReady: payload.releaseReady,
+    score: payload.score,
+    checksum: payload.checksum,
+    finalAction: payload.finalAction,
+    missingEvidence: payload.missingEvidence || [],
+    warnings: payload.warnings || [],
+  };
+}
+
 export async function getAIWorkforceReleaseGateDashboard() {
   const [records, auditEvents, metrics] = await Promise.all([
-    listAIWorkforceRuntimeRecords({ type: 'mission_release_gate', limit: 5 }),
+    listAIWorkforceRuntimeRecords({ type: 'mission_release_gate', limit: 10 }),
     listAIWorkforceAuditEvents(50),
     listAIWorkforceRunMetrics({ lane: 'mission-control', limit: 50 }),
   ]);
@@ -12,9 +29,11 @@ export async function getAIWorkforceReleaseGateDashboard() {
   const latestAuditEvent = auditEvents.find((event) => event.action === 'mission_release_gate_recorded') || null;
   const latestMetric = metrics.find((metric) => metric.toolId === 'mission_release_gate') || null;
   const payload = latestRecord?.payload as any;
+  const timeline = records.map(releaseGateTimelineItem);
 
   return {
     totalRecords: records.length,
+    timeline,
     latestRecord,
     latestAuditEvent,
     latestMetric,
