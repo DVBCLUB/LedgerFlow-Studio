@@ -64,7 +64,7 @@ test('mission tool execution adapter blocks execution until approval exists', ()
 
 test('mission tool execution adapter aliases GitHub PR Control to safe draft patch simulation', () => {
   let queue = sampleQueue();
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 3; index += 1) {
     const waiting = queue.steps.find((step) => step.status === 'waiting_approval');
     if (waiting) queue = approveMissionExecutionStep(queue, waiting.id, waiting.approvalPhrase!, 'Founder');
     const ready = queue.steps.find((step) => step.status === 'ready');
@@ -72,8 +72,12 @@ test('mission tool execution adapter aliases GitHub PR Control to safe draft pat
     queue = completeMissionExecutionStep(queue, ready.id, [{ kind: 'operator_note', title: 'Prior checkpoint', value: `Completed ${ready.title}` }], 'Founder');
   }
 
-  const prStep = queue.steps.find((step) => step.toolId === 'github_pr_control')!;
+  let prStep = queue.steps.find((step) => step.toolId === 'github_pr_control')!;
+  assert.equal(prStep.status, 'waiting_approval');
+  queue = approveMissionExecutionStep(queue, prStep.id, prStep.approvalPhrase!, 'Founder');
+  prStep = queue.steps.find((step) => step.toolId === 'github_pr_control')!;
   assert.equal(prStep.status, 'ready');
+
   const preview = previewMissionStepToolExecution(queue, prStep.id);
   assert.equal(preview.requestedToolId, 'github_pr_control');
   assert.equal(preview.adapterToolId, 'draft_patch');
