@@ -43,7 +43,7 @@ export default function ReleaseGateDashboardCard({ releaseGate }: { releaseGate?
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-200"><ShieldCheck className="h-5 w-5" /></div>
           <div>
             <h3 className="text-sm font-black text-white">Release Gate Dashboard</h3>
-            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event, metric evidence, historical timeline, export history và trend analytics surfaced từ Runtime Hub.</p>
+            <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">Latest mission release gate record, audit event, metric evidence, historical timeline và trend analytics surfaced từ Runtime Hub, plus export history.</p>
           </div>
         </div>
         <span className={`rounded-full border px-3 py-1 text-[10px] font-black uppercase ${ready ? 'border-emerald-400/40 text-emerald-100' : 'border-amber-400/40 text-amber-100'}`}>{releaseGate.latestDecision || 'no gate'}</span>
