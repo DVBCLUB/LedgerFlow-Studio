@@ -35,7 +35,7 @@ const tokens = [
   'Run release gate',
   'Bind snapshot release gate',
   'Release Gate UI Snapshot Binding',
-  'snapshot.releaseGate',
+  'payload.snapshot?.releaseGate',
   '<MissionReleaseGatePanel />',
   'releaseGateDecision',
   'releaseGateReady',
