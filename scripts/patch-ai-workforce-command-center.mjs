@@ -24,7 +24,8 @@ function replaceOnce(source, search, replacement, label) {
 
 function ensureRuntimeHubImport(source) {
   const githubCiImport = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
-  const currentImport = 'import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";';
+  const currentImport = 'import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";';
+  const previousResumeImport = 'import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";';
   const previousQueueImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousMissionImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionPlan, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
   const previousGitHubPrImport = 'import { buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimePRControlReport, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
@@ -32,6 +33,7 @@ function ensureRuntimeHubImport(source) {
   const previousImport = 'import { buildRuntimeGroundedContext, getAIWorkforceRuntimeDashboard, previewRuntimeAutomation, scoreRuntimePRReadiness } from "./services/aiWorkforceRuntimeHub";';
 
   if (source.includes(currentImport)) return source;
+  if (source.includes(previousResumeImport)) return source.replace(previousResumeImport, currentImport);
   if (source.includes(previousQueueImport)) return source.replace(previousQueueImport, currentImport);
   if (source.includes(previousMissionImport)) return source.replace(previousMissionImport, currentImport);
   if (source.includes(previousGitHubPrImport)) return source.replace(previousGitHubPrImport, currentImport);
@@ -82,6 +84,18 @@ app.post("/api/ai-workforce/mission-execution-queue/complete", async (req: Reque
   try {
     const queue = await completeRuntimeMissionExecutionStep(req.body as any);
     res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: Request, res: Response) => {
+  try {
+    const result = await previewRuntimeMissionStepToolExecution(req.body as any);
+    res.json({ ok: true, result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {
+  try {
+    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);
+    res.json({ ok: true, ...result });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });
 app.post("/api/ai-workforce/mission-execution-queue/cancel", async (req: Request, res: Response) => {
@@ -143,7 +157,10 @@ ${githubPrControlRoute}`;
 function ensureRuntimeHubRoutes(source) {
   const unifiedOverviewAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
 
-  if (source.includes('/api/ai-workforce/mission-execution-queue/approve')) return source;
+  if (source.includes('/api/ai-workforce/mission-execution-queue/tool-execute')) return source;
+  if (source.includes('/api/ai-workforce/mission-execution-queue/approve')) {
+    return replaceOnce(source, 'app.post("/api/ai-workforce/mission-execution-queue/cancel"', `app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: Request, res: Response) => {\n  try {\n    const result = await previewRuntimeMissionStepToolExecution(req.body as any);\n    res.json({ ok: true, result });\n  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }\n});\napp.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {\n  try {\n    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);\n    res.json({ ok: true, ...result });\n  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }\n});\napp.post("/api/ai-workforce/mission-execution-queue/cancel"`, 'AI Workforce Mission Tool Execution route upgrade');
+  }
   if (source.includes('/api/ai-workforce/mission-execution-queue')) {
     return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Queue resume route upgrade');
   }
