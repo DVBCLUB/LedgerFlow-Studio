@@ -47,28 +47,37 @@ export async function createSampleGroundedContextPack() {
   });
 }
 
+const sampleMissionInput = {
+  goal: 'Plan an AI Workforce Runtime Hub upgrade with evidence, PR control, rollback notes, checkpoints, and audit trail.',
+  owner: 'Founder',
+  domains: ['software factory', 'runtime'],
+  constraints: ['preserve audit trail', 'include rollback evidence'],
+  repoFullName: 'DVBCLUB/LedgerFlow-Studio',
+  prNumber: 42,
+  allowAutomation: true,
+  sources: [
+    {
+      kind: 'sop',
+      title: 'Mission Planner Runtime SOP',
+      content: 'Mission plans map goals to agent roles, tool route, risk tier, approval checkpoint, grounded source map, safety evidence, audit event, and metric trail.',
+      tags: ['mission-planner', 'ai-workforce'],
+      facts: { mission_policy: 'approval_checkpoint_required' },
+      confidence: 0.94,
+    },
+  ],
+};
+
 export async function createSampleMissionPlan() {
   return requestAIWorkforce<{ ok: true; plan: any }>('/api/ai-workforce/mission-plan', {
     method: 'POST',
-    body: JSON.stringify({
-      goal: 'Plan an AI Workforce Runtime Hub upgrade with evidence, PR control, rollback notes, checkpoints, and audit trail.',
-      owner: 'Founder',
-      domains: ['software factory', 'runtime'],
-      constraints: ['preserve audit trail', 'include rollback evidence'],
-      repoFullName: 'DVBCLUB/LedgerFlow-Studio',
-      prNumber: 42,
-      allowAutomation: true,
-      sources: [
-        {
-          kind: 'sop',
-          title: 'Mission Planner Runtime SOP',
-          content: 'Mission plans map goals to agent roles, tool route, risk tier, approval checkpoint, grounded source map, safety evidence, audit event, and metric trail.',
-          tags: ['mission-planner', 'ai-workforce'],
-          facts: { mission_policy: 'approval_checkpoint_required' },
-          confidence: 0.94,
-        },
-      ],
-    }),
+    body: JSON.stringify(sampleMissionInput),
+  });
+}
+
+export async function createSampleMissionExecutionQueue() {
+  return requestAIWorkforce<{ ok: true; plan: any; queue: any }>('/api/ai-workforce/mission-execution-queue', {
+    method: 'POST',
+    body: JSON.stringify(sampleMissionInput),
   });
 }
 
