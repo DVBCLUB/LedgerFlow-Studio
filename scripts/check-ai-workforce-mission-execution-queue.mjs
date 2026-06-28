@@ -1,3 +1,4 @@
+import './check-ai-workforce-release-gate-route.mjs';
 import fs from 'node:fs';
 
 const requiredFiles = [
