@@ -71,9 +71,13 @@ test('runtime mission tool executor previews and executes queue steps with persi
   const preview = await previewRuntimeMissionStepToolExecution({ queueId: queue.id, stepId: ready.id, actor: 'Founder' });
   assert.equal(preview.mode, 'dry_run');
   assert.equal(preview.safetyDecision.approved, true);
+  assert.equal(preview.replayArtifact.status, 'preview');
+  assert.ok(preview.replayArtifact.timeline.length >= 1);
 
   const executed = await executeRuntimeMissionStepToolSimulation({ queueId: queue.id, stepId: ready.id, actor: 'Founder' });
   assert.equal(executed.result.status, 'executed');
+  assert.equal(executed.result.replayArtifact.status, 'executed');
+  assert.equal(executed.result.replayArtifact.fingerprint, executed.result.preview.fingerprint);
   assert.equal(executed.queue.summary.completedSteps, 1);
   assert.ok(executed.queue.steps.find((step) => step.id === ready.id)?.evidence.some((item) => item.title === 'Execution fingerprint'));
 
