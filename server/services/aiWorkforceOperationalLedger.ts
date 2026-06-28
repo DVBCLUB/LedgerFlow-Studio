@@ -16,6 +16,8 @@ export type AIWorkforceAuditAction =
   | 'mission_step_approved'
   | 'mission_step_started'
   | 'mission_step_completed'
+  | 'mission_tool_previewed'
+  | 'mission_tool_executed'
   | 'mission_execution_cancelled'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
