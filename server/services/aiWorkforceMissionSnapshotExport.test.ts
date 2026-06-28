@@ -26,34 +26,51 @@ function sampleQueue() {
   return queue;
 }
 
-test('mission queue snapshot export creates a JSON handoff artifact with checksum and evidence', () => {
+test('mission queue snapshot export creates a JSON handoff artifact with checksum, evidence and review notes', () => {
   const queue = sampleQueue();
-  const snapshot = buildMissionQueueSnapshotExport(queue, { format: 'json', createdAt: '2026-06-28T00:00:00.000Z', includeRawQueue: true });
+  const snapshot = buildMissionQueueSnapshotExport(queue, {
+    format: 'json',
+    createdAt: '2026-06-28T00:00:00.000Z',
+    includeRawQueue: true,
+    reviewNotes: [{ reviewer: 'Founder', decision: 'approved', summary: 'Approved for handoff.' }],
+  });
   const payload = JSON.parse(snapshot.content);
 
   assert.equal(snapshot.format, 'json');
   assert.match(snapshot.filename, /\.json$/);
   assert.equal(snapshot.summary.queueStatus, queue.status);
   assert.equal(snapshot.summary.evidenceItems, queue.summary.evidenceItems);
+  assert.equal(snapshot.summary.reviewNotes, 1);
+  assert.equal(snapshot.summary.reviewStatus, 'release_ready');
+  assert.equal(snapshot.reviewDossier.releaseReady, true);
   assert.ok(snapshot.checksum.length >= 32);
   assert.equal(payload.kind, 'ai_workforce_mission_queue_snapshot');
   assert.ok(payload.nextSafeAction);
   assert.ok(payload.rollbackNote.includes('Partial work exists'));
   assert.ok(payload.handoffSummary.includes(queue.id));
+  assert.equal(payload.reviewDossier.notes[0].decision, 'approved');
   assert.ok(payload.artifacts.some((item: any) => item.title === 'Execution fingerprint'));
   assert.ok(payload.rawQueue.id === queue.id);
 });
 
-test('mission queue snapshot export creates a Markdown handoff artifact', () => {
+test('mission queue snapshot export creates a Markdown handoff artifact with review notes', () => {
   const queue = sampleQueue();
-  const snapshot = buildMissionQueueSnapshotExport(queue, { format: 'markdown', createdAt: '2026-06-28T00:00:00.000Z' });
+  const snapshot = buildMissionQueueSnapshotExport(queue, {
+    format: 'markdown',
+    createdAt: '2026-06-28T00:00:00.000Z',
+    reviewNotes: [{ reviewer: 'Security', decision: 'blocked', summary: 'Security evidence missing.', requestedAction: 'Attach security evidence.' }],
+  });
 
   assert.equal(snapshot.format, 'markdown');
   assert.match(snapshot.filename, /\.md$/);
+  assert.equal(snapshot.summary.reviewStatus, 'blocked');
+  assert.equal(snapshot.summary.releaseReady, false);
   assert.ok(snapshot.content.includes('# AI Workforce Mission Queue Snapshot'));
   assert.ok(snapshot.content.includes('## Next safe action'));
   assert.ok(snapshot.content.includes('## Owner handoff'));
   assert.ok(snapshot.content.includes('## Rollback note'));
+  assert.ok(snapshot.content.includes('## Operator review notes'));
+  assert.ok(snapshot.content.includes('Security evidence missing'));
   assert.ok(snapshot.content.includes('## Evidence artifacts'));
   assert.ok(snapshot.content.includes('Execution fingerprint'));
 });
