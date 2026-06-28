@@ -47,6 +47,12 @@ app.post("/api/ai-workforce/mission-snapshot-export", async (req: Request, res: 
 
 if (!source.includes('/api/ai-workforce/mission-snapshot-export')) {
   replaceOnce(routeAnchor, `${routeBlock}\n\n${routeAnchor}`, 'Unified System Overview route anchor');
+} else if (!source.includes('reviewNotes: Array.isArray(body.reviewNotes) ? body.reviewNotes : []')) {
+  replaceOnce(
+    '      includeRawQueue: Boolean(body.includeRawQueue),\n    });',
+    '      includeRawQueue: Boolean(body.includeRawQueue),\n      reviewNotes: Array.isArray(body.reviewNotes) ? body.reviewNotes : [],\n    });',
+    'snapshot export review notes upgrade anchor',
+  );
 }
 
 if (changed) {
