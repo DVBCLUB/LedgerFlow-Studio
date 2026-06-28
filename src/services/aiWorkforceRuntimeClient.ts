@@ -140,13 +140,19 @@ export async function cancelMissionExecutionQueue(queueId: string) {
   });
 }
 
-export async function exportMissionQueueSnapshot(input: { queueId?: string; format?: 'json' | 'markdown'; includeRawQueue?: boolean } = {}) {
+export async function exportMissionQueueSnapshot(input: {
+  queueId?: string;
+  format?: 'json' | 'markdown';
+  includeRawQueue?: boolean;
+  reviewNotes?: Array<{ reviewer: string; decision: 'approved' | 'needs_changes' | 'blocked' | 'info'; summary: string; requestedAction?: string }>;
+} = {}) {
   return requestAIWorkforce<{ ok: true; snapshot: any }>('/api/ai-workforce/mission-snapshot-export', {
     method: 'POST',
     body: JSON.stringify({
       ...(input.queueId ? { queueId: input.queueId } : {}),
       format: input.format || 'json',
       includeRawQueue: Boolean(input.includeRawQueue),
+      reviewNotes: input.reviewNotes || [],
     }),
   });
 }
