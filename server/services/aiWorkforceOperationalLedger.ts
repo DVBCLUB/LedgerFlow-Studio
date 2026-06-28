@@ -18,6 +18,7 @@ export type AIWorkforceAuditAction =
   | 'mission_step_completed'
   | 'mission_tool_previewed'
   | 'mission_tool_executed'
+  | 'mission_release_gate_recorded'
   | 'mission_execution_cancelled'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
@@ -157,28 +158,10 @@ export async function getAIWorkforceOperationalLedgerDashboard() {
   const readinessDelta = latestTrend && previousTrend ? Number((latestTrend.readinessScore - previousTrend.readinessScore).toFixed(2)) : 0;
   const blockedRateDelta = latestTrend && previousTrend ? Number((latestTrend.observability.blockedRate - previousTrend.observability.blockedRate).toFixed(3)) : 0;
   const storage = await ledgerStore.stats();
-
   return {
-    graphStats: {
-      totalGraphs: graphs.length,
-      totalNodes: graphs.reduce((sum, graph) => sum + graph.nodes.length, 0),
-      totalEdges: graphs.reduce((sum, graph) => sum + graph.edges.length, 0),
-      totalContradictions: graphs.reduce((sum, graph) => sum + graph.contradictions, 0),
-      latestGraph: graphs[0] || null,
-    },
-    auditStats: {
-      totalEvents: auditEvents.length,
-      criticalEvents: auditEvents.filter((event) => event.severity === 'critical').length,
-      warningEvents: auditEvents.filter((event) => event.severity === 'warning').length,
-      latestEvents: auditEvents.slice(0, 10),
-    },
-    trendStats: {
-      totalSnapshots: trendSnapshots.length,
-      latestTrend,
-      readinessDelta,
-      blockedRateDelta,
-      snapshots: trendSnapshots.slice(0, 12),
-    },
+    graphStats: { total: graphs.length, latestGraph: graphs[0] || null },
+    auditStats: { total: auditEvents.length, latestEvent: auditEvents[0] || null },
+    trendStats: { total: trendSnapshots.length, latestTrend, readinessDelta, blockedRateDelta },
     storage,
   };
 }
