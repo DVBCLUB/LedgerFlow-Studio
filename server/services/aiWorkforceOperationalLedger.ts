@@ -11,6 +11,7 @@ export type AIWorkforceAuditAction =
   | 'pr_readiness_scored'
   | 'github_pr_control_scored'
   | 'mission_planned'
+  | 'mission_execution_queued'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
 
