@@ -1,3 +1,4 @@
+import './patch-ai-workforce-release-gate-route.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
