@@ -19,6 +19,7 @@ export type AIWorkforceAuditAction =
   | 'mission_tool_previewed'
   | 'mission_tool_executed'
   | 'mission_release_gate_recorded'
+  | 'release_gate_exported'
   | 'mission_execution_cancelled'
   | 'runtime_snapshot_created'
   | 'tooling_catalog_exported';
