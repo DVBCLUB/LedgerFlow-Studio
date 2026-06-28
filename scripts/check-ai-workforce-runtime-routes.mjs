@@ -265,7 +265,19 @@ try {
   const snapshotExport = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-snapshot-export', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ queueId: missionQueue.json.queue.id, format: 'markdown' }),
+    body: JSON.stringify({
+      queueId: missionQueue.json.queue.id,
+      format: 'markdown',
+      releaseEvidence: {
+        ciStatus: 'success',
+        approvals: 1,
+        requiredApprovals: 1,
+        releaseLabel: true,
+        rollbackConfirmed: true,
+        operatorConfirmed: true,
+        notes: ['Runtime smoke snapshot release evidence'],
+      },
+    }),
   });
   if (!snapshotExport.response.ok || snapshotExport.json?.ok !== true || !snapshotExport.json?.snapshot?.content?.includes('## Next safe action')) {
     throw new Error('/api/ai-workforce/mission-snapshot-export did not return a Markdown snapshot handoff.');
@@ -278,6 +290,9 @@ try {
   }
   if (snapshotExport.json?.snapshot?.summary?.reviewNotes !== 1 || snapshotExport.json?.snapshot?.summary?.releaseReady !== true) {
     throw new Error('Mission snapshot export summary did not include persisted review gate status.');
+  }
+  if (snapshotExport.json?.snapshot?.summary?.releaseGateDecision !== 'ready' || snapshotExport.json?.snapshot?.summary?.releaseGateReady !== true || !snapshotExport.json?.snapshot?.content?.includes('Decision: ready')) {
+    throw new Error('Mission snapshot export did not bind release evidence into a ready release gate.');
   }
 
   const releaseGate = await fetchJson(DAEMON_URL, '/api/ai-workforce/mission-release-gate', {
@@ -332,7 +347,7 @@ try {
     throw new Error('AI Workforce runtime dashboard did not include persisted metric store stats after smoke actions.');
   }
 
-  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, persisted review notes, release gate, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
+  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, persisted review notes, snapshot release evidence binding, release gate, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
 } catch (error) {
   console.error('\nAI Workforce daemon runtime smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));
