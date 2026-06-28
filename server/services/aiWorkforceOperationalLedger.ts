@@ -159,9 +159,25 @@ export async function getAIWorkforceOperationalLedgerDashboard() {
   const blockedRateDelta = latestTrend && previousTrend ? Number((latestTrend.observability.blockedRate - previousTrend.observability.blockedRate).toFixed(3)) : 0;
   const storage = await ledgerStore.stats();
   return {
-    graphStats: { total: graphs.length, latestGraph: graphs[0] || null },
-    auditStats: { total: auditEvents.length, latestEvent: auditEvents[0] || null },
-    trendStats: { total: trendSnapshots.length, latestTrend, readinessDelta, blockedRateDelta },
+    graphStats: {
+      total: graphs.length,
+      totalGraphs: graphs.length,
+      totalNodes: graphs.reduce((sum, graph) => sum + graph.nodes.length, 0),
+      totalEdges: graphs.reduce((sum, graph) => sum + graph.edges.length, 0),
+      latestGraph: graphs[0] || null,
+    },
+    auditStats: {
+      total: auditEvents.length,
+      totalEvents: auditEvents.length,
+      latestEvent: auditEvents[0] || null,
+    },
+    trendStats: {
+      total: trendSnapshots.length,
+      totalSnapshots: trendSnapshots.length,
+      latestTrend,
+      readinessDelta,
+      blockedRateDelta,
+    },
     storage,
   };
 }
