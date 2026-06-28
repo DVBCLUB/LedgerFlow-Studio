@@ -17,6 +17,8 @@ const requiredFiles = [
   'server/services/aiWorkforceOperationalLedger.ts',
   'src/services/aiWorkforceRuntimeClient.ts',
   'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx',
+  'src/modules/ai-hr/MissionOperatorRunbookPanel.tsx',
+  'src/modules/ai-hr/AIOperationsCenter.tsx',
   'dist/assistant-daemon.cjs',
 ];
 
@@ -59,6 +61,13 @@ const requiredTokens = [
   'Missing expected evidence',
   'MissionOperatorRunbook',
   'buildMissionOperatorRunbook',
+  'MissionOperatorRunbookPanel',
+  'Mission Operator Runbook',
+  'Next safe action',
+  'Owner handoff',
+  'Rollback note',
+  'Operator checklist',
+  'Step handoffs',
   'nextSafeAction',
   'rollbackNote',
   'handoffSummary',
