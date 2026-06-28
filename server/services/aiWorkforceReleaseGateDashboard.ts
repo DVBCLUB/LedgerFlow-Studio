@@ -77,6 +77,7 @@ export async function getAIWorkforceReleaseGateDashboard() {
   const latestExportAuditEvent = auditEvents.find((event) => event.action === 'release_gate_exported') || null;
   const latestMetric = metrics.find((metric) => metric.toolId === 'mission_release_gate') || null;
   const latestExportMetric = metrics.find((metric) => metric.toolId === 'release_gate_export') || null;
+  const latestExportRetention = (latestExportAuditEvent?.metadata as any)?.retention || null;
   const payload = latestRecord?.payload as any;
   const timeline = records.map(releaseGateTimelineItem);
   const exportHistory = exportRecords.map(releaseGateExportHistoryItem);
@@ -90,6 +91,7 @@ export async function getAIWorkforceReleaseGateDashboard() {
     latestExport: exportHistory[0] || null,
     latestExportRecord,
     latestExportAuditEvent,
+    latestExportRetention,
     latestExportMetric,
     trendAnalytics,
     latestRecord,
