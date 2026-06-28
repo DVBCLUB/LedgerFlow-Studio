@@ -23,9 +23,17 @@ import {
   planAIWorkforceMission,
   type AIWorkforceMissionPlannerInput,
 } from './aiWorkforceMissionPlanner.ts';
+import type { MissionExecutionQueue } from './aiWorkforceMissionExecutionQueue.ts';
 import {
-  createMissionExecutionQueue,
-} from './aiWorkforceMissionExecutionQueue.ts';
+  approveStoredMissionExecutionStep,
+  cancelStoredMissionExecutionQueue,
+  completeStoredMissionExecutionStep,
+  createAndSaveMissionExecutionQueue,
+  getMissionExecutionQueueStoreStats,
+  listMissionExecutionQueues,
+  requireMissionExecutionQueue,
+  startStoredMissionExecutionStep,
+} from './aiWorkforceMissionExecutionQueueStore.ts';
 import {
   listAIRunMetrics,
   recordAIRunMetric,
@@ -76,6 +84,41 @@ function toMCPToolRunSignals(metrics: AIRunMetric[]): MCPToolRunSignal[] {
       createdAt: metric.createdAt,
       error: metric.status === 'failed' || metric.status === 'blocked' ? metric.status : undefined,
     }));
+}
+
+async function recordMissionQueueTransition(options: {
+  queue: MissionExecutionQueue;
+  action: 'mission_execution_resumed' | 'mission_step_approved' | 'mission_step_started' | 'mission_step_completed' | 'mission_execution_cancelled';
+  actor: string;
+  summary: string;
+  startedAt: number;
+  status: AIRunMetric['status'];
+  safetyBlocks?: number;
+  metadata?: Record<string, unknown>;
+}) {
+  await appendAIWorkforceRuntimeRecord({
+    id: `${options.queue.id}_${options.action}_${Date.now()}`,
+    type: 'mission_execution_queue',
+    payload: { queue: options.queue, transition: options.action, metadata: options.metadata || {} },
+  });
+  await appendAIWorkforceAuditEvent({
+    action: options.action,
+    severity: options.status === 'blocked' ? 'warning' : 'info',
+    actor: options.actor,
+    summary: options.summary,
+    entityId: options.queue.id,
+    metadata: { queueStatus: options.queue.status, summary: options.queue.summary, ...(options.metadata || {}) },
+  });
+  const metric = recordAIRunMetric({
+    lane: 'mission-control',
+    agentRole: options.actor,
+    toolId: 'read_knowledge',
+    status: options.status,
+    latencyMs: Date.now() - options.startedAt,
+    qualityScore: 0.9,
+    safetyBlocks: options.safetyBlocks || 0,
+  });
+  await appendAIWorkforceRunMetric(metric);
 }
 
 export async function buildRuntimeGroundedContext(options: RuntimeGroundedContextOptions) {
@@ -152,7 +195,7 @@ export async function buildRuntimeMissionPlan(input: AIWorkforceMissionPlannerIn
 export async function buildRuntimeMissionExecutionQueue(input: AIWorkforceMissionPlannerInput) {
   const startedAt = Date.now();
   const plan = planAIWorkforceMission(input);
-  const queue = createMissionExecutionQueue(plan);
+  const queue = await createAndSaveMissionExecutionQueue(plan);
   await appendAIWorkforceRuntimeRecord({
     id: queue.id,
     type: 'mission_execution_queue',
@@ -178,6 +221,88 @@ export async function buildRuntimeMissionExecutionQueue(input: AIWorkforceMissio
   });
   await appendAIWorkforceRunMetric(metric);
   return { plan, queue };
+}
+
+export async function listRuntimeMissionExecutionQueues(options: { limit?: number; status?: any } = {}) {
+  const queues = await listMissionExecutionQueues(options);
+  const stats = await getMissionExecutionQueueStoreStats();
+  return { queues, stats };
+}
+
+export async function resumeRuntimeMissionExecutionQueue(options: { queueId: string; actor?: string }) {
+  const startedAt = Date.now();
+  const queue = await requireMissionExecutionQueue(options.queueId);
+  await recordMissionQueueTransition({
+    queue,
+    action: 'mission_execution_resumed',
+    actor: options.actor || 'Mission Operator',
+    summary: `Mission execution queue resumed with ${queue.summary.completedSteps}/${queue.summary.totalSteps} completed steps.`,
+    startedAt,
+    status: queue.status === 'blocked' || queue.status === 'cancelled' ? 'blocked' : queue.status === 'needs_approval' ? 'needs_review' : 'success',
+    safetyBlocks: queue.summary.blockedSteps + queue.summary.cancelledSteps,
+  });
+  return queue;
+}
+
+export async function approveRuntimeMissionExecutionStep(options: { queueId: string; stepId: string; phrase: string; approver?: string }) {
+  const startedAt = Date.now();
+  const queue = await approveStoredMissionExecutionStep(options);
+  await recordMissionQueueTransition({
+    queue,
+    action: 'mission_step_approved',
+    actor: options.approver || 'Founder',
+    summary: `Approval captured for mission queue step ${options.stepId}.`,
+    startedAt,
+    status: 'needs_review',
+    metadata: { stepId: options.stepId },
+  });
+  return queue;
+}
+
+export async function startRuntimeMissionExecutionStep(options: { queueId: string; stepId: string; actor?: string }) {
+  const startedAt = Date.now();
+  const queue = await startStoredMissionExecutionStep(options);
+  await recordMissionQueueTransition({
+    queue,
+    action: 'mission_step_started',
+    actor: options.actor || 'Mission Operator',
+    summary: `Mission queue step ${options.stepId} started.`,
+    startedAt,
+    status: 'success',
+    metadata: { stepId: options.stepId },
+  });
+  return queue;
+}
+
+export async function completeRuntimeMissionExecutionStep(options: { queueId: string; stepId: string; evidence: any[]; actor?: string }) {
+  const startedAt = Date.now();
+  const queue = await completeStoredMissionExecutionStep(options);
+  await recordMissionQueueTransition({
+    queue,
+    action: 'mission_step_completed',
+    actor: options.actor || 'Mission Operator',
+    summary: `Mission queue step ${options.stepId} completed with ${options.evidence?.length || 0} evidence item(s).`,
+    startedAt,
+    status: queue.status === 'completed' ? 'success' : 'needs_review',
+    metadata: { stepId: options.stepId, evidenceCount: options.evidence?.length || 0 },
+  });
+  return queue;
+}
+
+export async function cancelRuntimeMissionExecutionQueue(options: { queueId: string; reason: string; actor?: string }) {
+  const startedAt = Date.now();
+  const queue = await cancelStoredMissionExecutionQueue(options);
+  await recordMissionQueueTransition({
+    queue,
+    action: 'mission_execution_cancelled',
+    actor: options.actor || 'Founder',
+    summary: `Mission execution queue cancelled: ${options.reason}`,
+    startedAt,
+    status: 'blocked',
+    safetyBlocks: queue.summary.cancelledSteps,
+    metadata: { reason: options.reason },
+  });
+  return queue;
 }
 
 export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
@@ -312,6 +437,7 @@ export async function getAIWorkforceRuntimeDashboard() {
   const tooling = await getAIWorkforceToolManifestCatalog();
   const storeStats = await getAIWorkforceRuntimeStoreStats();
   const metricStoreStats = await getAIWorkforceRunMetricStoreStats();
+  const missionQueueStats = await getMissionExecutionQueueStoreStats();
   const recentRecords = await listAIWorkforceRuntimeRecords({ limit: 10 });
   await appendAIWorkforceTrendSnapshot({
     readinessGrade: readiness.grade,
@@ -324,7 +450,7 @@ export async function getAIWorkforceRuntimeDashboard() {
     severity: tooling.summary.blocked > 0 || observability.blockedRate > 0.2 ? 'warning' : 'info',
     actor: 'Runtime Hub',
     summary: `Runtime snapshot created with readiness ${readiness.grade} (${readiness.overallScore}/5).`,
-    metadata: { runs: observability.runs, blockedRate: observability.blockedRate, toolingSummary: tooling.summary, metricStoreStats },
+    metadata: { runs: observability.runs, blockedRate: observability.blockedRate, toolingSummary: tooling.summary, metricStoreStats, missionQueueStats },
   });
   const ledger = await getAIWorkforceOperationalLedgerDashboard();
   const dashboard = {
@@ -335,6 +461,7 @@ export async function getAIWorkforceRuntimeDashboard() {
     ledger,
     storeStats,
     metricStoreStats,
+    missionQueueStats,
     recentRecords,
   };
   await appendAIWorkforceRuntimeRecord({
@@ -352,6 +479,7 @@ export async function getAIWorkforceRuntimeDashboard() {
         trendSnapshots: ledger.trendStats.totalSnapshots,
       },
       metricStoreStats,
+      missionQueueStats,
       storeStats,
     },
   });
