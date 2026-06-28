@@ -27,6 +27,14 @@ if (!source.includes("import MissionReviewNoteSavePanel from './MissionReviewNot
   changed = true;
 }
 
+if (!source.includes("import MissionReleaseGatePanel from './MissionReleaseGatePanel';")) {
+  source = source.replace(
+    "import MissionReviewNoteSavePanel from './MissionReviewNoteSavePanel';",
+    "import MissionReviewNoteSavePanel from './MissionReviewNoteSavePanel';\nimport MissionReleaseGatePanel from './MissionReleaseGatePanel';",
+  );
+  changed = true;
+}
+
 if (!source.includes('<MissionSnapshotExportPanel />')) {
   source = source.replace(
     '      <MissionOperatorRunbookPanel />',
@@ -39,6 +47,14 @@ if (!source.includes('<MissionReviewNoteSavePanel />')) {
   source = source.replace(
     '      <MissionSnapshotExportPanel />',
     '      <MissionSnapshotExportPanel />\n      <MissionReviewNoteSavePanel />',
+  );
+  changed = true;
+}
+
+if (!source.includes('<MissionReleaseGatePanel />')) {
+  source = source.replace(
+    '      <MissionReviewNoteSavePanel />',
+    '      <MissionReviewNoteSavePanel />\n      <MissionReleaseGatePanel />',
   );
   changed = true;
 }
