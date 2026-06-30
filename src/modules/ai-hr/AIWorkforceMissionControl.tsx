@@ -162,6 +162,17 @@ export default function AIWorkforceMissionControl() {
     finally { setBusy(false); }
   };
 
+  const rejectStep = async (run: AgentRun, step: AgentStep) => {
+    if (!step.approvalFingerprint) { setError('This step is missing an approval fingerprint. Advance the run again or inspect the daemon state.'); return; }
+    setBusy(true); setError(''); setMessage('');
+    try {
+      await daemonFetch(`/api/agent-runtime/runs/${encodeURIComponent(run.id)}/reject`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ stepId: step.id, fingerprint: step.approvalFingerprint, reason: 'Founder rejected from AI Workforce Mission Control.' }) }, 60000);
+      setMessage(`Rejected ${step.toolId || 'step'} for ${run.id}.`);
+      await load(query);
+    } catch (err: unknown) { setError(errorMessage(err, 'Cannot reject step.')); }
+    finally { setBusy(false); }
+  };
+
   const toggleStop = async (active: boolean) => {
     setBusy(true); setError(''); setMessage('');
     try {
@@ -221,7 +232,7 @@ export default function AIWorkforceMissionControl() {
       </Section>
 
       <Section title="Approval Gate" subtitle="Tách riêng các mission cần founder review trước khi có side effect." icon={<ShieldAlert className="h-4 w-4" />}>
-        <div className="space-y-2">{waitingRuns.map((run) => <div key={run.id} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3"><Badge tone="amber">waiting approval</Badge><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{(run.steps || []).filter((step) => String(step.status).includes('waiting')).slice(0, 3).map((step) => <div key={step.id} className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2"><p className="text-xs font-bold text-amber-100">{step.toolId}: {step.title || 'Approval required'}</p><p className="mt-1 break-all text-[10px] font-semibold text-slate-500">fingerprint: {step.approvalFingerprint || 'missing'}</p><div className="mt-2 flex flex-wrap gap-2"><Badge tone={toneForStatus(step.risk)}>{step.risk || 'risk'}</Badge><button onClick={() => void approveStep(run, step)} disabled={busy || !step.approvalFingerprint || emergency} className="rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-3 py-1.5 text-[10px] font-black text-emerald-100 disabled:opacity-40">Approve Step</button></div></div>)}</div>)}{waitingRuns.length === 0 && <EmptyState>No approval is waiting right now.</EmptyState>}</div>
+        <div className="space-y-2">{waitingRuns.map((run) => <div key={run.id} className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-3"><Badge tone="amber">waiting approval</Badge><p className="mt-2 text-sm font-black text-white">{run.goal}</p>{(run.steps || []).filter((step) => String(step.status).includes('waiting')).slice(0, 3).map((step) => <div key={step.id} className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2"><p className="text-xs font-bold text-amber-100">{step.toolId}: {step.title || 'Approval required'}</p><p className="mt-1 break-all text-[10px] font-semibold text-slate-500">fingerprint: {step.approvalFingerprint || 'missing'}</p><div className="mt-2 flex flex-wrap gap-2"><Badge tone={toneForStatus(step.risk)}>{step.risk || 'risk'}</Badge><button onClick={() => void approveStep(run, step)} disabled={busy || !step.approvalFingerprint || emergency} className="rounded-lg border border-emerald-500/40 bg-emerald-950/30 px-3 py-1.5 text-[10px] font-black text-emerald-100 disabled:opacity-40">Approve Step</button><button onClick={() => void rejectStep(run, step)} disabled={busy || !step.approvalFingerprint} className="rounded-lg border border-rose-500/40 bg-rose-950/30 px-3 py-1.5 text-[10px] font-black text-rose-100 disabled:opacity-40">Reject Step</button></div></div>)}</div>)}{waitingRuns.length === 0 && <EmptyState>No approval is waiting right now.</EmptyState>}</div>
       </Section>
     </section>
 

@@ -112,6 +112,7 @@ const InternalAuditWorkspace   = React.lazy(() => import('../modules/finance-acc
 // AI Personnel & Sandbox
 const PeopleTab                = React.lazy(() => import('../modules/ai-hr/PeopleTab'));
 const GeminiPlayground         = React.lazy(() => import('../modules/analytics-sandbox/GeminiPlayground'));
+const PromptPlayground         = React.lazy(() => import('../modules/analytics-sandbox/PromptPlayground'));
 
 // Analytics & Sandbox
 const DataScienceEngineering   = React.lazy(() => import('../modules/analytics-sandbox/DataScienceEngineering'));
@@ -158,9 +159,49 @@ const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-s
 // AI Personnel — simplified (OpenClaw-style Command Center)
 const AICommandCenter = React.lazy(() => import('../modules/ai-hr/AICommandCenter'));
 const AISettingsLauncher = React.lazy(() => import('../modules/ai-hr/AISettingsLauncher'));
+const AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-hr/AIWorkforceCommandCenter'));
+const AIOperationsCenter = React.lazy(() => import('../modules/ai-hr/AIOperationsCenter'));
+const AIOperationsDaemonPanel = React.lazy(() => import('../modules/ai-hr/AIOperationsDaemonPanel'));
+const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-hr/AIWorkforceMobileCommandCenter'));
+const AIGovernanceQualityHubPanel = React.lazy(() => import('../modules/ai-hr/AIGovernanceQualityHubPanel'));
+const AIOutputQualityReview = React.lazy(() => import('../modules/ai-hr/AIOutputQualityReview'));
+const AIWorkforceRuntimePanel = React.lazy(() => import('../modules/ai-hr/AIWorkforceRuntimePanel'));
+const AIWorkforceMissionControl = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionControl'));
+const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionTemplates'));
+const AIWorkforceMissionTrace = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionTrace'));
+const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-hr/MissionOperatorRunbookPanel'));
+const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-hr/MissionReleaseGatePanel'));
+const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-hr/MissionSnapshotExportPanel'));
+const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-hr/MissionReviewNoteSavePanel'));
+const ReleaseGateDashboardCard = React.lazy(() => import('../modules/ai-hr/ReleaseGateDashboardCard'));
+const AIMemoryRagPanel = React.lazy(() => import('../modules/ai-hr/AIMemoryRagPanel'));
+const KnowledgeContentHubPanel = React.lazy(() => import('../modules/ai-hr/KnowledgeContentHubPanel'));
+const AdvancedAIEngine = React.lazy(() => import('../modules/ai-hr/AdvancedAIEngine'));
+const AIWorkforceOpenClawReadiness = React.lazy(() => import('../modules/ai-hr/AIWorkforceOpenClawReadiness'));
+const AIWorkforceSkillDirectory = React.lazy(() => import('../modules/ai-hr/AIWorkforceSkillDirectory'));
+const AIWorkforceSkillInvocationPlanner = React.lazy(() => import('../modules/ai-hr/AIWorkforceSkillInvocationPlanner'));
+const AIWorkforcePatchSafetyRunbook = React.lazy(() => import('../modules/ai-hr/AIWorkforcePatchSafetyRunbook'));
+const AIWorkforcePatchReviewSessions = React.lazy(() => import('../modules/ai-hr/AIWorkforcePatchReviewSessions'));
+const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-hr/AIWorkforceNextBackendActions'));
+const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../modules/ai-hr/AIWorkforceRobotAutomationBridge'));
+const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-hr/AutomationRulesHealthPanel'));
+const RobotLabPanel = React.lazy(() => import('../modules/ai-hr/RobotLabPanel'));
+const AutomationRulesPanel = React.lazy(() => import('../modules/ai-hr/AutomationRulesPanel'));
+const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-hr/AIWorkforceToolCatalog'));
+const AIWorkforcePluginSecurityGuard = React.lazy(() => import('../modules/ai-hr/AIWorkforcePluginSecurityGuard'));
+const AgentAssemblyBuilder = React.lazy(() => import('../modules/ai-hr/AgentAssemblyBuilder'));
+const FactoryOperatorGuidePanel = React.lazy(() => import('../modules/ai-hr/FactoryOperatorGuidePanel'));
+const FactoryHealthSummaryPanel = React.lazy(() => import('../modules/ai-hr/FactoryHealthSummaryPanel'));
+const FactoryBackendRuntimePanel = React.lazy(() => import('../modules/ai-hr/FactoryBackendRuntimePanel'));
+const FactoryCatalogStatusPanel = React.lazy(() => import('../modules/ai-hr/FactoryCatalogStatusPanel'));
+const FactoryConnectorMatrixPanel = React.lazy(() => import('../modules/ai-hr/FactoryConnectorMatrixPanel'));
+const FactoryExecutionDecisionPanel = React.lazy(() => import('../modules/ai-hr/FactoryExecutionDecisionPanel'));
+const FactoryCommandRunnerPanel = React.lazy(() => import('../modules/ai-hr/FactoryCommandRunnerPanel'));
+const FactoryAuditLogPanel = React.lazy(() => import('../modules/ai-hr/FactoryAuditLogPanel'));
 import AIStaffTaskAssignmentPanel from '../components/ai-hr/AIStaffTaskAssignmentPanel';
 import { ProjectPortfolioPanel, ProcurementLogisticsPanel } from '../components/operations/OperationsPanels';
 import FinancialChartsModelPanel from '../components/analytics/FinancialChartsModelPanel';
+import FounderLabsDock from '../components/shared/FounderLabsDock';
 
 // ─── Subtabs Configuration ────────────────────────────────────────────────────
 const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon?: LucideIcon }[]> = {
@@ -184,9 +225,13 @@ const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon
     { id: 'logistics', label: 'Logistics', icon: ShoppingCart }
   ],
   ai_factory: [
-    { id: 'overview', label: 'Dashboard', icon: Bot },
-    { id: 'missions', label: 'Robot & Tự động hóa', icon: Cpu },
-    { id: 'staff_roles', label: 'AI Staff', icon: UsersRound },
+    { id: 'overview', label: 'Overview', icon: Bot },
+    { id: 'missions', label: 'Missions', icon: ClipboardList },
+    { id: 'staff_roles', label: 'Staff & Roles', icon: UsersRound },
+    { id: 'openclaw', label: 'OpenClaw', icon: Terminal },
+    { id: 'robot_auto', label: 'Robot & Auto', icon: Cpu },
+    { id: 'tools_security', label: 'Tools & Security', icon: ShieldAlert },
+    { id: 'factory', label: 'Factory', icon: GitPullRequest },
   ],
   analytics: [
     { id: 'python_sandbox', label: 'Python Sandbox', icon: Code },
@@ -437,19 +482,82 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
           </>
         )}
 
-        {/* 4. AI Workforce — Tinh gọn OpenClaw-style */}
+        {/* 4. AI Workforce — OpenClaw-style command monolith */}
         {activeSegment === 'ai_factory' && (
           <>
-            {currentSubTabId === 'overview' && <AICommandCenter />}
+            {currentSubTabId === 'overview' && (
+              <div className="space-y-6">
+                <AIWorkforceCommandCenter />
+                <AIOperationsCenter />
+                <AIOperationsDaemonPanel />
+                <AIWorkforceMobileCommandCenter />
+                <AIGovernanceQualityHubPanel />
+                <AIOutputQualityReview />
+              </div>
+            )}
             {currentSubTabId === 'missions' && (
               <div className="space-y-6">
-                <AICommandCenter />
+                <AIWorkforceRuntimePanel />
+                <MissionOperatorRunbookPanel />
+                <AIWorkforceMissionControl />
+                <AIWorkforceMissionTemplates />
+                <AIWorkforceMissionTrace />
+                <MissionReleaseGatePanel />
+                <MissionSnapshotExportPanel />
+                <MissionReviewNoteSavePanel />
+                <ReleaseGateDashboardCard />
               </div>
             )}
             {currentSubTabId === 'staff_roles' && (
               <div className="space-y-6">
                 <PeopleTab />
                 <AIStaffTaskAssignmentPanel />
+                <AIMemoryRagPanel />
+                <KnowledgeContentHubPanel />
+                <PromptPlayground />
+                <AISettingsLauncher />
+                <AdvancedAIEngine />
+              </div>
+            )}
+            {currentSubTabId === 'openclaw' && (
+              <div className="space-y-6">
+                <AIWorkforceOpenClawReadiness />
+                <AIWorkforceSkillDirectory />
+                <AIWorkforceSkillInvocationPlanner />
+                <AIWorkforcePatchSafetyRunbook />
+                <AIWorkforcePatchReviewSessions />
+                <AIWorkforceNextBackendActions />
+              </div>
+            )}
+            {currentSubTabId === 'robot_auto' && (
+              <div className="space-y-6">
+                <AIWorkforceRobotAutomationBridge />
+                <AutomationRulesHealthPanel />
+                <RobotLabPanel />
+                <AutomationRulesPanel />
+              </div>
+            )}
+            {currentSubTabId === 'tools_security' && (
+              <div className="space-y-6">
+                <AIWorkforceToolCatalog />
+                <AIWorkforcePluginSecurityGuard />
+                <AIWorkforceOpenClawReadiness />
+                <AIWorkforceSkillDirectory />
+                <AIWorkforceSkillInvocationPlanner />
+                <AgentAssemblyBuilder />
+                <FounderLabsDock embedded />
+              </div>
+            )}
+            {currentSubTabId === 'factory' && (
+              <div className="space-y-6">
+                <FactoryOperatorGuidePanel />
+                <FactoryHealthSummaryPanel />
+                <FactoryBackendRuntimePanel />
+                <FactoryCatalogStatusPanel />
+                <FactoryConnectorMatrixPanel />
+                <FactoryExecutionDecisionPanel />
+                <FactoryCommandRunnerPanel />
+                <FactoryAuditLogPanel />
               </div>
             )}
           </>
