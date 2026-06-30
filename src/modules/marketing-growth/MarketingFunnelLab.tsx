@@ -1,16 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Megaphone,
-  MousePointerClick,
-  Target,
-  TrendingUp,
-  Users,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Megaphone, MousePointerClick, Target, TrendingUp, Users, WalletCards } from 'lucide-react';
 import {
   CHANNELS,
   CONTENT_ANGLES,

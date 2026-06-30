@@ -19,13 +19,7 @@
  */
 
 import React, { Suspense, useEffect, useState, useCallback, useRef } from 'react';
-import {
-  Settings, KeyRound, Shield, Plug2, Palette, HardDrive,
-  Info, ChevronRight, RefreshCw, CheckCircle2, XCircle,
-  AlertTriangle, Loader2, ExternalLink, Eye, EyeOff,
-  GitBranch, Database, MessageSquare, Workflow, Globe,
-  Trash2, Clock, Bot, Copy, Check, Activity, Zap,
-} from 'lucide-react';
+import { Settings, KeyRound, Shield, Plug2, Palette, HardDrive, Info, ChevronRight, RefreshCw, CheckCircle2, XCircle, AlertTriangle, Loader2, ExternalLink, Eye, EyeOff, GitBranch, Database, MessageSquare, Workflow, Globe, Trash2, Clock, Bot, Copy, Check, Activity, Zap } from 'lucide-react';
 import {
   fetchAIKeys,
   fetchAIVaultStatus,

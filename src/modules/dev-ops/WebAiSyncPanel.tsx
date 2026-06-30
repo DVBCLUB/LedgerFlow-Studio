@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Bot, FileJson, UploadCloud, Trash2, PlayCircle, Eye, 
-  CheckCircle2, AlertCircle, ExternalLink, Clipboard, 
-  Check, FileText, Search, RefreshCw, X, HelpCircle,
-  User, Plus
-} from 'lucide-react';
+import { Bot, FileJson, UploadCloud, Trash2, PlayCircle, Eye, CheckCircle2, AlertCircle, ExternalLink, Clipboard, Check, FileText, Search, RefreshCw, X, HelpCircle, User, Plus } from 'lucide-react';
 import { saveDatabaseToServer } from '../../utils/dbSync';
 import { fetchWebAIProfiles, createWebAIProfile, deleteWebAIProfile } from '../../utils/assistantApi';
 

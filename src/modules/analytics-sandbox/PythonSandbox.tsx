@@ -1,19 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Play, 
-  Terminal, 
-  BookOpen, 
-  CheckCircle, 
-  AlertCircle, 
-  Settings, 
-  HelpCircle, 
-  RefreshCw, 
-  Code2, 
-  Sparkles,
-  FileCode,
-  Copy,
-  FolderOpen
-} from 'lucide-react';
+import { Play, Terminal, BookOpen, CheckCircle, AlertCircle, Settings, HelpCircle, RefreshCw, Code2, Sparkles, FileCode, Copy, FolderOpen } from 'lucide-react';
 
 type PyodideRuntime = {
   runPythonAsync: (code: string) => Promise<unknown>;

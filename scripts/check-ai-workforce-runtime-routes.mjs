@@ -320,6 +320,26 @@ try {
     throw new Error('Mission release gate smoke did not return final action and persisted approval dossier.');
   }
 
+  const releaseGateExport = await fetchJson(DAEMON_URL, '/api/ai-workforce/release-gate-export', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ format: 'markdown', actor: 'Runtime Smoke' }),
+  });
+  if (!releaseGateExport.response.ok || releaseGateExport.json?.ok !== true || !releaseGateExport.json?.exportArtifact?.checksum) {
+    throw new Error('/api/ai-workforce/release-gate-export did not return an export artifact with checksum.');
+  }
+  if (releaseGateExport.json?.runtimeRecord?.type !== 'release_gate_export' || releaseGateExport.json?.auditEvent?.action !== 'release_gate_exported' || releaseGateExport.json?.metric?.toolId !== 'release_gate_export') {
+    throw new Error('Release gate export smoke did not persist runtime record, audit event and metric.');
+  }
+
+  const releaseGateExportDashboard = await fetchJson(DAEMON_URL, '/api/ai-workforce/runtime');
+  if (!releaseGateExportDashboard.response.ok || releaseGateExportDashboard.json?.ok !== true) {
+    throw new Error('/api/ai-workforce/runtime did not return after release gate export.');
+  }
+  if (Number(releaseGateExportDashboard.json?.dashboard?.releaseGate?.totalExports || 0) < 1 || !releaseGateExportDashboard.json?.dashboard?.releaseGate?.exportHistory?.[0]?.checksum) {
+    throw new Error('Release gate export smoke did not refresh dashboard exportHistory.');
+  }
+
   const githubControl = await fetchJson(DAEMON_URL, '/api/ai-workforce/github-pr-control', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

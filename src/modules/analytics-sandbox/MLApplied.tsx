@@ -1,24 +1,6 @@
 // Version 2.0 - MLApplied (Machine Learning Ứng Dụng Thực Tế)
 import React, { useState, useEffect } from 'react';
-import { 
-  Brain, 
-  Cpu, 
-  Terminal, 
-  Sparkles, 
-  Copy, 
-  Gamepad2, 
-  Database,
-  ArrowRight,
-  GitBranch,
-  Eye,
-  Activity,
-  Mic,
-  MicOff,
-  Zap,
-  Play,
-  RotateCcw,
-  CheckCircle2
-} from 'lucide-react';
+import { Brain, Cpu, Terminal, Sparkles, Copy, Gamepad2, Database, ArrowRight, GitBranch, Eye, Activity, Mic, MicOff, Zap, Play, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 export default function MLApplied() {

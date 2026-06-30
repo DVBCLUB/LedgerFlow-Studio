@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Download, KeyRound, Loader2, MessageCircle, RefreshCw, ShieldCheck, Trash2, Upload, Zap } from "lucide-react";
+import { Download, KeyRound, Loader2, MessageCircle, RefreshCw, ShieldCheck, Trash2, Upload, Zap } from 'lucide-react';
 import {
   activatePromptTemplateVersion,
   AIKeyPayload,

@@ -1,4 +1,4 @@
-import { CheckCircle2, Hammer, ListChecks, MonitorCheck, TerminalSquare } from 'lucide-react';
+import { CheckCircle2, Hammer, ListChecks, MonitorCheck, Terminal } from 'lucide-react';
 import { MARKETING_V2_QA_CHECKLIST, type MarketingV2QaStatus } from '../../data/marketingV2QaChecklist';
 
 const STATUS_META: Record<MarketingV2QaStatus, {
@@ -13,7 +13,7 @@ const STATUS_META: Record<MarketingV2QaStatus, {
   },
   lint: {
     label: 'Lint',
-    icon: TerminalSquare,
+    icon: Terminal,
     className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200',
   },
   'simulation-check': {

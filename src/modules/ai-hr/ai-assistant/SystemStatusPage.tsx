@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Activity, CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw,
-  Zap, Database, Bell, Container, BrainCircuit, Users, DollarSign, Search, Shield,
-} from 'lucide-react';
+import { Activity, CheckCircle2, XCircle, AlertTriangle, Loader2, RefreshCw, Zap, Database, Bell, Container, BrainCircuit, Users, DollarSign, Search, Shield } from 'lucide-react';
 
 const DAEMON = 'http://127.0.0.1:3001';
 

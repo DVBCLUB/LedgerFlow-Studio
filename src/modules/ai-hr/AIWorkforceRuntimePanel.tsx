@@ -18,6 +18,7 @@ import {
   scoreSamplePRReadiness,
   startMissionExecutionQueueStep,
 } from '../../services/aiWorkforceRuntimeClient';
+import ReleaseGateDashboardCard from './ReleaseGateDashboardCard';
 
 const cardClass = 'rounded-3xl border border-slate-800 bg-slate-950/70 p-5 text-left shadow-xl shadow-slate-950/20';
 const buttonClass = 'inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-2 text-xs font-black uppercase text-cyan-100 transition hover:bg-cyan-500/20 disabled:cursor-not-allowed disabled:opacity-50';
@@ -249,6 +250,7 @@ export default function AIWorkforceRuntimePanel() {
   const missionQueueStats = dashboard?.missionQueueStats;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
+  const releaseGate = dashboard?.releaseGate;
   const recentRecords = dashboard?.recentRecords || [];
   const offline = Boolean(error && !dashboard);
   const lastMissionPlan = lastResult?.type === 'mission-plan' ? lastResult?.response?.plan : null;
@@ -295,6 +297,8 @@ export default function AIWorkforceRuntimePanel() {
         <MiniMetric label="Tool health" value={tooling ? `${tooling.summary.healthy}/${tooling.summary.total}` : '—'} detail="MCP manifests healthy/total" />
         <MiniMetric label="Audit events" value={ledger?.auditStats?.totalEvents ?? '—'} detail="Operational ledger audit trail" />
       </div>
+
+      <ReleaseGateDashboardCard releaseGate={releaseGate} />
 
       <div className="mt-5 grid gap-3 lg:grid-cols-6">
         <button className={buttonClass} onClick={() => runAction('context')} disabled={Boolean(loading)}>

@@ -7,7 +7,7 @@ if (!fs.existsSync(daemonPath)) {
   throw new Error(`assistant daemon source not found: ${daemonPath}`);
 }
 
-let source = fs.readFileSync(daemonPath, 'utf8');
+let source = fs.readFileSync(daemonPath, 'utf8').replace(/\r\n/g, '\n');
 let changed = false;
 
 function replaceOnce(search, replacement, label) {

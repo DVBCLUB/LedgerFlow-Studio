@@ -1,18 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Frown,
-  Heart,
-  MessageSquare,
-  Search,
-  ShieldCheck,
-  Smile,
-  Star,
-  Users
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Frown, Heart, MessageSquare, Search, ShieldCheck, Smile, Star, Users } from 'lucide-react';
 import {
   FEEDBACK_CATEGORIES,
   NPS_QUESTIONS,

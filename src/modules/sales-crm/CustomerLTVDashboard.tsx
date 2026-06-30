@@ -1,18 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Heart,
-  LineChart,
-  MessageCircle,
-  ShieldCheck,
-  TrendingUp,
-  UserCheck,
-  Users,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Heart, LineChart, MessageCircle, ShieldCheck, TrendingUp, UserCheck, Users, WalletCards } from 'lucide-react';
 import {
   CHURN_SIGNALS,
   CUSTOMER_SEGMENTS,

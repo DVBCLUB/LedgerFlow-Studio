@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CheckCircle2, Clipboard, Code2, ExternalLink, Github, Loader2, RefreshCw, TerminalSquare, XCircle } from 'lucide-react';
+import { CheckCircle2, Clipboard, Code2, ExternalLink, Github, Loader2, RefreshCw, Terminal, XCircle } from 'lucide-react';
 import { fetchLocalToolSummary, openLocalTool, type LocalToolId, type LocalToolSummary, type LocalToolStatus } from '../../utils/integrationHubApi';
 
 const toolIcons: Record<LocalToolId, typeof Code2> = {
@@ -7,7 +7,7 @@ const toolIcons: Record<LocalToolId, typeof Code2> = {
   cursor: Code2,
   github: Github,
   actions: ExternalLink,
-  terminal: TerminalSquare,
+  terminal: Terminal,
 };
 
 async function copyText(text: string) {
@@ -58,7 +58,7 @@ export default function LocalToolsPanel({ onChanged }: { onChanged?: () => void 
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/30 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-200">
-            <TerminalSquare className="h-4 w-4" /> Local Tools Connector
+            <Terminal className="h-4 w-4" /> Local Tools Connector
           </div>
           <h2 className="mt-3 text-xl font-black text-white">Mở nhanh VS Code / Cursor / GitHub từ LedgerFlow</h2>
           <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-400">

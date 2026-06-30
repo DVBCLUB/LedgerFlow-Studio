@@ -13,7 +13,7 @@ if (!fs.existsSync(targetPath)) {
   throw new Error(`AIOperationsCenter source not found: ${targetPath}`);
 }
 
-let source = fs.readFileSync(targetPath, 'utf8');
+let source = fs.readFileSync(targetPath, 'utf8').replace(/\r\n/g, '\n');
 let changed = false;
 
 if (!source.includes("import MissionSnapshotExportPanel from './MissionSnapshotExportPanel';")) {

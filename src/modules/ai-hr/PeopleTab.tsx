@@ -2,12 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { WorkCard, WorkStatus } from '../../types/agentOps';
 import { useLocalStorageVersion, appendAgentOpsAudit } from './storage';
 import { 
-  Bot, Loader2, Play, CheckCircle2, XCircle, AlertTriangle, FileText, X, Layers,
-  Send, Terminal, Sparkles, Copy, Trash2, HelpCircle, Database, ShieldAlert, 
-  AlertCircle, Cpu, Save, FileDown, BookOpen, Check, Edit2, Upload, PlusCircle, 
-  FileSpreadsheet, RotateCcw, Paperclip, Activity, Lock, ChevronDown, ChevronUp, 
-  UserCheck, Plus
-} from 'lucide-react';
+  Bot, Loader2, Play, CheckCircle2, XCircle, AlertTriangle, FileText, X, Layers, Send, Terminal, Sparkles, Copy, Trash2, HelpCircle, Database, ShieldAlert, AlertCircle, Cpu, Save, FileDown, BookOpen, Check, Edit2, Upload, PlusCircle, FileSpreadsheet, RotateCcw, Paperclip, Activity, Lock, ChevronDown, ChevronUp, UserCheck, Plus } from 'lucide-react';
 import {
   editFile,
   applyEdit,

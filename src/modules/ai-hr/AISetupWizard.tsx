@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ChevronDown, ChevronRight, KeyRound, Loader2, PlayCircle, ShieldCheck, Sparkles } from "lucide-react";
+import { CheckCircle2, ChevronDown, ChevronRight, KeyRound, Loader2, PlayCircle, ShieldCheck, Sparkles } from 'lucide-react';
 import {
   AIKeyPayload,
   AIKeySummary,

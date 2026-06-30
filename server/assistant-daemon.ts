@@ -21,6 +21,10 @@
  */
 
 import express, { Request, Response, NextFunction } from "express";
+import { auditOpenClawSkillInvocation } from './services/openClawSkillInvocationGateway';
+import { getOpenClawSkill, getOpenClawSkillSummary, listOpenClawSkills } from './services/openClawSkillRegistry';
+import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './services/automationSchedulerLoop';
+import { listRobotCapabilities, getRobotCapability, auditRobotCapabilityRequest } from './services/robotCapabilityRegistry';
 import fs from "fs";
 import path from "path";
 import { callAI, streamAI } from "./services/aiClient";
@@ -56,9 +60,12 @@ import { appendAuditEvent, readAuditEvents, verifyAuditChain } from "./services/
 import { PlatformAccountBroker } from "./services/platformAccountBroker";
 import { SessionLeaseManager } from "./services/sessionLeaseManager";
 import { z } from "zod";
+import { createDaemonLocalGuard } from "./services/daemonLocalGuard";
+import { AGENT_TOOL_IDS } from './services/agentToolIds.ts';
 import {
   advanceAgentRun,
   approveAgentRunStep,
+  rejectAgentRunStep,
   createAgentRun,
   getAgentRun,
   getAgentRuntimeMetrics,
@@ -66,6 +73,8 @@ import {
   setAgentRuntimeEmergencyStop,
   stopAgentRun
 } from "./services/agentRuntime";
+import { createPatchReviewSessionsFromRun, listPatchReviewSessions, updatePatchReviewSessionStatus } from "./services/patchReviewSessions";
+import { applyReviewedPatchSession, rollbackReviewedPatchSession, PATCH_APPLY_PHRASE, PATCH_ROLLBACK_PHRASE } from "./services/patchReviewApply";
 import {
   createAgentMemory,
   reviewAgentMemory,
@@ -160,6 +169,14 @@ import { estimateTokens, createContextWindow, addSegment, addMemoryContext, addK
 import { gatherSystemOverview } from "./services/crossServiceDataLinker";
 import { startWorkflow as startAgentWorkflowEngine, approveWorkflowStep, stopWorkflow as stopAgentWorkflow, listWorkflows as listAgentWorkflows, getWorkflow as getAgentWorkflow, listWorkflowTemplates } from "./services/agentWorkflowEngine";
 import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";
+import { buildRuntimeReleaseGateExport } from "./services/aiWorkforceReleaseGateExportRuntime";
+import { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";
+import { getAIWorkforceReleaseGateDashboard } from "./services/aiWorkforceReleaseGateDashboard";
+import { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionReleaseGateRuntime";
+import { buildMissionQueueSnapshotExport } from "./services/aiWorkforceMissionSnapshotExport";
+import { listMissionExecutionQueues, requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";
+import { buildStoredMissionOperatorReviewDossier, getMissionOperatorReviewNoteStoreStats, listMissionOperatorReviewNotes, saveMissionOperatorReviewNote } from "./services/aiWorkforceMissionReviewNoteStore";
+import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
 
 // ---------------------------------------------------------------------------
 // In-memory session store: last AI suggestion per file (for apply/rollback)
@@ -177,6 +194,7 @@ const PORT = parseInt(process.env.ASSISTANT_PORT ?? "3001", 10);
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+app.use(createDaemonLocalGuard());
 app.use("/artifacts", express.static(path.join(process.cwd(), "artifacts")));
 
 // CORS for local dev tools (VS Code extensions, Cursor, etc.)
@@ -1182,7 +1200,7 @@ const automationRuleSchema = z.object({
 const agentRunCreateSchema = z.object({
   goal: z.string().min(3).max(4000),
   requestedBy: z.string().max(100).optional(),
-  requestedTools: z.array(z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"])).max(8).optional(),
+  requestedTools: z.array(z.enum(AGENT_TOOL_IDS)).max(8).optional(),
   toolInputs: z.record(z.string(), z.record(z.string(), z.any())).optional(),
   maxSteps: z.number().int().min(1).max(12).optional(),
   maxRuntimeMs: z.number().int().min(5000).max(600000).optional(),
@@ -1259,6 +1277,18 @@ app.post("/api/agent-runtime/runs/:id/approve", async (req: Request, res: Respon
   } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
 });
 
+app.post("/api/agent-runtime/runs/:id/reject", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({
+      stepId: z.string().min(1),
+      fingerprint: z.string().regex(/^[a-f0-9]{64}$/).optional(),
+      reason: z.string().min(3).max(500).optional()
+    }).parse(req.body || {});
+    const run = await rejectAgentRunStep(req.params.id, parsed);
+    res.json({ success: true, ok: true, run });
+  } catch (err: any) { res.status(400).json({ success: false, ok: false, error: err.message }); }
+});
+
 app.post("/api/agent-runtime/runs/:id/stop", async (req: Request, res: Response) => {
   try {
     const parsed = z.object({ reason: z.string().min(3).max(500).default("Founder requested stop.") }).safeParse(req.body || {});
@@ -1275,6 +1305,123 @@ app.post("/api/agent-runtime/emergency-stop", async (req: Request, res: Response
     const control = await setAgentRuntimeEmergencyStop(parsed.data.active, parsed.data.reason);
     res.json({ success: true, control });
   } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+// --- Patch Review Sessions ---
+app.get("/api/patch-review-sessions", async (req: Request, res: Response) => {
+  try {
+    const limit = parseInt(req.query.limit as string ?? "50", 10);
+    const sessions = await listPatchReviewSessions(limit);
+    res.json({ success: true, sessions });
+  } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+app.post("/api/patch-review-sessions/from-run/:runId", async (req: Request, res: Response) => {
+  try {
+    const sessions = await createPatchReviewSessionsFromRun(req.params.runId);
+    res.json({ success: true, sessions });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.patch("/api/patch-review-sessions/:id/status", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ status: z.enum(["draft", "waiting_review", "approved_to_apply", "applied", "rolled_back", "rejected"]) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") });
+    const session = await updatePatchReviewSessionStatus(req.params.id, parsed.data.status);
+    res.json({ success: true, session });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.post("/api/patch-review-sessions/:id/apply", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ phrase: z.literal(PATCH_APPLY_PHRASE) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: "Patch apply requires exact phrase confirmation." });
+    const result = await applyReviewedPatchSession({ sessionId: req.params.id, phrase: parsed.data.phrase });
+    res.json({ success: true, result });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.post("/api/patch-review-sessions/:id/rollback", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ phrase: z.literal(PATCH_ROLLBACK_PHRASE) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: "Patch rollback requires exact phrase confirmation." });
+    const result = await rollbackReviewedPatchSession({ sessionId: req.params.id, phrase: parsed.data.phrase });
+    res.json({ success: true, result });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+
+// --- Robot Capability Registry + Automation Scheduler ---
+app.get('/api/robot-capabilities', async (req: Request, res: Response) => {
+  const mode = typeof req.query.mode === 'string' ? req.query.mode : undefined;
+  const includeBlocked = req.query.includeBlocked === 'true';
+  res.json({ ok: true, capabilities: listRobotCapabilities({ mode: mode as never, includeBlocked }) });
+});
+
+app.get('/api/robot-capabilities/:id', async (req: Request, res: Response) => {
+  const capability = getRobotCapability(req.params.id);
+  if (!capability) return res.status(404).json({ ok: false, error: 'Robot capability not found.' });
+  res.json({ ok: true, capability });
+});
+
+app.post('/api/robot-capabilities/:id/validate', async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ approvalPhrase: z.string().optional(), mode: z.enum(['simulation', 'digital_twin', 'hardware']).optional() }).parse(req.body || {});
+    const result = await auditRobotCapabilityRequest({ capabilityId: req.params.id, approvalPhrase: parsed.approvalPhrase, mode: parsed.mode, actor: 'founder' });
+    res.status(result.ok ? 200 : 400).json({ ok: result.ok, result });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(400).json({ ok: false, error: message });
+  }
+});
+
+app.get('/api/automation-scheduler/status', async (_req: Request, res: Response) => {
+  res.json({ ok: true, status: getAutomationSchedulerStatus() });
+});
+
+app.post('/api/automation-scheduler/tick', async (_req: Request, res: Response) => {
+  const result = await runAutomationSchedulerTick();
+  res.json({ ok: true, ...result });
+});
+
+app.post('/api/automation-scheduler/start', async (req: Request, res: Response) => {
+  const parsed = z.object({ intervalMs: z.number().int().positive().optional() }).parse(req.body || {});
+  res.json({ ok: true, status: startAutomationScheduler(parsed) });
+});
+
+app.post('/api/automation-scheduler/stop', async (_req: Request, res: Response) => {
+  res.json({ ok: true, status: stopAutomationScheduler() });
+});
+
+
+// --- Unified OpenClaw Skill Registry ---
+app.get('/api/openclaw-skills', async (req: Request, res: Response) => {
+  const domain = typeof req.query.domain === 'string' ? req.query.domain : undefined;
+  const includeBlocked = req.query.includeBlocked === 'true';
+  res.json({ ok: true, summary: getOpenClawSkillSummary(), skills: listOpenClawSkills({ domain: domain as never, includeBlocked }) });
+});
+
+app.get('/api/openclaw-skills/:id', async (req: Request, res: Response) => {
+  const skill = getOpenClawSkill(req.params.id);
+  if (!skill) return res.status(404).json({ ok: false, error: 'OpenClaw skill not found.' });
+  res.json({ ok: true, skill });
+});
+
+
+// --- OpenClaw Skill Invocation Gateway ---
+app.post('/api/openclaw-skills/:id/plan-invocation', async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({
+      actor: z.enum(['founder', 'ai-agent', 'automation', 'system']).default('founder'),
+      payload: z.record(z.string(), z.unknown()).optional(),
+      reason: z.string().optional(),
+    }).parse(req.body || {});
+    const decision = await auditOpenClawSkillInvocation({ skillId: req.params.id, actor: parsed.actor, payload: parsed.payload, reason: parsed.reason });
+    res.status(decision.mode === 'blocked' ? 403 : 200).json({ ok: decision.ok, decision });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(400).json({ ok: false, error: message });
+  }
 });
 
 // --- Agent Memory ---
@@ -3673,6 +3820,197 @@ app.get("/api/ci-doctor/analyze", async (req: Request, res: Response) => {
 });
 
 // ---------------------------------------------------------------------------
+// AI Workforce Runtime Hub endpoints
+// ---------------------------------------------------------------------------
+app.get("/api/ai-workforce/runtime", async (_req: Request, res: Response) => {
+  try {
+    const dashboard = await getAIWorkforceRuntimeDashboard();
+    const releaseGate = await getAIWorkforceReleaseGateDashboard();
+    res.json({ ok: true, dashboard: { ...dashboard, releaseGate } });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/context-pack", async (req: Request, res: Response) => {
+  try {
+    const result = await buildRuntimeGroundedContext(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-plan", async (req: Request, res: Response) => {
+  try {
+    const plan = await buildRuntimeMissionPlan(req.body as any);
+    res.json({ ok: true, plan });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue", async (req: Request, res: Response) => {
+  try {
+    const result = await buildRuntimeMissionExecutionQueue(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.get("/api/ai-workforce/mission-execution-queues", async (req: Request, res: Response) => {
+  try {
+    const result = await listRuntimeMissionExecutionQueues({ limit: Number(req.query.limit || 20), status: req.query.status as any });
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/resume", async (req: Request, res: Response) => {
+  try {
+    const queue = await resumeRuntimeMissionExecutionQueue(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/approve", async (req: Request, res: Response) => {
+  try {
+    const queue = await approveRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/start", async (req: Request, res: Response) => {
+  try {
+    const queue = await startRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/complete", async (req: Request, res: Response) => {
+  try {
+    const queue = await completeRuntimeMissionExecutionStep(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: Request, res: Response) => {
+  try {
+    const result = await previewRuntimeMissionStepToolExecution(req.body as any);
+    res.json({ ok: true, result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {
+  try {
+    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/cancel", async (req: Request, res: Response) => {
+  try {
+    const queue = await cancelRuntimeMissionExecutionQueue(req.body as any);
+    res.json({ ok: true, queue });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/safety-preview", async (req: Request, res: Response) => {
+  try {
+    const decision = await previewRuntimeAutomation(req.body as any);
+    res.json({ ok: true, decision });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/pr-readiness", async (req: Request, res: Response) => {
+  try {
+    const report = await scoreRuntimePRReadiness(req.body as any);
+    res.json({ ok: true, report });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/pr-control", async (req: Request, res: Response) => {
+  try {
+    const report = await buildRuntimePRControlReport(req.body as any);
+    res.json({ ok: true, report });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/github-pr-control", async (req: Request, res: Response) => {
+  try {
+    const result = await buildRuntimeGitHubPRControlReport(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+// ---------------------------------------------------------------------------
+// AI Workforce Mission Snapshot Export and Review Notes endpoints
+// ---------------------------------------------------------------------------
+app.post("/api/ai-workforce/mission-review-note", async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as any;
+    const queue = await requireMissionExecutionQueue(String(body.queueId || ""));
+    const note = await saveMissionOperatorReviewNote(queue, {
+      reviewer: String(body.reviewer || "Mission Operator"),
+      decision: body.decision === "approved" || body.decision === "needs_changes" || body.decision === "blocked" ? body.decision : "info",
+      summary: String(body.summary || "Operator review note recorded."),
+      requestedAction: body.requestedAction ? String(body.requestedAction) : undefined,
+      stepId: body.stepId ? String(body.stepId) : undefined,
+      evidence: Array.isArray(body.evidence) ? body.evidence : [],
+    });
+    const notes = await listMissionOperatorReviewNotes(queue.id);
+    const dossier = await buildStoredMissionOperatorReviewDossier(queue);
+    const stats = await getMissionOperatorReviewNoteStoreStats();
+    res.json({ ok: true, note, notes, dossier, stats });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+app.post("/api/ai-workforce/mission-review-notes", async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as any;
+    const queues = body.queueId ? [] : await listMissionExecutionQueues({ limit: 1 });
+    const queue = body.queueId ? await requireMissionExecutionQueue(String(body.queueId)) : queues[0];
+    if (!queue) return res.status(404).json({ ok: false, error: "No mission execution queue is available for review notes." });
+    const notes = await listMissionOperatorReviewNotes(queue.id);
+    const dossier = await buildStoredMissionOperatorReviewDossier(queue);
+    const stats = await getMissionOperatorReviewNoteStoreStats();
+    res.json({ ok: true, queueId: queue.id, notes, dossier, stats });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+app.post("/api/ai-workforce/mission-snapshot-export", async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as any;
+    const format = body.format === "markdown" ? "markdown" : "json";
+    const queues = body.queueId ? [] : await listMissionExecutionQueues({ limit: 1 });
+    const queue = body.queueId ? await requireMissionExecutionQueue(String(body.queueId)) : queues[0];
+    if (!queue) return res.status(404).json({ ok: false, error: "No mission execution queue is available for snapshot export." });
+    const persistedNotes = await listMissionOperatorReviewNotes(queue.id);
+    const requestNotes = Array.isArray(body.reviewNotes) ? body.reviewNotes : [];
+    const snapshot = buildMissionQueueSnapshotExport(queue, {
+      format,
+      includeRawQueue: Boolean(body.includeRawQueue),
+      reviewNotes: [...persistedNotes, ...requestNotes],
+      releaseEvidence: body.releaseEvidence && typeof body.releaseEvidence === "object" ? body.releaseEvidence : {},
+    });
+    res.json({ ok: true, snapshot, persistedReviewNotes: persistedNotes.length });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+// ---------------------------------------------------------------------------
+// AI Workforce Mission Release Gate endpoint
+// ---------------------------------------------------------------------------
+app.post("/api/ai-workforce/mission-release-gate", async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as any;
+    const result = await buildRuntimeMissionReleaseGate({
+      queueId: String(body.queueId || ""),
+      actor: String(body.actor || "Mission Operator"),
+      evidence: {
+        ciStatus: body.ciStatus === "success" || body.ciStatus === "pending" || body.ciStatus === "failed" ? body.ciStatus : "unknown",
+        approvals: Number(body.approvals || 0),
+        requiredApprovals: Number(body.requiredApprovals || 1),
+        snapshotChecksum: body.snapshotChecksum ? String(body.snapshotChecksum) : "",
+        releaseLabel: Boolean(body.releaseLabel),
+        rollbackConfirmed: Boolean(body.rollbackConfirmed),
+        operatorConfirmed: Boolean(body.operatorConfirmed),
+        notes: Array.isArray(body.notes) ? body.notes : [],
+      },
+    });
+    res.json({ ok: true, gate: result.gate, dossier: result.dossier, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+// ---------------------------------------------------------------------------
+// AI Workforce Release Gate Export endpoint
+// ---------------------------------------------------------------------------
+app.post("/api/ai-workforce/release-gate-export", async (req: Request, res: Response) => {
+  try {
+    const body = (req.body || {}) as any;
+    const format = body.format === "markdown" ? "markdown" : "json";
+    const result = await buildRuntimeReleaseGateExport({ format, actor: String(body.actor || "Mission Operator") });
+    res.json({ ok: true, exportArtifact: result.exportArtifact, dashboard: result.dashboard, runtimeRecord: result.runtimeRecord, auditEvent: result.auditEvent, metric: result.metric, retention: result.retention });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+
+// ---------------------------------------------------------------------------
 // Unified System Overview (cross-service data linker)
 // ---------------------------------------------------------------------------
 app.get("/api/system/overview", async (_req: Request, res: Response) => {
@@ -3728,8 +4066,7 @@ export function startAssistantDaemon(): void {
 
 // Auto-start when run directly (tsx, node, or bundled CJS)
 const isEntryPoint = process.argv[1]?.replace(/\\/g, "/").endsWith("server/assistant-daemon.ts") ||
-  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.js") ||
-  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.cjs");
+  process.argv[1]?.replace(/\\/g, "/").endsWith("assistant-daemon.js");
 if (isEntryPoint) {
   startAssistantDaemon();
 }

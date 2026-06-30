@@ -1,21 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { 
-  Video, 
-  Youtube, 
-  Sparkles, 
-  DollarSign, 
-  Layers, 
-  Plus, 
-  Tv, 
-  TrendingUp, 
-  Eye, 
-  Loader2, 
-  Play, 
-  Heart, 
-  Flame, 
-  Share2, 
-  Bookmark 
-} from "lucide-react";
+import { Video, Youtube, Sparkles, DollarSign, Layers, Plus, Tv, TrendingUp, Eye, Loader2, Play, Heart, Flame, Share2, Bookmark } from 'lucide-react';
 import { useStore } from "../../store/useStore";
 
 type PlatformType = "TikTok" | "YouTube" | "Reels";

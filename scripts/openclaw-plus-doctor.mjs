@@ -5,6 +5,7 @@ import path from 'node:path';
 const root = process.cwd();
 const full = process.argv.includes('--full');
 const skipPatch = process.argv.includes('--skip-patch');
+const npmBin = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 
 const patchSteps = skipPatch ? [] : [
   ['patch local AI Workforce', process.execPath, ['scripts/patch-ai-workforce-local.mjs']],
@@ -22,15 +23,15 @@ const steps = [
   ['check OpenClaw plus parity', process.execPath, ['scripts/check-openclaw-plus-parity.mjs']],
   ['report OpenClaw plus readiness', process.execPath, ['scripts/report-openclaw-plus-readiness.mjs']],
   ...(full ? [
-    ['lint project', 'npm', ['run', 'lint']],
-    ['build project', 'npm', ['run', 'build']],
+    ['lint project', npmBin, ['run', 'lint']],
+    ['build project', npmBin, ['run', 'build']],
   ] : []),
 ];
 
 for (const [label, command, args] of steps) {
   console.log(`\n▶ ${label}`);
   console.log(`  ${command} ${args.join(' ')}`);
-  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit', shell: process.platform === 'win32' });
+  const result = spawnSync(command, args, { cwd: root, stdio: 'inherit' });
   if (result.status !== 0) {
     console.error(`\n❌ OpenClaw+ doctor failed at: ${label}`);
     process.exit(result.status || 1);

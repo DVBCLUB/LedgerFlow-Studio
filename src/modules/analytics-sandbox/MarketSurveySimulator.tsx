@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  BarChart3,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Map,
-  MessageSquare,
-  Search,
-  ShieldCheck,
-  Target,
-  TrendingUp,
-  Users
-} from 'lucide-react';
+import { BarChart3, CheckCircle2, ClipboardList, Copy, Map, MessageSquare, Search, ShieldCheck, Target, TrendingUp, Users } from 'lucide-react';
 import {
   COMPETITOR_MAP,
   ICP_SEGMENTS,

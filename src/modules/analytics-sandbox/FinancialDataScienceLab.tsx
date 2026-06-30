@@ -1,9 +1,5 @@
 import React, { useState } from 'react';
-import { 
-  Percent, TrendingUp, Cpu, Copy, BookOpen, AlertCircle, Sparkles, Scale, 
-  HelpCircle, Activity, Play, ChevronRight, BarChart3, LineChart, PieChart,
-  DollarSign, Sliders, Server, Library
-} from 'lucide-react';
+import { Percent, TrendingUp, Cpu, Copy, BookOpen, AlertCircle, Sparkles, Scale, HelpCircle, Activity, Play, ChevronRight, BarChart3, LineChart, PieChart, DollarSign, Sliders, Server, Library } from 'lucide-react';
 import { 
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, 
   Legend, ReferenceLine, LineChart as RechartsLineChart, Line

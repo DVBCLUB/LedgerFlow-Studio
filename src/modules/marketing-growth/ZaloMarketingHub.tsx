@@ -1,18 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  MessageCircle,
-  QrCode,
-  Send,
-  ShieldCheck,
-  Smartphone,
-  TrendingUp,
-  Users,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, MessageCircle, QrCode, Send, ShieldCheck, Smartphone, TrendingUp, Users, WalletCards } from 'lucide-react';
 import {
   ZALO_CAMPAIGN_PLAYBOOK,
   ZALO_COMPLIANCE_RULES,

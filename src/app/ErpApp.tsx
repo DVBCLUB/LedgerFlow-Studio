@@ -1,26 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart3,
-  Bot,
-  Boxes,
-  BriefcaseBusiness,
-  Building2,
-  ChevronLeft,
-  ChevronRight,
-  CircleDollarSign,
-  Database,
-  FileCheck2,
-  FolderKanban,
-  LogOut,
-  Menu,
-  Network,
-  PackageOpen,
-  Search,
-  Settings,
-  UsersRound,
-  X,
-} from 'lucide-react';
+  BarChart3, Bot, Boxes, BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, CircleDollarSign, Database, FileCheck2, FolderKanban, Hammer, LogOut, Menu, Network, PackageOpen, Plug2, Search, Settings, ShieldAlert, ShoppingCart, UsersRound, Wrench, X, Calculator, Video } from 'lucide-react';
 import { useLocalAuth } from '../context/LocalAuthContext';
+import { useDynamicModules } from '../context/DynamicModuleContext';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
 import { COMPANY_WORKSPACES, type TabType, type RoleType, MODULES, isDepartmentVisible } from './companyNavigation';
@@ -46,44 +28,56 @@ const IconMap: Record<string, typeof Building2> = {
   Boxes,
   Network,
   Settings,
+  Calculator,
+  Video,
+  Hammer,
+  Plug2,
+  ShieldAlert,
+  ShoppingCart,
+  Wrench,
 };
 
 const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
   dashboard: { tab: 'ceo_command', subTab: 'brief' },
   knowledge: { tab: 'ceo_command', subTab: 'library' },
   advisory: { tab: 'finance_accounting', subTab: 'runway_advisory' },
-  market_survey: { tab: 'growth_sales', subTab: 'market_research' },
-  founder: { tab: 'product_studio', subTab: 'ideas_moat' },
-  roadmap: { tab: 'product_studio', subTab: 'tasks_progress' },
-  datascience: { tab: 'ai_staff_sandbox', subTab: 'python_sql_datascience' },
-  prompts: { tab: 'ai_staff_sandbox', subTab: 'prompt_labs' },
-  assistant: { tab: 'ai_staff_sandbox', subTab: 'staff_assistants' },
-  ai_staff: { tab: 'ai_staff_sandbox', subTab: 'staff_assistants' },
+  market_survey: { tab: 'operations', subTab: 'growth_marketing' },
+  founder: { tab: 'operations', subTab: 'product_studio' },
+  roadmap: { tab: 'operations', subTab: 'product_studio' },
+  datascience: { tab: 'analytics', subTab: 'data_science' },
+  prompts: { tab: 'ai_factory', subTab: 'staff_roles' },
+  assistant: { tab: 'ai_factory', subTab: 'staff_roles' },
+  ai_staff: { tab: 'ai_factory', subTab: 'staff_roles' },
   custom_data: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
-  architecture: { tab: 'ai_staff_sandbox', subTab: 'ai_game_studio' },
-  game_ml: { tab: 'ai_staff_sandbox', subTab: 'ai_game_studio' },
-  guerrilla: { tab: 'product_studio', subTab: 'dev_hub' },
+  architecture: { tab: 'analytics', subTab: 'architecture' },
+  game_ml: { tab: 'analytics', subTab: 'game_studio' },
+  guerrilla: { tab: 'operations', subTab: 'product_studio' },
   accounting_vn: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
-  ml_applied: { tab: 'ai_staff_sandbox', subTab: 'ai_game_studio' },
-  deploy_business: { tab: 'product_studio', subTab: 'deploy' },
-  seo_strategy: { tab: 'growth_sales', subTab: 'campaign_funnel' },
+  ml_applied: { tab: 'analytics', subTab: 'ml_applied' },
+  deploy_business: { tab: 'operations', subTab: 'logistics' },
+  seo_strategy: { tab: 'operations', subTab: 'growth_marketing' },
   audit_workspace: { tab: 'finance_accounting', subTab: 'coso' },
-  python_sandbox: { tab: 'ai_staff_sandbox', subTab: 'python_sql_datascience' },
-  marketing_suite: { tab: 'growth_sales', subTab: 'campaign_funnel' },
-  funnel_lab: { tab: 'growth_sales', subTab: 'campaign_funnel' },
-  lead_scoring: { tab: 'growth_sales', subTab: 'leads_outreach' },
-  zalo_hub: { tab: 'growth_sales', subTab: 'content_zalo' },
-  ltv_dashboard: { tab: 'growth_sales', subTab: 'ltv_nps' },
-  pricing_lab: { tab: 'growth_sales', subTab: 'pricing_lab' },
-  nps_manager: { tab: 'growth_sales', subTab: 'ltv_nps' },
-  affiliate_hub: { tab: 'growth_sales', subTab: 'affiliate' },
-  outbound_hub: { tab: 'growth_sales', subTab: 'leads_outreach' },
-  advanced_ai: { tab: 'ai_staff_sandbox', subTab: 'prompt_labs' },
-  video_lab: { tab: 'growth_sales', subTab: 'video_creator' },
-  marketing_growth_v2: { tab: 'growth_sales', subTab: 'campaign_funnel' },
+  python_sandbox: { tab: 'analytics', subTab: 'python_sandbox' },
+  marketing_suite: { tab: 'operations', subTab: 'growth_marketing' },
+  funnel_lab: { tab: 'operations', subTab: 'growth_marketing' },
+  lead_scoring: { tab: 'operations', subTab: 'sales_crm' },
+  zalo_hub: { tab: 'operations', subTab: 'growth_marketing' },
+  ltv_dashboard: { tab: 'operations', subTab: 'sales_crm' },
+  pricing_lab: { tab: 'operations', subTab: 'sales_crm' },
+  nps_manager: { tab: 'operations', subTab: 'sales_crm' },
+  affiliate_hub: { tab: 'operations', subTab: 'sales_crm' },
+  outbound_hub: { tab: 'operations', subTab: 'sales_crm' },
+  advanced_ai: { tab: 'ai_factory', subTab: 'tools_security' },
+  video_lab: { tab: 'operations', subTab: 'growth_marketing' },
+  marketing_growth_v2: { tab: 'operations', subTab: 'growth_marketing' },
   approval_workflow: { tab: 'finance_accounting', subTab: 'approval' },
   financial_reports: { tab: 'finance_accounting', subTab: 'reports' },
-  integration_hub: { tab: 'system_settings', subTab: 'connections' },
+  integration_hub: { tab: 'system_settings', subTab: 'general' },
+  devops_hub: { tab: 'system_settings', subTab: 'devops' },
+  control_room: { tab: 'system_settings', subTab: 'control' },
+  product_studio: { tab: 'operations', subTab: 'product_studio' },
+  growth_sales: { tab: 'operations', subTab: 'growth_marketing' },
+  ai_staff_sandbox: { tab: 'ai_factory', subTab: 'overview' },
 };
 
 const knownTabs = new Set<TabType>(COMPANY_WORKSPACES.map((item) => item.tab));
@@ -148,8 +142,11 @@ export default function ErpApp() {
     return (saved as RoleType) || 'all';
   });
 
+  const { navItems } = useDynamicModules();
+
   const navigation = useMemo(() => {
-    return COMPANY_WORKSPACES
+    // 1. Get static workspaces filtered by role
+    const staticNavs = COMPANY_WORKSPACES
       .filter((item) => {
         const mod = MODULES.find((m) => m.tab === item.tab);
         return mod ? isDepartmentVisible(mod.dept, activeRole) : true;
@@ -161,7 +158,25 @@ export default function ErpApp() {
         description: item.description,
         icon: IconMap[item.iconName] || Building2,
       }));
-  }, [activeRole]);
+
+    // 2. Map dynamically registered modules from backend
+    const dynamicNavs = navItems.map((navItem) => ({
+      tab: navItem.id as TabType,
+      label: navItem.label,
+      shortLabel: navItem.label,
+      description: navItem.badge ? `[${navItem.badge}] Phân hệ động` : 'Mô-đun đăng ký động',
+      icon: IconMap[navItem.icon] || Building2,
+    }));
+
+    // Merge static and dynamic, preventing duplicate tab IDs
+    const merged = [...staticNavs];
+    for (const dNav of dynamicNavs) {
+      if (!merged.some(item => item.tab === dNav.tab)) {
+        merged.push(dNav);
+      }
+    }
+    return merged;
+  }, [activeRole, navItems]);
 
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
@@ -194,15 +209,30 @@ export default function ErpApp() {
     setSidebarOpen(false);
   };
 
-  // Redirect if current activeTab gets filtered out by the activeRole
+  // Redirect to Role-Based home tab when activeRole changes
   useEffect(() => {
     if (navigation.length > 0) {
-      const hasTab = navigation.some((item) => item.tab === activeTab);
-      if (!hasTab) {
+      const roleHomeMap: Record<RoleType, TabType> = {
+        all: 'ceo_command',
+        founder: 'ceo_command',
+        admin: 'ceo_command',
+        finance: 'finance_accounting',
+        operations: 'operations',
+        agentops: 'ai_factory',
+        devops: 'system_settings',
+        marketing: 'operations',
+        auditor: 'finance_accounting',
+        viewer: 'ceo_command',
+      };
+      const targetTab = roleHomeMap[activeRole] || 'ceo_command';
+      const hasTab = navigation.some((item) => item.tab === targetTab);
+      if (hasTab && activeTab !== targetTab) {
+        navigate(targetTab);
+      } else if (!navigation.some((item) => item.tab === activeTab)) {
         navigate(navigation[0].tab);
       }
     }
-  }, [activeRole, navigation, activeTab]);
+  }, [activeRole, navigation]);
 
   const toggleCollapsed = () => {
     setCollapsed((value) => {
@@ -293,21 +323,41 @@ export default function ErpApp() {
                 className="erp-role-select"
                 aria-label="Chọn vai trò hiển thị"
               >
-                <option value="all">Chế độ: Toàn bộ</option>
-                <option value="ceo">Chế độ: Ban điều hành</option>
-                <option value="dev">Chế độ: Kỹ thuật / R&D</option>
-                <option value="marketing">Chế độ: Growth & Sales</option>
+                <option value="all">Vai trò: Toàn bộ</option>
+                <option value="founder">Vai trò: Sáng lập (Founder)</option>
+                <option value="admin">Vai trò: Quản trị viên (Admin)</option>
+                <option value="finance">Vai trò: Giám đốc Tài chính</option>
+                <option value="operations">Vai trò: Giám đốc Vận hành</option>
+                <option value="agentops">Vai trò: Kỹ sư AgentOps</option>
+                <option value="devops">Vai trò: Kỹ sư DevOps</option>
+                <option value="marketing">Vai trò: Trưởng phòng Marketing</option>
+                <option value="auditor">Vai trò: Kiểm toán viên</option>
+                <option value="viewer">Vai trò: Người quan sát</option>
               </select>
             </div>
             <button className="erp-user-button" title={session?.email}>
               <BriefcaseBusiness size={16} />
-              <span>{session?.email?.split('@')[0] || 'Founder'}</span>
+              <span>{session?.email?.split('@')[0] || (() => {
+                const names: Record<RoleType, string> = {
+                  all: 'Super Admin',
+                  founder: 'Founder',
+                  admin: 'Admin',
+                  finance: 'CFO',
+                  operations: 'COO',
+                  agentops: 'AgentOps',
+                  devops: 'DevOps',
+                  marketing: 'CMO',
+                  auditor: 'Auditor',
+                  viewer: 'Viewer',
+                };
+                return names[activeRole] || 'User';
+              })()}</span>
             </button>
           </div>
         </header>
 
         <main className="erp-content">
-          <WorkspaceRenderer activeSegment={activeTab} onNavigate={navigate} />
+          <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
         </main>
       </div>
     </div>

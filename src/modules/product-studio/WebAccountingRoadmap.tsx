@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Database,
-  GitBranch,
-  Layers,
-  LockKeyhole,
-  Rocket,
-  ShieldCheck,
-  Workflow
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Database, GitBranch, Layers, LockKeyhole, Rocket, ShieldCheck, Workflow } from 'lucide-react';
 import {
   ACCOUNTING_WEB_MODULES,
   BUILD_PHASES,

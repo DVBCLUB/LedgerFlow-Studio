@@ -7,7 +7,7 @@ if (!fs.existsSync(daemonPath)) {
   throw new Error(`Missing assistant daemon source: ${daemonPath}`);
 }
 
-const source = fs.readFileSync(daemonPath, 'utf8');
+const source = fs.readFileSync(daemonPath, 'utf8').replace(/\r\n/g, '\n');
 
 if (!source.includes('assistant-daemon.cjs') && source.includes('endsWith("assistant-daemon.js");')) {
   console.log('Assistant daemon entrypoint patch already applied.');

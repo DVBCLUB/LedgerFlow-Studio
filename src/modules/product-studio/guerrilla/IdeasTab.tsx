@@ -1,23 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  BookOpen, 
-  PlusCircle, 
-  Sparkles, 
-  Edit, 
-  Trash2, 
-  AlertCircle, 
-  Compass, 
-  Activity, 
-  ChevronRight, 
-  Check, 
-  Download, 
-  Printer, 
-  Copy,
-  Zap,
-  Cpu,
-  Database,
-  Upload
-} from 'lucide-react';
+import { BookOpen, PlusCircle, Sparkles, Edit, Trash2, AlertCircle, Compass, Activity, ChevronRight, Check, Download, Printer, Copy, Zap, Cpu, Database, Upload } from 'lucide-react';
 import { useStore } from '../../../store/useStore';
 import { UnexpectedIdea } from '../../../types';
 import Simulator from './Simulator';

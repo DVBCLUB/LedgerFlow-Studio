@@ -1,19 +1,5 @@
 import React from 'react';
-import {
-  Activity,
-  ArrowRight,
-  Bot,
-  KeyRound,
-  Loader2,
-  Lock,
-  PlayCircle,
-  Power,
-  RefreshCw,
-  ShieldCheck,
-  Unlock,
-  UserCog,
-  Zap,
-} from 'lucide-react';
+import { Activity, ArrowRight, Bot, KeyRound, Loader2, Lock, PlayCircle, Power, RefreshCw, ShieldCheck, Unlock, UserCog, Zap } from 'lucide-react';
 import {
   claimPlatformAccountLease,
   fetchPlatformAccountResources,

@@ -5,3 +5,5 @@
 
 export * from './LocalAuthContext';
 export { LocalAuthProvider, useLocalAuth, readLocalSession } from './LocalAuthContext';
+export * from './DynamicModuleContext';
+export { DynamicModuleProvider, useDynamicModules } from './DynamicModuleContext';

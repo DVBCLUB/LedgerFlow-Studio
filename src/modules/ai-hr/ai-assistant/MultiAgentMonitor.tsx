@@ -1,9 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Users, PlayCircle, CheckCircle2, XCircle, Loader2, Clock,
-  RefreshCw, Zap, AlertTriangle, Code2, TestTube, FileSearch,
-  Calculator, BrainCircuit,
-} from 'lucide-react';
+import { Users, PlayCircle, CheckCircle2, XCircle, Loader2, Clock, RefreshCw, Zap, AlertTriangle, Code2, TestTube, FileSearch, Calculator, BrainCircuit } from 'lucide-react';
 
 interface AgentTask {
   id: string; role: string; goal: string; priority: string;

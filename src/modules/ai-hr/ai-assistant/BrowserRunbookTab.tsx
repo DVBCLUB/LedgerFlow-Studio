@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  Bot, Calendar, Camera, ChevronDown, ChevronRight, Clock,
-  FileText, Loader2, RefreshCw, Search, XCircle, CheckCircle2, AlertTriangle,
-} from 'lucide-react';
+import { Bot, Calendar, Camera, ChevronDown, ChevronRight, Clock, FileText, Loader2, RefreshCw, Search, XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { daemonFetch } from '../../../utils/assistantApi';
 
 interface RunbookStep {

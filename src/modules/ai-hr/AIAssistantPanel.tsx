@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  Bot, FileSearch, Activity, Loader2, RefreshCw, CircleDot, User, HardDrive, Users,
-   Code2, Clock, GitCommit, Shield, Terminal, Zap, ArrowRight, Settings, ChevronDown, ChevronUp, DollarSign, FlaskConical, TrendingUp
-} from 'lucide-react';
+import { Bot, FileSearch, Activity, Loader2, RefreshCw, CircleDot, User, HardDrive, Users, Code2, Clock, GitCommit, Shield, Terminal, Zap, ArrowRight, Settings, ChevronDown, ChevronUp, DollarSign, FlaskConical, TrendingUp } from 'lucide-react';
 import {
   checkDaemonHealth, editFile, applyEdit, rollbackFile, getApplyStatus,
   askAI, readFile, listBackups, getDiff,

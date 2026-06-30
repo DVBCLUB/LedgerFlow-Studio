@@ -2,6 +2,34 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        fetch('/api/client-error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'error',
+            message: message,
+            source: source,
+            lineno: lineno,
+            colno: colno,
+            stack: error ? error.stack : null
+          })
+        }).catch(function(){});
+        return false;
+      };
+      window.onunhandledrejection = function(event) {
+        fetch('/api/client-error', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'unhandledrejection',
+            message: event.reason ? (event.reason.message || String(event.reason)) : 'Promise rejected',
+            stack: event.reason ? event.reason.stack : null
+          })
+        }).catch(function(){});
+      };
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LedgerFlow Hub</title>
     <link rel="icon" type="image/svg+xml" href="/ledgerflow-icon.svg" />

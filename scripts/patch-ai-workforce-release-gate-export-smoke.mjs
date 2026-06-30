@@ -7,7 +7,7 @@ if (!fs.existsSync(smokePath)) {
   throw new Error(`AI Workforce runtime smoke source not found: ${smokePath}`);
 }
 
-let source = fs.readFileSync(smokePath, 'utf8');
+let source = fs.readFileSync(smokePath, 'utf8').replace(/\r\n/g, '\n');
 let changed = false;
 
 const token = '/api/ai-workforce/release-gate-export';

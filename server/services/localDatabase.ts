@@ -10,16 +10,10 @@ export async function loadLocalDatabase(storageFile: string): Promise<Record<str
 
 export function saveLocalDatabase(storageFile: string, payload: Record<string, unknown>): Promise<void> {
   const operation = async () => {
-    const tempFile = `${storageFile}.${process.pid}.${Date.now()}.tmp`;
     const backupFile = `${storageFile}.bak`;
     await fs.promises.mkdir(path.dirname(storageFile), { recursive: true });
-    try {
-      await fs.promises.writeFile(tempFile, JSON.stringify(payload, null, 2), "utf-8");
-      if (fs.existsSync(storageFile)) await fs.promises.copyFile(storageFile, backupFile);
-      await fs.promises.rename(tempFile, storageFile);
-    } finally {
-      await fs.promises.rm(tempFile, { force: true }).catch(() => undefined);
-    }
+    if (fs.existsSync(storageFile)) await fs.promises.copyFile(storageFile, backupFile).catch(() => undefined);
+    await fs.promises.writeFile(storageFile, JSON.stringify(payload, null, 2), "utf-8");
   };
   const queued = saveQueue.then(operation, operation);
   saveQueue = queued.catch(() => undefined);

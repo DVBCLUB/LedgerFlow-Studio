@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  Calculator,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  DollarSign,
-  Layers,
-  LineChart,
-  ShieldCheck,
-  TrendingUp,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, Calculator, CheckCircle2, ClipboardList, Copy, DollarSign, Layers, LineChart, ShieldCheck, TrendingUp, WalletCards } from 'lucide-react';
 import {
   PRICING_METRICS,
   PRICING_PACKAGES,

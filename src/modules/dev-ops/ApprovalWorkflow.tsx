@@ -1,9 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import {
-  FileText, CheckCircle2, XCircle, Clock, Send, Plus, Trash2,
-  ChevronRight, User, Calendar, DollarSign, Filter, Download,
-  AlertTriangle, RefreshCw, Archive, CreditCard, Receipt
-} from 'lucide-react';
+import { FileText, CheckCircle2, XCircle, Clock, Send, Plus, Trash2, ChevronRight, User, Calendar, DollarSign, Filter, Download, AlertTriangle, RefreshCw, Archive, CreditCard, Receipt } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ApprovalStatus = 'draft' | 'submitted' | 'checked' | 'approved' | 'paid' | 'settled' | 'archived';

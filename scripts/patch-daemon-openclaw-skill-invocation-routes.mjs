@@ -9,7 +9,7 @@ let next = source;
 
 const importLine = "import { auditOpenClawSkillInvocation } from './services/openClawSkillInvocationGateway';";
 if (!next.includes(importLine)) {
-  const anchor = "import express, { Request, Response } from 'express';";
+  const anchor = next.match(/import express, \{[^}]*Request[^}]*Response[^}]*\} from ["']express["'];/)?.[0];
   if (!next.includes(anchor)) throw new Error('Cannot find express import anchor.');
   next = next.replace(anchor, `${anchor}\n${importLine}`);
 }

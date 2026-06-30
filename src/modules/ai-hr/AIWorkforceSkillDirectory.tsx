@@ -61,7 +61,7 @@ function domainIcon(domain?: string) {
 }
 
 function errorText(err: unknown) {
-  return err instanceof Error ? err.message : 'Cannot load OpenClaw skill directory.';
+  return err instanceof Error ? err.message : 'Cannot load LedgerFlow AI skill directory.';
 }
 
 export default function AIWorkforceSkillDirectory() {
@@ -82,7 +82,7 @@ export default function AIWorkforceSkillDirectory() {
       setSkills(readArray<OpenClawSkill>(result, 'skills'));
       setSummary(readSummary(result));
     } catch (err: unknown) {
-      setError(`${errorText(err)} Run npm run ai:openclaw-plus locally to patch daemon routes.`);
+      setError(`${errorText(err)} Ensure the AI daemon is running (npm run dev).`);
       setSkills([]); setSummary({});
     } finally { setBusy(false); }
   };
@@ -104,7 +104,7 @@ export default function AIWorkforceSkillDirectory() {
   return <section className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
     <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
       <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><BrainCircuit className="mr-2 inline h-4 w-4" />OpenClaw Skill Directory</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><BrainCircuit className="mr-2 inline h-4 w-4" />LedgerFlow AI Skill Directory</p>
         <h3 className="mt-2 text-lg font-black text-white">Unified agent, robot, automation and governance skills</h3>
         <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Một nơi để khám phá skill/tool/capability, risk, mode và approval requirement trước khi cho agent hoặc founder dùng.</p>
       </div>
@@ -146,7 +146,7 @@ export default function AIWorkforceSkillDirectory() {
       </div>)}
       {skills.length === 0 && <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 lg:col-span-2">
         <p className="text-sm font-black text-white"><AlertTriangle className="mr-2 inline h-4 w-4 text-amber-300" />No skills loaded</p>
-        <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">Run the OpenClaw+ doctor so daemon skill routes are patched locally.</p>
+        <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">Ensure the AI daemon is running. Start with: npm run dev.</p>
       </div>}
     </div>
   </section>;

@@ -1,15 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  Activity,
-  AlertTriangle,
-  BarChart3,
-  Bot,
-  Clock,
-  Coins,
-  RefreshCw,
-  TrendingUp,
-  Zap,
-} from 'lucide-react';
+import { Activity, AlertTriangle, BarChart3, Bot, Clock, Coins, RefreshCw, TrendingUp, Zap } from 'lucide-react';
 
 // ─── Types (mirrors aiObservabilityService.ts) ────────────────────────────────
 

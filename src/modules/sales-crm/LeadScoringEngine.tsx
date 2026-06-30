@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Flame,
-  HelpCircle,
-  PhoneCall,
-  ShieldCheck,
-  Target,
-  TrendingUp,
-  Users,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Flame, HelpCircle, PhoneCall, ShieldCheck, Target, TrendingUp, Users } from 'lucide-react';
 import LeadPersonaCanvasPanel from './LeadPersonaCanvasPanel';
 import {
   BEHAVIOR_SIGNALS,

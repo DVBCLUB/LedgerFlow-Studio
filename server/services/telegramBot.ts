@@ -39,6 +39,7 @@ import {
 } from "./codingContext";
 import path from "path";
 import fs from "fs";
+import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -107,6 +108,9 @@ export function createTelegramHandler(ctx: TelegramHandlerContext) {
     const [command, ...args] = text.split(/\s+/);
 
     try {
+      if (await tryHandleTelegramMissionCommand(chatId, text, sendMessage)) {
+        return;
+      }
       switch (command.toLowerCase()) {
         case "/start":
         case "/help":

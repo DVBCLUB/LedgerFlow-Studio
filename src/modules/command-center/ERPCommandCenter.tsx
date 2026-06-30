@@ -1,14 +1,4 @@
-import {
-  AlertCircle,
-  ArrowRight,
-  CalendarDays,
-  CheckCircle2,
-  CircleDollarSign,
-  Clock3,
-  PackageOpen,
-  TrendingUp,
-  UsersRound,
-} from 'lucide-react';
+import { AlertCircle, ArrowRight, CalendarDays, CheckCircle2, CircleDollarSign, Clock3, PackageOpen, TrendingUp, UsersRound } from 'lucide-react';
 import type { TabType } from '../../app/companyNavigation';
 
 interface ERPCommandCenterProps {

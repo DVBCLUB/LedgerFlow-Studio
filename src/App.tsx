@@ -2,6 +2,8 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router } from 'react-router-dom';
 import './index.css';
 
+import { DynamicModuleProvider } from './context/DynamicModuleContext';
+
 const LocalLoginGate = lazy(() => import('./components/LocalLoginGate'));
 const ErpApp = lazy(() => import('./app/ErpApp'));
 
@@ -9,8 +11,15 @@ function LoadingFallback() {
   return <div>Loading...</div>;
 }
 
-function ErrorFallback({ error }: { error: Error }) {
-  return <div>{error.message}</div>;
+function ErrorFallback({ error }: { error?: Error }) {
+  return (
+    <div className="p-8 text-rose-400 bg-slate-950 min-h-screen flex flex-col justify-center items-center">
+      <h1 className="text-xl font-bold mb-2">Hệ thống gặp sự cố khởi động (Runtime Error)</h1>
+      <pre className="text-xs p-4 bg-slate-900 border border-slate-800 rounded-xl max-w-2xl overflow-auto w-full">
+        {error ? (error.stack || error.message) : 'Lỗi không xác định'}
+      </pre>
+    </div>
+  );
 }
 
 function App() {
@@ -19,7 +28,9 @@ function App() {
       <Suspense fallback={<LoadingFallback />}>
         <ErrorBoundary fallback={<ErrorFallback />}>
           <LocalLoginGate>
-            <ErpApp />
+            <DynamicModuleProvider>
+              <ErpApp />
+            </DynamicModuleProvider>
           </LocalLoginGate>
         </ErrorBoundary>
       </Suspense>
@@ -46,8 +57,8 @@ class ErrorBoundary extends React.Component<{
 
   render() {
     if (this.state.hasError && this.state.error) {
-      if (typeof this.props.fallback === 'function') {
-        return this.props.fallback(this.state.error);
+      if (React.isValidElement(this.props.fallback)) {
+        return React.cloneElement(this.props.fallback, { error: this.state.error } as any);
       }
       return this.props.fallback;
     }

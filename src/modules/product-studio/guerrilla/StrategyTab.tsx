@@ -1,24 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Zap, 
-  ChevronRight, 
-  AlertCircle, 
-  CheckCircle2, 
-  Check, 
-  ArrowRight, 
-  Database, 
-  DollarSign, 
-  Server, 
-  Award, 
-  TrendingUp, 
-  PlusCircle, 
-  Trash2, 
-  Edit, 
-  Save, 
-  Copy, 
-  Compass, 
-  HelpCircle 
-} from 'lucide-react';
+import { Zap, ChevronRight, AlertCircle, CheckCircle2, Check, ArrowRight, Database, DollarSign, Server, Award, TrendingUp, PlusCircle, Trash2, Edit, Save, Copy, Compass, HelpCircle } from 'lucide-react';
 
 export const STREMY_NODES = [
   {

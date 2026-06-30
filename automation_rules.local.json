@@ -18,8 +18,8 @@
           "requiresApproval": false
         }
       ],
-      "createdAt": "2026-06-23T07:18:02.341Z",
-      "updatedAt": "2026-06-23T07:18:02.341Z",
+      "createdAt": "2026-06-30T15:00:09.158Z",
+      "updatedAt": "2026-06-30T15:00:09.158Z",
       "triggerCount": 0
     },
     "rule_robot_estop_notify": {
@@ -40,10 +40,10 @@
           "requiresApproval": false
         }
       ],
-      "createdAt": "2026-06-23T07:18:02.341Z",
-      "updatedAt": "2026-06-23T07:18:02.341Z",
-      "triggerCount": 16,
-      "lastTriggeredAt": "2026-06-23T23:54:27.845Z"
+      "createdAt": "2026-06-30T15:00:09.158Z",
+      "updatedAt": "2026-06-30T15:00:09.158Z",
+      "triggerCount": 6,
+      "lastTriggeredAt": "2026-06-30T15:58:34.898Z"
     },
     "rule_agent_approval_notify": {
       "id": "rule_agent_approval_notify",
@@ -63,10 +63,10 @@
           "requiresApproval": false
         }
       ],
-      "createdAt": "2026-06-23T07:18:02.341Z",
-      "updatedAt": "2026-06-23T07:18:02.341Z",
-      "triggerCount": 16,
-      "lastTriggeredAt": "2026-06-23T23:54:27.489Z"
+      "createdAt": "2026-06-30T15:00:09.158Z",
+      "updatedAt": "2026-06-30T15:00:09.158Z",
+      "triggerCount": 6,
+      "lastTriggeredAt": "2026-06-30T15:58:34.452Z"
     },
     "rule_workflow_complete_log": {
       "id": "rule_workflow_complete_log",
@@ -86,17 +86,17 @@
           "requiresApproval": false
         }
       ],
-      "createdAt": "2026-06-23T07:18:02.341Z",
-      "updatedAt": "2026-06-23T07:18:02.341Z",
+      "createdAt": "2026-06-30T15:00:09.158Z",
+      "updatedAt": "2026-06-30T15:00:09.158Z",
       "triggerCount": 0
     }
   },
   "executionLog": [
     {
-      "id": "log_1168161a-688a-451c-aab8-412c05c8ab37",
+      "id": "log_211f3b80-ad4a-4e96-947e-aa819a67096b",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_c4c59774-0294-43bd-9df4-28185b03b18b",
+      "eventId": "evt_d494b23c-38e3-405f-b610-ad12e002b4da",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -104,44 +104,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T23:54:27.845Z",
-      "durationMs": 15
-    },
-    {
-      "id": "log_8c532d84-887f-4182-84a0-c91a1b9d5e92",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_e3aa2369-9563-4fc4-b128-3a56c9ef15f4",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T23:54:27.489Z",
+      "executedAt": "2026-06-30T15:58:34.898Z",
       "durationMs": 11
     },
     {
-      "id": "log_e2c4acfe-0c5f-4121-96e7-c58ad2f8f1ff",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_86b44cfa-be43-480a-9473-dd49fff6252d",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T15:51:26.600Z",
-      "durationMs": 3
-    },
-    {
-      "id": "log_e8a9edcd-0116-4466-832e-fdc65326e52a",
+      "id": "log_d6b28f56-8dad-4401-bd8b-aa727fe680ea",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_30c9d930-a84a-4bc2-beaa-538a08d5a8cc",
+      "eventId": "evt_41b2e9e7-6b3a-4e62-984f-c4cb9eeee8c9",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -149,14 +119,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:51:26.525Z",
-      "durationMs": 5
+      "executedAt": "2026-06-30T15:58:34.452Z",
+      "durationMs": 29
     },
     {
-      "id": "log_dfa3fb75-5941-4d3f-90da-0d629a82c855",
+      "id": "log_830d1246-7a90-4d90-9775-4c8c413436f0",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_887ecbe1-4d2a-448c-b327-3f957e6f40d3",
+      "eventId": "evt_1cd6e6b6-c171-4027-968d-97eee1aadbbb",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -164,14 +134,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:47:36.186Z",
-      "durationMs": 3
+      "executedAt": "2026-06-30T15:47:48.858Z",
+      "durationMs": 7
     },
     {
-      "id": "log_03234ef1-6b6d-46aa-aed0-8c390d537846",
+      "id": "log_7a7e6176-27c3-40fd-b9ed-a445456013c6",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_b52e71c9-79b0-4f59-9f13-621c9fc7cd5e",
+      "eventId": "evt_3ccd612b-a942-44f9-824c-e02a82cd6af5",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -179,14 +149,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:47:36.129Z",
-      "durationMs": 3
+      "executedAt": "2026-06-30T15:47:48.659Z",
+      "durationMs": 32
     },
     {
-      "id": "log_8c755ded-5e7f-4e84-9464-8088d921acac",
+      "id": "log_d90d3342-4cb8-40b3-bada-ae99ee35039c",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_ba9147bb-a338-4620-9e84-febaea459a1e",
+      "eventId": "evt_119c5590-b48c-46a8-8639-e0cd711078e9",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -194,14 +164,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:41:51.238Z",
-      "durationMs": 4
+      "executedAt": "2026-06-30T15:46:25.924Z",
+      "durationMs": 72
     },
     {
-      "id": "log_300d4efe-643e-464e-af8d-7721f877a375",
+      "id": "log_0684f68c-774a-4fff-ab93-3a52b7ab402f",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_3ead9c21-20a3-4de6-8efe-5058513b02bc",
+      "eventId": "evt_ef03867d-aa19-421c-8e05-331933fcb94f",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -209,14 +179,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:41:51.182Z",
-      "durationMs": 4
+      "executedAt": "2026-06-30T15:46:25.743Z",
+      "durationMs": 46
     },
     {
-      "id": "log_4180988a-8a1c-4b81-881c-18839d081e2b",
+      "id": "log_0bb1096e-ca12-4423-abdd-c8b746c9efea",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_74acf834-6a19-4841-9594-1cd7c10fdc15",
+      "eventId": "evt_8a0389e8-afdc-420a-958b-7f6adc4b7cf4",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -224,14 +194,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:29:56.488Z",
-      "durationMs": 3
+      "executedAt": "2026-06-30T15:17:28.041Z",
+      "durationMs": 8
     },
     {
-      "id": "log_e082c35e-0fe8-4921-956d-94d3d6c1d383",
+      "id": "log_af842cb1-a25c-4e18-a727-1fd72da9505b",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_c59748eb-feaa-4709-ab2d-b5b28777554e",
+      "eventId": "evt_28611eeb-8468-44fd-956b-656ce565971c",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -239,14 +209,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:29:56.414Z",
-      "durationMs": 3
+      "executedAt": "2026-06-30T15:17:27.920Z",
+      "durationMs": 8
     },
     {
-      "id": "log_9fd38449-dc1c-41b9-a4c5-3a879f348ea5",
+      "id": "log_2f11f13c-fd7b-4cd4-801b-75c88716d61f",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_4a258e01-7881-4771-a143-ff7270181bd1",
+      "eventId": "evt_97ed4892-2785-4e9f-a4be-4b91bb0790b2",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -254,14 +224,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:26:55.427Z",
-      "durationMs": 4
+      "executedAt": "2026-06-30T15:03:09.418Z",
+      "durationMs": 19
     },
     {
-      "id": "log_b2fcea5a-6c6a-4154-9d87-475f0e48ac35",
+      "id": "log_a6fe07d4-f0e7-431f-b1b3-cce6ce6d8f2f",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_fd112a9d-d0f0-4f76-9d5a-22df3283b80c",
+      "eventId": "evt_c0e9afee-bf35-49be-9300-b656bab23a16",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -269,44 +239,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:26:55.360Z",
-      "durationMs": 3
-    },
-    {
-      "id": "log_cb26a943-67d5-425d-8b90-bf93ed6da9b0",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_8d1884bf-1ce9-44db-b9e0-554e6dd3188b",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T15:23:36.064Z",
-      "durationMs": 3
-    },
-    {
-      "id": "log_96d2e6a9-f537-458b-96f9-797d34b6e2d7",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_2eb25e55-2955-41e5-a7c9-17b4eae1c499",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T15:23:35.953Z",
+      "executedAt": "2026-06-30T15:03:09.143Z",
       "durationMs": 9
     },
     {
-      "id": "log_f5b9e90a-781e-42cd-83c1-0309d2c713bc",
+      "id": "log_360a215f-93d7-4330-9203-8fcf748c1a79",
       "ruleId": "rule_robot_estop_notify",
       "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_0e7ec8eb-085e-495d-b0ac-17c44f0f69a7",
+      "eventId": "evt_1e7f6898-c0ee-4ee9-8efc-61796a334a60",
       "eventType": "robot.emergency_stop",
       "conditionResult": true,
       "actionsExecuted": [
@@ -314,14 +254,14 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:17:47.137Z",
-      "durationMs": 3
+      "executedAt": "2026-06-30T15:00:09.414Z",
+      "durationMs": 21
     },
     {
-      "id": "log_886bec7b-ef36-4966-943c-083d496589d9",
+      "id": "log_f740b741-176d-46ec-8f99-0d8a0f0fdc1b",
       "ruleId": "rule_agent_approval_notify",
       "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_0f0e6b31-63f0-4932-a509-002a5f7d1a01",
+      "eventId": "evt_6da6ceae-9497-4f65-a67f-4e385e2d6d6b",
       "eventType": "agent.step.approval_required",
       "conditionResult": true,
       "actionsExecuted": [
@@ -329,248 +269,8 @@
       ],
       "actionsSkipped": [],
       "status": "success",
-      "executedAt": "2026-06-23T15:17:47.072Z",
-      "durationMs": 4
-    },
-    {
-      "id": "log_b8922603-a468-49cc-9a9d-5008f4e092f1",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_31afb2f0-9055-4ba0-b43e-90125200e39a",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:57:09.431Z",
-      "durationMs": 1
-    },
-    {
-      "id": "log_9f07c2ea-bcc1-488d-8e2e-e5f4aeb21da4",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_97db1acd-bf24-492f-8938-a455cad2d88a",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:57:09.360Z",
-      "durationMs": 2
-    },
-    {
-      "id": "log_4eec7181-34a8-406b-a51d-a4d9f6ad8404",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_dde5d847-e709-4b3c-879b-d79447ef48fe",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:55:54.718Z",
-      "durationMs": 5
-    },
-    {
-      "id": "log_dcca0ea4-ffb1-4f8b-af3a-6fb3dbc13a41",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_2eed7adb-cd00-46b6-85e7-56534f3869c8",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:55:54.645Z",
-      "durationMs": 5
-    },
-    {
-      "id": "log_360a7d7e-cd87-4aae-a7e2-e07ac02ac6fa",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_bb99aaae-28aa-45cc-a74a-7e9a47836a94",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:47:42.739Z",
-      "durationMs": 2
-    },
-    {
-      "id": "log_d159a419-e0ab-43b8-a09a-7d5aa35be2dd",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_c777fb7e-864a-40d6-8f85-1ef2b313d6a0",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:47:42.669Z",
-      "durationMs": 3
-    },
-    {
-      "id": "log_b399152f-8b11-402e-ba4c-337d9ffbaa73",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_5c86ea10-5115-4cef-af85-6b6cf1a33782",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:35:01.907Z",
-      "durationMs": 1
-    },
-    {
-      "id": "log_9529373c-7a1f-4bf3-958c-c9db272f7b3c",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_fb2d38f8-915a-476a-890e-49ccbe43203b",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:35:01.854Z",
-      "durationMs": 4
-    },
-    {
-      "id": "log_12b69332-40f3-424e-9c5a-da6f940fa6e6",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_f0561999-1e70-4bce-89d9-9eee85167566",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:12:46.020Z",
-      "durationMs": 5
-    },
-    {
-      "id": "log_9ad35530-e28a-4000-992c-e591707a9243",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_d3194e30-1d8b-49c0-b3fe-eda51dfca0b6",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:12:45.948Z",
-      "durationMs": 6
-    },
-    {
-      "id": "log_a1a10b6b-9f45-4628-89c4-ce6772711f66",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_51eabd07-529c-40a6-afcd-c8ab72fcf921",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:08:32.243Z",
-      "durationMs": 35
-    },
-    {
-      "id": "log_f4510840-5344-4d90-b468-31b30b9fbd56",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_69e65538-70b0-4525-85ec-7af1726286cb",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T14:08:32.141Z",
-      "durationMs": 5
-    },
-    {
-      "id": "log_60e5f524-2eab-40c8-8abb-a42dff327540",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_bce9fb9a-2491-4331-8e8c-b467c78f661f",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T07:20:34.062Z",
-      "durationMs": 62
-    },
-    {
-      "id": "log_14b43141-6bfe-4b1f-b945-f05fbcff89f9",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_2bfb1469-6774-41f3-928b-7f2668e90df8",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T07:20:31.680Z",
-      "durationMs": 18
-    },
-    {
-      "id": "log_310d8719-0bcf-4b7f-b9da-c470157264dd",
-      "ruleId": "rule_robot_estop_notify",
-      "ruleName": "Robot Emergency Stop Alert",
-      "eventId": "evt_20d71fce-2d72-46fc-961b-2675501dc613",
-      "eventType": "robot.emergency_stop",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T07:18:03.843Z",
-      "durationMs": 13
-    },
-    {
-      "id": "log_574f1879-2855-4b65-908d-a07d7a5647aa",
-      "ruleId": "rule_agent_approval_notify",
-      "ruleName": "Nhắc khi Agent cần duyệt",
-      "eventId": "evt_17ec4c4e-bba8-49c6-97bb-f68cb27b6154",
-      "eventType": "agent.step.approval_required",
-      "conditionResult": true,
-      "actionsExecuted": [
-        "log_event"
-      ],
-      "actionsSkipped": [],
-      "status": "success",
-      "executedAt": "2026-06-23T07:18:02.359Z",
-      "durationMs": 15
+      "executedAt": "2026-06-30T15:00:09.211Z",
+      "durationMs": 50
     }
   ]
 }

@@ -5,7 +5,7 @@ function patchFile(filePath, patcher) {
   if (!fs.existsSync(filePath)) {
     throw new Error(`Required file not found: ${filePath}`);
   }
-  const source = fs.readFileSync(filePath, 'utf8');
+  const source = fs.readFileSync(filePath, 'utf8').replace(/\r\n/g, '\n');
   const next = patcher(source);
   if (next !== source) {
     fs.writeFileSync(filePath, next);

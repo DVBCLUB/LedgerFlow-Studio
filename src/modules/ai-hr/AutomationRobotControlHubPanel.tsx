@@ -37,6 +37,147 @@ function unwrap(value: any, ...keys: string[]) {
 function arr(value: any) { return Array.isArray(value) ? value : []; }
 function obj(value: any) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
 
+function RobotVisualizer({ robotState, onCommand, loading }: { robotState: any; onCommand: (cmd: any) => Promise<void>; loading: boolean }) {
+  const pos = robotState?.position || { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 };
+  const gripper = robotState?.gripperState || 'open';
+  
+  // Base coordinates mapping for SVG (100, 160)
+  const scale = 0.15; // mm to px
+  const basePoint = { x: 100, y: 150 };
+  const shoulder = { x: basePoint.x, y: basePoint.y - 30 };
+  
+  // Calculate Elbow and Wrist target coordinates
+  const targetX = basePoint.x + (pos.x || 0) * scale;
+  const targetY = basePoint.y - 30 - (pos.z || 0) * scale;
+  
+  // Intermediary Elbow joint
+  const elbow = { 
+    x: (shoulder.x + targetX) / 2 - 15, 
+    y: (shoulder.y + targetY) / 2 - 20 
+  };
+  
+  return (
+    <div className="space-y-4 rounded-2xl border border-slate-800 bg-slate-950 p-4 text-left">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-black uppercase text-cyan-300">Live Mechanical Telemetry</span>
+        <span className="text-[10px] text-slate-500 font-bold">X: {pos.x || 0}mm | Z: {pos.z || 0}mm</span>
+      </div>
+
+      {/* SVG Canvas */}
+      <div className="relative h-44 w-full rounded-xl border border-slate-900 bg-slate-950/90 overflow-hidden flex items-center justify-center">
+        <svg className="w-full h-full" viewBox="0 0 200 180">
+          <line x1="0" y1="150" x2="200" y2="150" stroke="#1e293b" strokeWidth="1" strokeDasharray="2 2" />
+          <line x1="100" y1="0" x2="100" y2="180" stroke="#1e293b" strokeWidth="1" strokeDasharray="2 2" />
+          
+          {/* Base structure */}
+          <rect x="80" y="150" width="40" height="8" fill="#475569" rx="1.5" />
+          <line x1="100" y1="150" x2="100" y2="120" stroke="#475569" strokeWidth="5" strokeLinecap="round" />
+          
+          {/* Shoulder Link */}
+          <line x1={shoulder.x} y1={shoulder.y} x2={elbow.x} y2={elbow.y} stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
+          <circle cx={shoulder.x} cy={shoulder.y} r="4.5" fill="#1d4ed8" />
+          
+          {/* Elbow Link */}
+          <line x1={elbow.x} y1={elbow.y} x2={targetX} y2={targetY} stroke="#10b981" strokeWidth="3" strokeLinecap="round" />
+          <circle cx={elbow.x} cy={elbow.y} r="3.5" fill="#047857" />
+          
+          {/* Gripper end effector */}
+          <circle cx={targetX} cy={targetY} r="3.5" fill="#f59e0b" />
+          {gripper === 'closed' ? (
+            <path d={`M ${targetX-4} ${targetY-4} L ${targetX} ${targetY} L ${targetX+4} ${targetY-4}`} stroke="#f59e0b" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          ) : (
+            <path d={`M ${targetX-6} ${targetY-5} L ${targetX-2} ${targetY} M ${targetX+6} ${targetY-5} L ${targetX+2} ${targetY}`} stroke="#f59e0b" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+          )}
+        </svg>
+        
+        {/* Status indicators */}
+        <div className="absolute top-2 right-2 flex flex-col gap-1 text-[9px] font-black uppercase text-right">
+          <span className="flex items-center justify-end gap-1 text-cyan-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" /> mode: sim
+          </span>
+          <span className="text-slate-500">temp: {robotState?.motorTemperatureC?.toFixed(1) || 22}°c</span>
+          <span className="text-slate-500">battery: {Math.round(robotState?.batteryPercent || 100)}%</span>
+        </div>
+      </div>
+
+      {/* Manual Joysticks */}
+      <div className="grid grid-cols-2 gap-3 text-[10px] font-black uppercase">
+        <div className="space-y-1">
+          <span className="text-slate-500 text-[9px] block">Linear Axes</span>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => onCommand({ command: 'move', position: { x: Math.min(500, (pos.x || 0) + 50), y: pos.y, z: pos.z }, velocity: 30, approvalPhrase: 'APPROVE ROBOT SIMULATION' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              X+
+            </button>
+            <button 
+              onClick={() => onCommand({ command: 'move', position: { x: Math.max(-500, (pos.x || 0) - 50), y: pos.y, z: pos.z }, velocity: 30, approvalPhrase: 'APPROVE ROBOT SIMULATION' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              X-
+            </button>
+          </div>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => onCommand({ command: 'move', position: { x: pos.x, y: pos.y, z: Math.min(500, (pos.z || 0) + 50) }, velocity: 30, approvalPhrase: 'APPROVE ROBOT SIMULATION' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              Z+
+            </button>
+            <button 
+              onClick={() => onCommand({ command: 'move', position: { x: pos.x, y: pos.y, z: Math.max(-500, (pos.z || 0) - 50) }, velocity: 30, approvalPhrase: 'APPROVE ROBOT SIMULATION' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              Z-
+            </button>
+          </div>
+        </div>
+
+        <div className="space-y-1">
+          <span className="text-slate-500 text-[9px] block">Tool & Calib</span>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => onCommand({ command: 'grip', gripAngle: 90 })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              Grip
+            </button>
+            <button 
+              onClick={() => onCommand({ command: 'release' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              Release
+            </button>
+          </div>
+          <div className="flex gap-1">
+            <button 
+              onClick={() => onCommand({ command: 'home' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 font-extrabold text-amber-400"
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => onCommand({ command: 'calibrate' })}
+              disabled={loading || robotState?.emergencyStop}
+              className="flex-1 bg-slate-900 border border-slate-800 hover:border-cyan-500/35 p-1 rounded text-center active:scale-95 transition disabled:opacity-50 text-slate-300"
+            >
+              Calib
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Badge({ children, tone = 'slate' }: { children: string; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' | 'violet' }) {
   const cls = tone === 'green' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : tone === 'violet' ? 'border-violet-500/30 bg-violet-500/10 text-violet-200' : 'border-slate-700 bg-slate-900 text-slate-300';
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${cls}`}>{children}</span>;
@@ -113,6 +254,30 @@ export default function AutomationRobotControlHubPanel() {
     } catch (err: any) { setError(err?.message || 'Không đổi được emergency stop.'); }
     finally { setLoading(false); }
   };
+  
+  const runRobotCommand = async (cmd: any) => {
+    setLoading(true); setError(''); setMessage('');
+    try {
+      const res = await daemonFetch<any>('/api/robot-simulation/command', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cmd)
+      }, 10000);
+      setData((current) => ({
+        ...current,
+        robotState: unwrap(res, 'result')?.evidence?.state || current.robotState,
+        automationLogs: [
+          { ruleName: `Command: ${cmd.command}`, action: 'executed', status: 'completed', createdAt: new Date().toISOString() },
+          ...current.automationLogs
+        ]
+      }));
+      setMessage(`Gửi lệnh robot thành công: ${cmd.command}`);
+    } catch (err: any) {
+      setError(err?.message || 'Lỗi thực thi lệnh robot.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => { void load(); }, []);
 
@@ -148,7 +313,7 @@ export default function AutomationRobotControlHubPanel() {
     <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
       <Section title="Robot simulation safety" icon={<ShieldAlert className="h-4 w-4 text-rose-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone={robotTone as any}>{data.robotState?.emergencyStop ? 'emergency stop' : data.robotState?.connected ? 'connected' : 'unknown'}</Badge><Badge>{data.robotState?.mode || 'simulation'}</Badge></div>
-        <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data.robotState || {}, null, 2)}</pre>
+        <RobotVisualizer robotState={data.robotState} onCommand={runRobotCommand} loading={loading} />
         <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => void robotEmergencyStop(true)} disabled={loading} className="rounded-xl border border-rose-500/40 bg-rose-950/30 px-3 py-2 text-xs font-black text-rose-100">Bật E-Stop</button><button onClick={() => void robotEmergencyStop(false)} disabled={loading} className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-3 py-2 text-xs font-black text-emerald-100">Tắt E-Stop</button></div>
       </Section>
       <Section title="Automation rules & logs" icon={<Zap className="h-4 w-4 text-amber-300" />}>

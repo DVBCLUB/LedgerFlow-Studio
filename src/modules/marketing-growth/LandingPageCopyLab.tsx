@@ -1,18 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  BookOpen,
-  Check,
-  Copy,
-  FileText,
-  LayoutTemplate,
-  Lightbulb,
-  LineChart,
-  Loader2,
-  MousePointerClick,
-  RefreshCw,
-  Save,
-  Wand2
-} from 'lucide-react';
+import { BookOpen, Check, Copy, FileText, LayoutTemplate, Lightbulb, LineChart, Loader2, MousePointerClick, RefreshCw, Save, Wand2 } from 'lucide-react';
 import {
   AI_COPY_PROMPT,
   COPY_FORMULAS,

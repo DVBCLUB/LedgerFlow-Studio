@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  CheckCircle2,
-  Clipboard,
-  Download,
-  ExternalLink,
-  FileText,
-  Github,
-  Loader2,
-  MonitorUp,
-  Send,
-  Sparkles,
-  TerminalSquare,
-} from 'lucide-react';
+import { CheckCircle2, Clipboard, Download, ExternalLink, FileText, Github, Loader2, MonitorUp, Send, Sparkles, Terminal } from 'lucide-react';
 import { appendIntegrationEvent } from '../../utils/integrationHubApi';
 
 const repoUrl = 'https://github.com/DVBCLUB/LedgerFlow-Studio';
@@ -110,7 +98,7 @@ export default function DevHandoffCenter() {
         <div className="grid gap-6 p-6 lg:grid-cols-[1.1fr_0.9fr] lg:p-8">
           <div className="space-y-4">
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-950/30 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-cyan-200">
-              <TerminalSquare className="h-4 w-4" /> VS Code / Cursor Handoff v1
+              <Terminal className="h-4 w-4" /> VS Code / Cursor Handoff v1
             </div>
             <h1 className="text-3xl font-black tracking-tight text-white md:text-4xl">Dev Handoff Center</h1>
             <p className="max-w-3xl text-sm font-semibold leading-7 text-slate-300">
@@ -183,7 +171,7 @@ export default function DevHandoffCenter() {
         <ActionButton icon={Github} label="Mở repo" onClick={() => void openTool(repoUrl, 'GitHub repo')} />
         <ActionButton icon={ExternalLink} label="Mở Actions" onClick={() => void openTool(actionsUrl, 'GitHub Actions')} />
         <ActionButton icon={Send} label="Tạo issue draft" busy={busy} onClick={() => void createIssueDraft()} />
-        <ActionButton icon={TerminalSquare} label="Mở hướng dẫn VS Code" onClick={() => window.open('vscode://file/', '_blank')} />
+        <ActionButton icon={Terminal} label="Mở hướng dẫn VS Code" onClick={() => window.open('vscode://file/', '_blank')} />
       </section>
     </div>
   );

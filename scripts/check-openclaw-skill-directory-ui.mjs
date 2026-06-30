@@ -18,7 +18,15 @@ for (const file of [panelFile, patcherFile, doctorFile, opsFile]) {
 
 if (fs.existsSync(panelFile)) {
   const source = fs.readFileSync(panelFile, 'utf8');
-  for (const token of ['OpenClaw Skill Directory', '/api/openclaw-skills', 'requiresApproval', 'includeBlocked']) {
+  const hasOldToken = source.includes('OpenClaw Skill Directory');
+  const hasNewToken = source.includes('LedgerFlow AI Skill Directory');
+  
+  if (!hasOldToken && !hasNewToken) {
+    console.error(`OpenClaw skill directory panel missing token: OpenClaw Skill Directory or LedgerFlow AI Skill Directory`);
+    failed = true;
+  }
+  
+  for (const token of ['/api/openclaw-skills', 'requiresApproval', 'includeBlocked']) {
     if (!source.includes(token)) {
       console.error(`OpenClaw skill directory panel missing token: ${token}`);
       failed = true;

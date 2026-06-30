@@ -1,18 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  BookOpen,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Database,
-  GitBranch,
-  Layers,
-  LineChart,
-  Play,
-  ShieldCheck,
-  Sparkles
-} from 'lucide-react';
+import { AlertTriangle, BookOpen, CheckCircle2, ClipboardList, Copy, Database, GitBranch, Layers, LineChart, Play, ShieldCheck, Sparkles } from 'lucide-react';
 import {
   DATA_ENGINEERING_LAYERS,
   DATA_QUALITY_RULES,

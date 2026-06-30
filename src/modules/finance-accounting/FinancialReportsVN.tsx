@@ -1,10 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import {
-  BarChart2, FileText, Download, RefreshCw, TrendingUp,
-  TrendingDown, DollarSign, Package, Users, Building2,
-  ChevronDown, ChevronRight, Info, AlertTriangle, CheckCircle2,
-  Scale, Layers, ArrowRightLeft
-} from 'lucide-react';
+import { BarChart2, FileText, Download, RefreshCw, TrendingUp, TrendingDown, DollarSign, Package, Users, Building2, ChevronDown, ChevronRight, Info, AlertTriangle, CheckCircle2, Scale, Layers, ArrowRightLeft } from 'lucide-react';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ReportTab = 'b01' | 'b02' | 'b03' | 'analysis';

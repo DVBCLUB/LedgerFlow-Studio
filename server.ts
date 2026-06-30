@@ -39,7 +39,13 @@ import { analyzeAndOptimize } from "./server/services/promptOptimizer";
 // ── Observability & Cost ─────────────────────────────────────────────
 import { getSnapshot as getCostSnapshot, getDailyCosts } from "./server/services/costObservability";
 
+// ── Core Module Loader (Modular Monolith Setup) ─────────────────────
+import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
+
 dotenv.config();
+if (process.env.FROM_DEV_LAUNCHER === "true") {
+  process.env.NODE_ENV = "development";
+}
 
 const databaseSaveSchema = z.object({ payload: z.record(z.string(), z.any()) });
 const aiPromptTaskSchema = z.enum(AI_PROMPT_TASKS);
@@ -150,7 +156,11 @@ async function startServer() {
     return res.json({ success: true });
   });
   app.use("/api", requireLocalAuth);
-  registerAccountingRoutes(app);
+
+  app.post("/api/client-error", express.json(), (req, res) => {
+    console.error("🔴 [ClientError]", req.body);
+    res.json({ success: true });
+  });
 
   const STORAGE_FILE = path.join(process.cwd(), "db_storage.json");
   app.get("/api/db/load", async (_req, res) => { try { res.json({ success: true, data: await loadLocalDatabase(STORAGE_FILE) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
@@ -664,6 +674,12 @@ async function startServer() {
       res.json({ success: true, report });
     } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Dynamic Module Loader — Auto registration for modular monolith
+  // ═══════════════════════════════════════════════════════════════════
+  const moduleLoadResult = await loadAllModules(app);
+  registerModuleRegistryEndpoint(app, moduleLoadResult);
 
   if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(process.cwd(), "dist")));

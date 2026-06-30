@@ -1,17 +1,5 @@
 import React, { useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Mail,
-  MessageSquare,
-  PhoneCall,
-  Send,
-  Target,
-  TrendingUp,
-  Users,
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Mail, MessageSquare, PhoneCall, Send, Target, TrendingUp, Users } from 'lucide-react';
 import OutboundBattleCardsPanel from './OutboundBattleCardsPanel';
 import {
   COLD_MESSAGES,

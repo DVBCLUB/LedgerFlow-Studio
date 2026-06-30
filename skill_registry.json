@@ -25,9 +25,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782228553998_57b84d",
-    "createdAt": "2026-06-23T15:29:13.998Z",
-    "updatedAt": "2026-06-23T15:29:13.998Z"
+    "id": "skill_1782837594079_dd39ec",
+    "createdAt": "2026-06-30T16:39:54.079Z",
+    "updatedAt": "2026-06-30T16:39:54.079Z"
   },
   {
     "name": "code-reviewer",
@@ -54,9 +54,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782228553999_666400",
-    "createdAt": "2026-06-23T15:29:13.999Z",
-    "updatedAt": "2026-06-23T15:29:13.999Z"
+    "id": "skill_1782837594079_82b5a1",
+    "createdAt": "2026-06-30T16:39:54.079Z",
+    "updatedAt": "2026-06-30T16:39:54.079Z"
   },
   {
     "name": "test-writer",
@@ -85,9 +85,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782228553999_37f8c1",
-    "createdAt": "2026-06-23T15:29:13.999Z",
-    "updatedAt": "2026-06-23T15:29:13.999Z"
+    "id": "skill_1782837594079_598238",
+    "createdAt": "2026-06-30T16:39:54.079Z",
+    "updatedAt": "2026-06-30T16:39:54.079Z"
   },
   {
     "name": "data-analyzer",
@@ -115,9 +115,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782228553999_33ad5f",
-    "createdAt": "2026-06-23T15:29:13.999Z",
-    "updatedAt": "2026-06-23T15:29:13.999Z"
+    "id": "skill_1782837594079_f5cc27",
+    "createdAt": "2026-06-30T16:39:54.079Z",
+    "updatedAt": "2026-06-30T16:39:54.079Z"
   },
   {
     "name": "security-auditor",
@@ -144,8 +144,8 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782228553999_8d8588",
-    "createdAt": "2026-06-23T15:29:13.999Z",
-    "updatedAt": "2026-06-23T15:29:13.999Z"
+    "id": "skill_1782837594079_91cc66",
+    "createdAt": "2026-06-30T16:39:54.079Z",
+    "updatedAt": "2026-06-30T16:39:54.079Z"
   }
 ]

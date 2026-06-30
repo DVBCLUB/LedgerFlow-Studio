@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {
-  AlertTriangle, ArrowRight, CheckCircle2, Code2, Copy, ExternalLink,
-  Github, Loader2, Monitor, PlayCircle, RefreshCw, Shield, TerminalSquare, XCircle,
-} from 'lucide-react';
+import { AlertTriangle, ArrowRight, CheckCircle2, Code2, Copy, ExternalLink, Github, Loader2, Monitor, PlayCircle, RefreshCw, Shield, Terminal, XCircle } from 'lucide-react';
 import {
   fetchContracts, fetchIDECheck, openIDEFromBridge, generateIDEHandoff,
   type ConnectorContract, type IDECheckResult, type IDEHandoffPrompt,
@@ -12,7 +9,7 @@ const ideIcons: Record<string, typeof Code2> = {
   vscode: Code2,
   cursor: Code2,
   github: Github,
-  terminal: TerminalSquare,
+  terminal: Terminal,
   windsurf: Code2,
   copilot: Monitor,
 };

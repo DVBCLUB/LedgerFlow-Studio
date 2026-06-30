@@ -5,9 +5,7 @@ import OnboardingGuide from './components/OnboardingGuide';
 import CEOOverviewPanel from './CEOOverviewPanel';
 import ERPCommandCenter from './ERPCommandCenter';
 import type { TabType } from '../../app/companyNavigation';
-import { 
-  Building2, Bot, Gauge, HelpCircle, Activity 
-} from 'lucide-react';
+import { Building2, Bot, Gauge, HelpCircle, Activity } from 'lucide-react';
 
 interface CommandCenterProps {
   onNavigate: (tab: TabType, subTab?: string) => void;

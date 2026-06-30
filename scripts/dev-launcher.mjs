@@ -2,10 +2,14 @@
  * dev-launcher.mjs
  * ============================================================
  * Launches both LedgerFlow servers concurrently:
- *   - Main app server (port 3000): tsx server.ts
- *   - AI Assistant daemon (port 3001): tsx server/assistant-daemon.ts
+ *   - Main app server (port 3000): server.ts
+ *   - AI Assistant daemon (port 3001): server/assistant-daemon.ts
  *
  * Usage: node scripts/dev-launcher.mjs
+ *
+ * FIX (Windows): Uses `node --import tsx` instead of `npx tsx` or
+ * .cmd wrappers to avoid ENOENT/EINVAL on Windows where npx/.cmd
+ * files cannot be spawned directly without a shell.
  */
 
 import { spawn } from 'node:child_process';
@@ -15,10 +19,22 @@ import path from 'node:path';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
-function startProcess(label, scriptPath) {
-  const child = spawn('npx', ['tsx', scriptPath], {
+/**
+ * Spawn a TypeScript file using: node --import tsx <file>
+ * This is fully cross-platform — works on Windows, macOS, and Linux
+ * without relying on shell wrappers or npx.
+ */
+function startProcess(label, scriptPath, customEnv = {}) {
+  const child = spawn('node', ['--import', 'tsx', scriptPath], {
     cwd: root,
     stdio: 'pipe',
+    env: {
+      ...process.env,
+      NODE_ENV: 'development',
+      FROM_DEV_LAUNCHER: 'true',
+      ...customEnv
+    },
+    shell: false
   });
 
   child.stdout.on('data', (data) => {
@@ -33,6 +49,11 @@ function startProcess(label, scriptPath) {
     }
   });
 
+  child.on('error', (err) => {
+    console.error(`[${label}] Failed to start: ${err.message}`);
+    console.error(`[${label}] Hint: Make sure tsx is installed (npm install)`);
+  });
+
   child.on('close', (code) => {
     console.log(`[${label}] Process exited with code ${code}`);
   });
@@ -45,8 +66,11 @@ console.log('║     LedgerFlow Studio — Dev Mode                 ║');
 console.log('║     Starting main app + AI assistant daemon...   ║');
 console.log('╚══════════════════════════════════════════════════╝');
 console.log('');
+console.log('  APP:    http://127.0.0.1:3005');
+console.log('  DAEMON: http://127.0.0.1:3001');
+console.log('');
 
-const mainServer = startProcess('APP:3000', 'server.ts');
+const mainServer = startProcess('APP:3005', 'server.ts', { PORT: '3005' });
 const daemon = startProcess('DAEMON:3001', 'server/assistant-daemon.ts');
 
 // Forward termination signals

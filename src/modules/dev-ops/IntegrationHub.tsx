@@ -1,33 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import {
-  Activity,
-  Bot,
-  Boxes,
-  Check,
-  CheckCircle2,
-  ClipboardList,
-  Cloud,
-  Code2,
-  Copy,
-  Database,
-  ExternalLink,
-  FileText,
-  GitBranch,
-  Github,
-  Loader2,
-  Network,
-  PlayCircle,
-  RefreshCw,
-  Search,
-  Settings2,
-  ShieldCheck,
-  Sparkles,
-  TerminalSquare,
-  Video,
-  Workflow,
-  XCircle,
-  Zap,
-} from 'lucide-react';
+import { Activity, Bot, Boxes, Check, CheckCircle2, ClipboardList, Cloud, Code2, Copy, Database, ExternalLink, FileText, GitBranch, Github, Loader2, Network, PlayCircle, RefreshCw, Search, Settings2, ShieldCheck, Sparkles, Terminal, Video, Workflow, XCircle, Zap } from 'lucide-react';
 import GitHubConnectorPanel from './GitHubConnectorPanel';
 import LocalToolsPanel from './LocalToolsPanel';
 import WebAiSyncPanel from './WebAiSyncPanel';
@@ -306,7 +278,7 @@ Hãy đóng vai là AI Growth Hacker. Hãy lập danh sách 5 group Facebook/Red
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
               <Metric label="Connected" value={summary.connected} icon={Sparkles} />
               <Metric label="Local-first" value={summary.local} icon={ShieldCheck} />
-              <Metric label="Handoff" value={summary.manual} icon={TerminalSquare} />
+              <Metric label="Handoff" value={summary.manual} icon={Terminal} />
               <Metric label="Roadmap" value={summary.planned} icon={ClipboardList} />
               <Metric label="Issues" value={summary.error} icon={XCircle} />
             </div>

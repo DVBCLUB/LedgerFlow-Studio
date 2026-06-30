@@ -3,10 +3,7 @@ import { useStore } from '../../store/useStore';
 import { BUSINESS_IDEAS } from '../../data/businessIdeas';
 import { BusinessIdea, FinancialForecastInput } from '../../types';
 import { 
-  Calculator, Award, ShieldAlert, CheckCircle2, TrendingUp, HelpCircle, Briefcase, 
-  DollarSign, Users, Sparkles, Database, Server, Cpu, Cloud, Check, ArrowRight,
-  BrainCircuit, LayoutDashboard, Compass
-} from 'lucide-react';
+  Calculator, Award, ShieldAlert, CheckCircle2, TrendingUp, HelpCircle, Briefcase, DollarSign, Users, Sparkles, Database, Server, Cpu, Cloud, Check, ArrowRight, BrainCircuit, LayoutDashboard, Compass } from 'lucide-react';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Tooltip } from 'recharts';
 import ICPHypothesisCanvas from './components/ICPHypothesisCanvas';
 import VaporwareSmokeTester from './components/VaporwareSmokeTester';

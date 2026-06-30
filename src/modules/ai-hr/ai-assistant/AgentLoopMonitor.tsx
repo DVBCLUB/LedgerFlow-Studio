@@ -1,8 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  PlayCircle, Square, Loader2, CheckCircle2, XCircle,
-  AlertTriangle, RefreshCw, ArrowRight, BrainCircuit, Clock,
-} from 'lucide-react';
+import { PlayCircle, Square, Loader2, CheckCircle2, XCircle, AlertTriangle, RefreshCw, ArrowRight, BrainCircuit, Clock } from 'lucide-react';
 
 interface LoopStep {
   id: string;

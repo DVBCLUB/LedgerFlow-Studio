@@ -2,28 +2,7 @@ import React, { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import { 
-  Send, 
-  Terminal, 
-  Sparkles, 
-  Copy, 
-  Trash2, 
-  HelpCircle, 
-  FileText, 
-  Database, 
-  ShieldAlert, 
-  AlertCircle, 
-  Cpu, 
-  Save, 
-  FileDown, 
-  BookOpen, 
-  Check, 
-  Edit2,
-  Upload,
-  PlusCircle,
-  FileSpreadsheet,
-  RotateCcw,
-  Paperclip
-} from 'lucide-react';
+  Send, Terminal, Sparkles, Copy, Trash2, HelpCircle, FileText, Database, ShieldAlert, AlertCircle, Cpu, Save, FileDown, BookOpen, Check, Edit2, Upload, PlusCircle, FileSpreadsheet, RotateCcw, Paperclip } from 'lucide-react';
 
 interface Message {
   role: 'user' | 'assistant' | 'error';

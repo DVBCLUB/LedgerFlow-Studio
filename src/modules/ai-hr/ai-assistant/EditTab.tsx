@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Wand2, Loader2, RefreshCw, Info, BookOpen,
-  FileCode2, CheckCircle2, X, RotateCcw
-} from 'lucide-react';
+import { Wand2, Loader2, RefreshCw, Info, BookOpen, FileCode2, CheckCircle2, X, RotateCcw } from 'lucide-react';
 import { type EditResult, type WebAIProfile } from '../../../utils/assistantApi';
 import CodeBlock from './CodeBlock';
 

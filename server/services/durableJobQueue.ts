@@ -40,13 +40,7 @@ async function readStore(): Promise<QueueStore> {
 
 async function writeStore(store: QueueStore) {
   const target = storageFile();
-  const temp = `${target}.${process.pid}.${Date.now()}.tmp`;
-  try {
-    await fs.promises.writeFile(temp, JSON.stringify(store, null, 2), 'utf8');
-    await fs.promises.rename(temp, target);
-  } finally {
-    await fs.promises.rm(temp, { force: true }).catch(() => undefined);
-  }
+  await fs.promises.writeFile(target, JSON.stringify(store, null, 2), 'utf8');
 }
 
 function mutate<T>(operation: (store: QueueStore) => Promise<T> | T): Promise<T> {

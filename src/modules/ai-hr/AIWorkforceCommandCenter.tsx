@@ -1,20 +1,5 @@
 import React from 'react';
-import {
-  Activity,
-  AlertTriangle,
-  Bot,
-  BrainCircuit,
-  CheckCircle2,
-  Cpu,
-  Database,
-  GitBranch,
-  Network,
-  PlayCircle,
-  ShieldCheck,
-  Sparkles,
-  Target,
-  Zap,
-} from 'lucide-react';
+import { Activity, AlertTriangle, Bot, BrainCircuit, CheckCircle2, Cpu, Database, GitBranch, Network, PlayCircle, ShieldCheck, Sparkles, Target, Zap } from 'lucide-react';
 import {
   AI_WORKFORCE_CAPABILITIES,
   AI_WORKFORCE_GAP_MATRIX,
@@ -121,7 +106,7 @@ export default function AIWorkforceCommandCenter() {
             </div>
           </div>
           <span className="rounded-full border border-violet-500/30 bg-violet-500/10 px-3 py-1 text-[10px] font-black uppercase text-violet-200">
-            OpenClaw+ readiness
+            LedgerFlow AI readiness
           </span>
         </div>
         <div className="mt-5 grid gap-4 xl:grid-cols-2">

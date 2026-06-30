@@ -3,7 +3,6 @@ import { spawn } from 'node:child_process';
 const isWindows = process.platform === 'win32';
 
 const steps = [
-  ['run', 'ai:patch-ai-workforce-command-center'],
   ['run', 'check:ai-workforce-command-center'],
   ['test'],
   ['run', 'build'],

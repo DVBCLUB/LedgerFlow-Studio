@@ -1,14 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Zap, 
-  Database, 
-  Layers, 
-  DollarSign, 
-  Terminal, 
-  Cpu, 
-  TrendingUp, 
-  BookOpen 
-} from 'lucide-react';
+import { Zap, Database, Layers, DollarSign, Terminal, Cpu, TrendingUp, BookOpen } from 'lucide-react';
 import IdeasTab from '../product-studio/guerrilla/IdeasTab';
 import AgentsTab from '../product-studio/guerrilla/AgentsTab';
 import StrategyTab from '../product-studio/guerrilla/StrategyTab';

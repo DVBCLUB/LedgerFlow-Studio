@@ -3,35 +3,7 @@ import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import CustomDataWorkbenchDeepDivePanel from './CustomDataWorkbenchDeepDivePanel';
 import { 
-  Database, 
-  Terminal, 
-  Settings, 
-  Plus, 
-  Check, 
-  Trash2, 
-  Copy, 
-  FileText, 
-  Sparkles, 
-  Table, 
-  RefreshCw, 
-  Code, 
-  Briefcase, 
-  FileDown, 
-  Upload, 
-  UploadCloud,
-  AlertCircle,
-  Award,
-  BookOpen,
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-  HelpCircle,
-  Layers,
-  Activity,
-  User,
-  Coins,
-  ShieldCheck
-} from 'lucide-react';
+  Database, Terminal, Settings, Plus, Check, Trash2, Copy, FileText, Sparkles, Table, RefreshCw, Code, Briefcase, FileDown, Upload, UploadCloud, AlertCircle, Award, BookOpen, ArrowRight, CheckCircle2, XCircle, HelpCircle, Layers, Activity, User, Coins, ShieldCheck } from 'lucide-react';
 
 interface ParsedTable {
   id: string;

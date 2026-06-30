@@ -1,10 +1,9 @@
 LEDGERFLOW HUB - DOC TRUOC KHI DUNG
 
 NEU BAN CHI MUON DUNG PHAN MEM:
-- DUNG TAI source code ZIP tu nut Code -> Download ZIP.
-- Hay vao GitHub Actions artifact va tai goi: LedgerFlow-Hub-Windows-Download.
-- Giai nen goi do, bam file .exe de mo LedgerFlow Hub.
-- Day la ban duy nhat de su dung hang ngay. Khong dung trinh duyet/localhost nhu mot ban web rieng.
+- Chay truc tiep file LedgerFlow-Hub.exe (hoac KHOI_DONG_PHAN_MEM.cmd) ngay o thu muc goc nay.
+- Day la launcher thong minh. Neu chua co ban desktop duoc build, no se tu dong hoi va giup ban tu build ban moi nhat.
+- Sau nay moi thay doi code/giao dien se duoc tu dong cap nhat khi ban chay lai launcher nay.
 
 DANG NHAP BAN DESKTOP/LOCAL:
 - Email: nhap email local cua ban, vi du founder@ledgerflow.local

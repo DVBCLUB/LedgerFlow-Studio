@@ -1,10 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Terminal, Play, CheckCircle2, AlertTriangle, X, ShieldAlert,
-  Download, RefreshCw, FileSearch, Layers, ArrowRight, Check, Lock,
-  HelpCircle, Eye, EyeOff, Activity, ShieldCheck, RefreshCcw,
-  Cpu, Database, ShieldX, Sliders, AlertCircle, Compass, Save, Trash2, ArrowUpRight
-} from 'lucide-react';
+import { Terminal, Play, CheckCircle2, AlertTriangle, X, ShieldAlert, Download, RefreshCw, FileSearch, Layers, ArrowRight, Check, Lock, HelpCircle, Eye, EyeOff, Activity, ShieldCheck, RefreshCcw, Cpu, Database, ShieldX, Sliders, AlertCircle, Compass, Save, Trash2, ArrowUpRight } from 'lucide-react';
 import {
   checkDaemonHealth,
   readFile,

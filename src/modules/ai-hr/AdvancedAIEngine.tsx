@@ -1,19 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  Bot,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Database,
-  EyeOff,
-  FileText,
-  Lock,
-  ShieldAlert,
-  ShieldCheck,
-  Sparkles,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, Bot, CheckCircle2, ClipboardList, Copy, Database, EyeOff, FileText, Lock, ShieldAlert, ShieldCheck, Sparkles, WalletCards } from 'lucide-react';
 import {
   AI_ARCHITECTURE,
   AI_GUARDRAILS,

@@ -1,17 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  ClipboardList,
-  Copy,
-  Gift,
-  Link2,
-  ShieldCheck,
-  TrendingUp,
-  UserPlus,
-  Users,
-  WalletCards
-} from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ClipboardList, Copy, Gift, Link2, ShieldCheck, TrendingUp, UserPlus, Users, WalletCards } from 'lucide-react';
 import {
   COMMISSION_MODELS,
   FRAUD_CONTROLS,
