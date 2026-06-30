@@ -16,6 +16,17 @@ function replaceOnce(search, replacement, label) {
   changed = true;
 }
 
+function replaceFirstAvailable(candidates, replacementFactory, label) {
+  for (const search of candidates) {
+    if (!source.includes(search)) continue;
+    const replacement = typeof replacementFactory === 'function' ? replacementFactory(search) : replacementFactory;
+    source = source.replace(search, replacement);
+    changed = true;
+    return;
+  }
+  throw new Error(`Cannot patch release gate dashboard UI: missing ${label}`);
+}
+
 if (!source.includes("import ReleaseGateDashboardCard from './ReleaseGateDashboardCard';")) {
   replaceOnce(
     "} from '../../services/aiWorkforceRuntimeClient';",
@@ -25,17 +36,28 @@ if (!source.includes("import ReleaseGateDashboardCard from './ReleaseGateDashboa
 }
 
 if (!source.includes('const releaseGate = dashboard?.releaseGate;')) {
-  replaceOnce(
-    '  const ledger = dashboard?.ledger;\n  const recentRecords = dashboard?.recentRecords || [];',
-    '  const ledger = dashboard?.ledger;\n  const releaseGate = dashboard?.releaseGate;\n  const recentRecords = dashboard?.recentRecords || [];',
+  replaceFirstAvailable(
+    [
+      '  const ledger = dashboard?.ledger;\n  const recentRecords = dashboard?.recentRecords || [];',
+      '  const ledger = dashboard?.ledger;\n',
+      '  const tooling = dashboard?.tooling;\n',
+    ],
+    (anchor) => anchor.includes('recentRecords')
+      ? '  const ledger = dashboard?.ledger;\n  const releaseGate = dashboard?.releaseGate;\n  const recentRecords = dashboard?.recentRecords || [];'
+      : `${anchor}  const releaseGate = dashboard?.releaseGate;\n`,
     'dashboard releaseGate state anchor',
   );
 }
 
 if (!source.includes('<ReleaseGateDashboardCard releaseGate={releaseGate} />')) {
-  replaceOnce(
-    '      </div>\n\n      <div className="mt-5 grid gap-3 lg:grid-cols-6">',
-    '      </div>\n\n      <ReleaseGateDashboardCard releaseGate={releaseGate} />\n\n      <div className="mt-5 grid gap-3 lg:grid-cols-6">',
+  replaceFirstAvailable(
+    [
+      '      </div>\n\n      <div className="mt-5 grid gap-3 lg:grid-cols-6">',
+      '      </div>\n\n      {lastMissionPlan && (',
+    ],
+    (anchor) => anchor.startsWith('      </div>\n\n      <div')
+      ? '      </div>\n\n      <ReleaseGateDashboardCard releaseGate={releaseGate} />\n\n      <div className="mt-5 grid gap-3 lg:grid-cols-6">'
+      : '      </div>\n\n      <ReleaseGateDashboardCard releaseGate={releaseGate} />\n\n      {lastMissionPlan && (',
     'metric grid insertion anchor',
   );
 }
