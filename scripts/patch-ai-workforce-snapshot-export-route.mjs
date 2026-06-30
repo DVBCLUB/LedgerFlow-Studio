@@ -16,6 +16,17 @@ function replaceOnce(search, replacement, label) {
   changed = true;
 }
 
+function replaceFirstAvailable(candidates, replacementFactory, label) {
+  for (const search of candidates) {
+    if (!source.includes(search)) continue;
+    const replacement = typeof replacementFactory === 'function' ? replacementFactory(search) : replacementFactory;
+    source = source.replace(search, replacement);
+    changed = true;
+    return;
+  }
+  throw new Error(`Cannot patch snapshot export route: missing ${label}`);
+}
+
 const importAnchor = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
 const snapshotImports = `import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";
 import { buildMissionQueueSnapshotExport } from "./services/aiWorkforceMissionSnapshotExport";
@@ -23,7 +34,15 @@ import { listMissionExecutionQueues, requireMissionExecutionQueue } from "./serv
 import { buildStoredMissionOperatorReviewDossier, getMissionOperatorReviewNoteStoreStats, listMissionOperatorReviewNotes, saveMissionOperatorReviewNote } from "./services/aiWorkforceMissionReviewNoteStore";`;
 
 if (!source.includes('buildMissionQueueSnapshotExport')) {
-  replaceOnce(importAnchor, snapshotImports, 'GitHub CI Doctor import anchor');
+  replaceFirstAvailable(
+    [
+      importAnchor,
+      'import { gatherSystemOverview } from "./services/crossServiceDataLinker";',
+      'import express, { Request, Response, NextFunction } from "express";',
+    ],
+    (anchor) => anchor === importAnchor ? snapshotImports : `${anchor}\n${snapshotImports.replace(`${importAnchor}\n`, '')}`,
+    'snapshot export import anchor',
+  );
 } else if (!source.includes('saveMissionOperatorReviewNote')) {
   replaceOnce(
     'import { listMissionExecutionQueues, requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";',
@@ -33,6 +52,15 @@ if (!source.includes('buildMissionQueueSnapshotExport')) {
 }
 
 const routeAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
+const fallbackRouteAnchors = [
+  routeAnchor,
+  '// ---------------------------------------------------------------------------\n// Agent Control Plane endpoints\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Robot Adapter Boundary endpoints (P2)\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Browser Runbook endpoints (P2)\n// ---------------------------------------------------------------------------',
+  'const PORT = Number(process.env.ASSISTANT_DAEMON_PORT ?? 3001);',
+  'app.listen(PORT',
+];
+
 const routeBlock = `// ---------------------------------------------------------------------------
 // AI Workforce Mission Snapshot Export and Review Notes endpoints
 // ---------------------------------------------------------------------------
@@ -87,7 +115,11 @@ app.post("/api/ai-workforce/mission-snapshot-export", async (req: Request, res: 
 });`;
 
 if (!source.includes('/api/ai-workforce/mission-snapshot-export')) {
-  replaceOnce(routeAnchor, `${routeBlock}\n\n${routeAnchor}`, 'Unified System Overview route anchor');
+  replaceFirstAvailable(
+    fallbackRouteAnchors,
+    (anchor) => `${routeBlock}\n\n${anchor}`,
+    'snapshot export route anchor',
+  );
 } else {
   if (!source.includes('/api/ai-workforce/mission-review-note')) {
     replaceOnce('app.post("/api/ai-workforce/mission-snapshot-export"', `${routeBlock}\n\napp.post("/api/ai-workforce/mission-snapshot-export"`, 'snapshot export route expansion anchor');
