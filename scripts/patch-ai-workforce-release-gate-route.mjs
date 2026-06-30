@@ -16,10 +16,31 @@ function replaceOnce(search, replacement, label) {
   changed = true;
 }
 
+function replaceFirstAvailable(candidates, replacementFactory, label) {
+  for (const search of candidates) {
+    if (!source.includes(search)) continue;
+    const replacement = typeof replacementFactory === 'function' ? replacementFactory(search) : replacementFactory;
+    source = source.replace(search, replacement);
+    changed = true;
+    return;
+  }
+  throw new Error(`Cannot patch release gate route: missing ${label}`);
+}
+
 const importAnchor = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
 
 if (!source.includes('buildRuntimeMissionReleaseGate')) {
-  replaceOnce(importAnchor, `${importAnchor}\nimport { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionReleaseGateRuntime";`, 'GitHub CI Doctor import anchor');
+  replaceFirstAvailable(
+    [
+      importAnchor,
+      'import { gatherSystemOverview } from "./services/crossServiceDataLinker";',
+      'import express, { Request, Response, NextFunction } from "express";',
+    ],
+    (anchor) => anchor === importAnchor
+      ? `${importAnchor}\nimport { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionReleaseGateRuntime";`
+      : `${anchor}\nimport { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionReleaseGateRuntime";`,
+    'release gate import anchor',
+  );
 }
 
 const legacyImports = [
@@ -35,6 +56,16 @@ for (const legacyImport of legacyImports) {
 }
 
 const routeAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
+const fallbackRouteAnchors = [
+  routeAnchor,
+  '// ---------------------------------------------------------------------------\n// AI Workforce Mission Snapshot Export and Review Notes endpoints\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Agent Control Plane endpoints\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Robot Adapter Boundary endpoints (P2)\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Browser Runbook endpoints (P2)\n// ---------------------------------------------------------------------------',
+  'const PORT = Number(process.env.ASSISTANT_DAEMON_PORT ?? 3001);',
+  'app.listen(PORT',
+];
+
 const routeBlock = `// ---------------------------------------------------------------------------
 // AI Workforce Mission Release Gate endpoint
 // ---------------------------------------------------------------------------
@@ -60,7 +91,11 @@ app.post("/api/ai-workforce/mission-release-gate", async (req: Request, res: Res
 });`;
 
 if (!source.includes('/api/ai-workforce/mission-release-gate')) {
-  replaceOnce(routeAnchor, `${routeBlock}\n\n${routeAnchor}`, 'Unified System Overview route anchor');
+  replaceFirstAvailable(
+    fallbackRouteAnchors,
+    (anchor) => `${routeBlock}\n\n${anchor}`,
+    'release gate route anchor',
+  );
 } else if (!source.includes('runtimeRecord: result.runtimeRecord')) {
   const currentRoute = /\/\/ ---------------------------------------------------------------------------\n\/\/ AI Workforce Mission Release Gate endpoint\n\/\/ ---------------------------------------------------------------------------\napp\.post\("\/api\/ai-workforce\/mission-release-gate", async \(req: Request, res: Response\) => \{[\s\S]*?\n\}\);/;
   if (!currentRoute.test(source)) throw new Error('Cannot patch release gate route: route block not found');
