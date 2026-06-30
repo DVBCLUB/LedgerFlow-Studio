@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 
-const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const isWindows = process.platform === 'win32';
 
 const steps = [
   ['run', 'ai:patch-ai-workforce-command-center'],
@@ -9,14 +9,24 @@ const steps = [
   ['run', 'build'],
 ];
 
+function npmSpawnArgs(args) {
+  if (!isWindows) return { command: 'npm', args };
+  return {
+    command: 'cmd.exe',
+    args: ['/d', '/s', '/c', 'npm', ...args],
+  };
+}
+
 function runStep(args) {
   return new Promise((resolve, reject) => {
-    const label = `${npmCmd} ${args.join(' ')}`;
+    const label = `npm ${args.join(' ')}`;
+    const spawned = npmSpawnArgs(args);
     console.log(`\n━━ AI Workforce local verify: ${label}`);
-    const child = spawn(npmCmd, args, {
+    const child = spawn(spawned.command, spawned.args, {
       stdio: 'inherit',
       shell: false,
-      env: process.env,
+      env: { ...process.env },
+      windowsHide: false,
     });
     child.on('error', reject);
     child.on('close', (code) => {
