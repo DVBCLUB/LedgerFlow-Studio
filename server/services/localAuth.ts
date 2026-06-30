@@ -3,6 +3,7 @@ import type { NextFunction, Request, Response } from "express";
 
 const SESSION_COOKIE = "ledgerflow_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
+const LOCAL_AUTH_PASSWORD_ENV = "LOCAL_AUTH_DEV_PASSWORD";
 export type LocalRole = "owner" | "operator" | "viewer" | "automation";
 const sessions = new Map<string, { email: string; role: LocalRole; loggedInAt: string; expiresAt: number }>();
 
@@ -22,10 +23,13 @@ function sameSecret(left: string, right: string): boolean {
 }
 
 function configuredPassword(): { password: string; usesDevPassword: boolean } | null {
-  const explicit = process.env.LOCAL_AUTH_DEV_PASSWORD;
-  if (explicit) return { password: explicit, usesDevPassword: false };
-  const localRuntime = process.env.NODE_ENV !== "production" || process.env.ELECTRON_DESKTOP === "true";
-  return localRuntime ? { password: "admin123", usesDevPassword: true } : null;
+  const explicit = process.env[LOCAL_AUTH_PASSWORD_ENV]?.trim();
+  if (!explicit) return null;
+  return { password: explicit, usesDevPassword: false };
+}
+
+function localAuthSetupError(): string {
+  return `${LOCAL_AUTH_PASSWORD_ENV} must be configured before local login is available. Set it in .env for desktop/local use or hosting secrets for production.`;
 }
 
 function cookieValue(token: string, maxAgeSeconds: number): string {
@@ -42,7 +46,7 @@ function cookieValue(token: string, maxAgeSeconds: number): string {
 
 export function createLocalSession(email: string, password: string) {
   const auth = configuredPassword();
-  if (!auth) throw new Error("LOCAL_AUTH_DEV_PASSWORD must be configured for a hosted production runtime.");
+  if (!auth) throw new Error(localAuthSetupError());
   if (!sameSecret(password, auth.password)) return null;
   const token = randomBytes(32).toString("base64url");
   const stored = { email, role: "owner" as const, loggedInAt: new Date().toISOString(), expiresAt: Date.now() + SESSION_TTL_MS };
