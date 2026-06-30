@@ -38,7 +38,7 @@ jobs:
 
       - name: Upload typecheck log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-build-typecheck-log
           path: typecheck.log
@@ -54,7 +54,7 @@ jobs:
 
       - name: Upload unit test log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-build-unit-test-log
           path: unit-test.log
@@ -70,7 +70,7 @@ jobs:
 
       - name: Upload build log
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ledgerflow-build-verification-log
           path: build.log
