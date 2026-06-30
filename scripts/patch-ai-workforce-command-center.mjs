@@ -22,6 +22,14 @@ function replaceOnce(source, search, replacement, label) {
   return source.replace(search, replacement);
 }
 
+function replaceBeforeFirstAvailable(source, anchors, insertion, label) {
+  for (const anchor of anchors) {
+    if (!source.includes(anchor)) continue;
+    return source.replace(anchor, `${insertion}\n\n${anchor}`);
+  }
+  throw new Error(`Cannot patch AI Workforce: missing anchor ${label}`);
+}
+
 function ensureRuntimeHubImport(source) {
   const githubCiImport = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
   const currentImport = 'import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";';
@@ -156,19 +164,48 @@ ${githubPrControlRoute}`;
 
 function ensureRuntimeHubRoutes(source) {
   const unifiedOverviewAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
+  const fallbackAnchors = [
+    unifiedOverviewAnchor,
+    '// ---------------------------------------------------------------------------\n// Agent Control Plane endpoints\n// ---------------------------------------------------------------------------',
+    '// ---------------------------------------------------------------------------\n// Robot Adapter Boundary endpoints (P2)\n// ---------------------------------------------------------------------------',
+    '// ---------------------------------------------------------------------------\n// Browser Runbook endpoints (P2)\n// ---------------------------------------------------------------------------',
+    'const PORT = Number(process.env.ASSISTANT_DAEMON_PORT ?? 3001);',
+    'app.listen(PORT',
+  ];
 
   if (source.includes('/api/ai-workforce/mission-execution-queue/tool-execute')) return source;
   if (source.includes('/api/ai-workforce/mission-execution-queue/approve')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/mission-execution-queue/cancel"', `app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: Request, res: Response) => {\n  try {\n    const result = await previewRuntimeMissionStepToolExecution(req.body as any);\n    res.json({ ok: true, result });\n  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }\n});\napp.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {\n  try {\n    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);\n    res.json({ ok: true, ...result });\n  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }\n});\napp.post("/api/ai-workforce/mission-execution-queue/cancel"`, 'AI Workforce Mission Tool Execution route upgrade');
+    return replaceOnce(source, 'app.post("/api/ai-workforce/mission-execution-queue/cancel"', `app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: Request, res: Response) => {
+  try {
+    const result = await previewRuntimeMissionStepToolExecution(req.body as any);
+    res.json({ ok: true, result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {
+  try {
+    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);
+    res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/cancel"`, 'AI Workforce Mission Tool Execution route upgrade');
   }
   if (source.includes('/api/ai-workforce/mission-execution-queue')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Queue resume route upgrade');
+    if (source.includes('app.post("/api/ai-workforce/safety-preview"')) {
+      return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Queue resume route upgrade');
+    }
+    return replaceBeforeFirstAvailable(source, fallbackAnchors, missionQueueResumeRoutes, 'AI Workforce Mission Queue fallback route anchor');
   }
   if (source.includes('/api/ai-workforce/mission-plan')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Execution Queue route upgrade');
+    if (source.includes('app.post("/api/ai-workforce/safety-preview"')) {
+      return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Execution Queue route upgrade');
+    }
+    return replaceBeforeFirstAvailable(source, fallbackAnchors, `${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}`, 'AI Workforce Mission Execution Queue fallback route anchor');
   }
   if (source.includes('/api/ai-workforce/context-pack')) {
-    return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionPlanRoute}\n${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Planner route upgrade');
+    if (source.includes('app.post("/api/ai-workforce/safety-preview"')) {
+      return replaceOnce(source, 'app.post("/api/ai-workforce/safety-preview"', `${missionPlanRoute}\n${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}\napp.post("/api/ai-workforce/safety-preview"`, 'AI Workforce Mission Planner route upgrade');
+    }
+    return replaceBeforeFirstAvailable(source, fallbackAnchors, `${missionPlanRoute}\n${missionExecutionQueueRoute}\n${missionQueueResumeRoutes}`, 'AI Workforce Mission Planner fallback route anchor');
   }
   if (source.includes('/api/ai-workforce/github-pr-control')) return source;
   if (source.includes('/api/ai-workforce/pr-control')) {
@@ -177,7 +214,7 @@ function ensureRuntimeHubRoutes(source) {
   if (source.includes('/api/ai-workforce/pr-readiness')) {
     return replaceOnce(source, prReadinessRoute, `${prReadinessRoute}\n${prControlRoute}\n${githubPrControlRoute}`, 'AI Workforce PR Control route upgrade');
   }
-  return replaceOnce(source, unifiedOverviewAnchor, `${runtimeRouteBlock}\n\n${unifiedOverviewAnchor}`, 'AI Workforce Runtime Hub route block');
+  return replaceBeforeFirstAvailable(source, fallbackAnchors, runtimeRouteBlock, 'AI Workforce Runtime Hub route block');
 }
 
 const rendererPath = path.resolve('src/app/WorkspaceRenderer.tsx');
