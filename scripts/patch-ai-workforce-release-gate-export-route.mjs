@@ -16,12 +16,44 @@ function replaceOnce(search, replacement, label) {
   changed = true;
 }
 
+function replaceFirstAvailable(candidates, replacementFactory, label) {
+  for (const search of candidates) {
+    if (!source.includes(search)) continue;
+    const replacement = typeof replacementFactory === 'function' ? replacementFactory(search) : replacementFactory;
+    source = source.replace(search, replacement);
+    changed = true;
+    return;
+  }
+  throw new Error(`Cannot patch release gate export route: missing ${label}`);
+}
+
 const importAnchor = 'import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";';
 if (!source.includes('buildAIWorkforceReleaseGateExport')) {
-  replaceOnce(importAnchor, `${importAnchor}\nimport { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";`, 'GitHub CI Doctor import anchor');
+  replaceFirstAvailable(
+    [
+      importAnchor,
+      'import { gatherSystemOverview } from "./services/crossServiceDataLinker";',
+      'import express, { Request, Response, NextFunction } from "express";',
+    ],
+    (anchor) => anchor === importAnchor
+      ? `${importAnchor}\nimport { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";`
+      : `${anchor}\nimport { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";`,
+    'release gate export import anchor',
+  );
 }
 
 const routeAnchor = '// ---------------------------------------------------------------------------\n// Unified System Overview (cross-service data linker)\n// ---------------------------------------------------------------------------';
+const fallbackRouteAnchors = [
+  routeAnchor,
+  '// ---------------------------------------------------------------------------\n// AI Workforce Mission Release Gate endpoint\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// AI Workforce Mission Snapshot Export and Review Notes endpoints\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Agent Control Plane endpoints\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Robot Adapter Boundary endpoints (P2)\n// ---------------------------------------------------------------------------',
+  '// ---------------------------------------------------------------------------\n// Browser Runbook endpoints (P2)\n// ---------------------------------------------------------------------------',
+  'const PORT = Number(process.env.ASSISTANT_DAEMON_PORT ?? 3001);',
+  'app.listen(PORT',
+];
+
 const routeBlock = `// ---------------------------------------------------------------------------
 // AI Workforce Release Gate Export endpoint
 // ---------------------------------------------------------------------------
@@ -35,7 +67,11 @@ app.post("/api/ai-workforce/release-gate-export", async (req: Request, res: Resp
 });`;
 
 if (!source.includes('/api/ai-workforce/release-gate-export')) {
-  replaceOnce(routeAnchor, `${routeBlock}\n\n${routeAnchor}`, 'Unified System Overview route anchor');
+  replaceFirstAvailable(
+    fallbackRouteAnchors,
+    (anchor) => `${routeBlock}\n\n${anchor}`,
+    'release gate export route anchor',
+  );
 }
 
 if (changed) {
