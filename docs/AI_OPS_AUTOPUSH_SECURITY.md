@@ -1,10 +1,10 @@
 # AI Operations Center - Approved GitHub Auto-Push Security Model
 
-## Goal
+## Muc tieu
 
-LedgerFlow AI Operations Center must eventually allow AI agents to push code to GitHub automatically, because copying and pasting code manually defeats the purpose of an AI operations system.
+LedgerFlow AI Operations Center ve dai han can cho phep AI agents push code len GitHub tu dong, vi copy/paste thu cong lam mat y nghia cua mot AI operations system.
 
-However, auto-push must be controlled. The correct model is:
+Tuy nhien, auto-push bat buoc phai duoc kiem soat. Mo hinh dung la:
 
 ```txt
 AI proposes change
@@ -17,9 +17,9 @@ AI proposes change
   -> Founder reviews and merges
 ```
 
-AI must not push directly to `main`.
+AI tuyet doi khong push truc tiep vao `main`.
 
-## Current implemented backend endpoint
+## Backend endpoint da trien khai
 
 ```txt
 POST /api/integrations/github/approved-change-request
@@ -45,34 +45,34 @@ Input shape:
 }
 ```
 
-The backend will:
+Backend se:
 
-1. Require `GITHUB_TOKEN` or `GH_TOKEN` server-side.
-2. Require exact founder approval phrase.
-3. Create a safe `ai/*` branch.
-4. Commit file replacements to the branch.
-5. Open a draft pull request.
-6. Write Integration Hub event log.
+1. Bat buoc `GITHUB_TOKEN` hoac `GH_TOKEN` o server-side.
+2. Bat buoc exact founder approval phrase.
+3. Tao nhanh an toan `ai/*`.
+4. Commit file thay the vao nhanh do.
+5. Mo draft pull request.
+6. Ghi Integration Hub event log.
 
-## Security rules already implemented
+## Quy tac bao mat da duoc trien khai
 
 ### Token handling
 
-- GitHub token is read only from backend environment variables.
-- Token must not be passed from frontend.
-- Token must not be stored in localStorage.
-- Token must not be printed in logs.
+- GitHub token chi duoc doc tu backend environment variables.
+- Token khong duoc truyen tu frontend.
+- Token khong duoc luu trong localStorage.
+- Token khong duoc in ra logs.
 
 ### Branch protection by design
 
-- AI-generated branch names are forced under `ai/*`.
-- Direct push to `main`, `master`, `develop`, or `production` is blocked.
-- The endpoint opens a PR instead of merging.
-- Draft PR is the default.
+- Branch name do AI tao bi ep nam duoi `ai/*`.
+- Chan direct push vao `main`, `master`, `develop`, hoac `production`.
+- Endpoint mo PR thay vi merge.
+- Draft PR la mac dinh.
 
 ### File safety
 
-The backend blocks sensitive or runtime paths, including:
+Backend chan cac path nhay cam hoac runtime, gom:
 
 - `.env*`
 - `runtime/.ledgerflow_secret`
@@ -85,52 +85,52 @@ The backend blocks sensitive or runtime paths, including:
 - `node_modules/`
 - `dist/`
 - `release/`
-- private key files such as `.pem`, `.key`, `id_rsa`, `id_ed25519`
+- private key files nhu `.pem`, `.key`, `id_rsa`, `id_ed25519`
 
-### Size and review limits
+### Gioi han kich thuoc va review
 
-- Max 10 files per approved request.
-- Max 250,000 characters per file.
-- This keeps PRs reviewable and reduces blast radius.
+- Toi da 10 files moi approved request.
+- Toi da 250,000 ky tu moi file.
+- Muc tieu la giu PR de review va giam blast radius.
 
-## Required next steps
+## Buoc tiep theo bat buoc
 
 ### P0 UI
 
-Add UI inside `AI Nhân sự / AI Operations Center`:
+Them UI trong `AI Nhan su / AI Operations Center`:
 
-1. Show proposed file changes.
-2. Show risk score.
-3. Show blocked paths warning.
-4. Require founder to type `APPROVE AI GITHUB PUSH`.
-5. Button: `Create AI branch + draft PR`.
-6. Show resulting PR link.
-7. Add audit log card.
+1. Hien file changes de xuat.
+2. Hien risk score.
+3. Hien canh bao blocked paths.
+4. Bat founder nhap `APPROVE AI GITHUB PUSH`.
+5. Nut: `Create AI branch + draft PR`.
+6. Hien link PR ket qua.
+7. Them audit log card.
 
 ### P1 AI generation flow
 
-1. AI creates plan.
-2. AI creates replacement file content.
-3. Founder reviews diff-like view.
-4. Founder approves.
-5. Backend pushes branch and PR.
+1. AI tao plan.
+2. AI tao replacement file content.
+3. Founder review giao dien kieu diff.
+4. Founder phe duyet.
+5. Backend push branch va PR.
 
 ### P2 stronger security
 
-1. Use fine-grained GitHub token with minimal repo permissions.
-2. Add allowlist of writable paths.
-3. Add diff preview and suspicious-content scanner.
-4. Add PR label `ai-generated`.
-5. Add mandatory CI pass before merge.
-6. Add optional code-owner review.
-7. Add rate limit per day for auto-push.
-8. Add local passphrase unlock before approved push.
+1. Dung fine-grained GitHub token voi permission toi thieu.
+2. Them allowlist cho writable paths.
+3. Them diff preview va suspicious-content scanner.
+4. Them PR label `ai-generated`.
+5. Bat buoc CI pass truoc merge.
+6. Them code-owner review tuy chon.
+7. Them rate limit theo ngay cho auto-push.
+8. Them local passphrase unlock truoc approved push.
 
-## Non-negotiable rules
+## Quy tac khong the thuong luong
 
-- AI can push branch/PR, not main.
-- Founder approval is required.
-- Secrets never leave backend.
-- Frontend never sees GitHub token.
-- Every AI push must leave an audit trail.
-- Any high-risk action must be blocked or require a stronger approval gate.
+- AI chi duoc push branch/PR, khong duoc push main.
+- Bat buoc co founder approval.
+- Secrets khong duoc roi khoi backend.
+- Frontend khong bao gio duoc thay GitHub token.
+- Moi AI push bat buoc de lai audit trail.
+- Moi hanh dong rui ro cao phai bi chan hoac can gate phe duyet manh hon.

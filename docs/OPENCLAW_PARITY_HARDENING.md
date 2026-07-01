@@ -1,14 +1,14 @@
 # OpenClaw Parity Hardening
 
-This branch tightens LedgerFlow AI Workforce toward the OpenClaw-style local autonomous assistant model while keeping LedgerFlow founder-first safety rules.
+Nhanh nay tang cuong LedgerFlow AI Workforce theo mo hinh tro ly tu hanh local kieu OpenClaw, dong thoi van giu safety rules uu tien founder.
 
-## 1. Tool schema sync
+## 1. Dong bo tool schema
 
-`npm run ai:patch-daemon-tools` patches `server/assistant-daemon.ts` so mission creation validates `requestedTools` through the shared `AGENT_TOOL_IDS` source of truth. `npm run check:agent-tool-ids` now treats daemon schema drift as a blocking error.
+`npm run ai:patch-daemon-tools` patch `server/assistant-daemon.ts` de mission creation validate `requestedTools` theo source of truth chung `AGENT_TOOL_IDS`. `npm run check:agent-tool-ids` hien xem daemon schema drift la loi chan (blocking error).
 
 ## 2. Telegram / mobile parity
 
-`server/services/telegramMissionCommands.ts` already defines the founder mobile command surface:
+`server/services/telegramMissionCommands.ts` da dinh nghia command surface cho founder tren mobile:
 
 - `/mission create "goal"`
 - `/mission status latest`
@@ -22,38 +22,38 @@ This branch tightens LedgerFlow AI Workforce toward the OpenClaw-style local aut
 - `/automation scheduler status`
 - `/ai emergency-stop on|off`
 
-`npm run ai:patch-telegram-missions` wires that command router into `telegramBot.ts` before dev/lint/build.
+`npm run ai:patch-telegram-missions` noi command router vao `telegramBot.ts` truoc cac buoc dev/lint/build.
 
 ## 3. Plugin boundary
 
-The plugin system remains the highest-risk OpenClaw parity area. Runtime host-side plugin invocation must remain blocked unless a future signed adapter proves all of these gates:
+Plugin system van la vung rui ro cao nhat cua OpenClaw parity. Runtime host-side plugin invocation phai tiep tuc bi chan, tru khi mot signed adapter tuong lai chung minh du tat ca gate sau:
 
 - signed manifest
 - sandbox mode enabled
 - approved permission scopes
-- entry point stays inside its plugin folder
-- audit event for every invocation attempt
+- entry point nam trong dung plugin folder
+- co audit event cho moi lan invocation attempt
 
 ## 4. Reviewed patch sessions
 
-Patch review routes are wired by `npm run ai:patch-patch-review-routes`. The intended flow is:
+Patch review routes duoc noi boi `npm run ai:patch-patch-review-routes`. Luong ky vong:
 
-1. agent creates `draft_patch` artifact
-2. founder creates/reviews patch session from run
-3. session moves to `approved_to_apply`
-4. apply requires exact phrase `APPLY REVIEWED PATCH`
-5. rollback requires exact phrase `ROLLBACK REVIEWED PATCH`
+1. agent tao `draft_patch` artifact
+2. founder tao/review patch session tu run
+3. session chuyen sang `approved_to_apply`
+4. apply bat buoc dung exact phrase `APPLY REVIEWED PATCH`
+5. rollback bat buoc dung exact phrase `ROLLBACK REVIEWED PATCH`
 
 ## 5. Local daemon hardening
 
-`server/services/daemonLocalGuard.ts` adds a local-first request guard. The daemon rejects non-local requests by default and can require an authenticated local principal when `LEDGERFLOW_DAEMON_AUTH_REQUIRED=true`.
+`server/services/daemonLocalGuard.ts` bo sung local-first request guard. Daemon mac dinh tu choi request khong phai local va co the bat buoc authenticated local principal khi `LEDGERFLOW_DAEMON_AUTH_REQUIRED=true`.
 
 ## Build integration
 
-The following scripts now run patchers before developer and release checks:
+Nhung script sau hien chay patchers truoc cac buoc dev/release checks:
 
 - `predev`
 - `prelint`
 - `prebuild`
 
-This keeps the large daemon file generated consistently while making the smaller safety boundaries reviewable in source control.
+Dieu nay giu file daemon lon duoc generate nhat quan, dong thoi de cac boundary nho lien quan safety duoc review ro rang trong source control.

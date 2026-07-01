@@ -1,56 +1,56 @@
-# LedgerFlow Studio — Company OS Guardrails
+# LedgerFlow Studio - Company OS Guardrails
 
-Company OS is a Founder Labs module, not a replacement for the main LedgerFlow app.
+Company OS la module trong Founder Labs, khong phai thay the cho app chinh LedgerFlow.
 
-## What this module is
+## Module nay dung de lam gi
 
-Company OS converts the Claude evaluation board into an internal operating dashboard for the solo-founder workflow:
+Company OS chuyen hoa bang danh gia Claude thanh dashboard van hanh noi bo cho workflow solo-founder:
 
 - Company OS scorecard
-- AI Workforce roles and prompts
+- AI Workforce roles va prompts
 - P0 roadmap
 - Revenue / MRR simulator
 - Weekly operations rhythm
 - GTM Vietnam plan
 
-## Where it lives
+## Vi tri module
 
 - Component: `src/components/CompanyOS.tsx`
 - Entry point: `src/components/FounderLabsDock.tsx`
 - Lab id: `company_os`
 - Visible label: `Company OS`
 
-The module is opened through the floating **Labs** button. It must remain lazy-loaded through `FounderLabsDock`.
+Module duoc mo qua nut noi **Labs**. Bat buoc giu lazy-load thong qua `FounderLabsDock`.
 
-## Do not break the old structure
+## Khong duoc pha vo cau truc cu
 
-When improving this module, keep these rules:
+Khi cai tien module nay, bat buoc giu cac quy tac sau:
 
-1. Do not rename or remove existing lab ids unless a migration is also added.
-2. Do not replace the main app route with `CompanyOS`.
-3. Do not convert `CompanyOS` into `App()` or a standalone root component.
-4. Do not remove existing Founder Labs modules to make room for Company OS.
-5. Do not change existing localStorage keys unless backup/restore and migration are updated.
-6. Keep Company OS as an additive module under Founder Labs.
-7. Keep `npm run check:founder-labs` passing before release.
+1. Khong doi ten hoac xoa lab ids hien co neu chua them migration.
+2. Khong thay route app chinh bang `CompanyOS`.
+3. Khong bien `CompanyOS` thanh `App()` hoac root component doc lap.
+4. Khong xoa module Founder Labs hien co de nhuong cho Company OS.
+5. Khong doi localStorage keys hien co neu backup/restore va migration chua cap nhat.
+6. Giu Company OS la module bo sung ben trong Founder Labs.
+7. Dam bao `npm run check:founder-labs` pass truoc khi release.
 
-## Integrity checks
+## Kiem tra tinh toan ven
 
-`CompanyOS` is included in `scripts/check-founder-labs.mjs`. The check confirms:
+`CompanyOS` da duoc dua vao `scripts/check-founder-labs.mjs`. Script xac minh:
 
-- `src/components/CompanyOS.tsx` exists.
-- The component has a default export.
-- `FounderLabsDock` lazy-loads it.
-- The dock contains the `company_os` tab object.
-- `renderLab()` explicitly renders `<CompanyOS />` for `company_os`.
+- `src/components/CompanyOS.tsx` ton tai.
+- Component co default export.
+- `FounderLabsDock` lazy-load dung component.
+- Dock co tab object `company_os`.
+- `renderLab()` render ro rang `<CompanyOS />` cho `company_os`.
 
-## Safe improvement path
+## Huong cai tien an toan
 
-Preferred next improvements:
+Cac cai tien nen uu tien:
 
-- Move large static data arrays from `CompanyOS.tsx` into `src/data/companyOS.ts`.
-- Add export/print support for the roadmap and weekly plan.
-- Add optional localStorage persistence only for user-edited fields.
-- Add tests or script checks before adding persistence.
+- Tach static data arrays lon tu `CompanyOS.tsx` sang `src/data/companyOS.ts`.
+- Them ho tro export/print cho roadmap va weekly plan.
+- Chi them localStorage persistence tuy chon cho cac truong nguoi dung chinh sua.
+- Them tests hoac script checks truoc khi mo rong persistence.
 
-Avoid large rewrites. Small module-level changes are safer for this repository.
+Tranh rewrite lon. Thay doi nho theo module an toan hon cho repository nay.
