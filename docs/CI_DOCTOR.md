@@ -1,20 +1,20 @@
 # GitHub CI Doctor
 
-GitHub CI Doctor là connector phụ của Integration Hub, dùng để nối 3 phần:
+GitHub CI Doctor la connector phu cua Integration Hub, dung de noi 3 phan:
 
 ```text
-GitHub Actions đỏ → LedgerFlow đọc run/job/step → AI Gateway phân tích → prompt đưa qua VS Code/Cursor
+GitHub Actions do -> LedgerFlow doc run/job/step -> AI Gateway phan tich -> prompt dua qua VS Code/Cursor
 ```
 
-## Cách mở
+## Cach mo
 
-Trong app bấm nút nổi **CI Doctor**, hoặc mở trực tiếp:
+Trong app bam nut noi **CI Doctor**, hoac mo truc tiep:
 
 ```text
 http://127.0.0.1:3000/#/ci_doctor
 ```
 
-Các hash được hỗ trợ:
+Hash route duoc ho tro:
 
 ```text
 #/ci_doctor
@@ -22,15 +22,15 @@ Các hash được hỗ trợ:
 #/github_ci
 ```
 
-## Luồng dùng chuẩn
+## Luong dung chuan
 
-1. Chờ GitHub Actions chạy xong.
+1. Cho GitHub Actions chay xong.
 2. Mở **CI Doctor**.
-3. Bấm **Tải lỗi CI**.
+3. Bam **Tai loi CI**.
 4. Kiểm tra run/job/step đang đỏ.
-5. Bấm **AI phân tích**.
-6. Copy phần **Prompt đưa qua VS Code/Cursor**.
-7. Dán prompt đó vào VS Code Copilot/Cursor để sửa đúng lỗi.
+5. Bam **AI phan tich**.
+6. Copy phan **Prompt dua qua VS Code/Cursor**.
+7. Dan prompt do vao VS Code Copilot/Cursor de sua dung loi.
 8. Sau khi sửa chạy:
 
 ```bash
@@ -38,17 +38,17 @@ npm run lint
 npm run build
 ```
 
-9. Push lại và xem Actions xanh/đỏ.
+9. Push lai va xem Actions xanh/do.
 
-## Ghi chú kỹ thuật
+## Ghi chu ky thuat
 
-- Frontend đọc GitHub Actions public bằng GitHub API.
-- AI analysis chạy qua endpoint nội bộ `/api/gemini/generate`, tức là tận dụng AI Gateway/vault/fallback đã có.
-- Không lưu GitHub token ở frontend.
-- Nếu cần repo private hoặc tạo issue/PR sâu hơn, cấu hình `GITHUB_TOKEN` hoặc `GH_TOKEN` ở `.env` local để backend GitHub connector dùng.
+- Frontend doc GitHub Actions public bang GitHub API.
+- AI analysis chay qua endpoint noi bo `/api/gemini/generate`, tuc la tan dung AI Gateway/vault/fallback da co.
+- Khong luu GitHub token o frontend.
+- Neu can repo private hoac tao issue/PR sau hon, cau hinh `GITHUB_TOKEN` hoac `GH_TOKEN` o `.env` local de backend GitHub connector dung.
 
-## Giới hạn v1
+## Gioi han v1
 
-- V1 đọc run/job/step summary. Chưa tải full raw log ở frontend để tránh CORS/permission phức tạp.
-- Nếu log quá chi tiết cần full log, mở GitHub Actions trực tiếp rồi copy đoạn lỗi vào Dev Handoff hoặc AI Chat.
-- AI không tự sửa code; nó tạo prompt cho VS Code/Cursor để bạn kiểm soát.
+- V1 doc run/job/step summary. Chua tai full raw log o frontend de tranh CORS/permission phuc tap.
+- Neu log qua chi tiet can full log, mo GitHub Actions truc tiep roi copy doan loi vao Dev Handoff hoac AI Chat.
+- AI khong tu sua code; no tao prompt cho VS Code/Cursor de ban kiem soat.

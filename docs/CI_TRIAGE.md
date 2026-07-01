@@ -1,10 +1,10 @@
 # CI Triage Checklist
 
-Use this checklist when LedgerFlow Studio CI fails or when a PR changes build, packaging, TypeScript, Electron, server, or persistence code.
+Dung checklist nay khi CI cua LedgerFlow Studio bi do, hoac khi PR co thay doi lien quan den build, packaging, TypeScript, Electron, server, hoac persistence.
 
-## Current release gate
+## Release gate hien tai
 
-A PR is not ready to merge until the maintainers can explain the result of each gate:
+PR chua san sang merge neu maintainers chua giai trinh duoc ket qua cua tung gate:
 
 ```bash
 npm run lint
@@ -12,13 +12,13 @@ npm test
 npm run build
 ```
 
-If a command is temporarily failing because of known legacy debt, link the tracking issue and include the exact failing output.
+Neu mot lenh tam thoi fail do legacy debt da biet, can gan link issue tracking va dinh kem output fail chinh xac.
 
-## Fast local reproduction
+## Tai hien loi nhanh o local
 
-1. Start from a clean branch based on `main`.
-2. Install dependencies with the same Node version used by CI.
-3. Run the checks in order:
+1. Bat dau tu nhanh sach duoc cat tu `main`.
+2. Cai dependencies bang cung Node version voi CI.
+3. Chay checks theo dung thu tu:
 
 ```bash
 npm install
@@ -27,45 +27,45 @@ npm test
 npm run build
 ```
 
-4. Capture the first real failure, not just the final summary.
-5. Categorize the failure using the groups below.
+4. Ghi nhan loi goc dau tien, khong chi nhin tong ket cuoi.
+5. Phan loai loi theo nhom ben duoi.
 
-## Failure categories
+## Nhom loi thuong gap
 
-### TypeScript or lint
+### TypeScript hoac lint
 
-- Missing event union/type variant.
-- Duplicate declarations or exports.
-- Stale barrel export to deleted/moved modules.
-- UI prop type mismatch.
-- Server/client compatibility type mismatch.
-- Strict null or unknown handling.
+- Thieu event union/type variant.
+- Khai bao hoac export bi trung.
+- Barrel export cu tro den module da xoa/doi vi tri.
+- UI prop type bi lech.
+- Type giua server/client khong tuong thich.
+- Xu ly strict null hoac unknown chua dung.
 
 ### Unit/integration tests
 
-- Test fixture drift.
-- Mock mismatch after service changes.
-- Local persistence path assumptions.
-- Background job timing assumptions.
+- Test fixture bi drift.
+- Mock khong con khop sau khi doi service.
+- Gia dinh sai ve duong dan persistence local.
+- Gia dinh sai ve timing cua background jobs.
 
 ### Build/runtime
 
-- Vite or bundler import failure.
-- Electron path/runtime mismatch.
-- Node version mismatch.
-- Environment variable expectation.
-- Missing generated/static asset.
+- Vite hoac bundler import fail.
+- Electron path/runtime bi lech.
+- Node version khong khop.
+- Bien moi truong khong dung ky vong.
+- Thieu generated/static asset.
 
 ### Desktop packaging
 
-- Windows script failure.
-- Electron entrypoint/preload mismatch.
-- `userData` redirection issue.
-- Missing API/assistant daemon startup dependency.
+- Windows script fail.
+- Electron entrypoint/preload bi lech.
+- Loi redirection `userData`.
+- Thieu dependency de khoi dong API/assistant daemon.
 
-## PR evidence template
+## Mau bang chung cho PR
 
-Paste this into PRs that touch runtime or release-sensitive code:
+Dung mau nay cho PR co tac dong runtime hoac code nhay cam voi release:
 
 ```text
 Validation:
@@ -83,13 +83,13 @@ Rollback:
 
 ## Guardrails
 
-- Do not disable project-wide type checking to make CI green.
-- Prefer targeted fixes over broad `any` casts.
-- Move obsolete files out of the lint/build surface only when they are proven unused.
-- Do not add new product modules while P0 CI failures are unresolved.
-- Keep Windows desktop and web-render build assumptions aligned.
+- Khong tat type checking toan du an chi de CI xanh.
+- Uu tien sua dung diem thay vi dung `any` rong.
+- Chi dua file cu khoi lint/build surface khi da chung minh khong con dung.
+- Khong them module san pham moi khi loi CI P0 chua duoc giai quyet.
+- Giu gia dinh build giua Windows desktop va web-render dong bo.
 
-## Related P0 tracking
+## P0 tracking lien quan
 
-- #14: existing TypeScript CI failures blocking build.
-- #26: CI/type-check triage and release gate stabilization.
+- #14: loi TypeScript CI hien tai dang chan build.
+- #26: triage CI/type-check va on dinh release gate.

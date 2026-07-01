@@ -1,34 +1,34 @@
-# CI Triage and Local Build Parity Runbook
+# CI Triage va Local Build Parity Runbook
 
-This runbook is part of the Claude Company OS build brief. It exists because a desktop build can pass while the LedgerFlow Studio web CI still fails.
+Runbook nay thuoc nhom Claude Company OS build brief. Tai lieu ton tai vi desktop build co the pass trong khi web CI cua LedgerFlow Studio van do.
 
-## Goal
+## Muc tieu
 
-Keep the repository stable before adding more Company OS features.
+Giu repository on dinh truoc khi them tinh nang Company OS moi.
 
-Priority order:
+Thu tu uu tien:
 
-1. CI green first.
-2. TypeScript schema correctness before UI polish.
-3. Runtime safety for legacy localStorage data.
-4. Feature work only after build confidence is restored.
+1. CI xanh truoc.
+2. TypeScript schema dung truoc khi polish UI.
+3. Runtime an toan cho du lieu localStorage cu.
+4. Chi tiep tuc feature khi do tin cay build da khoi phuc.
 
-## Why Windows Desktop can pass while LedgerFlow Studio CI fails
+## Vi sao Windows Desktop co the pass trong khi LedgerFlow Studio CI fail
 
-A desktop workflow may package a different target or skip the stricter web checks. The main LedgerFlow Studio CI can still fail on:
+Desktop workflow co the dong goi target khac hoac bo qua web checks nghiem ngat hon. CI chinh cua LedgerFlow Studio van co the do o:
 
 - `npm run lint`
 - `npm run build`
 - `tsc --noEmit`
 - Vite production build
-- enum mismatch in TypeScript
-- object schema mismatch for shared types
-- missing required fields
-- stale localStorage data causing runtime crashes after build passes
+- enum mismatch trong TypeScript
+- object schema mismatch voi shared types
+- thieu required fields
+- du lieu localStorage cu gay crash runtime du build da pass
 
-## Local parity commands
+## Lenh parity o local
 
-Before pushing feature commits, run the same checks the CI expects:
+Truoc khi push commit feature, chay dung bo checks ma CI ky vong:
 
 ```bash
 npm install
@@ -36,15 +36,15 @@ npm run lint
 npm run build
 ```
 
-When debugging TypeScript only:
+Khi chi debug TypeScript:
 
 ```bash
 npx tsc --noEmit
 ```
 
-## High-risk files after AgentOps expansion
+## File rui ro cao sau AgentOps expansion
 
-These files should be checked whenever a new tab or workflow is added:
+Can kiem tra cac file sau moi khi them tab hoac workflow moi:
 
 ```text
 src/types/agentOps.ts
@@ -57,19 +57,19 @@ src/components/agent-ops/tabs/TaskQueueTab.tsx
 src/components/agent-ops/tabs/GitHubPRControlTab.tsx
 ```
 
-## Shared schema rules
+## Quy tac shared schema
 
 ### WorkCard
 
-Never invent a local WorkCard shape in a tab.
+Khong tu dinh nghia WorkCard shape rieng trong tab.
 
-Import the shared type:
+Import shared type:
 
 ```ts
 import type { WorkCard } from '../../../types/agentOps';
 ```
 
-Check required fields:
+Kiem tra required fields:
 
 ```ts
 kind
@@ -81,21 +81,21 @@ tools
 approval
 ```
 
-`plan` must be `string[]`, not a string.
+`plan` phai la `string[]`, khong phai string.
 
-`kind` must use the shared enum values only.
+`kind` chi duoc dung cac gia tri enum da chia se.
 
 ### ApprovalRequest
 
-Never create a partial approval object without checking the shared type.
+Khong tao approval object thieu truong neu chua doi chieu shared type.
 
-Import the shared type:
+Import shared type:
 
 ```ts
 import type { ApprovalRequest } from '../../../types/agentOps';
 ```
 
-Required fields must include:
+Required fields phai bao gom:
 
 ```ts
 id
@@ -109,19 +109,19 @@ createdAt
 expiresAt
 ```
 
-Use the Approval Gate key:
+Su dung Approval Gate key:
 
 ```ts
 ledgerflow_approval_gate_requests_v1
 ```
 
-Do not write approval requests to old or duplicate keys.
+Khong ghi approval requests vao key cu hoac key trung lap.
 
-## localStorage safety
+## An toan localStorage
 
-AgentOps now has many tabs reading old browser data. Any reader should tolerate missing fields.
+AgentOps co nhieu tab doc du lieu browser cu. Moi reader phai chiu duoc truong du lieu bi thieu.
 
-Use shared helpers:
+Su dung shared helpers:
 
 ```ts
 readLocalStorageValue
@@ -133,9 +133,9 @@ appendAgentOpsAudit
 useLocalStorageVersion
 ```
 
-Avoid direct ad-hoc helpers inside tabs unless there is a strong reason.
+Tranh viet ad-hoc helpers rieng trong tab neu khong co ly do that su can thiet.
 
-## Common failure patterns already seen
+## Mau loi thuong gap da ghi nhan
 
 - `Type 'string' is not assignable to type 'LOW | MEDIUM | HIGH'`
 - invalid `WorkCard.kind`
@@ -145,29 +145,29 @@ Avoid direct ad-hoc helpers inside tabs unless there is a strong reason.
 - memory/RAG reading the wrong localStorage key
 - legacy cards missing `tools` or `plan`
 
-## CI fix workflow
+## Quy trinh sua CI
 
-When CI is red:
+Khi CI do:
 
-1. Do not add new features.
-2. Open the failing CI step.
-3. Copy the exact TypeScript or Vite error.
-4. Fix the smallest file set possible.
-5. Push one focused commit.
-6. Re-run CI.
-7. Only continue feature work after green or after the remaining failure is clearly unrelated.
+1. Khong them feature moi.
+2. Mo dung step CI dang fail.
+3. Copy chinh xac loi TypeScript hoac Vite.
+4. Sua tren tap file nho nhat co the.
+5. Push mot commit co trong tam.
+6. Chay lai CI.
+7. Chi tiep tuc feature sau khi xanh, hoac khi loi con lai da xac dinh ro la khong lien quan.
 
-## Acceptance checklist before feature continuation
+## Acceptance checklist truoc khi tiep tuc feature
 
-- [ ] `npm run lint` passes.
-- [ ] `npm run build` passes.
-- [ ] New tabs are mounted in `AgentOpsHub` correctly.
-- [ ] New WorkCards use shared `WorkCard` type.
-- [ ] New Approval Gate requests use shared `ApprovalRequest` type.
-- [ ] New localStorage keys are documented or intentionally reused.
-- [ ] Legacy data is normalized before rendering.
-- [ ] No secret values are stored in frontend code or localStorage.
+- [ ] `npm run lint` pass.
+- [ ] `npm run build` pass.
+- [ ] Tab moi duoc mount dung trong `AgentOpsHub`.
+- [ ] WorkCard moi dung shared `WorkCard` type.
+- [ ] Approval Gate requests moi dung shared `ApprovalRequest` type.
+- [ ] localStorage key moi da duoc document hoac tai su dung co chu dich.
+- [ ] Legacy data duoc normalize truoc khi render.
+- [ ] Khong luu secret trong frontend code hoac localStorage.
 
-## Next recommended action
+## Hanh dong de xuat tiep theo
 
-If LedgerFlow Studio CI fails again, fix the exact CI error before continuing the Claude brief roadmap.
+Neu CI cua LedgerFlow Studio do lai, can sua dung loi CI cu the truoc khi tiep tuc roadmap Claude brief.
