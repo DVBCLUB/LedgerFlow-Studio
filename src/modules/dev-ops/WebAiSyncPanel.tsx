@@ -444,6 +444,8 @@ const fs = require('fs');
   const [lastScreenshot, setLastScreenshot] = useState<string | null>(null);
   const [apiFallbackExhausted, setApiFallbackExhausted] = useState(false);
   const [browserDiagnostics, setBrowserDiagnostics] = useState<any[]>([]);
+  const cooldownHosts = browserDiagnostics.filter((row) => row?.cooldownActive);
+  const repeatedFailureHosts = browserDiagnostics.filter((row) => Number(row?.failures || 0) >= 3);
 
   useEffect(() => {
     if (runTaskType === 'chatgpt-scrape') {
@@ -1054,6 +1056,18 @@ const fs = require('fs');
                 Xác nhận đã exhaust toàn bộ API provider/key trước khi dùng browser fallback.
               </span>
             </label>
+
+            {(cooldownHosts.length > 0 || repeatedFailureHosts.length > 0) && (
+              <div className="rounded-xl border border-rose-900/50 bg-rose-950/20 p-3 text-[11px] font-semibold text-rose-200">
+                <div className="font-black uppercase tracking-wide text-[10px] text-rose-300">Browser fallback warning</div>
+                {cooldownHosts.length > 0 && (
+                  <p className="mt-1">Host đang cooldown: {cooldownHosts.map((row) => row.host).filter(Boolean).join(', ')}. Không retry cưỡng bức.</p>
+                )}
+                {repeatedFailureHosts.length > 0 && (
+                  <p className="mt-1">Host có lỗi lặp lại (failures &gt;= 3): {repeatedFailureHosts.map((row) => row.host).filter(Boolean).join(', ')}. Ưu tiên API path hoặc đổi profile/timing.</p>
+                )}
+              </div>
+            )}
 
             {browserDiagnostics.length > 0 && (
               <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">

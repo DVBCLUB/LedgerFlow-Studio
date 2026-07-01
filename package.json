@@ -36,6 +36,7 @@
     "check:ai-desktop-integration": "node scripts/check-ai-desktop-integration.mjs",
     "check:new-features-brief": "node scripts/check-new-features-brief.mjs",
     "check:codemap": "node scripts/check-codemap-discipline.mjs",
+    "check:docs-ops-style": "node scripts/check-docs-ops-style.mjs",
     "check:pr-readiness": "node scripts/check-pr-readiness.mjs",
     "check:pr-readiness:dry": "node scripts/check-pr-readiness.mjs --dry-run",
     "report:pr-readiness:weekly": "node scripts/summarize-pr-readiness-metrics.mjs --days 7",

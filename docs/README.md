@@ -8,6 +8,7 @@ Read these first:
 
 ```text
 ../AGENTS.md
+OPERATIONS_INDEX.md
 PROJECT_STRUCTURE.md
 AI_AGENT_PLAYBOOK.md
 ```

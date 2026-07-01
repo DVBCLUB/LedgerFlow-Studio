@@ -74,14 +74,20 @@ function buildPlan(files) {
     /^scripts\/prepare-desktop-icons\.mjs$/,
     /^scripts\/check-desktop-package\.mjs$/,
     /^package\.json$/,
+    /^package-lock\.json$/,
     /^\.github\/workflows\/build-windows-desktop\.yml$/,
+    /^\.github\/workflows\/build-windows\.yml$/,
   ];
 
   const docsOnly = files.length > 0 && files.every((file) => /^(docs\/.*\.md|.*\.md|.*\.txt)$/.test(file));
+  const docsChanged = files.some((file) => /^(docs\/.*\.md|.*\.md|.*\.txt)$/.test(file));
   const aiRuntimeRisk = files.some((file) => matchesAny(file, aiRuntimePatterns));
   const desktopRisk = files.some((file) => matchesAny(file, desktopPatterns));
 
   const commands = [];
+  if (docsChanged) {
+    commands.push('npm run check:docs-ops-style');
+  }
   if (docsOnly) {
     commands.push('npm run check:codemap');
   } else {

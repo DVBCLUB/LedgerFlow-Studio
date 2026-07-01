@@ -19,7 +19,9 @@ import {
   completeRuntimeMissionExecutionStep,
   getAIWorkforceRuntimeDashboard,
   listRuntimeMissionExecutionQueues,
+  listRuntimeMissionQueueDrift,
   previewRuntimeAutomation,
+  repairRuntimeMissionQueueDrift,
   resumeRuntimeMissionExecutionQueue,
   scoreRuntimePRReadiness,
   startRuntimeMissionExecutionStep,
@@ -112,6 +114,11 @@ test('AI Workforce Runtime Hub persists context, mission plan, resumable executi
   assert.equal(queue.summary.completedSteps, 1);
   queue = await cancelRuntimeMissionExecutionQueue({ queueId: queue.id, reason: 'Runtime smoke cancel after checkpoint.', actor: 'Founder' });
   assert.equal(queue.status, 'cancelled');
+
+  const driftReport = await listRuntimeMissionQueueDrift({ limit: 50 });
+  assert.ok(Array.isArray(driftReport.issues));
+  const driftRepair = await repairRuntimeMissionQueueDrift({ limit: 50 });
+  assert.ok(Array.isArray(driftRepair.issues));
 
   const safety = await previewRuntimeAutomation({
     id: 'robot-safe-runtime',

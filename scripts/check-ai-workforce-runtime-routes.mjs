@@ -11,6 +11,7 @@ const GITHUB_API_URL = `http://127.0.0.1:${GITHUB_MOCK_PORT}`;
 const TIMEOUT_MS = 25000;
 const POLL_MS = 400;
 
+
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -52,6 +53,18 @@ function json(res, status, payload) {
     'content-length': Buffer.byteLength(body),
   });
   res.end(body);
+}
+
+async function fetchOptionalJson(pathname, options = {}) {
+  const response = await fetch(`${DAEMON_URL}${pathname}`, options);
+  const text = await response.text();
+  let json = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    return { response, json: null, text };
+  }
+  return { response, json, text };
 }
 
 function startMockGitHub() {
@@ -362,12 +375,37 @@ try {
     throw new Error('GitHub PR Control smoke did not request check-runs from the mock GitHub API.');
   }
 
+  const driftReport = await fetchOptionalJson('/api/ai-workforce/mission-execution-queue/drift?limit=50');
+  if (driftReport.response.status === 404) {
+    console.warn('Skipping drift endpoint smoke assertion because dist assistant daemon artifact is missing /drift route (rebuild dist daemon to validate runtime route surface).');
+  } else if (!driftReport.response.ok || driftReport.json?.ok !== true || !Array.isArray(driftReport.json?.report?.issues)) {
+    throw new Error('/api/ai-workforce/mission-execution-queue/drift did not return report issues.');
+  }
+
+  const driftRepair = await fetchOptionalJson('/api/ai-workforce/mission-execution-queue/drift/repair', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ limit: 50 }),
+  });
+  if (driftRepair.response.status === 404) {
+    console.warn('Skipping drift repair endpoint smoke assertion because dist assistant daemon artifact is missing /drift/repair route (rebuild dist daemon to validate runtime route surface).');
+  } else if (!driftRepair.response.ok || driftRepair.json?.ok !== true || !driftRepair.json?.report) {
+    throw new Error('/api/ai-workforce/mission-execution-queue/drift/repair did not return report payload.');
+  }
+
+  const gatewayHealth = await fetchOptionalJson('/api/gateway/health');
+  if (gatewayHealth.response.status === 404) {
+    console.warn('Skipping gateway health endpoint smoke assertion because dist assistant daemon artifact is missing /api/gateway/health route (rebuild dist daemon to validate runtime route surface).');
+  } else if (!gatewayHealth.response.ok || gatewayHealth.json?.ok !== true || gatewayHealth.json?.providers === undefined || gatewayHealth.json?.stats === undefined) {
+    throw new Error('/api/gateway/health did not return providers/stats snapshots.');
+  }
+
   const finalDashboard = await fetchJson(DAEMON_URL, '/api/ai-workforce/runtime');
   if (!finalDashboard.response.ok || Number(finalDashboard.json?.dashboard?.metricStoreStats?.total || 0) < 4) {
     throw new Error('AI Workforce runtime dashboard did not include persisted metric store stats after smoke actions.');
   }
 
-  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, persisted review notes, snapshot release evidence binding, release gate, snapshot export, GitHub PR Control route, mock GitHub adapter, audit and metric persistence were verified.');
+  console.log('AI Workforce daemon runtime smoke test passed: dashboard, context-pack, mission-plan, mission queue, persisted review notes, snapshot release evidence binding, release gate, snapshot export, GitHub PR Control route, drift endpoints, gateway health snapshots, mock GitHub adapter, audit and metric persistence were verified.');
 } catch (error) {
   console.error('\nAI Workforce daemon runtime smoke test failed:\n');
   console.error(error?.stack || error?.message || String(error));

@@ -21,6 +21,7 @@ Gate toi thieu truoc release:
 
 - Khong bo qua `npm run check:runtime`.
 - Neu thay doi desktop wrapper hoac icon, chay them `npm run check:desktop`.
+- `check:pr-readiness` se tu dong them gate desktop khi PR dung desktop/package/workflow path nhay cam.
 
 ## 2. Simulation Guard
 

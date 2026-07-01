@@ -255,6 +255,13 @@ export default function AIWorkforceRuntimePanel() {
   const metricStoreStats = dashboard?.metricStoreStats;
   const missionQueueStats = dashboard?.missionQueueStats;
   const missionQueueDrift = dashboard?.missionQueueDrift;
+  const driftIssues = missionQueueDrift?.issues || [];
+  const driftCriticalIssues = driftIssues.filter((item: any) => item?.severity === 'critical');
+  const driftWarning = driftCriticalIssues.length > 0
+    ? `${driftCriticalIssues.length} drift critical issue(s) can block safe mission handoff.`
+    : driftIssues.length > 0
+      ? `${driftIssues.length} drift issue(s) detected. Run Drift check/repair before release decisions.`
+      : null;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
   const releaseGate = dashboard?.releaseGate;
@@ -293,6 +300,15 @@ export default function AIWorkforceRuntimePanel() {
         <div className="mt-4 rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-xs font-bold leading-6 text-amber-100">
           <div className="flex items-start gap-2"><AlertTriangle className="mt-0.5 h-4 w-4" /> <span>{error}</span></div>
           <p className="mt-2 text-[11px] text-amber-200/80">Runtime Hub sẽ hoạt động khi assistant daemon đang chạy, patch script đã được chạy, và GitHub adapter có token trong daemon env khi repo cần quyền private.</p>
+        </div>
+      )}
+
+      {driftWarning && (
+        <div className={`mt-4 rounded-2xl border p-4 text-xs font-bold leading-6 ${driftCriticalIssues.length > 0 ? 'border-rose-500/40 bg-rose-500/10 text-rose-100' : 'border-amber-500/30 bg-amber-500/10 text-amber-100'}`}>
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 h-4 w-4" />
+            <span>{driftWarning}</span>
+          </div>
         </div>
       )}
 
