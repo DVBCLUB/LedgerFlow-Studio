@@ -12,9 +12,9 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
 import fs from 'node:fs';
 import type { AutomationEventType } from './automationRuleEngine.ts';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type AgentBusEventType =
   | AutomationEventType
@@ -59,14 +59,16 @@ export function subscribe(type: AgentBusEventType | '*', handler: AgentBusHandle
 const MAX_LOG_SIZE = 1_000;
 
 function logFile() {
-  return path.resolve(process.cwd(), process.env.AGENT_EVENT_LOG_FILE || 'agent_events.local.json');
+  return resolveRuntimePathFromEnv('AGENT_EVENT_LOG_FILE', 'agent_events.local.json');
 }
 
 function appendToLog(event: AgentBusEvent): void {
   try {
+    ensureRuntimeRootSync();
     let log: AgentBusEvent[] = [];
-    if (fs.existsSync(logFile())) {
-      try { log = JSON.parse(fs.readFileSync(logFile(), 'utf-8')) as AgentBusEvent[]; } catch { log = []; }
+    const readPath = resolveRuntimeReadPathFromEnv('AGENT_EVENT_LOG_FILE', 'agent_events.local.json');
+    if (fs.existsSync(readPath)) {
+      try { log = JSON.parse(fs.readFileSync(readPath, 'utf-8')) as AgentBusEvent[]; } catch { log = []; }
     }
     log = [event, ...log].slice(0, MAX_LOG_SIZE);
     fs.writeFileSync(logFile(), JSON.stringify(log, null, 2), 'utf-8');
@@ -118,8 +120,9 @@ export async function publish(
 
 export function getEventLog(limit = 100, filterType?: AgentBusEventType): AgentBusEvent[] {
   try {
-    if (!fs.existsSync(logFile())) return [];
-    const log = JSON.parse(fs.readFileSync(logFile(), 'utf-8')) as AgentBusEvent[];
+    const readPath = resolveRuntimeReadPathFromEnv('AGENT_EVENT_LOG_FILE', 'agent_events.local.json');
+    if (!fs.existsSync(readPath)) return [];
+    const log = JSON.parse(fs.readFileSync(readPath, 'utf-8')) as AgentBusEvent[];
     const filtered = filterType ? log.filter((e) => e.type === filterType) : log;
     return filtered.slice(0, limit);
   } catch {
@@ -128,7 +131,12 @@ export function getEventLog(limit = 100, filterType?: AgentBusEventType): AgentB
 }
 
 export function clearEventLog(): void {
-  try { fs.writeFileSync(logFile(), '[]', 'utf-8'); } catch { /* ignore */ }
+  try {
+    ensureRuntimeRootSync();
+    fs.writeFileSync(logFile(), '[]', 'utf-8');
+  } catch {
+    /* ignore */
+  }
 }
 
 export function getSubscriberCount(type?: AgentBusEventType): number {

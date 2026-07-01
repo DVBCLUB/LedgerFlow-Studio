@@ -14,13 +14,31 @@ LedgerFlow Studio is not only an accounting app. It is becoming a small-company 
 
 ## First 5 minutes in the repo
 
-1. Read `AGENTS.md`.
-2. Read `docs/PROJECT_STRUCTURE.md`.
-3. Check `package.json` scripts.
-4. Identify the target module.
-5. Make the smallest safe change.
+1. Read `CODEMAP.md`.
+2. Read `AGENTS.md`.
+3. Read `docs/PROJECT_STRUCTURE.md`.
+4. Check `package.json` scripts.
+5. Identify the target module and make the smallest safe change.
 
 Do not start by rewriting `App.tsx`, replacing the scaffold, or moving many files.
+
+## Direct GitHub coding standard
+
+Applies to Gemini, ChatGPT, Claude Code, and Copilot when editing directly in GitHub:
+
+1. Keep PR scope tight (single objective per PR).
+2. Place code by responsibility, not convenience:
+	- UI and module screens: `src/modules/` and `src/components/`
+	- Frontend API calls: `src/utils/*Api.ts`
+	- Backend business logic: `server/services/`
+	- Route registration and wiring only: `server.ts`
+3. If a feature needs backend + frontend, add both sides in one coherent patch set.
+4. Do not store or expose keys in frontend, docs, or logs.
+5. Run validation before push: `npm run lint` and `npm run build`.
+6. If touching desktop packaging, also run `npm run prepare:icons` and `npm run check:desktop`.
+7. Follow `docs/GREEN_MERGE_POLICY.md` to decide whether AI runtime high-risk gates are required.
+8. Preferred pre-merge command for any AI platform: `npm run check:pr-readiness`.
+9. To inspect required checks without executing them: `npm run check:pr-readiness:dry`.
 
 ## Common tasks and where to work
 

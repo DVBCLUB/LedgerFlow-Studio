@@ -1,15 +1,15 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import type { Pipeline } from './pipelineOrchestrator';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 let saveQueue = Promise.resolve();
 
 function getStorageFile() {
-  return path.resolve(process.cwd(), process.env.AGENT_PIPELINE_STORE_FILE || 'agent_pipelines.local.json');
+  return resolveRuntimePathFromEnv('AGENT_PIPELINE_STORE_FILE', 'agent_pipelines.local.json');
 }
 
 async function readStore(): Promise<Record<string, Pipeline>> {
-  const storageFile = getStorageFile();
+  const storageFile = resolveRuntimeReadPathFromEnv('AGENT_PIPELINE_STORE_FILE', 'agent_pipelines.local.json');
   try {
     const parsed = JSON.parse(await fs.promises.readFile(storageFile, 'utf8'));
     return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
@@ -21,6 +21,7 @@ async function readStore(): Promise<Record<string, Pipeline>> {
 
 export function saveLocalPipeline(pipeline: Pipeline): Promise<void> {
   const operation = async () => {
+    ensureRuntimeRootSync();
     const storageFile = getStorageFile();
     const store = await readStore();
     store[pipeline.id] = pipeline;

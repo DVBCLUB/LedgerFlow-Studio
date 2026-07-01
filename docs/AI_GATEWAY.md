@@ -164,7 +164,7 @@ Log không lưu API key thật.
 File log local:
 
 ```text
-ai_usage.log.json
+runtime/ai_usage.log.json
 ```
 
 File này đã được `.gitignore` chặn, không commit lên GitHub.
@@ -203,10 +203,10 @@ Key được lưu ở backend local, không lưu trong React `localStorage`.
 Các file nhạy cảm local:
 
 ```text
-ai_keys.vault.json
-.ledgerflow_secret
-.ai_vault_session.json
-ai_usage.log.json
+runtime/ai_keys.vault.json
+runtime/.ledgerflow_secret
+runtime/.ai_vault_session.json
+runtime/ai_usage.log.json
 ```
 
 Các file này đã được `.gitignore` chặn.
@@ -217,7 +217,7 @@ Cơ chế hiện tại:
 React UI nhập key
 → Express backend nhận key
 → backend mã hóa bằng AES-256-GCM
-→ ghi vào ai_keys.vault.json
+→ ghi vào runtime/ai_keys.vault.json
 → frontend chỉ thấy key dạng mask
 ```
 

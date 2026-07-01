@@ -7,7 +7,7 @@ LedgerFlow Studio là Company OS cho solo founder + AI workforce, nên mọi hà
 Backend ghi audit event vào file runtime local:
 
 ```text
-ledgerflow_audit.log.json
+runtime/ledgerflow_audit.log.json
 ```
 
 File này đã được đưa vào `.gitignore`, không commit lên GitHub.
@@ -43,7 +43,7 @@ Mỗi audit event có các trường:
 
 ## Kết nối hiện tại
 
-`server/services/integrationRegistry.ts` đã mirror mọi `appendIntegrationEvent(...)` sang audit log chung. Điều này giúp các thao tác test connector, config connector, handoff GitHub/local tool đều có dấu vết trong `ledgerflow_audit.log.json`.
+`server/services/integrationRegistry.ts` đã mirror mọi `appendIntegrationEvent(...)` sang audit log chung. Điều này giúp các thao tác test connector, config connector, handoff GitHub/local tool đều có dấu vết trong `runtime/ledgerflow_audit.log.json`.
 
 ## Nguyên tắc mở rộng tiếp theo
 

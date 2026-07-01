@@ -75,12 +75,12 @@ The backend will:
 The backend blocks sensitive or runtime paths, including:
 
 - `.env*`
-- `.ledgerflow_secret`
-- `ai_keys.vault.json`
-- `ai_usage.log.json`
-- `integration_registry.json`
-- `integration_events.log.json`
-- `.ai_vault_session.json`
+- `runtime/.ledgerflow_secret`
+- `runtime/ai_keys.vault.json`
+- `runtime/ai_usage.log.json`
+- `runtime/integration_registry.json`
+- `runtime/integration_events.log.json`
+- `runtime/.ai_vault_session.json`
 - `.git/`
 - `node_modules/`
 - `dist/`

@@ -1,5 +1,4 @@
 import fs from "fs";
-import path from "path";
 import { appendAuditEvent, integrationLevelToAuditRisk, integrationTypeToAuditStatus } from "./auditLog";
 import { getGitHubSummary } from "./githubConnector";
 import { GoogleWorkspaceConnector } from "./googleWorkspaceConnector";
@@ -7,6 +6,7 @@ import { Microsoft365Connector } from "./microsoft365Connector";
 import { NotionConnector } from "./notionConnector";
 import { N8nConnector } from "./n8nConnector";
 import { MediaSyncConnector } from "./mediaSyncConnector";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export type IntegrationStatus = "connected" | "local" | "manual" | "planned" | "error";
 export type IntegrationCategory = "ai" | "devops" | "workspace" | "accounting" | "documents" | "automation" | "data";
@@ -38,8 +38,8 @@ export interface IntegrationEvent {
   createdAt: string;
 }
 
-const REGISTRY_FILE = path.join(process.cwd(), "integration_registry.json");
-const EVENTS_FILE = path.join(process.cwd(), "integration_events.log.json");
+const REGISTRY_FILE = resolveRuntimePathFromEnv("INTEGRATION_REGISTRY_FILE", "integration_registry.json");
+const EVENTS_FILE = resolveRuntimePathFromEnv("INTEGRATION_EVENTS_FILE", "integration_events.log.json");
 
 const defaultConnectors: IntegrationConnector[] = [
   {
@@ -321,8 +321,9 @@ function mergeWithDefaults(saved: IntegrationConnector[]): IntegrationConnector[
 }
 
 export async function listIntegrationConnectors(): Promise<IntegrationConnector[]> {
-  const saved = await readJsonFile<IntegrationConnector[]>(REGISTRY_FILE, []);
+  const saved = await readJsonFile<IntegrationConnector[]>(resolveRuntimeReadPathFromEnv("INTEGRATION_REGISTRY_FILE", "integration_registry.json"), []);
   const merged = mergeWithDefaults(saved);
+  ensureRuntimeRootSync();
   await writeJsonFile(REGISTRY_FILE, merged);
   return merged;
 }
@@ -332,6 +333,7 @@ export async function updateIntegrationConnector(id: string, patch: Partial<Pick
   const index = connectors.findIndex((item) => item.id === id);
   if (index < 0) throw new Error(`Integration connector not found: ${id}`);
   connectors[index] = { ...connectors[index], ...patch };
+  ensureRuntimeRootSync();
   await writeJsonFile(REGISTRY_FILE, connectors);
   await appendIntegrationEvent({ connectorId: id, type: "config", level: "info", message: "Connector configuration updated." });
   return connectors[index];
@@ -436,6 +438,7 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
   const updated: IntegrationConnector = { ...connector, status, lastCheckedAt: nowIso(), lastMessage: message };
   if (idx >= 0) {
     all[idx] = updated;
+    ensureRuntimeRootSync();
     await writeJsonFile(REGISTRY_FILE, all);
   }
   await appendIntegrationEvent({ connectorId: id, type: "test", level: status === "error" ? "error" : "success", message });
@@ -443,13 +446,14 @@ export async function testIntegrationConnector(id: string): Promise<IntegrationC
 }
 
 export async function appendIntegrationEvent(input: Omit<IntegrationEvent, "id" | "createdAt">): Promise<IntegrationEvent> {
-  const events = await readJsonFile<IntegrationEvent[]>(EVENTS_FILE, []);
+  const events = await readJsonFile<IntegrationEvent[]>(resolveRuntimeReadPathFromEnv("INTEGRATION_EVENTS_FILE", "integration_events.log.json"), []);
   const event: IntegrationEvent = {
     ...input,
     id: `evt_${Date.now()}_${Math.random().toString(16).slice(2)}`,
     createdAt: nowIso(),
   };
   events.unshift(event);
+  ensureRuntimeRootSync();
   await writeJsonFile(EVENTS_FILE, events.slice(0, 300));
   await appendAuditEvent({
     actor: "connector",
@@ -466,10 +470,11 @@ export async function appendIntegrationEvent(input: Omit<IntegrationEvent, "id" 
 }
 
 export async function readIntegrationEvents(limit = 100): Promise<IntegrationEvent[]> {
-  const events = await readJsonFile<IntegrationEvent[]>(EVENTS_FILE, []);
+  const events = await readJsonFile<IntegrationEvent[]>(resolveRuntimeReadPathFromEnv("INTEGRATION_EVENTS_FILE", "integration_events.log.json"), []);
   return events.slice(0, Math.max(1, Math.min(limit, 300)));
 }
 
 export async function clearIntegrationEvents(): Promise<void> {
+  ensureRuntimeRootSync();
   await writeJsonFile(EVENTS_FILE, []);
 }

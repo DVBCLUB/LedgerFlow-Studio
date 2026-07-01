@@ -41,8 +41,8 @@ src/components/IntegrationHub.tsx
 File local runtime, không commit GitHub:
 
 ```text
-integration_registry.json
-integration_events.log.json
+runtime/integration_registry.json
+runtime/integration_events.log.json
 ```
 
 API kỹ thuật:

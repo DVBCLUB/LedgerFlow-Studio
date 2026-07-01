@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import { randomBytes } from 'node:crypto';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type DurableJobStatus = 'queued' | 'running' | 'retry' | 'completed' | 'dead_letter' | 'cancelled';
 
@@ -25,12 +25,12 @@ type QueueStore = { version: 1; jobs: DurableJob[] };
 let mutationQueue = Promise.resolve();
 
 function storageFile() {
-  return path.resolve(process.cwd(), process.env.DURABLE_JOB_QUEUE_FILE || 'agent_jobs.local.json');
+  return resolveRuntimePathFromEnv('DURABLE_JOB_QUEUE_FILE', 'agent_jobs.local.json');
 }
 
 async function readStore(): Promise<QueueStore> {
   try {
-    const parsed = JSON.parse(await fs.promises.readFile(storageFile(), 'utf8'));
+    const parsed = JSON.parse(await fs.promises.readFile(resolveRuntimeReadPathFromEnv('DURABLE_JOB_QUEUE_FILE', 'agent_jobs.local.json'), 'utf8'));
     return { version: 1, jobs: Array.isArray(parsed?.jobs) ? parsed.jobs : [] };
   } catch (error: any) {
     if (error?.code === 'ENOENT') return { version: 1, jobs: [] };
@@ -40,6 +40,7 @@ async function readStore(): Promise<QueueStore> {
 
 async function writeStore(store: QueueStore) {
   const target = storageFile();
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(target, JSON.stringify(store, null, 2), 'utf8');
 }
 

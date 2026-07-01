@@ -1,6 +1,6 @@
 import fs from "fs";
-import path from "path";
 import { AGENT_SYSTEM_PROMPTS, AgentRoleId } from "./agentRoles";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export const AI_PROMPT_TASKS = [
   "general",
@@ -50,7 +50,7 @@ interface PromptRegistryFile {
   templates: AIPromptTemplate[];
 }
 
-const REGISTRY_FILE = path.join(process.cwd(), "ai_prompt_registry.json");
+const REGISTRY_FILE = resolveRuntimePathFromEnv("AI_PROMPT_REGISTRY_FILE", "ai_prompt_registry.json");
 
 const DEFAULT_TEMPLATES: AIPromptTemplate[] = [
   {
@@ -147,12 +147,13 @@ const DEFAULT_TEMPLATES: AIPromptTemplate[] = [
 
 async function readRegistry(): Promise<PromptRegistryFile> {
   try {
-    if (!fs.existsSync(REGISTRY_FILE)) {
+    const readPath = resolveRuntimeReadPathFromEnv("AI_PROMPT_REGISTRY_FILE", "ai_prompt_registry.json");
+    if (!fs.existsSync(readPath)) {
       const initial: PromptRegistryFile = { version: 1, templates: DEFAULT_TEMPLATES };
       await fs.promises.writeFile(REGISTRY_FILE, JSON.stringify(initial, null, 2), "utf-8");
       return initial;
     }
-    const raw = await fs.promises.readFile(REGISTRY_FILE, "utf-8");
+    const raw = await fs.promises.readFile(readPath, "utf-8");
     const parsed = JSON.parse(raw) as PromptRegistryFile;
     if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.templates)) {
       throw new Error("Invalid prompt registry format.");
@@ -164,6 +165,7 @@ async function readRegistry(): Promise<PromptRegistryFile> {
 }
 
 async function writeRegistry(registry: PromptRegistryFile): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(REGISTRY_FILE, JSON.stringify(registry, null, 2), "utf-8");
 }
 

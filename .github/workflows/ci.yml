@@ -28,6 +28,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: CODEMAP discipline guard
+        run: npm run check:codemap
+
       - name: Type-check
         shell: bash
         run: |

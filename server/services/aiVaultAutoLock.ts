@@ -1,6 +1,6 @@
 import fs from "fs";
-import path from "path";
 import { getAIVaultSecurityStatus, lockAIVault } from "./aiKeyVault";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export interface AIVaultAutoLockConfig {
   enabled: boolean;
@@ -15,7 +15,7 @@ export interface AIVaultAutoLockStatus extends AIVaultAutoLockConfig {
   message: string;
 }
 
-const AUTO_LOCK_FILE = path.join(process.cwd(), ".ai_vault_session.json");
+const AUTO_LOCK_FILE = resolveRuntimePathFromEnv("AI_VAULT_AUTO_LOCK_FILE", ".ai_vault_session.json");
 const DEFAULT_CONFIG: AIVaultAutoLockConfig = {
   enabled: true,
   timeoutMinutes: Number(process.env.AI_VAULT_AUTO_LOCK_MINUTES ?? 30),
@@ -54,6 +54,7 @@ export async function updateAIVaultAutoLockConfig(patch: Partial<AIVaultAutoLock
     enabled: patch.enabled ?? current.enabled,
     timeoutMinutes: clampTimeoutMinutes(patch.timeoutMinutes ?? current.timeoutMinutes),
   };
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(AUTO_LOCK_FILE, JSON.stringify(next, null, 2), { encoding: "utf-8", mode: 0o600 });
 
   const vault = await getAIVaultSecurityStatus();
@@ -83,8 +84,9 @@ export function disarmAIVaultAutoLock(): void {
 
 async function readAutoLockConfig(): Promise<AIVaultAutoLockConfig> {
   try {
-    if (!fs.existsSync(AUTO_LOCK_FILE)) return normalizeConfig(DEFAULT_CONFIG);
-    const raw = await fs.promises.readFile(AUTO_LOCK_FILE, "utf-8");
+    const readPath = resolveRuntimeReadPathFromEnv("AI_VAULT_AUTO_LOCK_FILE", ".ai_vault_session.json");
+    if (!fs.existsSync(readPath)) return normalizeConfig(DEFAULT_CONFIG);
+    const raw = await fs.promises.readFile(readPath, "utf-8");
     return normalizeConfig(JSON.parse(raw) as Partial<AIVaultAutoLockConfig>);
   } catch {
     return normalizeConfig(DEFAULT_CONFIG);

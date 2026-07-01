@@ -1,6 +1,6 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type AgentMemoryKind = 'company' | 'session' | 'procedure' | 'observation' | 'feedback';
 export type AgentMemoryStatus = 'draft' | 'reviewed' | 'rejected' | 'expired';
@@ -27,12 +27,12 @@ export interface AgentMemoryRecord {
 let writeQueue = Promise.resolve();
 
 function storageFile() {
-  return path.resolve(process.cwd(), process.env.AGENT_MEMORY_STORE_FILE || 'agent_memory.local.json');
+  return resolveRuntimePathFromEnv('AGENT_MEMORY_STORE_FILE', 'agent_memory.local.json');
 }
 
 async function readAllUnsafe(): Promise<AgentMemoryRecord[]> {
   try {
-    const value = JSON.parse(await fs.promises.readFile(storageFile(), 'utf8'));
+    const value = JSON.parse(await fs.promises.readFile(resolveRuntimeReadPathFromEnv('AGENT_MEMORY_STORE_FILE', 'agent_memory.local.json'), 'utf8'));
     return Array.isArray(value) ? value : [];
   } catch (error: any) {
     if (error?.code === 'ENOENT') return [];
@@ -45,6 +45,7 @@ async function mutate<T>(operation: (records: AgentMemoryRecord[]) => T | Promis
   const task = async () => {
     const records = await readAllUnsafe();
     result = await operation(records);
+    ensureRuntimeRootSync();
     const file = storageFile();
     const temp = `${file}.${process.pid}.${Date.now()}.tmp`;
     try {

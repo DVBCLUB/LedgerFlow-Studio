@@ -206,7 +206,7 @@ import FounderLabsDock from '../components/shared/FounderLabsDock';
 // ─── Subtabs Configuration ────────────────────────────────────────────────────
 const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon?: LucideIcon }[]> = {
   ceo_command: [
-    { id: 'brief', label: 'Overview', icon: Briefcase },
+    { id: 'brief', label: 'Today', icon: Briefcase },
     { id: 'daily_weekly', label: 'Standup', icon: Activity },
     { id: 'library', label: 'Knowledge', icon: Database },
     { id: 'sop_rd', label: 'SOP & Risk', icon: ShieldCheck }
@@ -218,6 +218,18 @@ const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon
     { id: 'approval', label: 'Approval', icon: CheckCircle },
     { id: 'audit', label: 'Audit & Control', icon: ShieldCheck }
   ],
+  product_studio: [
+    { id: 'portfolio', label: 'Portfolio', icon: FolderKanban },
+    { id: 'delivery', label: 'Delivery', icon: ClipboardList },
+  ],
+  marketing_growth: [
+    { id: 'campaigns', label: 'Campaigns', icon: Rocket },
+    { id: 'content', label: 'Content', icon: Mail },
+  ],
+  sales_crm: [
+    { id: 'pipeline', label: 'Pipeline', icon: BarChart3 },
+    { id: 'pricing_retention', label: 'Pricing & Retention', icon: Target },
+  ],
   operations: [
     { id: 'product_studio', label: 'Product Studio', icon: FolderKanban },
     { id: 'growth_marketing', label: 'Marketing & Growth', icon: Rocket },
@@ -225,13 +237,10 @@ const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon
     { id: 'logistics', label: 'Logistics', icon: ShoppingCart }
   ],
   ai_factory: [
-    { id: 'overview', label: 'Overview', icon: Bot },
-    { id: 'missions', label: 'Missions', icon: ClipboardList },
-    { id: 'staff_roles', label: 'Staff & Roles', icon: UsersRound },
-    { id: 'openclaw', label: 'OpenClaw', icon: Terminal },
-    { id: 'robot_auto', label: 'Robot & Auto', icon: Cpu },
-    { id: 'tools_security', label: 'Tools & Security', icon: ShieldAlert },
-    { id: 'factory', label: 'Factory', icon: GitPullRequest },
+    { id: 'command', label: 'Ra lệnh', icon: Bot },
+    { id: 'missions', label: 'Nhiệm vụ', icon: ClipboardList },
+    { id: 'robot_auto', label: 'Tự động hóa', icon: Cpu },
+    { id: 'advanced', label: 'Kỹ thuật', icon: ShieldAlert },
   ],
   analytics: [
     { id: 'python_sandbox', label: 'Python Sandbox', icon: Code },
@@ -242,11 +251,11 @@ const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon
     { id: 'gemini_playground', label: 'Gemini Playground', icon: Sparkles }
   ],
   system_settings: [
-    { id: 'general', label: 'General', icon: Settings },
+    { id: 'general', label: 'Cài đặt chung', icon: Settings },
     { id: 'devops', label: 'DevOps', icon: Network },
-    { id: 'control', label: 'Control', icon: ShieldCheck },
-    { id: 'safety_gates', label: 'Safety Gates', icon: FileCheck2 },
-    { id: 'emergency', label: 'Emergency', icon: ShieldAlert }
+    { id: 'control', label: 'Bảo mật', icon: ShieldCheck },
+    { id: 'safety_gates', label: 'Duyệt & phát hành', icon: FileCheck2 },
+    { id: 'emergency', label: 'Dừng khẩn cấp', icon: ShieldAlert }
   ]
 };
 
@@ -262,9 +271,12 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
   // Store sub-tab active IDs keyed by the parent segment
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
     ceo_command: 'brief',
+    product_studio: 'portfolio',
+    marketing_growth: 'campaigns',
+    sales_crm: 'pipeline',
     finance_accounting: 'ledger',
     operations: 'product_studio',
-    ai_factory: 'overview',
+    ai_factory: 'command',
     devops_hub: 'build_monitor',
     control_room: 'system_health',
     analytics: 'python_sandbox',
@@ -277,6 +289,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
     if (activeRole === 'all' || activeRole === 'founder' || activeRole === 'admin') return true;
     
     // Hide Developer diagnostics tabs from non-technical/non-admin roles
+    if (tab.id === 'advanced' && !['devops', 'agentops'].includes(activeRole)) return false;
     if (tab.id === 'devops' && !['devops', 'agentops'].includes(activeRole)) return false;
     if (tab.id === 'control' && !['devops', 'agentops', 'operations'].includes(activeRole)) return false;
     if (tab.id === 'safety_gates' && !['devops', 'agentops', 'operations'].includes(activeRole)) return false;
@@ -338,7 +351,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
         {/* 1. CEO Command Center */}
         {activeSegment === 'ceo_command' && (
           <>
-            {currentSubTabId === 'brief' && <CommandCenter onNavigate={nav} />}
+            {currentSubTabId === 'brief' && <CommandCenter onNavigate={nav} activeRole={activeRole} />}
             {currentSubTabId === 'daily_weekly' && <CEOStandupRhythm />}
             {currentSubTabId === 'library' && (
               <div className="space-y-6">
@@ -406,7 +419,114 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
           </>
         )}
 
-        {/* 3. Operations Hub */}
+        {/* 3. Product Studio */}
+        {activeSegment === 'product_studio' && (
+          <>
+            {currentSubTabId === 'portfolio' && (
+              <div className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SoloFounderBusiness />
+                  <WebAccountingRoadmap />
+                </div>
+                <GameStudioBuilder />
+                <MoatDefensibilityTracker />
+                <section className="grid gap-4 lg:grid-cols-2 text-left">
+                  {PRODUCT_IDEA_PORTFOLIO.map((item) => (
+                    <Card key={item.idea}>
+                      <p className="text-[10px] font-black uppercase text-emerald-300">Product idea</p>
+                      <h2 className="mt-2 text-sm font-black text-white">{item.idea}</h2>
+                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Người dùng: {item.targetUser}</p>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-4">
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-cyan-200">Pain {item.pain}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-emerald-200">MVP {item.mvpCheapness}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-sky-200">Dist {item.distribution}</span>
+                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-amber-200">Risk {item.technicalRisk}</span>
+                      </div>
+                      <p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">MVP: {item.firstMvp}</p>
+                    </Card>
+                  ))}
+                </section>
+              </div>
+            )}
+            {currentSubTabId === 'delivery' && (
+              <div className="space-y-6">
+                <ProjectPortfolioPanel />
+                <details className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left">
+                  <summary className="cursor-pointer select-none text-xs font-black uppercase tracking-[0.16em] text-slate-300 hover:text-white">
+                    Optional logistics and industry-template operations
+                  </summary>
+                  <div className="mt-5">
+                    <ProcurementLogisticsPanel />
+                  </div>
+                </details>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 4. Marketing & Growth */}
+        {activeSegment === 'marketing_growth' && (
+          <>
+            {currentSubTabId === 'campaigns' && (
+              <div className="space-y-6">
+                <MarketingCommandCenter />
+                <div className="grid gap-4 md:grid-cols-2">
+                  <MarketingSuite />
+                  <MarketingFunnelLab />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <SyntheticSurveyBuilder />
+                  <AdCampaignSimulator />
+                </div>
+              </div>
+            )}
+            {currentSubTabId === 'content' && (
+              <div className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <LandingPageCopyLab />
+                  <EmailSequenceBuilder />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <ZaloMarketingHub />
+                  <AIContentVideoLab />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* 5. Sales & CRM */}
+        {activeSegment === 'sales_crm' && (
+          <>
+            {currentSubTabId === 'pipeline' && (
+              <div className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <OutboundSalesHub />
+                  <DistributionLeadBoard />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <LeadScoringEngine />
+                  <SalesRoleplayLab />
+                </div>
+              </div>
+            )}
+            {currentSubTabId === 'pricing_retention' && (
+              <div className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <PricingStrategyLab />
+                  <PricingOfferBuilder />
+                </div>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <CustomerLTVDashboard />
+                  <NPSReviewManager />
+                </div>
+                <AffiliateReferralHub />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Legacy Operations Hub */}
         {activeSegment === 'operations' && (
           <>
             {currentSubTabId === 'product_studio' && (
@@ -482,17 +602,13 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
           </>
         )}
 
-        {/* 4. AI Workforce — OpenClaw-style command monolith */}
+        {/* AI Operations */}
         {activeSegment === 'ai_factory' && (
           <>
-            {currentSubTabId === 'overview' && (
+            {currentSubTabId === 'command' && (
               <div className="space-y-6">
                 <AIWorkforceCommandCenter />
-                <AIOperationsCenter />
-                <AIOperationsDaemonPanel />
-                <AIWorkforceMobileCommandCenter />
-                <AIGovernanceQualityHubPanel />
-                <AIOutputQualityReview />
+                <AIWorkforceMissionControl />
               </div>
             )}
             {currentSubTabId === 'missions' && (
@@ -508,56 +624,71 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
                 <ReleaseGateDashboardCard />
               </div>
             )}
-            {currentSubTabId === 'staff_roles' && (
+            {currentSubTabId === 'advanced' && (
               <div className="space-y-6">
-                <PeopleTab />
-                <AIStaffTaskAssignmentPanel />
-                <AIMemoryRagPanel />
-                <KnowledgeContentHubPanel />
-                <PromptPlayground />
-                <AISettingsLauncher />
+                <AIOperationsCenter />
+                <AIOperationsDaemonPanel />
+                <AIWorkforceMobileCommandCenter />
+                <AIGovernanceQualityHubPanel />
+                <AIOutputQualityReview />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <PeopleTab />
+                  <AIStaffTaskAssignmentPanel />
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <AIMemoryRagPanel />
+                  <KnowledgeContentHubPanel />
+                </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <PromptPlayground />
+                  <AISettingsLauncher />
+                </div>
                 <AdvancedAIEngine />
-              </div>
-            )}
-            {currentSubTabId === 'openclaw' && (
-              <div className="space-y-6">
                 <AIWorkforceOpenClawReadiness />
-                <AIWorkforceSkillDirectory />
-                <AIWorkforceSkillInvocationPlanner />
-                <AIWorkforcePatchSafetyRunbook />
-                <AIWorkforcePatchReviewSessions />
-                <AIWorkforceNextBackendActions />
+                <details className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left">
+                  <summary className="cursor-pointer select-none text-xs font-black uppercase tracking-[0.16em] text-slate-300 hover:text-white">
+                    Mở MCP/tools, runtime, audit và diagnostics
+                  </summary>
+                  <div className="mt-5 space-y-6">
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <AIWorkforceSkillDirectory />
+                      <AIWorkforceSkillInvocationPlanner />
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <AIWorkforcePatchSafetyRunbook />
+                      <AIWorkforcePatchReviewSessions />
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <AIWorkforceNextBackendActions />
+                      <AIWorkforceToolCatalog />
+                    </div>
+                    <AIWorkforcePluginSecurityGuard />
+                    <AgentAssemblyBuilder />
+                    <FactoryOperatorGuidePanel />
+                    <FactoryHealthSummaryPanel />
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <FactoryBackendRuntimePanel />
+                      <FactoryCatalogStatusPanel />
+                    </div>
+                    <div className="grid gap-4 lg:grid-cols-2">
+                      <FactoryConnectorMatrixPanel />
+                      <FactoryExecutionDecisionPanel />
+                    </div>
+                    <FactoryCommandRunnerPanel />
+                    <FactoryAuditLogPanel />
+                    <FounderLabsDock embedded />
+                  </div>
+                </details>
               </div>
             )}
             {currentSubTabId === 'robot_auto' && (
               <div className="space-y-6">
                 <AIWorkforceRobotAutomationBridge />
-                <AutomationRulesHealthPanel />
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <AutomationRulesHealthPanel />
+                  <AutomationRulesPanel />
+                </div>
                 <RobotLabPanel />
-                <AutomationRulesPanel />
-              </div>
-            )}
-            {currentSubTabId === 'tools_security' && (
-              <div className="space-y-6">
-                <AIWorkforceToolCatalog />
-                <AIWorkforcePluginSecurityGuard />
-                <AIWorkforceOpenClawReadiness />
-                <AIWorkforceSkillDirectory />
-                <AIWorkforceSkillInvocationPlanner />
-                <AgentAssemblyBuilder />
-                <FounderLabsDock embedded />
-              </div>
-            )}
-            {currentSubTabId === 'factory' && (
-              <div className="space-y-6">
-                <FactoryOperatorGuidePanel />
-                <FactoryHealthSummaryPanel />
-                <FactoryBackendRuntimePanel />
-                <FactoryCatalogStatusPanel />
-                <FactoryConnectorMatrixPanel />
-                <FactoryExecutionDecisionPanel />
-                <FactoryCommandRunnerPanel />
-                <FactoryAuditLogPanel />
               </div>
             )}
           </>
@@ -760,7 +891,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
                       </tr>
                       <tr className="border-b border-slate-800/50">
                         <td className="py-3 font-black text-cyan-200">AgentOps Engineer</td>
-                        <td className="py-3">AI Factory, Control Room</td>
+                        <td className="py-3">AI Operations, Control Room</td>
                         <td className="py-3 text-amber-500">Dừng khẩn cấp Agent</td>
                       </tr>
                     </tbody>
@@ -804,7 +935,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', o
         )}
 
         {/* Dynamic Fallback Modules (for Auto-Registration from Backend) */}
-        {!['ceo_command', 'finance_accounting', 'operations', 'ai_factory', 'devops_hub', 'control_room', 'analytics', 'system_settings'].includes(activeSegment) && (
+        {!['ceo_command', 'product_studio', 'marketing_growth', 'sales_crm', 'finance_accounting', 'operations', 'ai_factory', 'devops_hub', 'control_room', 'analytics', 'system_settings'].includes(activeSegment) && (
           <DynamicModuleComponentLoader moduleId={activeSegment} />
         )}
       </Suspense>

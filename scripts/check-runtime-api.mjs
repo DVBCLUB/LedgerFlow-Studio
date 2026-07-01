@@ -1,9 +1,12 @@
 import { spawn } from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const PORT = 3000;
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const TIMEOUT_MS = 20000;
 const POLL_MS = 500;
+const DIST_SERVER = path.resolve(process.cwd(), 'dist/server.cjs');
 
 function wait(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -91,6 +94,10 @@ child.on('exit', (code, signal) => {
 });
 
 try {
+  if (!fs.existsSync(DIST_SERVER)) {
+    throw new Error(`Missing build artifact: ${DIST_SERVER}. Run \"npm run build\" before \"npm run check:runtime\".`);
+  }
+
   console.log(`Starting LedgerFlow production server smoke test on ${BASE_URL}...`);
   await waitForHealth();
 

@@ -15,7 +15,7 @@ export default function AIOperationsCenter() {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 text-left">
-        <h2 className="text-sm font-black text-white">AI Factory Runtime Console</h2>
+        <h2 className="text-sm font-black text-white">AI Operations Technical Console</h2>
         <p className="mt-1 text-xs text-slate-400">
           Giao diện điều phối trực tiếp luồng thực thi nhiệm vụ AI, kiểm chứng tính toàn vẹn của mô hình cục bộ và giám sát kết nối Daemon.
         </p>
@@ -25,7 +25,7 @@ export default function AIOperationsCenter() {
 
       <details className="rounded-2xl border border-slate-800 bg-slate-900/20 p-4 text-left">
         <summary className="cursor-pointer select-none text-xs font-black text-slate-400 hover:text-slate-200">
-          Advanced Diagnostics Hubs
+          Mở diagnostics nâng cao
         </summary>
         <div className="mt-4 space-y-6">
           <AICommandCenterHubPanel />
@@ -47,5 +47,3 @@ export default function AIOperationsCenter() {
     </div>
   );
 }
-
-

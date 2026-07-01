@@ -1,0 +1,813 @@
+name: Green Merge Guard
+
+permissions:
+  contents: read
+  pull-requests: write
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  pr-readiness:
+    name: PR Readiness (risk-aware)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate PR readiness plan (dry-run)
+        env:
+          PR_READINESS_OUTPUT_FILE: artifacts/pr-readiness/plan.json
+        run: npm run check:pr-readiness:dry
+
+      - name: Sync PR risk labels
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const planPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/plan.json');
+            if (!fs.existsSync(planPath)) {
+              core.info('No plan file found, skipping label sync.');
+              return;
+            }
+
+            const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+            const labels = Array.isArray(plan.recommendedLabels) ? plan.recommendedLabels : [];
+            if (!labels.length) {
+              core.info('No recommended labels found in plan.');
+              return;
+            }
+
+            const catalog = {
+              'risk/docs-only': { color: '0E8A16', description: 'Docs-only change profile' },
+              'risk/standard': { color: '1D76DB', description: 'Standard code change profile' },
+              'risk/desktop': { color: 'FBCA04', description: 'Desktop packaging/runtime risk profile' },
+              'risk/ai-runtime': { color: 'B60205', description: 'AI runtime/OpenClaw/robot high-risk profile' },
+            };
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            for (const name of Object.keys(catalog)) {
+              try {
+                await github.rest.issues.getLabel({ owner, repo, name });
+              } catch (_) {
+                const meta = catalog[name];
+                await github.rest.issues.createLabel({ owner, repo, name, color: meta.color, description: meta.description });
+              }
+            }
+
+            const current = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number, per_page: 100 });
+            const riskPrefix = 'risk/';
+            for (const label of current.data) {
+              if (label.name && label.name.startsWith(riskPrefix) && !labels.includes(label.name)) {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name: label.name }).catch(() => undefined);
+              }
+            }
+
+            await github.rest.issues.addLabels({ owner, repo, issue_number, labels });
+
+      - name: Enforce risk label presence
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const labels = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number, per_page: 100 });
+            const hasRisk = labels.data.some((label) => String(label.name || '').startsWith('risk/'));
+            if (!hasRisk) {
+              core.setFailed('Missing risk/* label on pull request. Run PR readiness workflow first.');
+            }
+
+      - name: Audit risk gate configuration
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
+          RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
+          RISK_AI_RUNTIME_REVIEWERS: ${{ vars.RISK_AI_RUNTIME_REVIEWERS }}
+          RISK_STANDARD_REVIEW_TEAMS: ${{ vars.RISK_STANDARD_REVIEW_TEAMS }}
+          RISK_DESKTOP_REVIEW_TEAMS: ${{ vars.RISK_DESKTOP_REVIEW_TEAMS }}
+          RISK_AI_RUNTIME_REVIEW_TEAMS: ${{ vars.RISK_AI_RUNTIME_REVIEW_TEAMS }}
+          ENFORCE_REVIEWER_ROUTING: ${{ vars.ENFORCE_REVIEWER_ROUTING }}
+          ENFORCE_AI_RUNTIME_APPROVAL: ${{ vars.ENFORCE_AI_RUNTIME_APPROVAL }}
+          AI_RUNTIME_MIN_APPROVALS: ${{ vars.AI_RUNTIME_MIN_APPROVALS }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const parseList = (value) => String(value || '').split(',').map((v) => v.trim()).filter(Boolean);
+            const boolText = (value) => String(value || '').toLowerCase();
+
+            const planPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/plan.json');
+            const labels = new Set();
+            if (fs.existsSync(planPath)) {
+              try {
+                const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+                for (const label of Array.isArray(plan?.recommendedLabels) ? plan.recommendedLabels : []) {
+                  labels.add(String(label || ''));
+                }
+              } catch (error) {
+                core.warning(`Unable to parse plan.json for config audit: ${error.message}`);
+              }
+            }
+
+            const warnings = [];
+            const enforceReviewerRouting = boolText(process.env.ENFORCE_REVIEWER_ROUTING) === 'true';
+            const enforceApproval = boolText(process.env.ENFORCE_AI_RUNTIME_APPROVAL) === 'true';
+            const minApprovalsRaw = process.env.AI_RUNTIME_MIN_APPROVALS;
+            const minApprovalsNum = Number(minApprovalsRaw || 1);
+
+            if (labels.has('risk/standard')) {
+              const userCount = parseList(process.env.RISK_STANDARD_REVIEWERS).length;
+              const teamCount = parseList(process.env.RISK_STANDARD_REVIEW_TEAMS).length;
+              if (!userCount && !teamCount) {
+                warnings.push('Missing reviewer routing for risk/standard (RISK_STANDARD_REVIEWERS or RISK_STANDARD_REVIEW_TEAMS).');
+              }
+            }
+
+            if (labels.has('risk/desktop')) {
+              const userCount = parseList(process.env.RISK_DESKTOP_REVIEWERS).length;
+              const teamCount = parseList(process.env.RISK_DESKTOP_REVIEW_TEAMS).length;
+              if (!userCount && !teamCount) {
+                warnings.push('Missing reviewer routing for risk/desktop (RISK_DESKTOP_REVIEWERS or RISK_DESKTOP_REVIEW_TEAMS).');
+              }
+            }
+
+            if (labels.has('risk/ai-runtime')) {
+              const userCount = parseList(process.env.RISK_AI_RUNTIME_REVIEWERS).length;
+              const teamCount = parseList(process.env.RISK_AI_RUNTIME_REVIEW_TEAMS).length;
+              if (!userCount && !teamCount) {
+                warnings.push('Missing reviewer routing for risk/ai-runtime (RISK_AI_RUNTIME_REVIEWERS or RISK_AI_RUNTIME_REVIEW_TEAMS).');
+              }
+              if (enforceApproval) {
+                if (!Number.isFinite(minApprovalsNum) || minApprovalsNum < 1) {
+                  core.setFailed('Invalid AI_RUNTIME_MIN_APPROVALS. Set an integer >= 1 when ENFORCE_AI_RUNTIME_APPROVAL=true.');
+                  return;
+                }
+              }
+            }
+
+            if (warnings.length) {
+              for (const msg of warnings) core.warning(msg);
+              if (enforceReviewerRouting) {
+                core.setFailed('Missing reviewer routing for one or more active risk labels. Configure RISK_*_REVIEWERS or RISK_*_REVIEW_TEAMS, or disable ENFORCE_REVIEWER_ROUTING.');
+                return;
+              }
+            } else {
+              core.info('Risk gate configuration audit passed for active labels.');
+            }
+
+            const summaryLines = [
+              '## Risk Gate Config Audit',
+              `- Labels in plan: ${[...labels].join(', ') || '(none)'}`,
+              `- ENFORCE_REVIEWER_ROUTING: ${enforceReviewerRouting}`,
+              `- ENFORCE_AI_RUNTIME_APPROVAL: ${enforceApproval}`,
+              `- AI_RUNTIME_MIN_APPROVALS: ${Number.isFinite(minApprovalsNum) ? Math.floor(minApprovalsNum) : '(invalid)'}`,
+            ];
+            if (warnings.length) {
+              summaryLines.push('', '### Warnings', ...warnings.map((w) => `- ${w}`));
+            } else {
+              summaryLines.push('', '- No configuration warnings for active risk labels.');
+            }
+            core.summary.addRaw(summaryLines.join('\n')).write();
+
+      - name: Publish risk gate config checklist
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
+          RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
+          RISK_AI_RUNTIME_REVIEWERS: ${{ vars.RISK_AI_RUNTIME_REVIEWERS }}
+          RISK_STANDARD_REVIEW_TEAMS: ${{ vars.RISK_STANDARD_REVIEW_TEAMS }}
+          RISK_DESKTOP_REVIEW_TEAMS: ${{ vars.RISK_DESKTOP_REVIEW_TEAMS }}
+          RISK_AI_RUNTIME_REVIEW_TEAMS: ${{ vars.RISK_AI_RUNTIME_REVIEW_TEAMS }}
+          ENFORCE_REVIEWER_ROUTING: ${{ vars.ENFORCE_REVIEWER_ROUTING }}
+          ENFORCE_REVIEW_REQUEST_DELIVERY: ${{ vars.ENFORCE_REVIEW_REQUEST_DELIVERY }}
+          ENFORCE_AI_RUNTIME_APPROVAL: ${{ vars.ENFORCE_AI_RUNTIME_APPROVAL }}
+          AI_RUNTIME_MIN_APPROVALS: ${{ vars.AI_RUNTIME_MIN_APPROVALS }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const marker = '<!-- ledgerflow-risk-config -->';
+            const parseList = (value) => String(value || '').split(',').map((v) => v.trim()).filter(Boolean);
+            const asBool = (value) => String(value || '').toLowerCase() === 'true';
+
+            const planPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/plan.json');
+            const outPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/enforcement-status.json');
+            const labels = new Set();
+            if (fs.existsSync(planPath)) {
+              try {
+                const plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+                for (const label of Array.isArray(plan?.recommendedLabels) ? plan.recommendedLabels : []) {
+                  labels.add(String(label || ''));
+                }
+              } catch (error) {
+                core.warning(`Unable to parse plan.json for config checklist: ${error.message}`);
+              }
+            }
+
+            const enforceReviewerRouting = asBool(process.env.ENFORCE_REVIEWER_ROUTING);
+            const enforceReviewDelivery = asBool(process.env.ENFORCE_REVIEW_REQUEST_DELIVERY);
+            const enforceAiApproval = asBool(process.env.ENFORCE_AI_RUNTIME_APPROVAL);
+            const minApprovalsRaw = Number(process.env.AI_RUNTIME_MIN_APPROVALS || 1);
+            const minApprovalsValid = Number.isFinite(minApprovalsRaw) && minApprovalsRaw >= 1;
+            const minApprovals = minApprovalsValid ? Math.floor(minApprovalsRaw) : null;
+
+            const tracks = [
+              {
+                label: 'risk/standard',
+                users: parseList(process.env.RISK_STANDARD_REVIEWERS),
+                teams: parseList(process.env.RISK_STANDARD_REVIEW_TEAMS),
+              },
+              {
+                label: 'risk/desktop',
+                users: parseList(process.env.RISK_DESKTOP_REVIEWERS),
+                teams: parseList(process.env.RISK_DESKTOP_REVIEW_TEAMS),
+              },
+              {
+                label: 'risk/ai-runtime',
+                users: parseList(process.env.RISK_AI_RUNTIME_REVIEWERS),
+                teams: parseList(process.env.RISK_AI_RUNTIME_REVIEW_TEAMS),
+              },
+            ];
+
+            const active = tracks
+              .filter((t) => labels.has(t.label))
+              .map((t) => ({
+                label: t.label,
+                usersCount: t.users.length,
+                teamsCount: t.teams.length,
+                hasRouting: t.users.length > 0 || t.teams.length > 0,
+                users: t.users,
+                teams: t.teams,
+              }));
+
+            const missingRouting = active.filter((t) => !t.hasRouting).map((t) => t.label);
+            const aiApprovalMisconfigured = labels.has('risk/ai-runtime') && enforceAiApproval && !minApprovalsValid;
+            const needsAttention = missingRouting.length > 0 || aiApprovalMisconfigured;
+
+            const payload = {
+              generatedAt: new Date().toISOString(),
+              labels: [...labels],
+              enforcement: {
+                reviewerRouting: enforceReviewerRouting,
+                reviewRequestDelivery: enforceReviewDelivery,
+                aiRuntimeApproval: enforceAiApproval,
+                aiRuntimeMinApprovals: minApprovals,
+                aiRuntimeMinApprovalsRaw: process.env.AI_RUNTIME_MIN_APPROVALS || null,
+              },
+              activeRiskTracks: active,
+              issues: {
+                missingRouting,
+                aiApprovalMisconfigured,
+              },
+            };
+
+            fs.mkdirSync(path.dirname(outPath), { recursive: true });
+            fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+
+            if (!needsAttention) {
+              if (existing) {
+                await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+              }
+              core.info('Risk config checklist clean; no config comment needed.');
+              return;
+            }
+
+            const lines = [
+              marker,
+              '## Risk Config Checklist',
+              '',
+              `- Active risk labels: ${[...labels].join(', ') || '(none)'}`,
+              `- ENFORCE_REVIEWER_ROUTING: ${enforceReviewerRouting}`,
+              `- ENFORCE_REVIEW_REQUEST_DELIVERY: ${enforceReviewDelivery}`,
+              `- ENFORCE_AI_RUNTIME_APPROVAL: ${enforceAiApproval}`,
+              `- AI_RUNTIME_MIN_APPROVALS: ${minApprovalsValid ? minApprovals : '(invalid)'}`,
+              '',
+              '### Routing Coverage',
+            ];
+
+            if (active.length) {
+              for (const item of active) {
+                lines.push(`- ${item.label}: users=${item.usersCount}, teams=${item.teamsCount}, hasRouting=${item.hasRouting}`);
+              }
+            } else {
+              lines.push('- (none)');
+            }
+
+            if (missingRouting.length || aiApprovalMisconfigured) {
+              lines.push('', '### Actions Required');
+              for (const label of missingRouting) {
+                lines.push(`- Add reviewer routing vars for ${label}.`);
+              }
+              if (aiApprovalMisconfigured) {
+                lines.push('- Set AI_RUNTIME_MIN_APPROVALS to integer >= 1 when ENFORCE_AI_RUNTIME_APPROVAL=true.');
+              }
+            }
+
+            lines.push('', 'This comment is auto-managed by Green Merge Guard.');
+            const body = lines.join('\n');
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }
+
+      - name: Auto-request reviewers by risk label
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
+          RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
+          RISK_AI_RUNTIME_REVIEWERS: ${{ vars.RISK_AI_RUNTIME_REVIEWERS }}
+          RISK_STANDARD_REVIEW_TEAMS: ${{ vars.RISK_STANDARD_REVIEW_TEAMS }}
+          RISK_DESKTOP_REVIEW_TEAMS: ${{ vars.RISK_DESKTOP_REVIEW_TEAMS }}
+          RISK_AI_RUNTIME_REVIEW_TEAMS: ${{ vars.RISK_AI_RUNTIME_REVIEW_TEAMS }}
+        with:
+          script: |
+            const parseList = (value) => String(value || '').split(',').map((v) => v.trim()).filter(Boolean);
+            const { owner, repo } = context.repo;
+            const pr = context.payload.pull_request;
+            const issue_number = pr.number;
+            const author = String(pr.user?.login || '').toLowerCase();
+
+            const labelsRes = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number, per_page: 100 });
+            const labels = new Set(labelsRes.data.map((item) => String(item.name || '')));
+
+            const users = new Set();
+            const teams = new Set();
+
+            if (labels.has('risk/standard')) {
+              for (const u of parseList(process.env.RISK_STANDARD_REVIEWERS)) users.add(u);
+              for (const t of parseList(process.env.RISK_STANDARD_REVIEW_TEAMS)) teams.add(t);
+            }
+            if (labels.has('risk/desktop')) {
+              for (const u of parseList(process.env.RISK_DESKTOP_REVIEWERS)) users.add(u);
+              for (const t of parseList(process.env.RISK_DESKTOP_REVIEW_TEAMS)) teams.add(t);
+            }
+            if (labels.has('risk/ai-runtime')) {
+              for (const u of parseList(process.env.RISK_AI_RUNTIME_REVIEWERS)) users.add(u);
+              for (const t of parseList(process.env.RISK_AI_RUNTIME_REVIEW_TEAMS)) teams.add(t);
+            }
+
+            const reviewers = [...users].filter((u) => u.toLowerCase() !== author);
+            const team_reviewers = [...teams];
+
+            if (!reviewers.length && !team_reviewers.length) {
+              core.info('No reviewer routing config found for current risk labels.');
+              return;
+            }
+
+            try {
+              await github.rest.pulls.requestReviewers({
+                owner,
+                repo,
+                pull_number: pr.number,
+                reviewers,
+                team_reviewers,
+              });
+            } catch (error) {
+              core.warning(`Unable to request reviewers automatically: ${error.message}`);
+            }
+
+      - name: Enforce reviewer request delivery
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
+          RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
+          RISK_AI_RUNTIME_REVIEWERS: ${{ vars.RISK_AI_RUNTIME_REVIEWERS }}
+          RISK_STANDARD_REVIEW_TEAMS: ${{ vars.RISK_STANDARD_REVIEW_TEAMS }}
+          RISK_DESKTOP_REVIEW_TEAMS: ${{ vars.RISK_DESKTOP_REVIEW_TEAMS }}
+          RISK_AI_RUNTIME_REVIEW_TEAMS: ${{ vars.RISK_AI_RUNTIME_REVIEW_TEAMS }}
+          ENFORCE_REVIEW_REQUEST_DELIVERY: ${{ vars.ENFORCE_REVIEW_REQUEST_DELIVERY }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const parseList = (value) => String(value || '').split(',').map((v) => v.trim()).filter(Boolean);
+            const enforce = String(process.env.ENFORCE_REVIEW_REQUEST_DELIVERY || 'false').toLowerCase() === 'true';
+            if (!enforce) {
+              core.info('Reviewer request delivery enforcement disabled by repo variable.');
+              return;
+            }
+
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            const prAuthor = String(context.payload.pull_request.user?.login || '').toLowerCase();
+            const outPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/enforcement-status.json');
+            const labelsRes = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: pull_number, per_page: 100 });
+            const labels = new Set(labelsRes.data.map((item) => String(item.name || '')));
+
+            const requested = await github.rest.pulls.listRequestedReviewers({ owner, repo, pull_number });
+            const requestedUsers = new Set((requested.data.users || []).map((u) => String(u.login || '').toLowerCase()).filter(Boolean));
+            const requestedTeams = new Set((requested.data.teams || []).map((t) => String(t.slug || '').toLowerCase()).filter(Boolean));
+
+            const reviews = await github.rest.pulls.listReviews({ owner, repo, pull_number, per_page: 100 });
+            const reviewersWithReview = new Set((reviews.data || []).map((r) => String(r.user?.login || '').toLowerCase()).filter(Boolean));
+
+            const coverage = [];
+
+            const evaluateTrack = (labelName, userVar, teamVar) => {
+              if (!labels.has(labelName)) return;
+              const configuredUsers = new Set(parseList(userVar).map((u) => u.toLowerCase()).filter((u) => u && u !== prAuthor));
+              const configuredTeams = new Set(parseList(teamVar).map((t) => t.toLowerCase()));
+
+              if (!configuredUsers.size && !configuredTeams.size) {
+                coverage.push({
+                  labelName,
+                  ok: false,
+                  reason: 'no-routing-config',
+                  configuredUsers: [],
+                  configuredTeams: [],
+                  requestedUsersHit: [],
+                  reviewedUsersHit: [],
+                  requestedTeamsHit: [],
+                  missingUsers: [],
+                  missingTeams: [],
+                });
+                return;
+              }
+
+              const configuredUsersList = [...configuredUsers];
+              const configuredTeamsList = [...configuredTeams];
+              const requestedUsersHit = configuredUsersList.filter((u) => requestedUsers.has(u));
+              const reviewedUsersHit = configuredUsersList.filter((u) => reviewersWithReview.has(u));
+              const requestedTeamsHit = configuredTeamsList.filter((t) => requestedTeams.has(t));
+              const hasUserCoverage = requestedUsersHit.length > 0 || reviewedUsersHit.length > 0;
+              const hasTeamCoverage = requestedTeamsHit.length > 0;
+              const ok = hasUserCoverage || hasTeamCoverage;
+              coverage.push({
+                labelName,
+                ok,
+                reason: ok ? 'covered' : 'not-requested',
+                configuredUsers: configuredUsersList,
+                configuredTeams: configuredTeamsList,
+                requestedUsersHit,
+                reviewedUsersHit,
+                requestedTeamsHit,
+                missingUsers: configuredUsersList.filter((u) => !requestedUsersHit.includes(u) && !reviewedUsersHit.includes(u)),
+                missingTeams: configuredTeamsList.filter((t) => !requestedTeamsHit.includes(t)),
+              });
+            };
+
+            evaluateTrack('risk/standard', process.env.RISK_STANDARD_REVIEWERS, process.env.RISK_STANDARD_REVIEW_TEAMS);
+            evaluateTrack('risk/desktop', process.env.RISK_DESKTOP_REVIEWERS, process.env.RISK_DESKTOP_REVIEW_TEAMS);
+            evaluateTrack('risk/ai-runtime', process.env.RISK_AI_RUNTIME_REVIEWERS, process.env.RISK_AI_RUNTIME_REVIEW_TEAMS);
+
+            let payload = {};
+            try {
+              if (fs.existsSync(outPath)) {
+                payload = JSON.parse(fs.readFileSync(outPath, 'utf8'));
+              }
+            } catch (error) {
+              core.warning(`Unable to parse existing enforcement status: ${error.message}`);
+            }
+
+            const failed = coverage.filter((item) => !item.ok);
+
+            payload.generatedAt = new Date().toISOString();
+            payload.labels = [...labels];
+            payload.reviewerDelivery = {
+              enforced: true,
+              requestedUsers: [...requestedUsers],
+              requestedTeams: [...requestedTeams],
+              reviewersWithReview: [...reviewersWithReview],
+              coverage,
+              failedTracks: failed.map((item) => item.labelName),
+            };
+
+            fs.mkdirSync(path.dirname(outPath), { recursive: true });
+            fs.writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`, 'utf8');
+
+            const lines = [
+              '## Reviewer Delivery',
+              `- Enforced: true`,
+              `- Active labels: ${[...labels].join(', ') || '(none)'}`,
+              `- Failed tracks: ${failed.map((item) => item.labelName).join(', ') || '(none)'}`,
+            ];
+            core.summary.addRaw(lines.join('\n')).write();
+
+            if (!failed.length) {
+              core.info('Reviewer delivery coverage passed for active risk labels.');
+              return;
+            }
+
+            const detail = failed.map((f) => `${f.labelName}: ${f.reason}`).join('; ');
+            core.setFailed(`Reviewer delivery coverage failed. ${detail}`);
+
+      - name: Enforce AI runtime approval policy
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        env:
+          ENFORCE_AI_RUNTIME_APPROVAL: ${{ vars.ENFORCE_AI_RUNTIME_APPROVAL }}
+          AI_RUNTIME_MIN_APPROVALS: ${{ vars.AI_RUNTIME_MIN_APPROVALS }}
+        with:
+          script: |
+            const enforce = String(process.env.ENFORCE_AI_RUNTIME_APPROVAL || 'false').toLowerCase() === 'true';
+            if (!enforce) {
+              core.info('AI runtime approval enforcement disabled by repo variable.');
+              return;
+            }
+
+            const minApprovalsRaw = Number(process.env.AI_RUNTIME_MIN_APPROVALS || 1);
+            const minApprovals = Number.isFinite(minApprovalsRaw) && minApprovalsRaw > 0 ? Math.floor(minApprovalsRaw) : 1;
+
+            const { owner, repo } = context.repo;
+            const pull_number = context.payload.pull_request.number;
+            const prAuthor = String(context.payload.pull_request.user?.login || '').toLowerCase();
+
+            const labelsRes = await github.rest.issues.listLabelsOnIssue({ owner, repo, issue_number: pull_number, per_page: 100 });
+            const labels = new Set(labelsRes.data.map((item) => String(item.name || '')));
+            if (!labels.has('risk/ai-runtime')) {
+              core.info('PR is not risk/ai-runtime; skip approval gate.');
+              return;
+            }
+
+            const reviewsRes = await github.rest.pulls.listReviews({ owner, repo, pull_number, per_page: 100 });
+            const latestByUser = new Map();
+            for (const review of reviewsRes.data) {
+              const login = String(review.user?.login || '').toLowerCase();
+              if (!login || login === prAuthor) continue;
+              latestByUser.set(login, String(review.state || '').toUpperCase());
+            }
+
+            const approved = [...latestByUser.entries()].filter(([, state]) => state === 'APPROVED').map(([login]) => login);
+            core.info(`AI runtime approval gate: ${approved.length}/${minApprovals} approvals.`);
+
+            if (approved.length < minApprovals) {
+              core.setFailed(`AI runtime PR requires at least ${minApprovals} approval(s). Current approvals: ${approved.length}.`);
+            }
+
+      - name: Run risk-aware PR readiness checks
+        env:
+          PR_READINESS_OUTPUT_FILE: artifacts/pr-readiness/plan.json
+        run: npm run check:pr-readiness
+
+      - name: Build readiness diagnostics artifacts
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const root = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness');
+            const planPath = path.join(root, 'plan.json');
+            const enforcePath = path.join(root, 'enforcement-status.json');
+            const summaryPath = path.join(root, 'run-summary.md');
+            const metricsPath = path.join(root, 'metrics.json');
+
+            let plan = {};
+            let enforce = {};
+
+            try {
+              if (fs.existsSync(planPath)) {
+                plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+              }
+            } catch (error) {
+              core.warning(`Unable to parse plan artifact: ${error.message}`);
+            }
+
+            try {
+              if (fs.existsSync(enforcePath)) {
+                enforce = JSON.parse(fs.readFileSync(enforcePath, 'utf8'));
+              }
+            } catch (error) {
+              core.warning(`Unable to parse enforcement artifact: ${error.message}`);
+            }
+
+            const profile = plan.profile || {};
+            const labels = Array.isArray(plan.recommendedLabels) ? plan.recommendedLabels : [];
+            const commands = Array.isArray(plan.commands) ? plan.commands : [];
+            const tracks = Array.isArray(plan.reviewTracks) ? plan.reviewTracks : [];
+            const requiredVars = Array.isArray(plan.requiredReviewerRoutingVars) ? plan.requiredReviewerRoutingVars : [];
+            const optionalVars = Array.isArray(plan.optionalPolicyVars) ? plan.optionalPolicyVars : [];
+
+            const issues = enforce.issues || {};
+            const missingRouting = Array.isArray(issues.missingRouting) ? issues.missingRouting : [];
+            const aiApprovalMisconfigured = Boolean(issues.aiApprovalMisconfigured);
+
+            const reviewerDelivery = enforce.reviewerDelivery || {};
+            const failedTracks = Array.isArray(reviewerDelivery.failedTracks) ? reviewerDelivery.failedTracks : [];
+            const failureType =
+              failedTracks.length > 0
+                ? 'reviewer-delivery'
+                : missingRouting.length > 0
+                  ? 'reviewer-routing-config'
+                  : aiApprovalMisconfigured
+                    ? 'ai-approval-config'
+                    : plan.failedCommand
+                      ? 'check-command'
+                      : plan.status === 'failed'
+                        ? 'unknown'
+                        : 'none';
+
+            const prNumber = context.payload.pull_request?.number || null;
+            const runId = context.runId;
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            const metrics = {
+              generatedAt: new Date().toISOString(),
+              repo: `${context.repo.owner}/${context.repo.repo}`,
+              runId,
+              runUrl,
+              prNumber,
+              status: plan.status || 'unknown',
+              riskLevel: profile.riskLevel || 'unknown',
+              labels,
+              counts: {
+                changedFiles: Number(plan.changedFilesCount || 0),
+                commands: commands.length,
+                reviewTracks: tracks.length,
+                missingRouting: missingRouting.length,
+                reviewerDeliveryFailedTracks: failedTracks.length,
+              },
+              failure: {
+                type: failureType,
+                failedCommand: plan.failedCommand || null,
+                aiApprovalMisconfigured,
+                missingRouting,
+                reviewerDeliveryFailedTracks: failedTracks,
+              },
+            };
+
+            const summary = [
+              '# PR Readiness Run Summary',
+              '',
+              `- Status: ${plan.status || 'unknown'}`,
+              `- Risk level: ${profile.riskLevel || 'unknown'}`,
+              `- Labels: ${labels.join(', ') || '(none)'}`,
+              `- Review tracks: ${tracks.join(', ') || '(none)'}`,
+              `- Changed files: ${Number(plan.changedFilesCount || 0)}`,
+              `- Failure type: ${failureType}`,
+              `- Failed command: ${plan.failedCommand || '(none)'}`,
+              '',
+              '## Commands',
+              ...(commands.length ? commands.map((cmd) => `- ${cmd}`) : ['- (none)']),
+              '',
+              '## Required Reviewer Routing Vars',
+              ...(requiredVars.length ? requiredVars.map((v) => `- ${v}`) : ['- (none)']),
+              '',
+              '## Optional Policy Vars',
+              ...(optionalVars.length ? optionalVars.map((v) => `- ${v}`) : ['- (none)']),
+              '',
+              '## Enforcement Gaps',
+              `- Missing routing labels: ${missingRouting.join(', ') || '(none)'}`,
+              `- AI approval misconfigured: ${aiApprovalMisconfigured}`,
+              `- Reviewer delivery failed tracks: ${failedTracks.join(', ') || '(none)'}`,
+              '',
+              `- Workflow run: ${runUrl}`,
+            ].join('\n');
+
+            fs.mkdirSync(root, { recursive: true });
+            fs.writeFileSync(summaryPath, `${summary}\n`, 'utf8');
+            fs.writeFileSync(metricsPath, `${JSON.stringify(metrics, null, 2)}\n`, 'utf8');
+
+      - name: Build weekly readiness trend snapshot
+        if: always()
+        run: |
+          node scripts/summarize-pr-readiness-metrics.mjs \
+            --days 7 \
+            --input-dir artifacts/pr-readiness/history \
+            --ingest-file artifacts/pr-readiness/metrics.json \
+            --ingest-id ${{ github.run_id }} \
+            --output-json artifacts/pr-readiness/weekly-summary.json \
+            --output-md artifacts/pr-readiness/weekly-summary.md
+
+      - name: Upload PR readiness artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-readiness-plan
+          path: |
+            artifacts/pr-readiness/plan.json
+            artifacts/pr-readiness/enforcement-status.json
+            artifacts/pr-readiness/run-summary.md
+            artifacts/pr-readiness/metrics.json
+            artifacts/pr-readiness/weekly-summary.json
+            artifacts/pr-readiness/weekly-summary.md
+          if-no-files-found: ignore
+
+      - name: Comment PR guidance on failure
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const marker = '<!-- ledgerflow-pr-readiness -->';
+            const planPath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/plan.json');
+            const enforcePath = path.join(process.env.GITHUB_WORKSPACE, 'artifacts/pr-readiness/enforcement-status.json');
+            let plan = null;
+            let enforce = null;
+            try {
+              if (fs.existsSync(planPath)) {
+                plan = JSON.parse(fs.readFileSync(planPath, 'utf8'));
+              }
+            } catch (_) {}
+            try {
+              if (fs.existsSync(enforcePath)) {
+                enforce = JSON.parse(fs.readFileSync(enforcePath, 'utf8'));
+              }
+            } catch (_) {}
+
+            const commands = Array.isArray(plan?.commands) ? plan.commands : ['npm run check:pr-readiness'];
+            const failed = plan?.failedCommand ? `- Failed command: \`${plan.failedCommand}\`` : '- Failed command: see workflow logs';
+            const profile = plan?.profile || {};
+            const labels = Array.isArray(plan?.recommendedLabels) ? plan.recommendedLabels : [];
+            const requiredReviewerRoutingVars = Array.isArray(plan?.requiredReviewerRoutingVars) ? plan.requiredReviewerRoutingVars : [];
+            const optionalPolicyVars = Array.isArray(plan?.optionalPolicyVars) ? plan.optionalPolicyVars : [];
+            const delivery = enforce?.reviewerDelivery || {};
+            const deliveryCoverage = Array.isArray(delivery.coverage) ? delivery.coverage : [];
+            const deliveryFailures = deliveryCoverage.filter((item) => !item.ok);
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = `${marker}
+            ## PR Readiness Failed
+            ${failed}
+            - docsOnly: ${Boolean(profile.docsOnly)}
+            - aiRuntimeRisk: ${Boolean(profile.aiRuntimeRisk)}
+            - desktopRisk: ${Boolean(profile.desktopRisk)}
+            - riskLevel: ${profile.riskLevel || 'unknown'}
+
+            ### Risk Labels
+            ${labels.length ? labels.map((l) => `- \`${l}\``).join('\n') : '- (none)'}
+
+            ### Config Variables
+            Required reviewer routing vars:
+            ${requiredReviewerRoutingVars.length ? requiredReviewerRoutingVars.map((v) => `- \`${v}\``).join('\n') : '- (none)'}
+
+            Optional policy vars:
+            ${optionalPolicyVars.length ? optionalPolicyVars.map((v) => `- \`${v}\``).join('\n') : '- (none)'}
+
+            ### Reviewer Delivery
+            ${deliveryFailures.length
+              ? deliveryFailures
+                  .map((item) => {
+                    const missingUsers = Array.isArray(item.missingUsers) ? item.missingUsers : [];
+                    const missingTeams = Array.isArray(item.missingTeams) ? item.missingTeams : [];
+                    return `- \`${item.labelName}\` (${item.reason}): missingUsers=${missingUsers.join(',') || '(none)'}, missingTeams=${missingTeams.join(',') || '(none)'}`;
+                  })
+                  .join('\n')
+              : '- (no delivery failures recorded)'}
+
+            ### Suggested Fix Flow
+            ${commands.map((cmd) => `- \`${cmd}\``).join('\n')}
+
+            ### Debug Aids
+            - Workflow run: ${runUrl}
+            - Artifact: \`pr-readiness-plan\`
+
+            Run locally and push again. This comment is auto-managed by Green Merge Guard.`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find((c) => c.user?.type === 'Bot' && c.body?.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

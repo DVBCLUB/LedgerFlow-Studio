@@ -62,12 +62,12 @@ These are local machine files and are intentionally ignored:
 
 - `.env`
 - `.env.litellm`
-- `.ledgerflow_secret`
-- `ai_keys.vault.json`
-- `ai_usage.log.json`
-- `.ai_vault_session.json`
-- `integration_registry.json`
-- `integration_events.log.json`
+- `runtime/.ledgerflow_secret`
+- `runtime/ai_keys.vault.json`
+- `runtime/ai_usage.log.json`
+- `runtime/.ai_vault_session.json`
+- `runtime/integration_registry.json`
+- `runtime/integration_events.log.json`
 
 Never expose API keys or secrets in source, docs, logs, screenshots, or generated examples.
 

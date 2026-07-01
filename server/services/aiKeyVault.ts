@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import os from "os";
-import path from "path";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek";
 
@@ -173,8 +173,8 @@ const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
   },
 ];
 
-const VAULT_FILE = path.join(process.cwd(), "ai_keys.vault.json");
-const SECRET_FILE = path.join(process.cwd(), ".ledgerflow_secret");
+const VAULT_FILE = resolveRuntimePathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json");
+const SECRET_FILE = resolveRuntimePathFromEnv("AI_KEY_VAULT_SECRET_FILE", ".ledgerflow_secret");
 const VAULT_VERIFIER_TEXT = "ledgerflow-ai-vault-passphrase-v1";
 
 let unlockedVaultPassphrase: string | null = null;
@@ -189,14 +189,14 @@ export async function getAIVaultSecurityStatus(): Promise<AIVaultSecurityStatus>
   const hasPassphrase = security.mode === "passphrase";
   const isLocked = hasPassphrase && !unlockedVaultPassphrase;
   return {
-    exists: fs.existsSync(VAULT_FILE),
+    exists: fs.existsSync(resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json")),
     mode: security.mode,
     hasPassphrase,
     isLocked,
     canDecrypt: !isLocked,
     totalKeys: vault.entries.length,
     enabledKeys: vault.entries.filter((entry) => entry.enabled).length,
-    secretFileExists: fs.existsSync(SECRET_FILE),
+    secretFileExists: fs.existsSync(resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_SECRET_FILE", ".ledgerflow_secret")),
     updatedAt: security.updatedAt,
     message: hasPassphrase
       ? isLocked
@@ -518,8 +518,9 @@ function maskKey(key: string): string {
 
 async function readVault(): Promise<VaultFile> {
   try {
-    if (!fs.existsSync(VAULT_FILE)) return { version: 1, entries: [], security: { mode: "local" } };
-    const raw = await fs.promises.readFile(VAULT_FILE, "utf-8");
+    const readPath = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json");
+    if (!fs.existsSync(readPath)) return { version: 1, entries: [], security: { mode: "local" } };
+    const raw = await fs.promises.readFile(readPath, "utf-8");
     const parsed = JSON.parse(raw) as VaultFile;
     if (parsed.version !== 1 || !Array.isArray(parsed.entries)) return { version: 1, entries: [], security: { mode: "local" } };
     return { ...parsed, security: normalizeSecurity(parsed.security) };
@@ -529,6 +530,7 @@ async function readVault(): Promise<VaultFile> {
 }
 
 async function writeVault(vault: VaultFile): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(VAULT_FILE, JSON.stringify(vault, null, 2), { encoding: "utf-8", mode: 0o600 });
 }
 
@@ -629,9 +631,11 @@ function getLocalVaultKey(): Buffer {
 }
 
 function getOrCreateLocalSecret(): string {
-  if (fs.existsSync(SECRET_FILE)) {
-    return fs.readFileSync(SECRET_FILE, "utf-8").trim();
+  const readPath = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_SECRET_FILE", ".ledgerflow_secret");
+  if (fs.existsSync(readPath)) {
+    return fs.readFileSync(readPath, "utf-8").trim();
   }
+  ensureRuntimeRootSync();
   const secret = [
     "ledgerflow-local-vault-v1",
     os.hostname(),

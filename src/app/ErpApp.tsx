@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart3, Bot, Boxes, BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, CircleDollarSign, Database, FileCheck2, FolderKanban, Hammer, LogOut, Menu, Network, PackageOpen, Plug2, Search, Settings, ShieldAlert, ShoppingCart, UsersRound, Wrench, X, Calculator, Video } from 'lucide-react';
+  BarChart3, Bot, Boxes, BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, CircleDollarSign, Database, FileCheck2, FolderKanban, Hammer, LogOut, Menu, Network, PackageOpen, Plug2, Rocket, Search, Settings, ShieldAlert, ShoppingCart, UsersRound, Wrench, X, Calculator, Video } from 'lucide-react';
 import { useLocalAuth } from '../context/LocalAuthContext';
-import { useDynamicModules } from '../context/DynamicModuleContext';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
 import { COMPANY_WORKSPACES, type TabType, type RoleType, MODULES, isDepartmentVisible } from './companyNavigation';
@@ -23,6 +22,7 @@ const IconMap: Record<string, typeof Building2> = {
   UsersRound,
   CircleDollarSign,
   FolderKanban,
+  Rocket,
   FileCheck2,
   Bot,
   Boxes,
@@ -41,9 +41,10 @@ const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
   dashboard: { tab: 'ceo_command', subTab: 'brief' },
   knowledge: { tab: 'ceo_command', subTab: 'library' },
   advisory: { tab: 'finance_accounting', subTab: 'runway_advisory' },
-  market_survey: { tab: 'operations', subTab: 'growth_marketing' },
-  founder: { tab: 'operations', subTab: 'product_studio' },
-  roadmap: { tab: 'operations', subTab: 'product_studio' },
+  operations: { tab: 'product_studio' },
+  market_survey: { tab: 'marketing_growth' },
+  founder: { tab: 'product_studio' },
+  roadmap: { tab: 'product_studio' },
   datascience: { tab: 'analytics', subTab: 'data_science' },
   prompts: { tab: 'ai_factory', subTab: 'staff_roles' },
   assistant: { tab: 'ai_factory', subTab: 'staff_roles' },
@@ -51,32 +52,31 @@ const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
   custom_data: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
   architecture: { tab: 'analytics', subTab: 'architecture' },
   game_ml: { tab: 'analytics', subTab: 'game_studio' },
-  guerrilla: { tab: 'operations', subTab: 'product_studio' },
+  guerrilla: { tab: 'product_studio' },
   accounting_vn: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
   ml_applied: { tab: 'analytics', subTab: 'ml_applied' },
-  deploy_business: { tab: 'operations', subTab: 'logistics' },
-  seo_strategy: { tab: 'operations', subTab: 'growth_marketing' },
+  deploy_business: { tab: 'product_studio', subTab: 'delivery' },
+  seo_strategy: { tab: 'marketing_growth' },
   audit_workspace: { tab: 'finance_accounting', subTab: 'coso' },
   python_sandbox: { tab: 'analytics', subTab: 'python_sandbox' },
-  marketing_suite: { tab: 'operations', subTab: 'growth_marketing' },
-  funnel_lab: { tab: 'operations', subTab: 'growth_marketing' },
-  lead_scoring: { tab: 'operations', subTab: 'sales_crm' },
-  zalo_hub: { tab: 'operations', subTab: 'growth_marketing' },
-  ltv_dashboard: { tab: 'operations', subTab: 'sales_crm' },
-  pricing_lab: { tab: 'operations', subTab: 'sales_crm' },
-  nps_manager: { tab: 'operations', subTab: 'sales_crm' },
-  affiliate_hub: { tab: 'operations', subTab: 'sales_crm' },
-  outbound_hub: { tab: 'operations', subTab: 'sales_crm' },
-  advanced_ai: { tab: 'ai_factory', subTab: 'tools_security' },
-  video_lab: { tab: 'operations', subTab: 'growth_marketing' },
-  marketing_growth_v2: { tab: 'operations', subTab: 'growth_marketing' },
+  marketing_suite: { tab: 'marketing_growth' },
+  funnel_lab: { tab: 'marketing_growth' },
+  lead_scoring: { tab: 'sales_crm' },
+  zalo_hub: { tab: 'marketing_growth' },
+  ltv_dashboard: { tab: 'sales_crm' },
+  pricing_lab: { tab: 'sales_crm' },
+  nps_manager: { tab: 'sales_crm' },
+  affiliate_hub: { tab: 'sales_crm' },
+  outbound_hub: { tab: 'sales_crm' },
+  advanced_ai: { tab: 'ai_factory', subTab: 'advanced' },
+  video_lab: { tab: 'marketing_growth' },
+  marketing_growth_v2: { tab: 'marketing_growth' },
   approval_workflow: { tab: 'finance_accounting', subTab: 'approval' },
   financial_reports: { tab: 'finance_accounting', subTab: 'reports' },
   integration_hub: { tab: 'system_settings', subTab: 'general' },
   devops_hub: { tab: 'system_settings', subTab: 'devops' },
   control_room: { tab: 'system_settings', subTab: 'control' },
-  product_studio: { tab: 'operations', subTab: 'product_studio' },
-  growth_sales: { tab: 'operations', subTab: 'growth_marketing' },
+  growth_sales: { tab: 'marketing_growth' },
   ai_staff_sandbox: { tab: 'ai_factory', subTab: 'overview' },
 };
 
@@ -142,8 +142,6 @@ export default function ErpApp() {
     return (saved as RoleType) || 'all';
   });
 
-  const { navItems } = useDynamicModules();
-
   const navigation = useMemo(() => {
     // 1. Get static workspaces filtered by role
     const staticNavs = COMPANY_WORKSPACES
@@ -159,24 +157,11 @@ export default function ErpApp() {
         icon: IconMap[item.iconName] || Building2,
       }));
 
-    // 2. Map dynamically registered modules from backend
-    const dynamicNavs = navItems.map((navItem) => ({
-      tab: navItem.id as TabType,
-      label: navItem.label,
-      shortLabel: navItem.label,
-      description: navItem.badge ? `[${navItem.badge}] Phân hệ động` : 'Mô-đun đăng ký động',
-      icon: IconMap[navItem.icon] || Building2,
-    }));
-
-    // Merge static and dynamic, preventing duplicate tab IDs
-    const merged = [...staticNavs];
-    for (const dNav of dynamicNavs) {
-      if (!merged.some(item => item.tab === dNav.tab)) {
-        merged.push(dNav);
-      }
-    }
-    return merged;
-  }, [activeRole, navItems]);
+    // Dynamic modules remain routable through WorkspaceRenderer, but the primary
+    // sidebar intentionally shows only the company OS workspaces to avoid duplicate
+    // and implementation-level entries overwhelming normal users.
+    return staticNavs;
+  }, [activeRole]);
 
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
@@ -217,10 +202,10 @@ export default function ErpApp() {
         founder: 'ceo_command',
         admin: 'ceo_command',
         finance: 'finance_accounting',
-        operations: 'operations',
+        operations: 'product_studio',
         agentops: 'ai_factory',
         devops: 'system_settings',
-        marketing: 'operations',
+        marketing: 'marketing_growth',
         auditor: 'finance_accounting',
         viewer: 'ceo_command',
       };

@@ -13,8 +13,8 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
 import fs from 'node:fs';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -93,13 +93,14 @@ function estimateCost(model: string, promptTokens: number, completionTokens: num
 const MAX_RECORDS = 10_000;
 
 function storageFile() {
-  return path.resolve(process.cwd(), process.env.AI_OBSERVABILITY_FILE || 'ai_observability.local.json');
+  return resolveRuntimePathFromEnv('AI_OBSERVABILITY_FILE', 'ai_observability.local.json');
 }
 
 function readRecords(): AIMetricRecord[] {
   try {
-    if (!fs.existsSync(storageFile())) return [];
-    return JSON.parse(fs.readFileSync(storageFile(), 'utf-8')) as AIMetricRecord[];
+    const readPath = resolveRuntimeReadPathFromEnv('AI_OBSERVABILITY_FILE', 'ai_observability.local.json');
+    if (!fs.existsSync(readPath)) return [];
+    return JSON.parse(fs.readFileSync(readPath, 'utf-8')) as AIMetricRecord[];
   } catch {
     return [];
   }
@@ -107,6 +108,7 @@ function readRecords(): AIMetricRecord[] {
 
 function writeRecords(records: AIMetricRecord[]): void {
   try {
+    ensureRuntimeRootSync();
     fs.writeFileSync(storageFile(), JSON.stringify(records.slice(0, MAX_RECORDS), null, 2), 'utf-8');
   } catch (err) {
     console.error('[AIObservability] Failed to write metrics:', err);

@@ -14,9 +14,9 @@
  */
 
 import { randomUUID } from 'node:crypto';
-import path from 'node:path';
 import fs from 'node:fs';
 import { appendAuditEvent } from './auditLog.ts';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Event Types ──────────────────────────────────────────────────────────────
 
@@ -195,18 +195,19 @@ interface RuleStore {
 }
 
 function storageFile() {
-  return path.resolve(process.cwd(), process.env.AUTOMATION_RULES_FILE || 'automation_rules.local.json');
+  return resolveRuntimePathFromEnv('AUTOMATION_RULES_FILE', 'automation_rules.local.json');
 }
 
 function readStore(): RuleStore {
   try {
-    if (!fs.existsSync(storageFile())) {
+    const readPath = resolveRuntimeReadPathFromEnv('AUTOMATION_RULES_FILE', 'automation_rules.local.json');
+    if (!fs.existsSync(readPath)) {
       const defaults: RuleStore = { rules: {}, executionLog: [] };
       for (const rule of DEFAULT_RULES) defaults.rules[rule.id] = rule;
       writeStore(defaults);
       return defaults;
     }
-    const raw = fs.readFileSync(storageFile(), 'utf-8');
+    const raw = fs.readFileSync(readPath, 'utf-8');
     return JSON.parse(raw) as RuleStore;
   } catch {
     return { rules: {}, executionLog: [] };
@@ -215,6 +216,7 @@ function readStore(): RuleStore {
 
 function writeStore(store: RuleStore): void {
   try {
+    ensureRuntimeRootSync();
     // Keep execution log at max 500 entries
     store.executionLog = store.executionLog.slice(0, 500);
     fs.writeFileSync(storageFile(), JSON.stringify(store, null, 2), 'utf-8');

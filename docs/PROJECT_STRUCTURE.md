@@ -2,6 +2,8 @@
 
 LedgerFlow Studio is organized as a desktop-first React + Express + Electron application. Electron is the only user-facing app target; React and Express remain as the shared renderer/API runtime loaded by the desktop shell.
 
+For AI coding agents (Gemini, ChatGPT, Claude Code, Copilot), read `CODEMAP.md` first for exact file placement and direct GitHub coding workflow.
+
 ## Top-level folders
 
 ```text
@@ -12,6 +14,7 @@ LedgerFlow Studio is organized as a desktop-first React + Express + Electron app
 ├── desktop/                 # Electron desktop shell
 ├── docs/                    # Architecture and operating documentation
 ├── public/                  # Static HTML/pages/assets served by Express/Vite
+├── runtime/                 # Local runtime-generated JSON/log/vault files (gitignored, keeps root clean)
 ├── scripts/                 # Build checks, doctors, release utilities
 ├── server/                  # Backend services used by server.ts
 ├── src/                     # React frontend application
@@ -69,6 +72,7 @@ Important frontend patterns:
 
 - `src/app/ErpApp.tsx` owns the shell; `WorkspaceRenderer.tsx` owns lazy workspace loading.
 - Add navigation metadata in `src/app/companyNavigation.ts` instead of duplicating sidebar definitions.
+- Product Studio, Marketing & Growth, and Sales & CRM are separate first-level sidebar workspaces; keep the old `operations` route as legacy compatibility only.
 - Large feature overlays use `*Launcher.tsx` when they must be mounted outside the workspace renderer.
 - API calls should be wrapped in `src/utils/*Api.ts` instead of being scattered across components.
 - New connector panels should be composed into `IntegrationHub.tsx` or mounted as a launcher if they are large.
@@ -163,6 +167,8 @@ Scripts in `scripts/` are intentionally kept as `.mjs` Node scripts for cross-pl
 
 Avoid adding shell-only logic to `package.json`; prefer Node scripts so Windows/GitHub Actions/local machines behave consistently.
 
+`scripts/check-codemap-discipline.mjs` is a lightweight guard for AI-assisted GitHub edits. It warns/errors when changes violate CODEMAP placement heuristics (for example heavy `server.ts` edits without `server/services/` changes).
+
 ## User download package
 
 The source-code zip from GitHub is not the Windows app. A user-ready Windows package is created by the `Build Windows Desktop` workflow and uploaded as:
@@ -187,15 +193,15 @@ These files are intentionally local-only:
 ```text
 .env
 .env.litellm
-.ledgerflow_secret
-ai_keys.vault.json
-ai_usage.log.json
-.ai_vault_session.json
+runtime/.ledgerflow_secret
+runtime/ai_keys.vault.json
+runtime/ai_usage.log.json
+runtime/.ai_vault_session.json
 agent_role_prompts.json
-ai_prompt_registry.json
-integration_registry.json
-integration_events.log.json
-ledgerflow_audit.log.json
+runtime/ai_prompt_registry.json
+runtime/integration_registry.json
+runtime/integration_events.log.json
+runtime/ledgerflow_audit.log.json
 company_os_control_plane.json
 web_ai_profiles.json
 db_storage.json

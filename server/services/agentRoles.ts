@@ -1,5 +1,5 @@
 import fs from 'fs';
-import path from 'path';
+import { resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type AgentGroup = 'Executive' | 'Finance' | 'Product' | 'Growth' | 'Legal' | 'Support' | 'Data';
 
@@ -193,25 +193,26 @@ export const AGENT_ROLES: AgentRoleDefinition[] = [
   { id: 'AI Analyst', emoji: '📊', group: 'Data', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Analyst'] },
 ];
 
-const REGISTRY_FILE = path.join(process.cwd(), "ai_prompt_registry.json");
+const REGISTRY_FILE = resolveRuntimePathFromEnv('AI_PROMPT_REGISTRY_FILE', 'ai_prompt_registry.json');
 
 let runtimeRoleCache: AgentRoleDefinition[] = AGENT_ROLES;
 let runtimeRoleCacheMtimeMs = -1;
 
 function resolveRuntimeRoles(): AgentRoleDefinition[] {
   try {
-    if (!fs.existsSync(REGISTRY_FILE)) {
+    const readPath = resolveRuntimeReadPathFromEnv('AI_PROMPT_REGISTRY_FILE', 'ai_prompt_registry.json');
+    if (!fs.existsSync(readPath)) {
       runtimeRoleCache = AGENT_ROLES;
       runtimeRoleCacheMtimeMs = -1;
       return runtimeRoleCache;
     }
 
-    const stat = fs.statSync(REGISTRY_FILE);
+    const stat = fs.statSync(readPath);
     if (stat.mtimeMs === runtimeRoleCacheMtimeMs) {
       return runtimeRoleCache;
     }
 
-    const raw = fs.readFileSync(REGISTRY_FILE, "utf-8");
+    const raw = fs.readFileSync(readPath, "utf-8");
     const parsed = JSON.parse(raw);
     const templates = parsed.templates || [];
 

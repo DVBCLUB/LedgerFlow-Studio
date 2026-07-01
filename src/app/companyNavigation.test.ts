@@ -21,6 +21,8 @@ test('mandatory Company OS workspaces remain visible', () => {
   for (const required of [
     'command-center',
     'product-studio',
+    'marketing-growth',
+    'sales-crm',
     'finance-accounting',
     'ai-workforce',
     'analytics-sandbox',
@@ -32,6 +34,8 @@ test('core and legacy tabs are separated for cleaner navigation', () => {
   assert.equal(CORE_TABS.length, COMPANY_WORKSPACES.length);
   assert.ok(!CORE_TABS.includes('devops_hub' as never));
   assert.ok(!CORE_TABS.includes('control_room' as never));
+  assert.ok(!CORE_TABS.includes('operations' as never));
+  assert.ok(LEGACY_TABS.includes('operations'));
   assert.ok(CORE_TABS.every((tab) => isCoreTab(tab)));
   assert.ok(LEGACY_TABS.every((tab) => !isCoreTab(tab)));
 });
@@ -39,21 +43,26 @@ test('core and legacy tabs are separated for cleaner navigation', () => {
 test('legacy workspace subtab aliases resolve to streamlined subtabs', () => {
   assert.equal(resolveWorkspaceSubTab('ceo_command', 'overview', ['brief', 'daily_weekly', 'library', 'sop_rd']), 'brief');
   assert.equal(resolveWorkspaceSubTab('ceo_command', 'risk', ['brief', 'daily_weekly', 'library', 'sop_rd']), 'sop_rd');
-  assert.equal(resolveWorkspaceSubTab('operations', 'pricing_lab', ['product_studio', 'growth_marketing', 'sales_crm', 'logistics']), 'sales_crm');
-  assert.equal(resolveWorkspaceSubTab('operations', 'content_zalo', ['product_studio', 'growth_marketing', 'sales_crm', 'logistics']), 'growth_marketing');
-  assert.equal(resolveWorkspaceSubTab('ai_factory', 'staff_assistants', ['overview', 'missions', 'staff_roles', 'openclaw', 'robot_auto', 'tools_security', 'factory']), 'staff_roles');
-  assert.equal(resolveWorkspaceSubTab('ai_factory', 'automation_rules', ['overview', 'missions', 'staff_roles', 'openclaw', 'robot_auto', 'tools_security', 'factory']), 'robot_auto');
-  assert.equal(resolveWorkspaceSubTab('ai_factory', 'tool_catalog', ['overview', 'missions', 'staff_roles', 'openclaw', 'robot_auto', 'tools_security', 'factory']), 'openclaw');
-  assert.equal(resolveWorkspaceSubTab('ai_factory', 'software_factory', ['overview', 'missions', 'staff_roles', 'openclaw', 'robot_auto', 'tools_security', 'factory']), 'factory');
+  assert.equal(resolveWorkspaceSubTab('product_studio', 'roadmap', ['portfolio', 'delivery']), 'portfolio');
+  assert.equal(resolveWorkspaceSubTab('product_studio', 'deploy', ['portfolio', 'delivery']), 'delivery');
+  assert.equal(resolveWorkspaceSubTab('marketing_growth', 'content_zalo', ['campaigns', 'content']), 'content');
+  assert.equal(resolveWorkspaceSubTab('marketing_growth', 'market_research', ['campaigns', 'content']), 'campaigns');
+  assert.equal(resolveWorkspaceSubTab('sales_crm', 'lead_scoring', ['pipeline', 'pricing_retention']), 'pipeline');
+  assert.equal(resolveWorkspaceSubTab('sales_crm', 'pricing_lab', ['pipeline', 'pricing_retention']), 'pricing_retention');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'overview', ['command', 'missions', 'robot_auto', 'advanced']), 'command');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'staff_assistants', ['command', 'missions', 'robot_auto', 'advanced']), 'advanced');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'automation_rules', ['command', 'missions', 'robot_auto', 'advanced']), 'robot_auto');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'tool_catalog', ['command', 'missions', 'robot_auto', 'advanced']), 'advanced');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'software_factory', ['command', 'missions', 'robot_auto', 'advanced']), 'advanced');
   assert.equal(resolveWorkspaceSubTab('system_settings', 'ci_doctor', ['general', 'devops', 'control', 'safety_gates', 'emergency']), 'devops');
 });
 
 test('workspace subtab resolver preserves valid ids and rejects unknown ids', () => {
-  const validIds = ['overview', 'missions', 'staff_roles', 'openclaw', 'robot_auto', 'tools_security', 'factory'] as const;
+  const validIds = ['command', 'missions', 'robot_auto', 'advanced'] as const;
 
-  assert.equal(resolveWorkspaceSubTab('ai_factory', 'staff_roles', validIds), 'staff_roles');
+  assert.equal(resolveWorkspaceSubTab('ai_factory', 'staff_roles', validIds), 'advanced');
   assert.equal(resolveWorkspaceSubTab('ai_factory', 'not_real', validIds), undefined);
-  assert.equal(resolveWorkspaceSubTab('unknown_workspace', 'staff_roles', validIds), 'staff_roles');
+  assert.equal(resolveWorkspaceSubTab('unknown_workspace', 'command', validIds), 'command');
   assert.equal(resolveWorkspaceSubTab('unknown_workspace', 'staff_assistants', validIds), undefined);
 });
 

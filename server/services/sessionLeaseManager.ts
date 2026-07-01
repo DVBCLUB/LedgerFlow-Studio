@@ -1,5 +1,5 @@
 import fs from "fs";
-import path from "path";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export type LeaseStatus = "active" | "released" | "expired";
 
@@ -26,17 +26,18 @@ interface ClaimLeaseInput {
   ttlMinutes?: number;
 }
 
-const LEASES_FILE = path.join(process.cwd(), "platform_account_leases.json");
+const LEASES_FILE = resolveRuntimePathFromEnv("PLATFORM_ACCOUNT_LEASES_FILE", "platform_account_leases.json");
 const DEFAULT_TTL_MINUTES = 90;
 const MAX_HISTORY = 300;
 
 export class SessionLeaseManager {
   private static async readLeases(): Promise<PlatformAccountLease[]> {
     try {
-      if (!fs.existsSync(LEASES_FILE)) {
+      const readPath = resolveRuntimeReadPathFromEnv("PLATFORM_ACCOUNT_LEASES_FILE", "platform_account_leases.json");
+      if (!fs.existsSync(readPath)) {
         return [];
       }
-      const raw = await fs.promises.readFile(LEASES_FILE, "utf8");
+      const raw = await fs.promises.readFile(readPath, "utf8");
       const parsed = JSON.parse(raw) as PlatformAccountLease[];
       return Array.isArray(parsed) ? parsed : [];
     } catch (error) {
@@ -47,6 +48,7 @@ export class SessionLeaseManager {
 
   private static async writeLeases(leases: PlatformAccountLease[]): Promise<void> {
     try {
+      ensureRuntimeRootSync();
       const trimmed = leases
         .slice()
         .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt))

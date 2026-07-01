@@ -1,8 +1,8 @@
 import fs from "fs";
-import path from "path";
 import { diagnoseAIRouter } from "./aiRouter";
 import { listAIKeys } from "./aiKeyVault";
 import { readAIUsageLogs } from "./aiUsageLog";
+import { resolveRuntimeReadPathFromEnv } from "./runtimePaths";
 
 export type AIPreflightSeverity = "ok" | "warn" | "error";
 
@@ -29,9 +29,9 @@ export interface AIPreflightReport {
   };
 }
 
-const VAULT_FILE = path.join(process.cwd(), "ai_keys.vault.json");
-const SECRET_FILE = path.join(process.cwd(), ".ledgerflow_secret");
-const USAGE_LOG_FILE = path.join(process.cwd(), "ai_usage.log.json");
+const VAULT_FILE = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json");
+const SECRET_FILE = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_SECRET_FILE", ".ledgerflow_secret");
+const USAGE_LOG_FILE = resolveRuntimeReadPathFromEnv("AI_USAGE_LOG_FILE", "ai_usage.log.json");
 
 async function checkLocalOllama(ollamaUrl: string): Promise<{ running: boolean; models: string[]; error?: string }> {
   try {

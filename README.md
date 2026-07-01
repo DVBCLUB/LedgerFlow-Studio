@@ -72,6 +72,33 @@ Tai lieu chi tiet nam trong:
 docs/
 ```
 
+## Nhanh cho AI coder (Gemini/ChatGPT/Claude/Copilot)
+
+Neu ban code truc tiep tren GitHub hoac editor AI, doc nhanh theo thu tu:
+
+```text
+CODEMAP.md
+AGENTS.md
+docs/PROJECT_STRUCTURE.md
+docs/AI_AGENT_PLAYBOOK.md
+CONTRIBUTING.md
+docs/GREEN_MERGE_POLICY.md
+```
+
+Quy tac ngan:
+
+- Them module moi: uu tien `src/modules/<domain>/`.
+- Them API/UI ket noi backend: `src/utils/*Api.ts` + `server/services/*`.
+- Them connector: `server/services/<platform>Connector.ts` + panel trong `src/components/`.
+- Khong goi provider AI truc tiep tu frontend.
+- Truoc push: `npm run lint` va `npm run build`.
+
+Lenh huu ich de giu repo gon khi code truc tiep:
+
+- `npm run runtime:migrate` (gom local runtime files tu root vao `runtime/`)
+- `npm run check:codemap` (guard placement theo CODEMAP)
+- `npm run check:pr-readiness` (risk-aware pre-merge checks cho moi AI platform)
+
 Script phu nam trong:
 
 ```text

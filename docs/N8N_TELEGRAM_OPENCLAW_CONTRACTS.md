@@ -61,7 +61,7 @@ Pipeline state is written to the ignored local `agent_pipelines.local.json` stor
 
 Tool execution uses a three-call lifecycle: `POST /api/company-os/tools/preview`, `POST /api/company-os/tools/approve` when required, then `POST /api/company-os/tools/execute`. Approval tokens expire after two minutes, are bound to the preview fingerprint, and are consumed once. P1 execution remains simulation-only; sandbox and connector writes are not opened by these routes.
 
-Cron and manual scheduled work is persisted in the ignored `agent_jobs.local.json` queue before execution. Workers claim jobs with a 60-second lease, retry failures with exponential backoff, and move exhausted jobs to `dead_letter`. Inspect counts and recent jobs with `GET /api/cron/queue`; restarting the desktop app resumes due queued/retry jobs.
+Cron and manual scheduled work is persisted in the ignored `runtime/agent_jobs.local.json` queue before execution. Workers claim jobs with a 60-second lease, retry failures with exponential backoff, and move exhausted jobs to `dead_letter`. Inspect counts and recent jobs with `GET /api/cron/queue`; restarting the desktop app resumes due queued/retry jobs.
 
 Founder recovery uses `PATCH /api/cron/queue/:id` with action `retry` or `cancel`. Only dead-letter jobs can be retried; only queued/retry/dead-letter jobs can be cancelled, and running leases cannot be interrupted. `POST /api/cron/queue/prune` removes terminal history older than the retention window while preserving all active work.
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { getAgentRun } from './agentRuntime.ts';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type PatchReviewStatus = 'draft' | 'waiting_review' | 'approved_to_apply' | 'applied' | 'rolled_back' | 'rejected';
 
@@ -23,7 +24,7 @@ export interface PatchReviewSession {
 type SessionStore = { sessions: Record<string, PatchReviewSession> };
 
 function storeFile() {
-  return path.resolve(process.cwd(), process.env.PATCH_REVIEW_STORE_FILE || 'patch_review_sessions.local.json');
+  return resolveRuntimePathFromEnv('PATCH_REVIEW_STORE_FILE', 'patch_review_sessions.local.json');
 }
 
 function sandboxRoot() {
@@ -32,7 +33,7 @@ function sandboxRoot() {
 
 async function readStore(): Promise<SessionStore> {
   try {
-    const parsed = JSON.parse(await fs.promises.readFile(storeFile(), 'utf8')) as SessionStore;
+    const parsed = JSON.parse(await fs.promises.readFile(resolveRuntimeReadPathFromEnv('PATCH_REVIEW_STORE_FILE', 'patch_review_sessions.local.json'), 'utf8')) as SessionStore;
     return { sessions: parsed.sessions || {} };
   } catch {
     return { sessions: {} };
@@ -40,6 +41,7 @@ async function readStore(): Promise<SessionStore> {
 }
 
 async function writeStore(store: SessionStore) {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(storeFile(), JSON.stringify(store, null, 2), 'utf8');
 }
 

@@ -11,6 +11,22 @@ npm run dev
 
 For Windows desktop packaging, use the scripts under `tools/windows/` as documented in `README.md`.
 
+## AI-first workflow (GitHub direct coding)
+
+When using Gemini, ChatGPT, Claude Code, or Copilot directly on GitHub/PR edits:
+
+1. Read `CODEMAP.md` before changing files.
+2. Keep changes minimal and scoped to one feature/fix.
+3. Put code in the correct layer:
+	- Frontend module: `src/modules/<domain>/`
+	- Frontend API wrapper: `src/utils/*Api.ts`
+	- Backend logic: `server/services/*`
+	- Thin route wiring: `server.ts`
+4. Do not call AI providers directly from frontend components.
+5. Update at least one relevant doc when user-visible behavior changes.
+6. Keep runtime files out of root (`npm run runtime:migrate` when needed).
+7. Run CODEMAP guard before PR (`npm run check:codemap`).
+
 ## Before opening a pull request
 
 Run the strongest checks that currently pass for your branch:

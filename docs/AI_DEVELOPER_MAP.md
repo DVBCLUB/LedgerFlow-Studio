@@ -53,4 +53,4 @@ When modifying or adding components, you must satisfy these architectural constr
    - Run `npm run lint` (`tsc --noEmit`) to verify compilation and import paths.
    - Run `npm run check:desktop-release` to run environmental, offline-readiness, and integrity checks.
    - Run `npm run build` to verify the Vite production build.
-5. **No Secret Commits**: Never commit API keys, system vault files (`.env`, `ai_keys.vault.json`, `.ledgerflow_secret`), or integration logs.
+5. **No Secret Commits**: Never commit API keys, system vault files (`.env`, `runtime/ai_keys.vault.json`, `runtime/.ledgerflow_secret`), or integration logs.
