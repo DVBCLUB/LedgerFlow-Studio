@@ -1,61 +1,61 @@
-# BRIEF4 Deploy and Rollback Checklist
+# BRIEF4 - Checklist Deploy va Rollback
 
-## Deploy Checklist
-1. Pull latest main and verify target commit hash.
-2. Run validation:
+## Checklist Deploy
+1. Pull main moi nhat va xac minh commit hash muc tieu.
+2. Chay bo kiem tra:
 
 ```bash
 npm run lint
 npm run check:runtime
 ```
 
-3. Confirm these runtime endpoints are healthy:
+3. Xac nhan cac endpoint runtime sau o trang thai healthy:
 - /api/gateway/health
 - /api/ai-workforce/runtime
 - /api/ai-workforce/mission-execution-queue/drift
 - /api/company-os/browser-sandbox/diagnostics
 
-4. Confirm frontend panels load:
-- AI Workforce Runtime panel (drift actions visible)
-- Web AI Sync panel (fallback confirmation + diagnostics visible)
+4. Xac nhan cac panel frontend tai duoc:
+- AI Workforce Runtime panel (co thao tac drift)
+- Web AI Sync panel (co xac nhan fallback + diagnostics)
 
-5. Confirm no secrets were introduced in tracked files.
-6. Deploy to target environment.
-7. Run post-deploy smoke checks against deployed URLs.
+5. Xac nhan khong co secret bi dua vao tracked files.
+6. Deploy len moi truong muc tieu.
+7. Chay smoke check sau deploy tren URL da trien khai.
 
-## Go/No-Go Criteria
-Go only if all are true:
-- lint and runtime checks pass
-- gateway health returns live providers/stats
-- drift endpoint responds and does not show unresolved critical trend
-- browser diagnostics endpoint responds
+## Tieu chi Go/No-Go
+Chi Go khi tat ca dieu kien deu dung:
+- lint va runtime checks pass
+- gateway health tra ve live providers/stats
+- drift endpoint phan hoi va khong co xu huong critical unresolved
+- browser diagnostics endpoint phan hoi binh thuong
 
-## Rollback Triggers
-Rollback when any of these happens after deploy:
-- runtime contracts fail consistently
-- mission queue drift critical issues increase and repair cannot stabilize
-- browser mode cooldown/failure loops block operational workflows
-- gateway live snapshot unavailable or structurally invalid
+## Dieu kien kich hoat Rollback
+Rollback neu sau deploy xay ra mot trong cac truong hop:
+- runtime contracts that bai lien tuc
+- critical drift cua mission queue tang va repair khong on dinh he thong
+- browser mode bi cooldown/failure loop lam tac nghen van hanh
+- gateway live snapshot khong kha dung hoac payload sai cau truc
 
-## Rollback Procedure
-1. Identify last known good commit.
-2. Re-deploy last known good commit.
-3. Re-run smoke checks:
+## Quy trinh Rollback
+1. Xac dinh commit on dinh gan nhat.
+2. Re-deploy commit on dinh gan nhat.
+3. Chay lai smoke check:
 
 ```bash
 npm run check:runtime
 ```
 
-4. Validate core endpoints and UI panels again.
-5. Publish incident note with:
+4. Xac minh lai endpoint cot loi va panel UI.
+5. Ghi incident note gom:
 - trigger condition
 - affected endpoints
 - rollback commit hash
 - next remediation owner
 
-## Release Evidence
-Capture and store:
-- check:runtime output
-- gateway health sample payload
-- drift report before/after repair (if any)
-- browser diagnostics snapshot
+## Bang chung Release
+Can thu thap va luu tru:
+- output cua check:runtime
+- mau payload gateway health
+- drift report truoc/sau repair (neu co)
+- snapshot browser diagnostics

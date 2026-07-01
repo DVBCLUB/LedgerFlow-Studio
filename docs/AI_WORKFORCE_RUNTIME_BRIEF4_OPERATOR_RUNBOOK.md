@@ -1,85 +1,85 @@
-# AI Workforce Runtime BRIEF4 Operator Runbook
+# AI Workforce Runtime BRIEF4 - Runbook Van Hanh
 
-## 1) Scope
-This runbook covers daily operations for BRIEF4 runtime controls:
-- Mission queue drift monitoring and repair
-- Browser fallback diagnostics and cooldown handling
-- Gateway health snapshot verification
+## 1) Pham vi
+Runbook nay mo ta quy trinh van hanh hang ngay cho bo kiem soat runtime BRIEF4:
+- Theo doi va sua lech (drift) mission queue
+- Theo doi diagnostics va cooldown cho browser fallback
+- Xac minh snapshot suc khoe Gateway
 
-## 2) Pre-check
-Run these from project root:
+## 2) Kiem tra truoc khi van hanh
+Chay tu thu muc goc du an:
 
 ```bash
 npm run lint
 npm run check:runtime
 ```
 
-Expected result:
-- CI safety gate passes
+Ket qua mong doi:
+- CI safety gate pass
 - Runtime smoke contracts pass
 
-## 3) Drift Monitoring and Repair
-### Check drift report
+## 3) Theo doi Drift va Sua Drift
+### Kiem tra drift report
 - Endpoint: GET /api/ai-workforce/mission-execution-queue/drift
-- Purpose: compare linked mission queue state with AgentRun runtime source.
+- Muc dich: doi chieu linked mission queue voi source runtime cua AgentRun.
 
-Interpretation:
-- issueCount = 0: healthy
-- criticalIssues > 0: immediate operator action required
+Cach doc ket qua:
+- issueCount = 0: he thong on dinh
+- criticalIssues > 0: can xu ly ngay
 
-### Repair drift
+### Sua drift
 - Endpoint: POST /api/ai-workforce/mission-execution-queue/drift/repair
-- Purpose: auto-repair known drift patterns and persist corrected links/snapshots.
+- Muc dich: tu dong sua cac mau drift da biet va luu lai link/snapshot da chinh.
 
-Operator workflow:
-1. Trigger drift check.
-2. If critical issues exist, run repair endpoint once.
-3. Re-run drift check.
-4. If still critical, pause mission execution and escalate with logs/snapshot IDs.
+Quy trinh de xuat cho operator:
+1. Goi drift check.
+2. Neu co critical issues, goi drift repair mot lan.
+3. Chay lai drift check.
+4. Neu van critical, tam dung mission execution va escalte kem log/snapshot ID.
 
-## 4) Browser Fallback Operations
-### Policy
-Browser mode is fallback-only by default.
-Operator must confirm API fallback exhaustion before starting browser run.
+## 4) Van hanh Browser Fallback
+### Chinh sach
+Browser mode mac dinh la fallback-only.
+Operator phai xac nhan da exhaust API fallback truoc khi chay browser run.
 
 ### Diagnostics
 - Endpoint: GET /api/company-os/browser-sandbox/diagnostics
-- Signals:
+- Tin hieu can theo doi:
   - failures
   - reason
   - cooldownActive
   - disabledUntil
 
-### Operator response
-1. If cooldownActive is true: do not force retry.
-2. Wait until disabledUntil, then rerun with controlled scope.
-3. If repeated captcha/login challenge failures occur, switch to API route or rotate task timing/profile.
+### Cach xu ly
+1. Neu cooldownActive = true: khong force retry.
+2. Cho den disabledUntil roi moi chay lai voi pham vi kiem soat.
+3. Neu lap lai captcha/login challenge, uu tien quay ve API route hoac doi timing/profile.
 
-## 5) Gateway Health Snapshot
+## 5) Kiem tra Gateway Health Snapshot
 - Endpoint: GET /api/gateway/health
-- Expected payload:
+- Payload mong doi:
   - providers: live health snapshot
   - stats: live gateway stats snapshot
 
-Operator response:
-1. If preferred provider fails repeatedly, verify vault keys and provider reachability.
-2. Confirm fallback path still routes through allowed providers/models.
-3. Record incident in runtime log with provider/model and timestamp.
+Cach xu ly:
+1. Neu preferred provider that bai lap lai, kiem tra key trong vault va kha nang ket noi provider.
+2. Xac nhan fallback van route dung theo danh sach provider/model cho phep.
+3. Ghi su co vao runtime log kem provider/model va timestamp.
 
-## 6) Incident Triggers
-Escalate immediately when:
-- Drift repair does not clear critical issues.
-- Browser cooldown repeatedly re-triggers for the same host.
-- Gateway snapshot shows sustained provider unavailability across fallback candidates.
+## 6) Dieu kien kich hoat Incident
+Escalate ngay khi xay ra mot trong cac truong hop sau:
+- Drift repair khong xoa duoc critical issues.
+- Browser cooldown bi kich hoat lap lai tren cung host.
+- Gateway snapshot cho thay provider unavailable keo dai tren toan bo fallback candidates.
 
-## 7) Post-Incident Verification
-Run:
+## 7) Xac minh sau su co
+Chay:
 
 ```bash
 npm run check:runtime
 ```
 
-Then verify:
-- Runtime dashboard loads
-- Drift issue count trends down or zero
-- Browser diagnostics no longer in active cooldown for affected host
+Sau do xac minh:
+- Runtime dashboard tai duoc
+- So luong drift issue giam xuong hoac ve 0
+- Browser diagnostics khong con cooldown active tren host bi anh huong
