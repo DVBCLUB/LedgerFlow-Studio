@@ -48,7 +48,9 @@ Before any physical adapter is added, it must provide hardware emergency stop, w
 
 ## Browser boundary
 
-Browser automation keeps the Chromium sandbox enabled. Targets must match the task-specific ChatGPT/Gemini hosts, localhost, or an explicit comma-separated `BROWSER_SANDBOX_ALLOWED_HOSTS` server setting. Profile names are validated and cannot escape the managed Chrome profile directory.
+Browser automation keeps the Chromium sandbox enabled. Targets must match task-specific hosts (ChatGPT, Gemini, Claude, DeepSeek), localhost, or an explicit comma-separated `BROWSER_SANDBOX_ALLOWED_HOSTS` server setting. Profile names are validated and cannot escape the managed Chrome profile directory.
+
+Browser mode is fallback-only behind policy: it is blocked unless API fallback exhaustion has already been confirmed (`BROWSER_MODE_REQUIRES_API_EXHAUSTION=true` by default). Repeated failures (including login challenge/CAPTCHA patterns) trigger a per-host cooldown circuit breaker and surface diagnostics instead of silent retry loops.
 
 ## APIs
 

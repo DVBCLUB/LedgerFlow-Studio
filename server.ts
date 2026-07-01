@@ -683,7 +683,7 @@ async function startServer() {
 
   if (process.env.NODE_ENV === "production") {
     app.use(express.static(path.join(process.cwd(), "dist")));
-    app.get("*", (_req, res) => res.sendFile(path.join(process.cwd(), "dist", "index.html")));
+    app.use((_req, res) => res.sendFile(path.join(process.cwd(), "dist", "index.html")));
   } else {
     const vitePkg = "vi" + "te";
     const { createServer: createViteServer } = await import(vitePkg);

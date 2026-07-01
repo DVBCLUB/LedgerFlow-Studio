@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { appendAuditEvent } from './auditLog.ts';
 import { createApprovalFingerprint, getAgentToolContract } from './agentToolRegistry.ts';
 import { searchAgentMemory } from './agentMemoryStore.ts';
-import { createAgentPlan, type AgentPlan, type AgentToolId } from './agentPlanner.ts';
+import { createAgentPlan, shouldReplan, type AgentPlan, type AgentToolId } from './agentPlanner.ts';
 import { executeSandboxTool } from './sandboxToolExecutor.ts';
 import { readSecureJson, writeSecureJson } from './secureJsonStore.ts';
 import { signRecord, verifyRecord } from './signedRecords.ts';
@@ -81,6 +81,39 @@ async function executeStep(run: AgentRun, step: AgentRunStep) {
   await appendAuditEvent({ actor: 'ai-agent', workspace: 'agent-runtime', action: 'tool.executed', target: step.id, risk: step.risk.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH', status: result.blocked ? 'pending_approval' : 'sandbox', summary: observation, evidence: { runId: run.id, toolId: step.toolId, mode: result.mode } });
 }
 
+async function maybeReplanAfterStep(run: AgentRun) {
+  if (run.replanCount >= 3) return false;
+  if (!shouldReplan(run.observations)) return false;
+
+  const completed = run.steps.filter((step) => step.status === 'completed');
+  const queued = run.steps.filter((step) => step.status === 'queued');
+  if (!queued.length) return false;
+
+  const carryInputs = queued.reduce((acc, step) => {
+    if (!acc[step.toolId] && step.toolInput) acc[step.toolId] = step.toolInput;
+    return acc;
+  }, {} as Partial<Record<AgentToolId, Record<string, unknown>>>);
+
+  const plan = await createAgentPlan({
+    goal: run.goal,
+    requestedTools: queued.map((step) => step.toolId),
+    observations: run.observations,
+    mode: 'auto',
+  });
+
+  run.steps = [
+    ...completed,
+    ...planSteps(plan, Math.max(0, run.maxSteps - completed.length), carryInputs),
+  ].map((step, index) => ({ ...step, index }));
+  run.planner = plan.planner;
+  run.plannerSummary = plan.summary;
+  run.plannerFallbackReason = plan.fallbackReason;
+  run.replanCount += 1;
+  run.status = 'planned';
+  run.observations.push(`Replanned after runtime observation shift (count ${run.replanCount}/3).`);
+  return true;
+}
+
 export async function advanceAgentRun(id: string) {
   return mutate(async (store) => {
     const run = store.runs[id]; if (!run) throw new Error('Agent run not found.');
@@ -97,7 +130,11 @@ export async function advanceAgentRun(id: string) {
         publish('agent.step.approval_required', { runId: run.id, stepId: step.id, toolId: step.toolId, fingerprint: step.approvalFingerprint }).catch(() => undefined);
         break;
       }
-      try { await executeStep(run, step); }
+      try {
+        await executeStep(run, step);
+        const replanned = await maybeReplanAfterStep(run);
+        if (replanned) break;
+      }
       catch (error) {
         step.status = 'failed'; step.observation = error instanceof Error ? error.message : String(error); run.observations.push(`Failure: ${step.observation}`); run.status = 'failed';
         run.completedAt = new Date().toISOString();
@@ -134,7 +171,10 @@ export async function approveAgentRunStep(runId: string, input: { stepId: string
     const signature = input.signature || step.approvalSignature || '';
     if (input.phrase !== 'APPROVE AGENT STEP' || step.approvalFingerprint !== input.fingerprint || !verifyRecord({ runId, stepId: step.id, fingerprint: step.approvalFingerprint }, signature)) throw new Error('Approval does not match the signed reviewed step.');
     await executeStep(current, step);
-    current.status = current.steps.every((item) => item.status === 'completed') ? 'completed' : 'running';
+    await maybeReplanAfterStep(current);
+    if (current.status !== 'planned') {
+      current.status = current.steps.every((item) => item.status === 'completed') ? 'completed' : 'running';
+    }
     current.completedAt = current.status === 'completed' ? new Date().toISOString() : undefined;
     current.updatedAt = new Date().toISOString();
     if (current.status === 'completed') {

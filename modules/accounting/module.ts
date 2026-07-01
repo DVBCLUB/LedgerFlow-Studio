@@ -4,7 +4,7 @@
  * server/services/accountingRoutes.ts, không di chuyển.
  */
 import type { IModule } from '../../core/types/module.interface.js';
-import { registerAccountingRoutes } from '../../server/services/accountingRoutes.js';
+import { registerAccountingRoutes } from '../../server/services/accountingRoutes.ts';
 
 const AccountingModule: IModule = {
   meta: {

@@ -54,10 +54,12 @@ async function buildContextSummary(observations: string[]): Promise<string> {
  * Determine if the planner should self-replan based on failed observations.
  */
 export function shouldReplan(observations: string[]): boolean {
-  const failureKeywords = ['Failure:', 'failed', 'error', 'blocked', 'rejected'];
-  const recentObs = observations.slice(-3);
-  const failures = recentObs.filter((obs) => failureKeywords.some((k) => obs.toLowerCase().includes(k)));
-  return failures.length >= 1;
+  const failureKeywords = ['failure:', 'failed', 'error', 'blocked', 'rejected', 'timeout'];
+  const uncertaintyKeywords = ['unexpected', 'uncertain', 'low confidence', 'missing evidence', 'partial', 'incomplete'];
+  const recentObs = observations.slice(-4).map((obs) => obs.toLowerCase());
+  const failures = recentObs.filter((obs) => failureKeywords.some((k) => obs.includes(k)));
+  const uncertainty = recentObs.filter((obs) => uncertaintyKeywords.some((k) => obs.includes(k)));
+  return failures.length >= 1 || uncertainty.length >= 2;
 }
 
 export async function createAgentPlan(input: {

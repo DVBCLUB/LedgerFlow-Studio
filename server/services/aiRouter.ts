@@ -284,10 +284,23 @@ async function logEntry(entry: DecryptedAIKeyEntry, mode: AIUsageMode, status: "
 }
 function countPromptChars(messages: ChatMessage[]): number { return messages.reduce((sum, msg) => sum + msg.content.length, 0); }
 function orderEntriesByPolicy(entries: DecryptedAIKeyEntry[], options: CallAIOptions): DecryptedAIKeyEntry[] {
-  if (entries.length <= 1) return entries;
+  const preferredProvider = options.preferredProvider;
+  const preferredModel = options.preferredModel?.trim();
+  const preferredEntries = entries.filter((entry) => {
+    if (preferredProvider && entry.provider !== preferredProvider) return false;
+    if (preferredModel && (entry.model || '').trim() !== preferredModel) return false;
+    return true;
+  });
+
+  const candidateEntries = preferredEntries.length > 0 ? preferredEntries : entries;
+  if (options.strictPreferred && (preferredProvider || preferredModel) && preferredEntries.length === 0) {
+    throw new ProviderError('No enabled AI key matched the preferred provider/model.', 404, { preferredProvider, preferredModel });
+  }
+
+  if (candidateEntries.length <= 1) return candidateEntries;
   const model = options.model ?? "ai-assistant";
   const task = options.task ?? "general";
-  return entries
+  return candidateEntries
     .slice()
     .sort((a, b) => {
       const rankA = getProviderRank(a.provider, model, task);

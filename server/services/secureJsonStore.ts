@@ -40,7 +40,24 @@ export async function writeSecureJson(file: string, value: unknown) {
   const envelope: Envelope = { format: 'ledgerflow-aes-256-gcm-v1', iv: iv.toString('base64url'), tag: cipher.getAuthTag().toString('base64url'), ciphertext: ciphertext.toString('base64url') };
   const temp = `${file}.${process.pid}.${Date.now()}.tmp`;
   await fs.promises.mkdir(path.dirname(file), { recursive: true });
-  try { await fs.promises.writeFile(temp, JSON.stringify(envelope), 'utf8'); await fs.promises.rename(temp, file); }
+  try {
+    await fs.promises.writeFile(temp, JSON.stringify(envelope), 'utf8');
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        await fs.promises.rename(temp, file);
+        lastError = undefined;
+        break;
+      } catch (error: any) {
+        lastError = error;
+        if (!(error?.code === 'EPERM' || error?.code === 'EBUSY') || attempt === 3) {
+          throw error;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 20 * (attempt + 1)));
+      }
+    }
+    if (lastError) throw lastError;
+  }
   finally { await fs.promises.rm(temp, { force: true }).catch(() => undefined); }
 }
 

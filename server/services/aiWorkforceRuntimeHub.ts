@@ -28,7 +28,8 @@ import {
   approveStoredMissionExecutionStep,
   cancelStoredMissionExecutionQueue,
   completeStoredMissionExecutionStep,
-  createAndSaveMissionExecutionQueue,
+  createLinkedMissionExecutionQueue,
+  getMissionQueueRuntimeDriftReport,
   getMissionExecutionQueueStoreStats,
   listMissionExecutionQueues,
   requireMissionExecutionQueue,
@@ -72,6 +73,14 @@ function dedupeMetrics(metrics: AIRunMetric[]) {
   const byId = new Map<string, AIRunMetric>();
   for (const metric of metrics) byId.set(metric.id, metric);
   return Array.from(byId.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export async function listRuntimeMissionQueueDrift(options: { limit?: number } = {}) {
+  return getMissionQueueRuntimeDriftReport({ limit: options.limit || 200 });
+}
+
+export async function repairRuntimeMissionQueueDrift(options: { limit?: number } = {}) {
+  return getMissionQueueRuntimeDriftReport({ limit: options.limit || 200, autoRepair: true });
 }
 
 async function listRuntimeObservabilityMetrics() {
@@ -242,7 +251,7 @@ export async function buildRuntimeMissionPlan(input: AIWorkforceMissionPlannerIn
 export async function buildRuntimeMissionExecutionQueue(input: AIWorkforceMissionPlannerInput) {
   const startedAt = Date.now();
   const plan = planAIWorkforceMission(input);
-  const queue = await createAndSaveMissionExecutionQueue(plan);
+  const queue = await createLinkedMissionExecutionQueue(plan);
   await appendAIWorkforceRuntimeRecord({
     id: queue.id,
     type: 'mission_execution_queue',
@@ -528,6 +537,7 @@ export async function getAIWorkforceRuntimeDashboard() {
   const storeStats = await getAIWorkforceRuntimeStoreStats();
   const metricStoreStats = await getAIWorkforceRunMetricStoreStats();
   const missionQueueStats = await getMissionExecutionQueueStoreStats();
+  const missionQueueDrift = await listRuntimeMissionQueueDrift({ limit: 200 });
   const recentRecords = await listAIWorkforceRuntimeRecords({ limit: 10 });
   await appendAIWorkforceTrendSnapshot({
     readinessGrade: readiness.grade,
@@ -540,7 +550,17 @@ export async function getAIWorkforceRuntimeDashboard() {
     severity: tooling.summary.blocked > 0 || observability.blockedRate > 0.2 ? 'warning' : 'info',
     actor: 'Runtime Hub',
     summary: `Runtime snapshot created with readiness ${readiness.grade} (${readiness.overallScore}/5).`,
-    metadata: { runs: observability.runs, blockedRate: observability.blockedRate, toolingSummary: tooling.summary, metricStoreStats, missionQueueStats },
+    metadata: {
+      runs: observability.runs,
+      blockedRate: observability.blockedRate,
+      toolingSummary: tooling.summary,
+      metricStoreStats,
+      missionQueueStats,
+      missionQueueDrift: {
+        issueCount: missionQueueDrift.issues.length,
+        criticalIssues: missionQueueDrift.issues.filter((issue) => issue.severity === 'critical').length,
+      },
+    },
   });
   const ledger = await getAIWorkforceOperationalLedgerDashboard();
   const dashboard = {
@@ -552,6 +572,7 @@ export async function getAIWorkforceRuntimeDashboard() {
     storeStats,
     metricStoreStats,
     missionQueueStats,
+    missionQueueDrift,
     recentRecords,
   };
   await appendAIWorkforceRuntimeRecord({
@@ -570,6 +591,10 @@ export async function getAIWorkforceRuntimeDashboard() {
       },
       metricStoreStats,
       missionQueueStats,
+      missionQueueDrift: {
+        issueCount: missionQueueDrift.issues.length,
+        criticalIssues: missionQueueDrift.issues.filter((issue) => issue.severity === 'critical').length,
+      },
       storeStats,
     },
   });

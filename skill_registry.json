@@ -25,9 +25,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782883089021_83c02a",
-    "createdAt": "2026-07-01T05:18:09.021Z",
-    "updatedAt": "2026-07-01T05:18:09.021Z"
+    "id": "skill_1782891538519_e53ef0",
+    "createdAt": "2026-07-01T07:38:58.519Z",
+    "updatedAt": "2026-07-01T07:38:58.519Z"
   },
   {
     "name": "code-reviewer",
@@ -54,9 +54,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782883089022_07e646",
-    "createdAt": "2026-07-01T05:18:09.022Z",
-    "updatedAt": "2026-07-01T05:18:09.022Z"
+    "id": "skill_1782891538519_dfa7e8",
+    "createdAt": "2026-07-01T07:38:58.519Z",
+    "updatedAt": "2026-07-01T07:38:58.519Z"
   },
   {
     "name": "test-writer",
@@ -85,9 +85,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782883089022_8a3cac",
-    "createdAt": "2026-07-01T05:18:09.022Z",
-    "updatedAt": "2026-07-01T05:18:09.022Z"
+    "id": "skill_1782891538519_8c08b4",
+    "createdAt": "2026-07-01T07:38:58.519Z",
+    "updatedAt": "2026-07-01T07:38:58.519Z"
   },
   {
     "name": "data-analyzer",
@@ -115,9 +115,9 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782883089022_1b4893",
-    "createdAt": "2026-07-01T05:18:09.022Z",
-    "updatedAt": "2026-07-01T05:18:09.022Z"
+    "id": "skill_1782891538519_f1b3cd",
+    "createdAt": "2026-07-01T07:38:58.519Z",
+    "updatedAt": "2026-07-01T07:38:58.519Z"
   },
   {
     "name": "security-auditor",
@@ -144,8 +144,8 @@
     "successRate": 100,
     "avgLatencyMs": 0,
     "ratings": [],
-    "id": "skill_1782883089022_42c09c",
-    "createdAt": "2026-07-01T05:18:09.022Z",
-    "updatedAt": "2026-07-01T05:18:09.022Z"
+    "id": "skill_1782891538519_9664cb",
+    "createdAt": "2026-07-01T07:38:58.519Z",
+    "updatedAt": "2026-07-01T07:38:58.519Z"
   }
 ]

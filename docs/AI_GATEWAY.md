@@ -55,6 +55,7 @@ http://127.0.0.1:3000/ai-settings.html
 |---|---:|---|
 | Gemini | Có | Có thể nhập nhiều key từ nhiều tài khoản Gemini khác nhau |
 | Groq | Có | OpenAI-compatible API, phù hợp fallback free tier |
+| DeepSeek | Có | OpenAI-compatible API, hỗ trợ deepseek-chat và deepseek-reasoner |
 | OpenRouter | Có | Dùng các model free hoặc paid tùy key |
 | Anthropic Claude | Có | Dùng Claude API key riêng |
 | Ollama | Không | Chạy local, cần cài Ollama và pull model trước |

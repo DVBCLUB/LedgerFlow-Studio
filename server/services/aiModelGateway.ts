@@ -9,8 +9,8 @@
  * → Pick best provider → Execute → Return with fallback
  */
 import { randomUUID } from 'node:crypto';
-import fs from 'fs';
-import path from 'path';
+import type { AIRoutingTask } from './aiClient.ts';
+import { callAIWithFallback, diagnoseAIRouter } from './aiRouter.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type ProviderStatus = 'online' | 'degraded' | 'offline' | 'rate_limited';
@@ -75,10 +75,22 @@ const PROVIDER_POOL: ProviderConfig[] = [
   { provider: 'openai', model: 'gpt-4o-mini', priority: 2, weight: 30, maxConcurrent: 10, rateLimitPerMin: 50, circuitThreshold: 3, circuitRecoveryMs: 30000, costPer1KTokens: 0.001 },
   { provider: 'anthropic', model: 'claude-3.5-sonnet', priority: 1, weight: 30, maxConcurrent: 5, rateLimitPerMin: 15, circuitThreshold: 5, circuitRecoveryMs: 60000, costPer1KTokens: 0.015 },
   { provider: 'anthropic', model: 'claude-3-haiku', priority: 3, weight: 20, maxConcurrent: 10, rateLimitPerMin: 50, circuitThreshold: 3, circuitRecoveryMs: 30000, costPer1KTokens: 0.001 },
+  { provider: 'deepseek', model: 'deepseek-chat', priority: 2, weight: 25, maxConcurrent: 8, rateLimitPerMin: 30, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.001 },
+  { provider: 'deepseek', model: 'deepseek-reasoner', priority: 3, weight: 20, maxConcurrent: 6, rateLimitPerMin: 20, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.002 },
   { provider: 'groq', model: 'llama-3.3-70b', priority: 2, weight: 15, maxConcurrent: 10, rateLimitPerMin: 30, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.0005 },
   { provider: 'groq', model: 'mixtral-8x7b', priority: 4, weight: 10, maxConcurrent: 15, rateLimitPerMin: 60, circuitThreshold: 3, circuitRecoveryMs: 30000, costPer1KTokens: 0.0003 },
   { provider: 'ollama', model: 'local', priority: 10, weight: 5, maxConcurrent: 2, rateLimitPerMin: 999, circuitThreshold: 10, circuitRecoveryMs: 30000, costPer1KTokens: 0 },
 ];
+
+function mapDomainToTask(domain?: string): AIRoutingTask {
+  const normalized = String(domain || '').toLowerCase();
+  if (normalized.includes('market')) return 'marketing';
+  if (normalized.includes('sale') || normalized.includes('crm')) return 'sales';
+  if (normalized.includes('account')) return 'accounting';
+  if (normalized.includes('analytic') || normalized.includes('data')) return 'analytics';
+  if (normalized.includes('code') || normalized.includes('dev')) return 'coding';
+  return 'general';
+}
 
 // ─── Health Registry ────────────────────────────────────────────────
 const healthMap = new Map<string, ProviderHealth>();
@@ -116,6 +128,26 @@ export function getProviderHealth(): ProviderHealth[] {
   return Array.from(healthMap.values());
 }
 
+export async function getProviderHealthSnapshot(): Promise<ProviderHealth[]> {
+  try {
+    const diagnostics = await diagnoseAIRouter();
+    if (!diagnostics.results?.length) return getProviderHealth();
+    return diagnostics.results.map((item) => ({
+      provider: item.provider,
+      model: item.model || 'default',
+      status: item.status === 'ok' ? 'online' : item.status === 'quota' ? 'rate_limited' : 'degraded',
+      latencyMs: item.latencyMs || 0,
+      successRate: item.status === 'ok' ? 100 : item.status === 'quota' ? 60 : 30,
+      lastCheck: diagnostics.checkedAt,
+      consecutiveFailures: item.status === 'ok' ? 0 : 1,
+      rateLimitRemaining: item.status === 'quota' ? 0 : 1,
+      circuitOpen: false,
+    }));
+  } catch {
+    return getProviderHealth();
+  }
+}
+
 export function getGatewayStats(): GatewayStats {
   const byProvider: Record<string, any> = {};
   for (const cfg of PROVIDER_POOL) {
@@ -133,6 +165,22 @@ export function getGatewayStats(): GatewayStats {
     byProvider,
     circuitBreakersOpen: Array.from(healthMap.values()).filter(h => h.circuitOpen).length,
   };
+}
+
+export async function getGatewayStatsSnapshot(): Promise<GatewayStats> {
+  const base = getGatewayStats();
+  try {
+    const diagnostics = await diagnoseAIRouter();
+    const success = diagnostics.results.filter((item) => item.status === 'ok').length;
+    const failed = diagnostics.results.filter((item) => item.status !== 'ok').length;
+    return {
+      ...base,
+      successfulRequests: Math.max(base.successfulRequests, success),
+      failedRequests: Math.max(base.failedRequests, failed),
+    };
+  } catch {
+    return base;
+  }
 }
 
 export async function routeThroughGateway(request: GatewayRequest): Promise<GatewayResponse> {
@@ -209,24 +257,19 @@ export async function routeThroughGateway(request: GatewayRequest): Promise<Gate
       // Increment active connections
       activeConnections.set(key, (activeConnections.get(key) || 0) + 1);
 
-      // Simulate API call (in production, this would call the actual provider)
-      // For now, return a simulated response based on provider/model
       const callStart = Date.now();
-
-      // Try to use the actual AI Fabric if available
-      let content = '';
-      try {
-        const { dispatchTextThroughFabric } = require('./aiFabric');
-        const result = await dispatchTextThroughFabric(
-          request.prompt,
-          undefined,
-          { domain: request.domain as any, localFallback: true }
-        );
-        content = result.winner?.contentPreview || '';
-      } catch {
-        // Fabric unavailable — simulate
-        content = `[${cfg.provider}/${cfg.model}] Response to: "${request.prompt.slice(0, 80)}..."`;
-      }
+      const aiResult = await callAIWithFallback(
+        [{ role: 'user', content: request.prompt }],
+        {
+          task: mapDomainToTask(request.domain),
+          temperature: request.temperature,
+          maxTokens: request.maxTokens,
+          preferredProvider: cfg.provider as any,
+          preferredModel: cfg.model,
+          strictPreferred: true,
+        },
+      );
+      const content = aiResult.content || '';
 
       const callLatency = Date.now() - callStart;
 

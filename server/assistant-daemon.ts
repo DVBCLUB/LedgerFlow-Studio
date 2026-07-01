@@ -141,7 +141,7 @@ import { enqueue, getJob as getQueueJob, listJobs, getQueueStats, retryJob, purg
 import { generateRobot } from "./services/robotScriptGenerator";
 import { generateOpenApiSpec, generateSwaggerHtml, saveOpenApi, scanDaemonRoutes } from "./services/openApiGenerator";
 import { createSnapshot, restoreSnapshot, listSnapshots, getSnapshot, deleteSnapshot, getSnapshotStats } from "./services/systemSnapshotRestore";
-import { getProviderHealth, getGatewayStats, routeThroughGateway, resetCircuitBreaker, resetAllCircuits, getProviderConfigs } from "./services/aiModelGateway";
+import { getGatewayStatsSnapshot, getProviderHealthSnapshot, routeThroughGateway, resetCircuitBreaker, resetAllCircuits, getProviderConfigs } from "./services/aiModelGateway";
 import { generateTimeline, updateTaskProgress, getTimeline as getProjectTimeline, listTimelines, deleteTimeline } from "./services/projectTimelineAI";
 import { createDeployConfig, getConfig as getDeployConfig, listConfigs as listDeployConfigs, runDeploy, getDeployRun, listDeployRuns } from "./services/deployManager";
 import { analyzeDocument, detectFileStructure } from "./services/documentIntelligence";
@@ -169,6 +169,7 @@ import { estimateTokens, createContextWindow, addSegment, addMemoryContext, addK
 import { gatherSystemOverview } from "./services/crossServiceDataLinker";
 import { startWorkflow as startAgentWorkflowEngine, approveWorkflowStep, stopWorkflow as stopAgentWorkflow, listWorkflows as listAgentWorkflows, getWorkflow as getAgentWorkflow, listWorkflowTemplates } from "./services/agentWorkflowEngine";
 import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";
+import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
 import { buildRuntimeReleaseGateExport } from "./services/aiWorkforceReleaseGateExportRuntime";
 import { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";
 import { getAIWorkforceReleaseGateDashboard } from "./services/aiWorkforceReleaseGateDashboard";
@@ -176,7 +177,7 @@ import { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionRel
 import { buildMissionQueueSnapshotExport } from "./services/aiWorkforceMissionSnapshotExport";
 import { listMissionExecutionQueues, requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";
 import { buildStoredMissionOperatorReviewDossier, getMissionOperatorReviewNoteStoreStats, listMissionOperatorReviewNotes, saveMissionOperatorReviewNote } from "./services/aiWorkforceMissionReviewNoteStore";
-import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
+import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, listRuntimeMissionQueueDrift, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, repairRuntimeMissionQueueDrift, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
 
 // ---------------------------------------------------------------------------
 // In-memory session store: last AI suggestion per file (for apply/rollback)
@@ -3095,7 +3096,7 @@ app.delete("/api/snapshot/:id", async (_req: Request, res: Response) => {
 // AI Model Gateway endpoints
 // ---------------------------------------------------------------------------
 app.get("/api/gateway/health", async (_req: Request, res: Response) => {
-  res.json({ ok: true, providers: getProviderHealth(), stats: getGatewayStats() });
+  res.json({ ok: true, providers: await getProviderHealthSnapshot(), stats: await getGatewayStatsSnapshot() });
 });
 app.post("/api/gateway/route", async (req: Request, res: Response) => {
   const { prompt, domain, preferredProvider, preferredModel } = (req.body || {}) as any;
@@ -3849,8 +3850,26 @@ app.post("/api/ai-workforce/mission-execution-queue", async (req: Request, res: 
 });
 app.get("/api/ai-workforce/mission-execution-queues", async (req: Request, res: Response) => {
   try {
-    const result = await listRuntimeMissionExecutionQueues({ limit: Number(req.query.limit || 20), status: req.query.status as any });
+    const parsed = Number(req.query.limit);
+    const limit = Number.isFinite(parsed) ? Math.min(Math.max(Math.trunc(parsed), 1), 1000) : 20;
+    const result = await listRuntimeMissionExecutionQueues({ limit, status: req.query.status as any });
     res.json({ ok: true, ...result });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.get("/api/ai-workforce/mission-execution-queue/drift", async (req: Request, res: Response) => {
+  try {
+    const parsed = Number(req.query.limit);
+    const limit = Number.isFinite(parsed) ? Math.min(Math.max(Math.trunc(parsed), 1), 2000) : 200;
+    const report = await listRuntimeMissionQueueDrift({ limit });
+    res.json({ ok: true, report });
+  } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
+});
+app.post("/api/ai-workforce/mission-execution-queue/drift/repair", async (req: Request, res: Response) => {
+  try {
+    const parsed = Number(req.body?.limit);
+    const limit = Number.isFinite(parsed) ? Math.min(Math.max(Math.trunc(parsed), 1), 2000) : 200;
+    const report = await repairRuntimeMissionQueueDrift({ limit });
+    res.json({ ok: true, report });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });
 app.post("/api/ai-workforce/mission-execution-queue/resume", async (req: Request, res: Response) => {

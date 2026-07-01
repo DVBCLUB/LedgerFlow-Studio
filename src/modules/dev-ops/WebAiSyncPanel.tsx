@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Bot, FileJson, UploadCloud, Trash2, PlayCircle, Eye, CheckCircle2, AlertCircle, ExternalLink, Clipboard, Check, FileText, Search, RefreshCw, X, HelpCircle, User, Plus } from 'lucide-react';
+import { fetchBrowserSandboxDiagnostics } from '../../services/aiWorkforceRuntimeClient';
 import { saveDatabaseToServer } from '../../utils/dbSync';
 import { fetchWebAIProfiles, createWebAIProfile, deleteWebAIProfile } from '../../utils/assistantApi';
 
@@ -438,17 +439,36 @@ const fs = require('fs');
   const [activeRunId, setActiveRunId] = useState<string | null>(null);
   const [runStatus, setRunStatus] = useState<string | null>(null);
   const [runLogs, setRunLogs] = useState<string[]>([]);
-  const [runTaskType, setRunTaskType] = useState<'chatgpt-scrape' | 'gemini-scrape' | 'general'>('chatgpt-scrape');
+  const [runTaskType, setRunTaskType] = useState<'chatgpt-scrape' | 'gemini-scrape' | 'claude-scrape' | 'deepseek-scrape' | 'general'>('chatgpt-scrape');
   const [actionUrl, setActionUrl] = useState('https://chatgpt.com');
   const [lastScreenshot, setLastScreenshot] = useState<string | null>(null);
+  const [apiFallbackExhausted, setApiFallbackExhausted] = useState(false);
+  const [browserDiagnostics, setBrowserDiagnostics] = useState<any[]>([]);
 
   useEffect(() => {
     if (runTaskType === 'chatgpt-scrape') {
       setActionUrl('https://chatgpt.com');
     } else if (runTaskType === 'gemini-scrape') {
       setActionUrl('https://gemini.google.com');
+    } else if (runTaskType === 'claude-scrape') {
+      setActionUrl('https://claude.ai');
+    } else if (runTaskType === 'deepseek-scrape') {
+      setActionUrl('https://chat.deepseek.com');
     }
   }, [runTaskType]);
+
+  const loadBrowserDiagnostics = React.useCallback(async () => {
+    try {
+      const payload = await fetchBrowserSandboxDiagnostics();
+      setBrowserDiagnostics(payload.diagnostics || []);
+    } catch {
+      setBrowserDiagnostics([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadBrowserDiagnostics();
+  }, [loadBrowserDiagnostics]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -468,6 +488,7 @@ const fs = require('fs');
               if (data.run.status !== 'running') {
                 setActiveRunId(null);
                 setLastScreenshot(null);
+                await loadBrowserDiagnostics();
                 if (data.run.status === 'completed' && data.run.output && Array.isArray(data.run.output)) {
                   const imported: WebConversation[] = data.run.output;
                   const existingIds = new Set(conversations.map((c) => c.id));
@@ -498,7 +519,7 @@ const fs = require('fs');
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [activeRunId, conversations]);
+  }, [activeRunId, conversations, loadBrowserDiagnostics]);
 
   const handleStartSandbox = async () => {
     setError(null);
@@ -516,6 +537,7 @@ const fs = require('fs');
           folder: selectedFolder,
           actionUrl,
           taskType: runTaskType,
+          apiFallbackExhausted,
         }),
       });
       if (res.ok) {
@@ -984,6 +1006,7 @@ const fs = require('fs');
                 <button
                   type="button"
                   onClick={handleStartSandbox}
+                  disabled={!apiFallbackExhausted}
                   className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-black text-white transition-all cursor-pointer"
                 >
                   Chạy Sandbox Live
@@ -1002,6 +1025,8 @@ const fs = require('fs');
                 >
                   <option value="chatgpt-scrape">Đăng nhập & Cào ChatGPT</option>
                   <option value="gemini-scrape">Đăng nhập & Cào Google Gemini</option>
+                  <option value="claude-scrape">Đăng nhập & Cào Claude.ai</option>
+                  <option value="deepseek-scrape">Đăng nhập & Cào DeepSeek Chat</option>
                   <option value="general">Duyệt Web Tự Do (60 giây)</option>
                 </select>
               </div>
@@ -1016,6 +1041,37 @@ const fs = require('fs');
                 />
               </div>
             </div>
+
+            <label className="flex items-start gap-2 rounded-xl border border-amber-900/50 bg-amber-950/10 p-3 text-[11px] font-semibold text-amber-200">
+              <input
+                type="checkbox"
+                checked={apiFallbackExhausted}
+                onChange={(e) => setApiFallbackExhausted(e.target.checked)}
+                disabled={!!activeRunId}
+                className="mt-0.5"
+              />
+              <span>
+                Xác nhận đã exhaust toàn bộ API provider/key trước khi dùng browser fallback.
+              </span>
+            </label>
+
+            {browserDiagnostics.length > 0 && (
+              <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
+                <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Browser fallback diagnostics</div>
+                <div className="space-y-2 text-[11px]">
+                  {browserDiagnostics.map((row, idx) => (
+                    <div key={`${row.host || 'host'}-${idx}`} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-1.5 text-slate-300">
+                      <span className="font-black text-cyan-300">{row.host}</span>
+                      <span>failures: {row.failures ?? 0}</span>
+                      <span>reason: {row.reason || 'none'}</span>
+                      <span className={row.cooldownActive ? 'text-rose-400 font-bold' : 'text-emerald-400 font-bold'}>
+                        {row.cooldownActive ? 'cooldown' : 'ready'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Terminal Logs & Live Viewport View */}
             {(runLogs.length > 0 || runStatus) && (

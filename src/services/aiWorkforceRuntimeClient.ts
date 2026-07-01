@@ -88,6 +88,26 @@ export async function listMissionExecutionQueues(status?: string) {
   return requestAIWorkforce<{ ok: true; queues: any[]; stats: any }>(`/api/ai-workforce/mission-execution-queues${query}`);
 }
 
+export async function getMissionExecutionQueueDrift(limit = 200) {
+  return requestAIWorkforce<{ ok: true; report: any }>(`/api/ai-workforce/mission-execution-queue/drift?limit=${Math.max(1, Math.min(limit, 1000))}`);
+}
+
+export async function repairMissionExecutionQueueDrift(limit = 200) {
+  return requestAIWorkforce<{ ok: true; report: any }>('/api/ai-workforce/mission-execution-queue/drift/repair', {
+    method: 'POST',
+    body: JSON.stringify({ limit: Math.max(1, Math.min(limit, 1000)) }),
+  });
+}
+
+export async function fetchBrowserSandboxDiagnostics() {
+  const response = await fetch('/api/company-os/browser-sandbox/diagnostics', { headers: { 'Content-Type': 'application/json' } });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || payload?.success === false) {
+    throw new Error(payload?.error || `Browser diagnostics request failed: ${response.status}`);
+  }
+  return payload as { success: true; diagnostics: any[] };
+}
+
 export async function resumeMissionExecutionQueue(queueId: string) {
   return requestAIWorkforce<{ ok: true; queue: any }>('/api/ai-workforce/mission-execution-queue/resume', {
     method: 'POST',

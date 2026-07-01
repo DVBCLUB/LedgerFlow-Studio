@@ -11,9 +11,11 @@ import {
   createSampleMissionPlan,
   executeMissionExecutionQueueTool,
   fetchAIWorkforceRuntimeDashboard,
+  getMissionExecutionQueueDrift,
   listMissionExecutionQueues,
   previewMissionExecutionQueueTool,
   previewSampleAutomationSafety,
+  repairMissionExecutionQueueDrift,
   resumeMissionExecutionQueue,
   scoreSamplePRReadiness,
   startMissionExecutionQueueStep,
@@ -37,6 +39,8 @@ type RuntimeAction =
   | 'queue-tool-preview'
   | 'queue-tool-execute'
   | 'queue-cancel'
+  | 'queue-drift-list'
+  | 'queue-drift-repair'
   | 'safety'
   | 'readiness'
   | 'pr-control'
@@ -229,6 +233,8 @@ export default function AIWorkforceRuntimePanel() {
       if (!step) throw new Error('Không tìm thấy step running/ready để execute tool.');
       return executeMissionExecutionQueueTool(queue.id, step);
     }
+    if (action === 'queue-drift-list') return getMissionExecutionQueueDrift();
+    if (action === 'queue-drift-repair') return repairMissionExecutionQueueDrift();
     return refreshQueues();
   }
 
@@ -248,6 +254,7 @@ export default function AIWorkforceRuntimePanel() {
   const observability = dashboard?.observability;
   const metricStoreStats = dashboard?.metricStoreStats;
   const missionQueueStats = dashboard?.missionQueueStats;
+  const missionQueueDrift = dashboard?.missionQueueDrift;
   const tooling = dashboard?.tooling;
   const ledger = dashboard?.ledger;
   const releaseGate = dashboard?.releaseGate;
@@ -293,6 +300,7 @@ export default function AIWorkforceRuntimePanel() {
         <MiniMetric label="Readiness" value={readiness ? `${readiness.grade} · ${readiness.overallScore}/5` : '—'} detail="Điểm runtime readiness động" />
         <MiniMetric label="Runs" value={observability?.runs ?? '—'} detail={`Persisted ${metricStoreStats?.total ?? '—'} metrics`} />
         <MiniMetric label="Queues" value={missionQueueStats?.total ?? '—'} detail={`${missionQueueStats?.byStatus?.needs_approval ?? 0} need approval`} />
+        <MiniMetric label="Queue drift" value={missionQueueDrift?.issues?.length ?? missionQueueStats?.drift?.issueCount ?? '—'} detail={`${missionQueueDrift?.issues?.filter((item: any) => item.severity === 'critical').length ?? missionQueueStats?.drift?.criticalIssues ?? 0} critical`} />
         <MiniMetric label="Blocked rate" value={observability ? `${Math.round((observability.blockedRate || 0) * 100)}%` : '—'} detail="Tác vụ bị safety chặn" />
         <MiniMetric label="Tool health" value={tooling ? `${tooling.summary.healthy}/${tooling.summary.total}` : '—'} detail="MCP manifests healthy/total" />
         <MiniMetric label="Audit events" value={ledger?.auditStats?.totalEvents ?? '—'} detail="Operational ledger audit trail" />
@@ -353,6 +361,8 @@ export default function AIWorkforceRuntimePanel() {
             <button className={buttonClass} onClick={() => runAction('queue-start')} disabled={Boolean(loading) || !firstStep(activeQueue, 'ready')}>Start ready</button>
             <button className={buttonClass} onClick={() => runAction('queue-tool-preview')} disabled={Boolean(loading) || !activeStep}>Dry-run tool</button>
             <button className={buttonClass} onClick={() => runAction('queue-tool-execute')} disabled={Boolean(loading) || !activeStep}>Execute sim</button>
+            <button className={buttonClass} onClick={() => runAction('queue-drift-list')} disabled={Boolean(loading)}>Check drift</button>
+            <button className={buttonClass} onClick={() => runAction('queue-drift-repair')} disabled={Boolean(loading)}>Repair drift</button>
             <button className={buttonClass} onClick={() => runAction('queue-complete')} disabled={Boolean(loading) || !activeStep}>Complete step</button>
             <button className={buttonClass} onClick={() => runAction('queue-cancel')} disabled={Boolean(loading) || !activeQueue?.id || activeQueue.status === 'cancelled'}>Cancel queue</button>
           </div>

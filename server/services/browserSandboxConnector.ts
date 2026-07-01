@@ -18,6 +18,41 @@ export interface SandboxRun {
 
 const activeRuns = new Map<string, SandboxRun>();
 const activeBrowsers = new Map<string, any>();
+const hostFailureTracker = new Map<string, { failures: number; lastFailureAt: number; disabledUntil?: number; reason?: string }>();
+
+function parseHost(urlText: string): string {
+  return new URL(urlText).hostname.toLowerCase();
+}
+
+function markBrowserHostSuccess(host: string) {
+  hostFailureTracker.delete(host);
+}
+
+function markBrowserHostFailure(host: string, reason: string) {
+  const now = Date.now();
+  const current = hostFailureTracker.get(host) || { failures: 0, lastFailureAt: now };
+  const failures = current.failures + 1;
+  const cooldownMs = Math.max(60_000, Number(process.env.BROWSER_MODE_COOLDOWN_MS || 300_000));
+  const threshold = Math.max(2, Number(process.env.BROWSER_MODE_FAILURE_THRESHOLD || 3));
+  hostFailureTracker.set(host, {
+    failures,
+    lastFailureAt: now,
+    disabledUntil: failures >= threshold ? now + cooldownMs : current.disabledUntil,
+    reason,
+  });
+}
+
+export function getBrowserModeDiagnostics() {
+  const now = Date.now();
+  return Array.from(hostFailureTracker.entries()).map(([host, entry]) => ({
+    host,
+    failures: entry.failures,
+    reason: entry.reason,
+    cooldownActive: Boolean(entry.disabledUntil && entry.disabledUntil > now),
+    disabledUntil: entry.disabledUntil ? new Date(entry.disabledUntil).toISOString() : undefined,
+    lastFailureAt: new Date(entry.lastFailureAt).toISOString(),
+  }));
+}
 
 function getChromeExecutablePath(): string | undefined {
   const paths = [
@@ -44,7 +79,7 @@ function getUserDataDir(folder: string): string {
   return resolved;
 }
 
-function validateActionUrl(actionUrl: string, taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'general') {
+function validateActionUrl(actionUrl: string, taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'claude-scrape' | 'deepseek-scrape' | 'general') {
   const url = new URL(actionUrl);
   if (!['https:', 'http:'].includes(url.protocol)) throw new Error('Browser sandbox only accepts HTTP(S) URLs.');
   const hostname = url.hostname.toLowerCase();
@@ -52,12 +87,20 @@ function validateActionUrl(actionUrl: string, taskType: 'chatgpt-scrape' | 'gemi
     ? ['chatgpt.com', 'chat.openai.com']
     : taskType === 'gemini-scrape'
       ? ['gemini.google.com']
+      : taskType === 'claude-scrape'
+        ? ['claude.ai']
+        : taskType === 'deepseek-scrape'
+          ? ['chat.deepseek.com']
       : [];
   const configuredHosts = String(process.env.BROWSER_SANDBOX_ALLOWED_HOSTS || '').split(',').map((host) => host.trim().toLowerCase()).filter(Boolean);
   const localHosts = ['127.0.0.1', 'localhost', '::1'];
   const allowedHosts = [...taskHosts, ...configuredHosts, ...localHosts];
   if (!allowedHosts.some((host) => hostname === host || hostname.endsWith(`.${host}`))) {
     throw new Error(`Browser target ${hostname} is not allowlisted for ${taskType}.`);
+  }
+  const hostState = hostFailureTracker.get(hostname);
+  if (hostState?.disabledUntil && hostState.disabledUntil > Date.now()) {
+    throw new Error(`Browser mode for ${hostname} is cooling down until ${new Date(hostState.disabledUntil).toISOString()} due to repeated failures.`);
   }
   return url.toString();
 }
@@ -97,8 +140,13 @@ export async function startBrowserSandboxRun(
   profileName: string,
   folder: string,
   actionUrl: string,
-  taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'general'
+  taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'claude-scrape' | 'deepseek-scrape' | 'general',
+  options?: { apiFallbackExhausted?: boolean }
 ): Promise<string> {
+  const requireApiExhausted = String(process.env.BROWSER_MODE_REQUIRES_API_EXHAUSTION || 'true').toLowerCase() !== 'false';
+  if (requireApiExhausted && !options?.apiFallbackExhausted) {
+    throw new Error('Browser session mode is fallback-only and requires API fallback exhaustion proof.');
+  }
   const validatedUrl = validateActionUrl(actionUrl, taskType);
   getUserDataDir(folder);
   const runId = `run_${Date.now()}`;
@@ -123,7 +171,7 @@ async function executeSandboxTask(
   runId: string,
   folder: string,
   actionUrl: string,
-  taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'general'
+  taskType: 'chatgpt-scrape' | 'gemini-scrape' | 'claude-scrape' | 'deepseek-scrape' | 'general'
 ) {
   logToRun(runId, `Khởi tạo Sandbox cho profile: ${folder}`);
   const executablePath = getChromeExecutablePath();
@@ -280,6 +328,7 @@ async function executeSandboxTask(
     logToRun(runId, 'Đang đóng trình duyệt...');
     await browser.close();
     activeBrowsers.delete(runId);
+    markBrowserHostSuccess(parseHost(actionUrl));
 
     const runObj = activeRuns.get(runId);
     if (runObj) {
@@ -290,6 +339,13 @@ async function executeSandboxTask(
 
   } catch (err: any) {
     logToRun(runId, `Gặp lỗi trong quá trình thực thi: ${err?.message || err}`);
+    const message = String(err?.message || err || '').toLowerCase();
+    const failureReason = message.includes('captcha')
+      ? 'captcha_detected'
+      : message.includes('login') || message.includes('đăng nhập')
+        ? 'login_challenge'
+        : 'execution_error';
+    markBrowserHostFailure(parseHost(actionUrl), failureReason);
     if (browser) {
       try {
         await browser.close();

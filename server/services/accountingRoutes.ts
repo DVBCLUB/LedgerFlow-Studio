@@ -13,7 +13,7 @@ import { extractInvoiceFromImage } from "./invoiceOCR";
 import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
 import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
 import { appendCompanyOsEvent, createCompanyOsTask, exportCompanyOsAuditLog, getCompanyOsContracts, listCompanyOsControlPlane, simulateOpenClawAction, updateCompanyOsTask, type OpenClawActionInput } from "./companyOsControlPlane";
-import { startBrowserSandboxRun, getRun, stopRun } from "./browserSandboxConnector";
+import { startBrowserSandboxRun, getBrowserModeDiagnostics, getRun, stopRun } from "./browserSandboxConnector";
 import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from "./agentToolExecutionGate";
 import { advanceAgentRun, approveAgentRunStep, createAgentRun, getAgentRun, getAgentRuntimeMetrics, importLegacyAgentRuns, listAgentRuns, replanAgentRun, setAgentRuntimeEmergencyStop, stopAgentRun } from "./agentRuntime";
 import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from "./agentMemoryStore";
@@ -372,12 +372,17 @@ export function registerAccountingRoutes(app: Express) {
         profileName: z.string().min(1),
         folder: z.string().min(1),
         actionUrl: z.string().url(),
-        taskType: z.enum(["chatgpt-scrape", "gemini-scrape", "general"])
+        taskType: z.enum(["chatgpt-scrape", "gemini-scrape", "claude-scrape", "deepseek-scrape", "general"]),
+        apiFallbackExhausted: z.boolean().optional().default(false),
       }).safeParse(req.body);
       if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map((issue) => issue.message).join(", ") });
-      const runId = await startBrowserSandboxRun(parsed.data.profileName, parsed.data.folder, parsed.data.actionUrl, parsed.data.taskType);
+      const runId = await startBrowserSandboxRun(parsed.data.profileName, parsed.data.folder, parsed.data.actionUrl, parsed.data.taskType, { apiFallbackExhausted: parsed.data.apiFallbackExhausted });
       res.json({ success: true, runId });
     } catch (err: any) { res.status(500).json({ success: false, error: err?.message || "Failed to start browser sandbox run." }); }
+  });
+
+  app.get("/api/company-os/browser-sandbox/diagnostics", (_req, res) => {
+    res.json({ success: true, diagnostics: getBrowserModeDiagnostics() });
   });
 
   app.get("/api/company-os/browser-sandbox/status/:runId", (req, res) => {

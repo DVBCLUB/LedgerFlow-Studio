@@ -15,6 +15,7 @@
  */
 
 import { callAIWithFallback, checkAIRouterHealth, streamAIWithFallback } from "./aiRouter.ts";
+import type { AIProviderName } from "./aiKeyVault.ts";
 
 export type ChatRole = "system" | "user" | "assistant";
 export type AIRoutingTask = "general" | "accounting" | "analytics" | "marketing" | "sales" | "coding" | (string & {});
@@ -29,6 +30,9 @@ export interface CallAIOptions {
   model?: "ai-assistant" | "ai-assistant-pro";
   /** Optional task hint so router can prefer the most suitable provider stack. */
   task?: AIRoutingTask;
+  preferredProvider?: AIProviderName;
+  preferredModel?: string;
+  strictPreferred?: boolean;
   temperature?: number;
   maxTokens?: number;
 }

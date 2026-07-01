@@ -70,6 +70,7 @@ const child = spawn(process.execPath, ['dist/server.cjs'], {
   env: {
     ...process.env,
     NODE_ENV: 'production',
+    PORT: String(PORT),
     LOCAL_AUTH_DEV_PASSWORD: 'runtime-smoke-password'
   },
   stdio: ['ignore', 'pipe', 'pipe']
