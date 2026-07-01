@@ -1,51 +1,51 @@
-# Knowledge / RAG Phase 1 Runbook
+# Knowledge / RAG Phase 1 - Runbook
 
-## Purpose
+## Muc dich
 
-This runbook turns the Claude brief item `Knowledge/RAG + Company Memory` into an implementation plan that keeps LedgerFlow Studio safe, local-first and audit-first.
+Runbook nay chuyen muc `Knowledge/RAG + Company Memory` thanh ke hoach trien khai giu LedgerFlow Studio an toan, local-first va audit-first.
 
-Phase 1 must not introduce a remote vector database, paid API dependency, or hidden external write action. The first version should behave like a controlled company knowledge search layer over local records.
+Phase 1 khong duoc dua vao remote vector database, phu thuoc paid API, hoac hanh dong external write bi an. Phien ban dau phai hoat dong nhu lop tim kiem tri thuc cong ty co kiem soat tren local records.
 
 ## Guardrails
 
-- Do not upload private company documents to an external AI provider by default.
-- Do not store secrets, API keys, or tokens inside knowledge notes.
-- Approved knowledge is the only content allowed in AI context exports.
-- Draft and Needs Review knowledge can be searched by the founder, but must be clearly marked.
-- Every export to AI context must create an audit event.
-- Every generated answer must show source note IDs or memory version IDs.
-- If evidence is missing, the answer must say so instead of guessing.
+- Mac dinh khong upload tai lieu noi bo cua cong ty len external AI provider.
+- Khong luu secrets, API keys, hoac tokens trong knowledge notes.
+- Chi Approved knowledge moi duoc phep dua vao AI context exports.
+- Draft va Needs Review van co the tim duoc boi Founder, nhung phai danh dau ro.
+- Moi lan export AI context phai tao audit event.
+- Moi cau tra loi sinh ra phai hien source note IDs hoac memory version IDs.
+- Neu thieu bang chung, cau tra loi phai noi ro la thieu evidence thay vi doan.
 
-## Phase 1 Scope
+## Pham vi Phase 1
 
-### In scope
+### Trong pham vi
 
-- Local keyword search over `ledgerflow_company_knowledge_v1`.
-- Search over approved `Memory Versions`.
-- Filter by source type, confidence and status.
-- Copy RAG context with citations.
-- Audit search/export actions.
-- Simple scoring using title/content/source/status matches.
+- Tim kiem tu khoa local tren `ledgerflow_company_knowledge_v1`.
+- Tim tren `Memory Versions` da approved.
+- Loc theo source type, confidence va status.
+- Copy RAG context kem citations.
+- Audit hanh dong search/export.
+- Scoring don gian dua tren title/content/source/status.
 
-### Out of scope
+### Ngoai pham vi
 
 - Remote vector database.
 - Embeddings API.
-- Auto-ingesting private files without founder review.
-- Auto-answering customer/legal/tax questions without citation.
-- Background sync to external storage.
+- Tu dong nap private files khi chua co founder review.
+- Tu dong tra loi cau hoi khach hang/phap ly/thue khi chua co citation.
+- Dong bo nen sang luu tru ben ngoai.
 
 ## Local storage contracts
 
 ### Knowledge records
 
-Expected key:
+Key du kien:
 
 ```text
 ledgerflow_company_knowledge_v1
 ```
 
-Minimum useful fields:
+Truong toi thieu huu ich:
 
 ```ts
 type KnowledgeRecord = {
@@ -63,13 +63,13 @@ type KnowledgeRecord = {
 
 ### Memory versions
 
-Expected key:
+Key du kien:
 
 ```text
 ledgerflow_company_memory_versions_v1
 ```
 
-Minimum useful fields:
+Truong toi thieu huu ich:
 
 ```ts
 type MemoryVersion = {
@@ -83,18 +83,18 @@ type MemoryVersion = {
 };
 ```
 
-## Proposed UI
+## UI de xuat
 
-Add a small `RAG Search` panel inside `Knowledge Base` or as a separate AgentOps tab.
+Them panel nho `RAG Search` trong `Knowledge Base` hoac mot tab AgentOps rieng.
 
-Fields:
+Truong giao dien:
 
 - Search query
 - Status filter
 - Confidence filter
 - Source filter
 - Include memory versions checkbox
-- Approved-only toggle for AI context
+- Approved-only toggle cho AI context
 
 Result card:
 
@@ -104,19 +104,19 @@ Result card:
 - Confidence
 - Matched snippets
 - Citation ID
-- Button: Copy source
-- Button: Add to context basket
+- Nut: Copy source
+- Nut: Add to context basket
 
 Context basket:
 
 - Selected sources
-- Token/length estimate
+- Uoc tinh token/do dai
 - Copy AI context
 - Audit export
 
 ## Search scoring
 
-Start simple:
+Khoi dau don gian:
 
 - +5 exact title match
 - +3 content match
@@ -125,9 +125,9 @@ Start simple:
 - -2 draft status
 - -3 low confidence
 
-This is intentionally simple so it can work offline without dependencies.
+Co tinh giu scoring don gian de hoat dong offline, khong can them dependency.
 
-## Required audit events
+## Audit events bat buoc
 
 - `RAG_SEARCH_RUN`
 - `RAG_CONTEXT_COPIED`
@@ -135,7 +135,7 @@ This is intentionally simple so it can work offline without dependencies.
 - `RAG_SOURCE_EXCLUDED`
 - `RAG_LOW_EVIDENCE_WARNING`
 
-Each audit event should include:
+Moi audit event can co:
 
 - query
 - selected source IDs
@@ -144,29 +144,29 @@ Each audit event should include:
 
 ## Acceptance checklist
 
-- [ ] Search works without backend.
-- [ ] Approved-only mode excludes Draft/Needs Review notes.
-- [ ] Copied context includes source IDs.
-- [ ] Empty search does not crash.
-- [ ] Malformed old localStorage records do not crash.
-- [ ] Audit logs are written through `appendAgentOpsAudit()`.
-- [ ] The UI does not claim certainty when no source exists.
+- [ ] Search hoat dong ma khong can backend.
+- [ ] Approved-only mode loai bo Draft/Needs Review.
+- [ ] Context copy co source IDs.
+- [ ] Empty search khong lam crash.
+- [ ] localStorage record cu bi loi khong lam crash.
+- [ ] Audit logs duoc ghi qua `appendAgentOpsAudit()`.
+- [ ] UI khong khang dinh chac chan khi khong co source.
 
-## Phase 2 options
+## Lua chon Phase 2
 
-Only after Phase 1 is stable:
+Chi lam sau khi Phase 1 on dinh:
 
-- Local file ingestion with founder review.
-- Browser-side lightweight indexing.
-- Optional embeddings behind Secrets Vault and Connector Approval.
+- Local file ingestion co founder review.
+- Lightweight indexing ben browser.
+- Embeddings tuy chon dat sau Secrets Vault va Connector Approval.
 - Export/import company memory packs.
 - Evidence-based AI answer composer.
 
-## Rollback plan
+## Ke hoach rollback
 
-If RAG Search causes CI or runtime errors:
+Neu RAG Search gay loi CI hoac runtime:
 
-1. Disable the tab mount in `AgentOpsHub`.
-2. Keep stored knowledge untouched.
-3. Revert only the UI/search layer.
-4. Keep `Knowledge Base` and `Memory Versions` as the source of truth.
+1. Tat mount tab trong `AgentOpsHub`.
+2. Giu nguyen du lieu knowledge da luu.
+3. Chi revert lop UI/search.
+4. Van giu `Knowledge Base` va `Memory Versions` la source of truth.

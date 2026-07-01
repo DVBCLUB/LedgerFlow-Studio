@@ -1,39 +1,39 @@
-# GitHub Connector Phase 1 Runbook
+# GitHub Connector Phase 1 - Runbook
 
-This runbook turns the Claude brief item **GitHub connector end-to-end** into a safe, approval-first rollout plan.
+Runbook nay chuyen hoa muc **GitHub connector end-to-end** thanh ke hoach rollout an toan, uu tien phe duyet truoc.
 
 ## Guardrails
 
-- Do not write to GitHub directly from AI without a Founder approval record.
-- Do not commit secrets, API keys, `.env` values or customer data.
-- Do not merge automatically in Phase 1.
-- CI must be green before adding new product features.
-- Every write action needs audit evidence: request, changed files, test result, rollback note.
+- Khong duoc ghi len GitHub truc tiep tu AI neu khong co ban ghi Founder approval.
+- Khong commit secrets, API keys, gia tri `.env` hoac du lieu khach hang.
+- Khong tu dong merge trong Phase 1.
+- CI phai xanh truoc khi them tinh nang san pham moi.
+- Moi hanh dong ghi phai co audit evidence: request, file thay doi, ket qua test, ghi chu rollback.
 
-## Phase 1 Goal
+## Muc tieu Phase 1
 
-Build a controlled path from an approved plan to a draft pull request:
+Xay dung luong kiem soat tu ke hoach da duoc phe duyet den draft pull request:
 
 ```text
 GitHub PR Control
-  → Approval Gate
-  → create branch
-  → commit controlled file set
-  → open draft PR
-  → wait for CI
-  → Founder review
+  -> Approval Gate
+  -> create branch
+  -> commit controlled file set
+  -> open draft PR
+  -> wait for CI
+  -> Founder review
 ```
 
-Phase 1 should support a narrow allowlist only:
+Phase 1 chi nen mo allowlist hep:
 
-- docs updates
-- local-only AgentOps tab updates
+- cap nhat docs
+- cap nhat AgentOps tab local-only
 - type-only fixes
-- small CI fixes
+- CI fixes nho
 
-## Required Data Contract
+## Data Contract bat buoc
 
-A GitHub PR plan must include:
+GitHub PR plan phai co:
 
 - repository name
 - base branch
@@ -47,68 +47,68 @@ A GitHub PR plan must include:
 - approval request id
 - evidence log id
 
-## Approval Rules
+## Quy tac phe duyet
 
-| Risk | Allowed before approval | Requires Founder approval |
+| Risk | Duoc phep truoc approval | Can Founder approval |
 |---|---|---|
-| LOW | copy plan, dry-run summary | GitHub write |
+| LOW | sao chep plan, dry-run summary | GitHub write |
 | MEDIUM | draft branch name, file scope | branch, commit, PR |
-| HIGH | risk review only | every write step + rollback proof |
+| HIGH | chi duoc risk review | tung buoc write + rollback proof |
 
-## Implementation Steps
+## Cac buoc trien khai
 
-### 1. Add PR plan schema
+### 1. Them PR plan schema
 
-Create a shared type for PR plans. Keep it frontend-safe and local-only first.
+Tao shared type cho PR plans. Uu tien frontend-safe va local-only trong giai doan dau.
 
-Suggested storage key:
+Storage key de xuat:
 
 ```ts
 ledgerflow_github_pr_plans_v1
 ```
 
-### 2. Connect GitHub PR Control to Approval Gate
+### 2. Noi GitHub PR Control voi Approval Gate
 
-Already started: the tab creates approval requests. Harden it so each plan stores the approval id and status.
+Da co nen tang: tab da tao approval requests. Can harden de moi plan luu duoc approval id va status.
 
-### 3. Add backend endpoint for approved dry-run
+### 3. Them backend endpoint cho approved dry-run
 
-Proposed endpoint:
+Endpoint de xuat:
 
 ```text
 POST /api/integrations/github/pr-dry-run
 ```
 
-It should validate:
+Can validate:
 
-- approval exists
-- approval status is Approved
-- file scope is allowed
-- no secret-looking content
-- branch name is safe
+- approval ton tai
+- approval status la Approved
+- file scope nam trong allowlist
+- khong co noi dung giong secret
+- branch name an toan
 
-### 4. Add branch + commit + draft PR endpoint
+### 4. Them endpoint branch + commit + draft PR
 
-Proposed endpoint:
+Endpoint de xuat:
 
 ```text
 POST /api/integrations/github/create-draft-pr
 ```
 
-This endpoint should never merge. It only creates a draft PR and returns URL + commit SHA.
+Endpoint nay khong duoc merge. Chi tao draft PR va tra ve URL + commit SHA.
 
-### 5. Add CI watcher
+### 5. Them CI watcher
 
-After draft PR, record:
+Sau khi tao draft PR, can ghi:
 
 - workflow run URL
-- current CI status
-- failed job summary if any
-- next action for AI Dev
+- CI status hien tai
+- failed job summary (neu co)
+- next action cho AI Dev
 
-### 6. Add audit evidence
+### 6. Them audit evidence
 
-Every GitHub connector action must append an audit event:
+Moi hanh dong GitHub connector phai append mot audit event:
 
 ```text
 GITHUB_PR_PLAN_CREATED
@@ -123,23 +123,23 @@ GITHUB_CI_PASSED
 
 ## Acceptance Checklist
 
-- [ ] PR plan can be created without GitHub write.
-- [ ] PR plan can be sent to Approval Gate.
-- [ ] External write is blocked when approval is missing.
-- [ ] External write is blocked when approval is Pending/Rejected/Expired.
-- [ ] Branch name is sanitized.
-- [ ] File scope is allowlisted.
-- [ ] Secret-like content is rejected.
-- [ ] Draft PR is created, not normal PR.
-- [ ] CI status is visible to Founder.
-- [ ] Rollback note is required before ready-for-review.
+- [ ] Co the tao PR plan ma khong ghi GitHub.
+- [ ] Co the gui PR plan den Approval Gate.
+- [ ] Chan external write khi thieu approval.
+- [ ] Chan external write khi approval la Pending/Rejected/Expired.
+- [ ] Branch name duoc sanitize.
+- [ ] File scope nam trong allowlist.
+- [ ] Noi dung giong secret bi tu choi.
+- [ ] Tao draft PR, khong tao PR thuong.
+- [ ] Founder xem duoc CI status.
+- [ ] Bat buoc co rollback note truoc khi ready-for-review.
 
 ## Rollback
 
-If Phase 1 creates bad data:
+Neu Phase 1 tao du lieu loi:
 
-1. Close the draft PR.
-2. Delete the feature branch if no longer needed.
-3. Mark the approval request as rejected or expired.
-4. Add audit note with reason and affected files.
-5. Keep the runbook updated with the failure mode.
+1. Dong draft PR.
+2. Xoa feature branch neu khong can nua.
+3. Danh dau approval request la rejected hoac expired.
+4. Them audit note mo ta ly do va file bi anh huong.
+5. Cap nhat runbook voi failure mode vua gap.

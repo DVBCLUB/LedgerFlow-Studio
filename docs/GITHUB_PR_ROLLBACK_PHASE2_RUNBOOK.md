@@ -1,27 +1,27 @@
-# GitHub PR Rollback Phase 2 Runbook
+# GitHub PR Rollback Phase 2 - Runbook
 
-## Goal
+## Muc tieu
 
-Extend GitHub PR Control after Phase 1.5:
+Mo rong GitHub PR Control sau Phase 1.5:
 
-1. Draft PR is created through approved-change endpoint.
-2. PR digest can be refreshed.
-3. Workflow jobs can be refreshed by run id.
-4. Release Gate blocks release when CI is not passed.
+1. Draft PR duoc tao qua approved-change endpoint.
+2. PR digest co the refresh.
+3. Workflow jobs co the refresh theo run id.
+4. Release Gate chan release khi CI chua pass.
 
-Phase 2 adds a safe rollback/close path for draft PRs.
+Phase 2 bo sung duong rollback/dong draft PR an toan.
 
 ## Guardrails
 
-- Never auto-merge.
-- Never auto-close without Founder approval.
-- Never delete branches from the UI in Phase 2.
-- Rollback starts as a plan and audit note.
-- External GitHub write must require Approval Gate + founder phrase.
+- Tuyet doi khong auto-merge.
+- Tuyet doi khong auto-close neu chua co Founder approval.
+- Khong xoa branch tu UI trong Phase 2.
+- Rollback phai bat dau bang plan + audit note.
+- Moi external GitHub write bat buoc Approval Gate + founder phrase.
 
-## Proposed data fields
+## Truong du lieu de xuat
 
-Add to GitHub PR plan:
+Bo sung vao GitHub PR plan:
 
 ```ts
 rollbackStatus?: 'Not Requested' | 'Requested' | 'Approved' | 'Closed' | 'Cancelled';
@@ -30,7 +30,7 @@ rollbackEvidence?: string;
 closedAt?: string;
 ```
 
-## Proposed backend endpoint
+## Backend endpoint de xuat
 
 ```txt
 POST /api/integrations/github/prs/:pullNumber/request-close
@@ -59,15 +59,15 @@ Response:
 }
 ```
 
-## UI flow
+## Luong UI
 
-1. User sees CI failed or PR digest safety warning.
-2. User writes rollback reason.
-3. User sends rollback plan to Approval Gate.
-4. After approval, user enters founder phrase.
-5. App calls close endpoint.
-6. Audit event is written.
-7. Release Notes sees the PR as closed or archived.
+1. User thay CI failed hoac PR digest canh bao rui ro.
+2. User nhap rollback reason.
+3. User gui rollback plan qua Approval Gate.
+4. Sau khi duoc phe duyet, user nhap founder phrase.
+5. Ung dung goi close endpoint.
+6. Audit event duoc ghi.
+7. Release Notes hien PR da dong hoac archived.
 
 ## Audit events
 
@@ -79,7 +79,7 @@ Response:
 
 ## Acceptance checklist
 
-- Closing a PR requires both Approval Gate and founder phrase.
-- Closed PR is no longer counted as a CI blocker in Release Gate.
-- Closed PR keeps audit history and rollback reason.
-- Branch deletion remains manual in Phase 2.
+- Dong PR bat buoc ca Approval Gate va founder phrase.
+- PR da dong khong con bi tinh la CI blocker trong Release Gate.
+- PR da dong van giu audit history va rollback reason.
+- Viec xoa branch van de thu cong trong Phase 2.
