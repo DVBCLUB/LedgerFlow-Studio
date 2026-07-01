@@ -1,10 +1,10 @@
-# Source ZIP khác Windows Setup
+# Source ZIP khac Windows Setup
 
-Khi bấm nút **Code → Download ZIP** trên GitHub, file tải về là **mã nguồn**. Mã nguồn sẽ có `src/`, `scripts/`, `desktop/`, `package.json` và các file cấu hình. Mã nguồn không chứa sẵn file `.exe`.
+Khi bam nut **Code -> Download ZIP** tren GitHub, file tai ve la **ma nguon**. Ma nguon se co `src/`, `scripts/`, `desktop/`, `package.json` va cac file cau hinh. Ma nguon khong chua san file `.exe`.
 
-File cài đặt Windows chỉ có sau khi build:
+File cai dat Windows chi co sau khi build:
 
-1. Build local bằng `BUILD_WINDOWS_INSTALLER.bat`, sau đó lấy `.exe` trong thư mục `release/`.
-2. Hoặc tải artifact/release do GitHub Actions tạo ra: `LedgerFlow-Hub-Windows-Setup`.
+1. Build local bang `BUILD_WINDOWS_INSTALLER.bat`, sau do lay `.exe` trong thu muc `release/`.
+2. Hoac tai artifact/release do GitHub Actions tao ra: `LedgerFlow-Hub-Windows-Setup`.
 
-Người dùng cuối nên tải bản Windows Setup `.exe`, không nên tải source ZIP.
+Nguoi dung cuoi nen tai ban Windows Setup `.exe`, khong nen tai source ZIP.

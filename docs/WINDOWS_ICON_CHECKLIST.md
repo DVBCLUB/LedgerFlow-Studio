@@ -1,53 +1,53 @@
-# Windows icon checklist
+# Windows Icon Checklist
 
-Mục tiêu: bản tải về phải nhìn giống phần mềm Windows thật, không phải app dev chạy CMD.
+Muc tieu: ban tai ve phai nhin giong phan mem Windows that, khong phai app dev chay CMD.
 
-## Icon files
+## Icon Files
 
-LedgerFlow desktop build dùng các file sau:
+LedgerFlow desktop build dung cac file sau:
 
-- `build/logo.svg`: logo nguồn, dễ chỉnh bằng SVG.
-- `build/icon.ico`: icon Windows thật, được tạo bởi `npm run prepare:icons`.
+- `build/logo.svg`: logo nguon, de chinh bang SVG.
+- `build/icon.ico`: icon Windows that, duoc tao boi `npm run prepare:icons`.
 
-## Nơi icon được dùng
+## Noi Icon Duoc Dung
 
-`package.json` đang cấu hình electron-builder dùng:
+`package.json` dang cau hinh electron-builder dung:
 
 - `build.win.icon = build/icon.ico`
 - `build.nsis.installerIcon = build/icon.ico`
 - `build.nsis.uninstallerIcon = build/icon.ico`
 
-`desktop/main.cjs` cũng đặt icon cho cửa sổ app bằng `build/icon.ico` khi file này tồn tại.
+`desktop/main.cjs` cung dat icon cho cua so app bang `build/icon.ico` khi file nay ton tai.
 
-## Cách kiểm tra sau khi build
+## Cach Kiem Tra Sau Khi Build
 
-Chạy:
+Chay:
 
 ```bat
 BUILD_WINDOWS_INSTALLER.bat
 ```
 
-Sau khi build xong, mở thư mục:
+Sau khi build xong, mo thu muc:
 
 ```txt
 release
 ```
 
-Kiểm tra:
+Kiem tra:
 
-1. File installer `LedgerFlow-Hub-...exe` có icon LedgerFlow không.
-2. Bấm cài đặt, shortcut Desktop có icon LedgerFlow không.
-3. Start Menu có icon LedgerFlow không.
-4. Khi mở app, icon trên taskbar/cửa sổ có icon LedgerFlow không.
+1. File installer `LedgerFlow-Hub-...exe` co icon LedgerFlow khong.
+2. Bam cai dat, shortcut Desktop co icon LedgerFlow khong.
+3. Start Menu co icon LedgerFlow khong.
+4. Khi mo app, icon tren taskbar/cua so co icon LedgerFlow khong.
 
-## Nếu Windows vẫn hiện icon trắng
+## Neu Windows Van Hien Icon Trang
 
-Windows đôi khi cache icon cũ. Thử:
+Windows doi khi cache icon cu. Thu:
 
-1. Đổi tên file `.exe` hoặc build lại bản mới.
-2. Xóa bản cài cũ rồi cài lại.
+1. Doi ten file `.exe` hoac build lai ban moi.
+2. Xoa ban cai cu roi cai lai.
 3. Restart Windows Explorer hoặc restart máy.
 
-## Lưu ý
+## Luu Y
 
-Logo không phải chữ ký số. Nếu chưa code-sign, Windows SmartScreen vẫn có thể cảnh báo ứng dụng không rõ nhà phát hành dù icon đã đúng.
+Logo khong phai chu ky so. Neu chua code-sign, Windows SmartScreen van co the canh bao ung dung khong ro nha phat hanh du icon da dung.

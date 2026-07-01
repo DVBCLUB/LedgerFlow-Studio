@@ -1,10 +1,10 @@
-# LedgerFlow Hub — Release Readiness Checklist
+# LedgerFlow Hub - Checklist San Sang Phat Hanh
 
-Mục tiêu của checklist này là tránh nhầm **source ZIP** với **bản cài đặt Windows `.exe`**.
+Muc tieu cua checklist nay la tranh nham **source ZIP** voi **ban cai dat Windows `.exe`**.
 
-## 1. Không phát hành source ZIP cho người dùng cuối
+## 1. Khong phat hanh source ZIP cho nguoi dung cuoi
 
-Nút GitHub **Code → Download ZIP** chỉ tải mã nguồn. File ZIP này sẽ có các thư mục như:
+Nut GitHub **Code -> Download ZIP** chi tai ma nguon. File ZIP nay se co cac thu muc nhu:
 
 - `src/`
 - `desktop/`
@@ -12,45 +12,50 @@ Nút GitHub **Code → Download ZIP** chỉ tải mã nguồn. File ZIP này s�
 - `package.json`
 - `server.ts`
 
-Đó không phải phần mềm cài đặt.
+Do khong phai phan mem cai dat.
 
-## 2. Bản đúng cho người dùng cuối
+## 2. Ban dung cho nguoi dung cuoi
 
-Người dùng cuối chỉ nên tải file `.exe` từ:
+Nguoi dung cuoi chi nen tai file `.exe` tu:
 
 1. GitHub Actions artifact: `LedgerFlow-Hub-Windows-Setup`
 2. GitHub Releases: file `LedgerFlow-Hub-...exe`
 
-## 3. Điều kiện trước khi gửi cho người khác
+## 3. Dieu kien truoc khi gui cho nguoi khac
 
-Trước khi gửi bản `.exe`, kiểm tra:
+Truoc khi gui ban `.exe`, kiem tra:
 
-- Workflow **Build LedgerFlow Hub Windows Setup** chạy xanh.
-- Artifact `LedgerFlow-Hub-Windows-Setup` có ít nhất một file `.exe`.
-- Cài được trên Windows bằng double click.
-- Sau khi cài có shortcut **LedgerFlow Hub** ngoài Desktop hoặc Start Menu.
-- Mở app không cần CMD, Node.js hoặc npm.
-- Bấm **Labs → Start Here** mở được.
-- Các tab quan trọng mở được: Company OS, Game Library, Game Progress, Game History, Backup / Restore.
-- Trước khi update bản mới, vào **Backup / Restore** xuất JSON.
+- Workflow **Build LedgerFlow Hub Windows Setup** chay xanh.
+- Artifact `LedgerFlow-Hub-Windows-Setup` co it nhat mot file `.exe`.
+- Cai duoc tren Windows bang double click.
+- Sau khi cai co shortcut **LedgerFlow Hub** ngoai Desktop hoac Start Menu.
+- Mo app khong can CMD, Node.js hoac npm.
+- Bam **Labs -> Start Here** mo duoc.
+- Cac tab quan trong mo duoc: Company OS, Game Library, Game Progress, Game History, Backup / Restore.
+- Truoc khi update ban moi, vao **Backup / Restore** xuat JSON.
 
-## 4. Build local nếu Actions chưa có artifact
+Khuyen nghi bo sung:
 
-Trong source folder, chạy:
+- Luu hash va timestamp cua artifact `.exe` vao release note noi bo.
+- Neu co thay doi desktop shell, chay them `npm run check:desktop` truoc khi gui ban cai.
+
+## 4. Build local neu Actions chua co artifact
+
+Trong source folder, chay:
 
 ```bat
 BUILD_WINDOWS_INSTALLER.bat
 ```
 
-Sau khi chạy xong, file `.exe` nằm trong:
+Sau khi chay xong, file `.exe` nam trong:
 
 ```txt
 release/
 ```
 
-## 5. Không đổi cấu trúc lõi khi chỉ phát hành
+## 5. Khong doi cau truc loi khi chi phat hanh
 
-Không sửa/xóa các thư mục sau nếu chỉ muốn build release:
+Khong sua/xoa cac thu muc sau neu chi muon build release:
 
 - `src/`
 - `desktop/`

@@ -1,10 +1,10 @@
-# LedgerFlow Release Guard Checklist
+# LedgerFlow - Release Guard Checklist
 
-Mục tiêu: không deploy bản mới nếu làm hỏng mô phỏng, Founder Labs, dữ liệu localStorage hoặc khả năng build.
+Muc tieu: khong deploy ban moi neu lam hong mo phong, Founder Labs, du lieu localStorage hoac kha nang build.
 
-## 1. Lệnh kiểm tra bắt buộc
+## 1. Lenh kiem tra bat buoc
 
-Chạy trước khi merge/deploy:
+Chay truoc khi merge/deploy:
 
 ```bash
 npm run check:env
@@ -15,11 +15,16 @@ npm run build
 npm run check:runtime
 ```
 
-`npm run build` đã gọi `prebuild`, nên sẽ tự chạy các guard nền tảng gồm env, simulations, founder labs, desktop và offline readiness.
+`npm run build` da goi `prebuild`, nen se tu chay cac guard nen tang gom env, simulations, founder labs, desktop va offline readiness.
+
+Gate toi thieu truoc release:
+
+- Khong bo qua `npm run check:runtime`.
+- Neu thay doi desktop wrapper hoac icon, chay them `npm run check:desktop`.
 
 ## 2. Simulation Guard
 
-Không được release nếu:
+Khong duoc release neu:
 
 - thiếu `src/data/simulationRegistry.ts`;
 - module trong registry không có component tương ứng;
@@ -35,7 +40,7 @@ npm run check:simulations
 
 ## 3. Founder Labs Guard
 
-Không được release nếu:
+Khong duoc release neu:
 
 - `FounderLabsDock` không được render từ `main.tsx`;
 - thiếu component lab;
@@ -51,7 +56,7 @@ Script liên quan:
 npm run check:founder-labs
 ```
 
-## 4. Founder Labs hiện đang được bảo vệ
+## 4. Founder Labs hien dang duoc bao ve
 
 - Experiment Dashboard
 - AI Staff Board
@@ -74,7 +79,7 @@ npm run check:founder-labs
 - Strategic Labs
 - Backup / Restore
 
-## 5. Backup keys phải giữ
+## 5. Backup keys phai giu
 
 - `ledgerflow-persona-interviews-v1`
 - `ledgerflow-distribution-leads-v1`
@@ -89,25 +94,25 @@ npm run check:founder-labs
 - `ledgerflow-mor-readiness-checklist-v1`
 - `ledgerflow-payment-path-v1`
 
-Nếu đổi key, phải viết migration hoặc giữ backward compatibility.
+Neu doi key, phai viet migration hoac giu backward compatibility.
 
 ## 6. GitHub Actions
 
-Workflow nhẹ:
+Workflow nhe:
 
 ```txt
 .github/workflows/release-guard.yml
 ```
 
-Workflow desktop nặng vẫn giữ:
+Workflow desktop nang van giu:
 
 ```txt
 .github/workflows/build-desktop.yml
 ```
 
-Release Guard chạy trên PR/push vào `main` khi có thay đổi ở `src`, `scripts`, package hoặc workflow.
+Release Guard chay tren PR/push vao `main` khi co thay doi o `src`, `scripts`, package hoac workflow.
 
-## 7. Quy tắc trước khi thêm module mới
+## 7. Quy tac truoc khi them module moi
 
 1. Tạo component riêng, không nhồi thêm vào `AccountingVietnam.tsx` nếu không bắt buộc.
 2. Gắn component vào `FounderLabsDock` hoặc registry rõ ràng.
@@ -115,6 +120,6 @@ Release Guard chạy trên PR/push vào `main` khi có thay đổi ở `src`, `s
 4. Nếu là mô phỏng/learning lab quan trọng, thêm vào `scripts/check-founder-labs.mjs` hoặc `simulationRegistry.ts`.
 5. Chạy Release Guard trước khi deploy.
 
-## 8. Không được phá định vị sản phẩm
+## 8. Khong duoc pha dinh vi san pham
 
-LedgerFlow-Studio là learning + R&D + simulation + founder operating system. Không được sửa thành ERP thay MISA/Bravo, không được ẩn mô hình mô phỏng, không được làm các lab bị mất đường truy cập.
+LedgerFlow-Studio la learning + R&D + simulation + founder operating system. Khong duoc sua thanh ERP thay MISA/Bravo, khong duoc an mo hinh mo phong, khong duoc lam cac lab bi mat duong truy cap.
