@@ -2,6 +2,16 @@
 
 Muc tieu: ChatGPT, Gemini, Claude Code, Copilot, hoac bat ky AI nao code thang qua GitHub deu dat trang thai xanh truoc merge/deploy.
 
+## Quick operator checklist
+
+Truoc khi bam merge, kiem tra nhanh theo thu tu:
+
+1. `npm run check:pr-readiness` da pass.
+2. Neu PR co nhan `risk/ai-runtime`, cac gate runtime da pass.
+3. Khong co comment tu dong nao con mo ta missing reviewer routing/delivery.
+4. Rollback note da co neu PR dung daemon/runtime/approval.
+5. Branch protection check required statuses da xanh.
+
 ## Why this exists
 
 - Repo co nhieu khu vuc high-risk (assistant daemon, OpenClaw, robot, mission runtime).
@@ -151,6 +161,14 @@ Khuyen nghi bat them:
 - Neu readiness fail, uu tien sua command dau tien bi fail trong comment tu dong.
 - Khong sua ngan nhien nhieu khu vuc cung luc.
 - Chay lai `npm run check:pr-readiness` sau moi nhom fix nho.
+
+## Escalation rule
+
+Escalate cho maintainer/phu trach runtime neu gap mot trong cac truong hop:
+
+- Cung mot gate fail lap lai >= 3 lan du da sua dung theo command de xuat.
+- PR bi gan `risk/ai-runtime` va co thay doi dong thoi o daemon + runtime queue + patch scripts.
+- Enforcement status bao missing routing nhung repository variables da co day du.
 
 ## Local developer shortcut
 

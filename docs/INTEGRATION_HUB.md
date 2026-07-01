@@ -223,6 +223,21 @@ AI không được tự động:
 
 Các hành động ghi/sửa/xóa phải có nút **Duyệt / Từ chối**.
 
+### 1.4. Quy tac khong the thuong luong (van hanh)
+
+- Khong luu token/secret o frontend localStorage.
+- Khong cho connector tu dong chay shell lenh nguy hiem.
+- Khong cho AI tu merge PR hoac push truc tiep vao nhanh protected.
+- Moi hanh dong ghi du lieu ben ngoai phai co audit event + actor + timestamp.
+- Neu connector o trang thai unknown/failed, he thong phai default ve safe mode (chi doc/khong ghi).
+
+### 1.5. Thu tu rollout connector de xuat
+
+1. Read-only summary + diagnostics.
+2. Action co phe duyet thu cong.
+3. Action co approval gate + phrase.
+4. Action co policy enforcement + rate limit + rollback playbook.
+
 ---
 
 ## 2. Các nhóm tích hợp cần có

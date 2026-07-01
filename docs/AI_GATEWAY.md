@@ -144,6 +144,20 @@ timeout = không phản hồi hoặc chậm
 error   = lỗi key/provider/model
 ```
 
+### Xu ly nhanh theo trang thai
+
+| Trang thai | Nguyen nhan pho bien | Hanh dong de xuat |
+|---|---|---|
+| ok | Key hop le, provider on dinh | Giu priority hien tai |
+| quota | Het han muc/rate limit | Ha priority key do hoac chuyen sang key/provider khac |
+| timeout | Mang cham, provider chua phan hoi | Thu lai sau, kiem tra ket noi va timeout policy |
+| error | Sai key/model hoac provider loi | Test lai key, doi model, xem logs backend |
+
+Khuyen nghi van hanh:
+
+- Neu cung mot provider `quota` lap lai, khong retry lien tuc; doi sang provider fallback khac de giam lockout.
+- Neu `timeout` tren nhieu provider cung luc, uu tien kiem tra mang/noi bo may chu truoc khi danh gia key.
+
 ## Nhật ký sử dụng AI
 
 AI Gateway có log local để biết request vừa rồi đi qua provider/key nào.
