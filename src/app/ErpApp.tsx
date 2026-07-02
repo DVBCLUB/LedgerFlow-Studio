@@ -1,83 +1,77 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
-  BarChart3, Bot, Boxes, BriefcaseBusiness, Building2, ChevronLeft, ChevronRight, CircleDollarSign, Database, FileCheck2, FolderKanban, Hammer, LogOut, Menu, Network, PackageOpen, Plug2, Rocket, Search, Settings, ShieldAlert, ShoppingCart, UsersRound, Wrench, X, Calculator, Video } from 'lucide-react';
-import { useLocalAuth } from '../context/LocalAuthContext';
+  BarChart3,
+  Bot,
+  Building2,
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  Database,
+  FolderKanban,
+  Menu,
+  Rocket,
+  Search,
+  Settings,
+  UsersRound,
+  X,
+} from 'lucide-react';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
-import { COMPANY_WORKSPACES, type TabType, type RoleType, MODULES, isDepartmentVisible } from './companyNavigation';
-
-interface NavigationItem {
-  tab: TabType;
-  label: string;
-  shortLabel: string;
-  description: string;
-  icon: typeof Building2;
-}
+import { COMPANY_WORKSPACES, type TabType, type RoleType } from './companyNavigation';
 
 const IconMap: Record<string, typeof Building2> = {
   Building2,
   Database,
-  PackageOpen,
   BarChart3,
   UsersRound,
   CircleDollarSign,
   FolderKanban,
   Rocket,
-  FileCheck2,
   Bot,
-  Boxes,
-  Network,
   Settings,
-  Calculator,
-  Video,
-  Hammer,
-  Plug2,
-  ShieldAlert,
-  ShoppingCart,
-  Wrench,
 };
 
 const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
-  dashboard: { tab: 'ceo_command', subTab: 'brief' },
-  knowledge: { tab: 'ceo_command', subTab: 'library' },
-  advisory: { tab: 'finance_accounting', subTab: 'runway_advisory' },
-  operations: { tab: 'product_studio' },
-  market_survey: { tab: 'marketing_growth' },
-  founder: { tab: 'product_studio' },
-  roadmap: { tab: 'product_studio' },
-  datascience: { tab: 'analytics', subTab: 'data_science' },
-  prompts: { tab: 'ai_factory', subTab: 'staff_roles' },
-  assistant: { tab: 'ai_factory', subTab: 'staff_roles' },
-  ai_staff: { tab: 'ai_factory', subTab: 'staff_roles' },
-  custom_data: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
-  architecture: { tab: 'analytics', subTab: 'architecture' },
-  game_ml: { tab: 'analytics', subTab: 'game_studio' },
-  guerrilla: { tab: 'product_studio' },
-  accounting_vn: { tab: 'finance_accounting', subTab: 'ledger_accounting' },
-  ml_applied: { tab: 'analytics', subTab: 'ml_applied' },
-  deploy_business: { tab: 'product_studio', subTab: 'delivery' },
-  seo_strategy: { tab: 'marketing_growth' },
-  audit_workspace: { tab: 'finance_accounting', subTab: 'coso' },
+  dashboard: { tab: 'ceo_command', subTab: 'overview' },
+  knowledge: { tab: 'ceo_command', subTab: 'today' },
+  advisory: { tab: 'finance_accounting', subTab: 'reports' },
+  operations: { tab: 'product_studio', subTab: 'portfolio' },
+  market_survey: { tab: 'marketing_growth', subTab: 'campaigns' },
+  founder: { tab: 'product_studio', subTab: 'portfolio' },
+  roadmap: { tab: 'product_studio', subTab: 'release' },
+  datascience: { tab: 'analytics', subTab: 'data' },
+  prompts: { tab: 'ai_factory', subTab: 'command' },
+  assistant: { tab: 'ai_factory', subTab: 'command' },
+  ai_staff: { tab: 'ai_factory', subTab: 'command' },
+  custom_data: { tab: 'finance_accounting', subTab: 'ledger' },
+  architecture: { tab: 'analytics', subTab: 'data' },
+  game_ml: { tab: 'analytics', subTab: 'data' },
+  guerrilla: { tab: 'product_studio', subTab: 'portfolio' },
+  accounting_vn: { tab: 'finance_accounting', subTab: 'ledger' },
+  ml_applied: { tab: 'analytics', subTab: 'data' },
+  deploy_business: { tab: 'product_studio', subTab: 'release' },
+  seo_strategy: { tab: 'marketing_growth', subTab: 'content' },
+  audit_workspace: { tab: 'finance_accounting', subTab: 'approval' },
   python_sandbox: { tab: 'analytics', subTab: 'python_sandbox' },
-  marketing_suite: { tab: 'marketing_growth' },
-  funnel_lab: { tab: 'marketing_growth' },
-  lead_scoring: { tab: 'sales_crm' },
-  zalo_hub: { tab: 'marketing_growth' },
-  ltv_dashboard: { tab: 'sales_crm' },
-  pricing_lab: { tab: 'sales_crm' },
-  nps_manager: { tab: 'sales_crm' },
-  affiliate_hub: { tab: 'sales_crm' },
-  outbound_hub: { tab: 'sales_crm' },
-  advanced_ai: { tab: 'ai_factory', subTab: 'advanced' },
-  video_lab: { tab: 'marketing_growth' },
-  marketing_growth_v2: { tab: 'marketing_growth' },
+  marketing_suite: { tab: 'marketing_growth', subTab: 'campaigns' },
+  funnel_lab: { tab: 'marketing_growth', subTab: 'campaigns' },
+  lead_scoring: { tab: 'sales_crm', subTab: 'pipeline' },
+  zalo_hub: { tab: 'marketing_growth', subTab: 'content' },
+  ltv_dashboard: { tab: 'sales_crm', subTab: 'pipeline' },
+  pricing_lab: { tab: 'sales_crm', subTab: 'pipeline' },
+  nps_manager: { tab: 'sales_crm', subTab: 'followup' },
+  affiliate_hub: { tab: 'sales_crm', subTab: 'followup' },
+  outbound_hub: { tab: 'sales_crm', subTab: 'pipeline' },
+  advanced_ai: { tab: 'ai_factory', subTab: 'automation' },
+  video_lab: { tab: 'marketing_growth', subTab: 'content' },
+  marketing_growth_v2: { tab: 'marketing_growth', subTab: 'campaigns' },
   approval_workflow: { tab: 'finance_accounting', subTab: 'approval' },
   financial_reports: { tab: 'finance_accounting', subTab: 'reports' },
-  integration_hub: { tab: 'system_settings', subTab: 'general' },
+  integration_hub: { tab: 'system_settings', subTab: 'integrations' },
   devops_hub: { tab: 'system_settings', subTab: 'devops' },
-  control_room: { tab: 'system_settings', subTab: 'control' },
-  growth_sales: { tab: 'marketing_growth' },
-  ai_staff_sandbox: { tab: 'ai_factory', subTab: 'overview' },
+  control_room: { tab: 'system_settings', subTab: 'devops' },
+  growth_sales: { tab: 'marketing_growth', subTab: 'campaigns' },
+  ai_staff_sandbox: { tab: 'ai_factory', subTab: 'command' },
 };
 
 const knownTabs = new Set<TabType>(COMPANY_WORKSPACES.map((item) => item.tab));
@@ -96,11 +90,11 @@ function tabFromHash(): TabType {
 }
 
 export default function ErpApp() {
-  const { session, logout } = useLocalAuth();
   const [activeTab, setActiveTab] = useState<TabType>(tabFromHash);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('lf_erp_sidebar_collapsed') === '1');
   const [query, setQuery] = useState('');
+  const activeRole: RoleType = 'all';
 
   useEffect(() => {
     const sync = () => setActiveTab(tabFromHash());
@@ -108,7 +102,6 @@ export default function ErpApp() {
     return () => window.removeEventListener('hashchange', sync);
   }, []);
 
-  // Load database state from Express server upon boot
   useEffect(() => {
     async function initDB() {
       try {
@@ -120,55 +113,34 @@ export default function ErpApp() {
     initDB();
   }, []);
 
-  // Automatically save current LocalStorage state to server database on active tab changes
   useEffect(() => {
-    const handleAutoSync = async () => {
+    const timer = setTimeout(async () => {
       try {
         await saveDatabaseToServer();
       } catch (err) {
         console.error('Failed to save database to server:', err);
       }
-    };
-
-    const timer = setTimeout(() => {
-      handleAutoSync();
     }, 400);
 
     return () => clearTimeout(timer);
   }, [activeTab]);
 
-  const [activeRole, setActiveRole] = useState<RoleType>(() => {
-    const saved = localStorage.getItem('lf_active_role');
-    return (saved as RoleType) || 'all';
-  });
-
   const navigation = useMemo(() => {
-    // 1. Get static workspaces filtered by role
-    const staticNavs = COMPANY_WORKSPACES
-      .filter((item) => {
-        const mod = MODULES.find((m) => m.tab === item.tab);
-        return mod ? isDepartmentVisible(mod.dept, activeRole) : true;
-      })
-      .map((item) => ({
-        tab: item.tab,
-        label: item.label,
-        shortLabel: item.shortLabel,
-        description: item.description,
-        icon: IconMap[item.iconName] || Building2,
-      }));
-
-    // Dynamic modules remain routable through WorkspaceRenderer, but the primary
-    // sidebar intentionally shows only the company OS workspaces to avoid duplicate
-    // and implementation-level entries overwhelming normal users.
-    return staticNavs;
-  }, [activeRole]);
+    return COMPANY_WORKSPACES.map((item) => ({
+      tab: item.tab,
+      label: item.label,
+      shortLabel: item.shortLabel,
+      description: item.description,
+      icon: IconMap[item.iconName] || Building2,
+    }));
+  }, []);
 
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
       tab: 'ceo_command' as TabType,
-      label: 'CEO Command Center',
-      shortLabel: 'Điều hành',
-      description: 'Chiến lược, standup và tri thức RAG',
+      label: 'Command Center',
+      shortLabel: 'Command',
+      description: 'Việc hôm nay và cảnh báo chính',
       icon: Building2,
     };
   }, [navigation, activeTab]);
@@ -194,31 +166,6 @@ export default function ErpApp() {
     setSidebarOpen(false);
   };
 
-  // Redirect to Role-Based home tab when activeRole changes
-  useEffect(() => {
-    if (navigation.length > 0) {
-      const roleHomeMap: Record<RoleType, TabType> = {
-        all: 'ceo_command',
-        founder: 'ceo_command',
-        admin: 'ceo_command',
-        finance: 'finance_accounting',
-        operations: 'product_studio',
-        agentops: 'ai_factory',
-        devops: 'system_settings',
-        marketing: 'marketing_growth',
-        auditor: 'finance_accounting',
-        viewer: 'ceo_command',
-      };
-      const targetTab = roleHomeMap[activeRole] || 'ceo_command';
-      const hasTab = navigation.some((item) => item.tab === targetTab);
-      if (hasTab && activeTab !== targetTab) {
-        navigate(targetTab);
-      } else if (!navigation.some((item) => item.tab === activeTab)) {
-        navigate(navigation[0].tab);
-      }
-    }
-  }, [activeRole, navigation]);
-
   const toggleCollapsed = () => {
     setCollapsed((value) => {
       localStorage.setItem('lf_erp_sidebar_collapsed', value ? '0' : '1');
@@ -236,7 +183,7 @@ export default function ErpApp() {
           {!collapsed && (
             <div className="min-w-0">
               <strong>LedgerFlow Hub</strong>
-              <span>Company OS</span>
+              <span>Solo local workspace</span>
             </div>
           )}
           <button className="erp-icon-button ml-auto lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Đóng menu">
@@ -247,11 +194,11 @@ export default function ErpApp() {
         {!collapsed && (
           <label className="erp-sidebar-search">
             <Search size={15} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm phân hệ" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm module" />
           </label>
         )}
 
-        <nav className="erp-navigation" aria-label="Phân hệ chính">
+        <nav className="erp-navigation" aria-label="Module chính">
           {filteredNavigation.map((item) => {
             const Icon = item.icon;
             const active = item.tab === activeTab;
@@ -276,10 +223,7 @@ export default function ErpApp() {
         </nav>
 
         <div className="erp-sidebar__footer">
-          <button className="erp-navigation__item" onClick={logout} title={collapsed ? 'Đăng xuất' : undefined}>
-            <LogOut size={18} />
-            {!collapsed && <span><strong>Đăng xuất</strong><small>{session?.email}</small></span>}
-          </button>
+          {!collapsed && <span className="erp-status"><i /> Local mode</span>}
           <button className="erp-collapse-button" onClick={toggleCollapsed} aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}>
             {collapsed ? <ChevronRight size={17} /> : <><ChevronLeft size={17} /><span>Thu gọn menu</span></>}
           </button>
@@ -297,47 +241,6 @@ export default function ErpApp() {
           </div>
           <div className="erp-topbar__actions">
             <span className="erp-status"><i /> Dữ liệu local</span>
-            <div className="erp-role-selector">
-              <select
-                value={activeRole}
-                onChange={(e) => {
-                  const val = e.target.value as RoleType;
-                  localStorage.setItem('lf_active_role', val);
-                  setActiveRole(val);
-                }}
-                className="erp-role-select"
-                aria-label="Chọn vai trò hiển thị"
-              >
-                <option value="all">Vai trò: Toàn bộ</option>
-                <option value="founder">Vai trò: Sáng lập (Founder)</option>
-                <option value="admin">Vai trò: Quản trị viên (Admin)</option>
-                <option value="finance">Vai trò: Giám đốc Tài chính</option>
-                <option value="operations">Vai trò: Giám đốc Vận hành</option>
-                <option value="agentops">Vai trò: Kỹ sư AgentOps</option>
-                <option value="devops">Vai trò: Kỹ sư DevOps</option>
-                <option value="marketing">Vai trò: Trưởng phòng Marketing</option>
-                <option value="auditor">Vai trò: Kiểm toán viên</option>
-                <option value="viewer">Vai trò: Người quan sát</option>
-              </select>
-            </div>
-            <button className="erp-user-button" title={session?.email}>
-              <BriefcaseBusiness size={16} />
-              <span>{session?.email?.split('@')[0] || (() => {
-                const names: Record<RoleType, string> = {
-                  all: 'Super Admin',
-                  founder: 'Founder',
-                  admin: 'Admin',
-                  finance: 'CFO',
-                  operations: 'COO',
-                  agentops: 'AgentOps',
-                  devops: 'DevOps',
-                  marketing: 'CMO',
-                  auditor: 'Auditor',
-                  viewer: 'Viewer',
-                };
-                return names[activeRole] || 'User';
-              })()}</span>
-            </button>
           </div>
         </header>
 
