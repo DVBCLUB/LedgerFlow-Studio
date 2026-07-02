@@ -1,943 +1,337 @@
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
+import {
+  Activity,
+  BarChart3,
+  Bot,
+  Briefcase,
+  Calculator,
+  CheckCircle,
+  ClipboardList,
+  Code,
+  Database,
+  FileCheck2,
+  FolderKanban,
+  GitPullRequest,
+  LucideIcon,
+  Mail,
+  Network,
+  Rocket,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  Target,
+  TrendingUp,
+  UsersRound,
+} from 'lucide-react';
 import { TabType, RoleType } from './companyNavigation';
 import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
 import WorkspaceSubNavigation from '../components/shared/WorkspaceSubNavigation';
-import DynamicModuleComponentLoader from './DynamicModuleComponentLoader';
-import {
-  Briefcase, CheckCircle2, ClipboardList, Target, BookOpen, Bot, LayoutList, Mail, Rocket, BarChart3, Database, ShieldCheck, Cpu, FolderKanban, PlayCircle, Activity, FileText, FileCheck2, Calculator, WalletCards, Settings, Key, AlertTriangle, TrendingUp, Coins, UsersRound, Network, Code, Sparkles, LayoutTemplate, CheckCircle, Globe, ShieldAlert, Terminal, MessageSquare, UserCheck, GitCommit, GitPullRequest, FileDiff, Package, Rewind, FlaskConical, RefreshCw, Search, Send, Stethoscope, Zap, ShoppingCart, LucideIcon } from 'lucide-react';
-import {
-  AIWorkOrderLibraryPanel,
-  DecisionBoundaryPanel,
-  OperatingKnowledgeLayerPanel,
-} from '../components/operating-knowledge/OperatingKnowledgePanels';
+import SimplePanelCard from '../components/shared/SimplePanelCard';
 
-// ─── Import Datasets ──────────────────────────────────────────────────────────
-import {
-  OPERATING_SOP_LIBRARY,
-  RELEASE_READINESS_CHECKLIST,
-  PRODUCT_IDEA_PORTFOLIO,
-  AI_AGENT_WORK_ORDER_BOARD,
-  FOUNDER_RISK_REGISTER
-} from '../data/founderCompanyEnhancements';
+const LedgerAccountingWorkspace = React.lazy(() => import('../modules/finance-accounting/LedgerAccountingWorkspace'));
+const FinancialReportsVN = React.lazy(() => import('../modules/finance-accounting/FinancialReportsVN'));
+const RevenueDashboard = React.lazy(() => import('../modules/finance-accounting/RevenueDashboard'));
+const ApprovalWorkflow = React.lazy(() => import('../modules/dev-ops/ApprovalWorkflow'));
+const PythonSandbox = React.lazy(() => import('../modules/analytics-sandbox/PythonSandbox'));
+const SystemSettingsPanel = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
+const IntegrationHub = React.lazy(() => import('../modules/dev-ops/IntegrationHub'));
+const BuildMonitorPanel = React.lazy(() => import('../modules/dev-ops/BuildMonitorPanel'));
+const MergeReadinessCenter = React.lazy(() => import('../modules/dev-ops/MergeReadinessCenter'));
+const PRControlCenter = React.lazy(() => import('../modules/dev-ops/PRControlCenter'));
+const GitHubCIDoctorLauncher = React.lazy(() => import('../modules/dev-ops/GitHubCIDoctorLauncher'));
 
-// ─── Reusable Simple Card List / Checklist Viewers ─────────────────────────────
-const BulletList = ({ items, className = 'text-slate-300' }: { items: string[]; className?: string }) => (
-  <>{items.map((x) => <p key={x} className={`text-xs font-semibold leading-6 ${className}`}>• {x}</p>)}</>
+type WorkspaceSubtab = { id: string; label: string; icon?: LucideIcon };
+
+const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
+  ceo_command: [
+    { id: 'overview', label: 'Tổng quan', icon: Briefcase },
+    { id: 'today', label: 'Việc hôm nay', icon: Activity },
+  ],
+  product_studio: [
+    { id: 'portfolio', label: 'Sản phẩm', icon: FolderKanban },
+    { id: 'release', label: 'Phát hành', icon: Rocket },
+  ],
+  marketing_growth: [
+    { id: 'campaigns', label: 'Chiến dịch', icon: Rocket },
+    { id: 'content', label: 'Nội dung', icon: Mail },
+  ],
+  sales_crm: [
+    { id: 'pipeline', label: 'Pipeline', icon: BarChart3 },
+    { id: 'followup', label: 'Chăm sóc', icon: UsersRound },
+  ],
+  finance_accounting: [
+    { id: 'ledger', label: 'Sổ cái', icon: Database },
+    { id: 'reports', label: 'Báo cáo', icon: Calculator },
+    { id: 'cashflow', label: 'Dòng tiền', icon: TrendingUp },
+    { id: 'approval', label: 'Duyệt', icon: CheckCircle },
+  ],
+  ai_factory: [
+    { id: 'command', label: 'Điều phối', icon: Bot },
+    { id: 'automation', label: 'Tự động hóa', icon: Sparkles },
+  ],
+  analytics: [
+    { id: 'python_sandbox', label: 'Python', icon: Code },
+    { id: 'data', label: 'Dữ liệu', icon: Database },
+  ],
+  system_settings: [
+    { id: 'general', label: 'Cài đặt', icon: Settings },
+    { id: 'integrations', label: 'Tích hợp', icon: Network },
+    { id: 'devops', label: 'DevOps', icon: ShieldCheck },
+  ],
+};
+
+const DEFAULT_SUBTAB: Record<string, string> = Object.fromEntries(
+  Object.entries(SUB_TABS_CONFIG).map(([key, tabs]) => [key, tabs[0]?.id || 'overview']),
 );
 
-const Card = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-2xl border border-slate-800 bg-slate-900/70 p-5 text-left ${className}`}>{children}</div>
-);
-
-// ─── Loading Fallback ─────────────────────────────────────────────────────────
 function LoadingFallback() {
   return (
-    <div className="bg-slate-950/40 p-8 rounded-2xl border border-slate-900 shadow-xl space-y-6 animate-pulse">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 bg-slate-900 rounded-xl" />
-        <div className="space-y-2 flex-1">
-          <div className="h-4 bg-slate-900 rounded w-1/4" />
-          <div className="h-3 bg-slate-900 rounded w-1/2" />
-        </div>
-      </div>
-      <div className="space-y-3 pt-4 border-t border-slate-900">
-        <div className="h-3 bg-slate-900 rounded w-full" />
-        <div className="h-3 bg-slate-900 rounded w-5/6" />
-        <div className="h-3 bg-slate-950 rounded w-4/5" />
-      </div>
-      <div className="h-40 bg-slate-900/50 rounded-xl" />
+    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm font-semibold text-slate-400">
+      Đang tải module...
     </div>
   );
 }
 
-// ─── Lazy Load All Workspace Subcomponents ────────────────────────────────────
-// Command Center
-const CommandCenter             = React.lazy(() => import('../modules/command-center/CommandCenter'));
-const CEOStandupRhythm          = React.lazy(() => import('../modules/command-center/CEOStandupRhythm'));
+function WorkspaceHero({ title, description, chips = [] }: { title: string; description: string; chips?: string[] }) {
+  return (
+    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 text-left shadow-xl shadow-black/20">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">LedgerFlow workspace</p>
+      <h1 className="mt-2 text-2xl font-black text-white">{title}</h1>
+      <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-400">{description}</p>
+      {chips.length > 0 && (
+        <div className="mt-4 flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <span key={chip} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-300">
+              {chip}
+            </span>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
-// Knowledge Library
-const KnowledgeBaseTab         = React.lazy(() => import('../modules/knowledge-library/KnowledgeBaseTab'));
+function CardGrid({ children }: { children: React.ReactNode }) {
+  return <div className="grid gap-4 lg:grid-cols-2">{children}</div>;
+}
 
-// Product Studio
-const SoloFounderBusiness      = React.lazy(() => import('../modules/product-studio/SoloFounderBusiness'));
-const GuerrillaProductHub      = React.lazy(() => import('../modules/marketing-growth/GuerrillaProductHub'));
-const PricingOfferBuilder       = React.lazy(() => import('../modules/sales-crm/PricingOfferBuilder'));
-const WebAccountingRoadmap     = React.lazy(() => import('../modules/product-studio/WebAccountingRoadmap'));
-const MoatDefensibilityTracker  = React.lazy(() => import('../modules/analytics-sandbox/MoatDefensibilityTracker'));
+function CompactModuleNotice() {
+  return (
+    <SimplePanelCard
+      eyebrow="Đã tinh gọn"
+      title="Nội dung kỹ thuật đã được ẩn khỏi giao diện chính"
+      description="Prompt cho AI, checklist dài, log CI, runbook và câu giao việc cho agent không còn dàn trên màn hình. Khi cần debug, mở GitHub/Replit/terminal hoặc panel chi tiết riêng."
+      icon={ShieldCheck}
+      status="Review mode"
+      tone="slate"
+      items={[
+        'UI chỉ hiển thị trạng thái và hành động cần bấm',
+        'Logic, log và prompt chạy ngầm hoặc nằm trong docs',
+        'Mỗi module giữ đúng mục đích nghiệp vụ chính',
+        'Giảm chữ dài để review nhanh trên Replit/local',
+      ]}
+    />
+  );
+}
 
-// Marketing & Growth
-const MarketingGrowthV2Workspace = React.lazy(() => import('../modules/marketing-growth/MarketingGrowthV2Workspace'));
-const ZaloMarketingHub         = React.lazy(() => import('../modules/marketing-growth/ZaloMarketingHub'));
-const MarketingCommandCenter    = React.lazy(() => import('../modules/marketing-growth/MarketingCommandCenter'));
-const LandingPageCopyLab        = React.lazy(() => import('../modules/marketing-growth/LandingPageCopyLab'));
-const EmailSequenceBuilder      = React.lazy(() => import('../modules/marketing-growth/EmailSequenceBuilder'));
-const GoogleKeywordStrategy     = React.lazy(() => import('../modules/marketing-growth/GoogleKeywordStrategy'));
-const MarketingSuite           = React.lazy(() => import('../modules/marketing-growth/MarketingSuite'));
-const MarketingFunnelLab       = React.lazy(() => import('../modules/marketing-growth/MarketingFunnelLab'));
-const SyntheticSurveyBuilder    = React.lazy(() => import('../modules/marketing-growth/SyntheticSurveyBuilder'));
-const MarketSurveySimulator    = React.lazy(() => import('../modules/analytics-sandbox/MarketSurveySimulator'));
-const MarketingV2QAConsole      = React.lazy(() => import('../modules/marketing-growth/MarketingV2QAConsole'));
-const MarketingV2LaunchPlaybookPanel = React.lazy(() => import('../modules/marketing-growth/MarketingV2LaunchPlaybookPanel'));
-const MarketingV2ExecutionBoardPanel = React.lazy(() => import('../modules/marketing-growth/MarketingV2ExecutionBoardPanel'));
-const AIContentVideoLab         = React.lazy(() => import('../modules/marketing-growth/AIContentVideoLab'));
-const AdCampaignSimulator       = React.lazy(() => import('../modules/marketing-growth/AdCampaignSimulator'));
+function CommandWorkspace({ subtab }: { subtab: string }) {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Command Center"
+        description="Màn hình điều hành gọn: việc cần làm, tình trạng tiền, pipeline và điểm nghẽn. Không hiển thị runbook hay prompt nội bộ trên giao diện chính."
+        chips={["Hôm nay", "Cảnh báo", "Ưu tiên"]}
+      />
+      <CardGrid>
+        <SimplePanelCard eyebrow="Hôm nay" title="Việc cần xử lý" description="Tập trung vào các việc chặn tiến độ hoặc cần quyết định." icon={ClipboardList} tone="cyan" items={['Review module đang sửa', 'Kiểm tra lỗi preview', 'Chốt việc tiếp theo']} />
+        <SimplePanelCard eyebrow="Tài chính" title="Dòng tiền & chi phí" description="Xem nhanh tình trạng tài chính, không trộn checklist kỹ thuật vào dashboard." icon={TrendingUp} tone="emerald" items={['Thu/chi chính', 'Chi phí cần duyệt', 'Báo cáo cần xem']} />
+        <SimplePanelCard eyebrow="Sản phẩm" title="Module đang build" description="Theo dõi phần đang cải tổ, ảnh trước/sau và lỗi còn lại." icon={FolderKanban} tone="violet" items={['Cài đặt & DevOps', 'UI cleanup', 'Replit preview']} />
+        <SimplePanelCard eyebrow="Rủi ro" title="Điểm cần chú ý" description="Chỉ hiển thị rủi ro thật sự ảnh hưởng sử dụng." icon={ShieldCheck} tone="amber" items={['Build lỗi', 'UI quá dài', 'Agent sửa lan man']} />
+      </CardGrid>
+      {subtab === 'today' && <CompactModuleNotice />}
+    </div>
+  );
+}
 
-// Sales & CRM
-const OutboundSalesHub          = React.lazy(() => import('../modules/sales-crm/OutboundSalesHub'));
-const DistributionLeadBoard     = React.lazy(() => import('../modules/sales-crm/DistributionLeadBoard'));
-const LeadScoringEngine        = React.lazy(() => import('../modules/sales-crm/LeadScoringEngine'));
-const CustomerLTVDashboard     = React.lazy(() => import('../modules/sales-crm/CustomerLTVDashboard'));
-const NPSReviewManager         = React.lazy(() => import('../modules/sales-crm/NPSReviewManager'));
-const AffiliateReferralHub     = React.lazy(() => import('../modules/sales-crm/AffiliateReferralHub'));
-const PricingStrategyLab       = React.lazy(() => import('../modules/sales-crm/PricingStrategyLab'));
-const SalesRoleplayLab          = React.lazy(() => import('../modules/sales-crm/SalesRoleplayLab'));
+function ProductWorkspace({ subtab }: { subtab: string }) {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Product Studio"
+        description="Quản lý sản phẩm, roadmap và bản phát hành. Các ý tưởng/prompt AI dài được đưa về hậu trường, chỉ giữ mục tiêu và trạng thái review."
+        chips={["Roadmap", "Review", "Release"]}
+      />
+      <CardGrid>
+        <SimplePanelCard eyebrow="Portfolio" title="Sản phẩm đang làm" description="Danh sách gọn các sản phẩm/module cần ưu tiên." icon={FolderKanban} tone="cyan" items={['LedgerFlow core app', 'Finance workflow', 'AI helper khi cần']} />
+        <SimplePanelCard eyebrow="Roadmap" title="Việc tiếp theo" description="Một lần chỉ cải tổ một module để dễ test và revert." icon={Target} tone="emerald" items={['Dọn UI dài', 'Giữ chức năng chính', 'Ẩn phần kỹ thuật']} />
+        <SimplePanelCard eyebrow="Review" title="Tiêu chí đạt" description="Màn hình dễ đọc, ít chữ thừa, không còn câu giao việc cho AI." icon={FileCheck2} tone="violet" items={['Không prompt lộ trên UI', 'Có nút hành động rõ', 'Không phá build']} />
+        <SimplePanelCard eyebrow="Release" title="Phát hành nội bộ" description="Dùng Replit/local để xem trước; deploy public chỉ khi cần chia sẻ." icon={Rocket} tone="amber" items={['Pull code', 'Restart preview', 'Chụp lỗi nếu có']} />
+      </CardGrid>
+      {subtab === 'release' && <CompactModuleNotice />}
+    </div>
+  );
+}
 
-// Finance & Accounting
-const LedgerAccountingWorkspace = React.lazy(() => import('../modules/finance-accounting/LedgerAccountingWorkspace'));
-const FinancialReportsVN       = React.lazy(() => import('../modules/finance-accounting/FinancialReportsVN'));
-const AdvisoryBoardReport      = React.lazy(() => import('../modules/finance-accounting/AdvisoryBoardReport'));
-const TaxAuditSimulator        = React.lazy(() => import('../modules/finance-accounting/TaxAuditSimulator'));
+function MarketingWorkspace({ subtab }: { subtab: string }) {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Marketing & Growth"
+        description="Giữ phần marketing ở mức tác nghiệp: chiến dịch, nội dung, kênh phân phối và kết quả. Prompt copywriting dài không nằm sẵn trên màn hình."
+        chips={["Campaign", "Content", "Metrics"]}
+      />
+      <CardGrid>
+        <SimplePanelCard eyebrow="Chiến dịch" title="Kế hoạch đang chạy" description="Theo dõi mục tiêu, kênh và trạng thái triển khai." icon={Rocket} tone="cyan" items={['Kênh chính', 'Thông điệp', 'Việc cần làm']} />
+        <SimplePanelCard eyebrow="Nội dung" title="Content queue" description="Chỉ giữ danh sách nội dung cần sản xuất, không dàn prompt AI ra UI." icon={Mail} tone="violet" items={['Bài viết', 'Video ngắn', 'Landing page']} />
+        <SimplePanelCard eyebrow="Tăng trưởng" title="Tín hiệu cần xem" description="Tập trung dữ liệu phản hồi thật, tránh dashboard giả quá nhiều chữ." icon={TrendingUp} tone="emerald" items={['Lead mới', 'Conversion', 'Feedback']} />
+        <SimplePanelCard eyebrow="Review" title="Dọn nội dung" description="Các kịch bản/prompt nên nằm trong tool tạo nội dung hoặc docs, không ở màn hình chính." icon={ShieldCheck} tone="amber" items={['Ẩn prompt', 'Giữ CTA', 'Giữ số liệu']} />
+      </CardGrid>
+      {subtab === 'content' && <CompactModuleNotice />}
+    </div>
+  );
+}
 
-// Required by simulation integrity checker:
-// import('../modules/finance-accounting/AccountingVietnam')
-// import('../modules/analytics-sandbox/CustomDataWorkbench')
+function SalesWorkspace({ subtab }: { subtab: string }) {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Sales & CRM"
+        description="Quản lý khách hàng, pipeline và follow-up. Màn hình CRM chỉ nên hiện thông tin bán hàng cần hành động."
+        chips={["Leads", "Deals", "Follow-up"]}
+      />
+      <CardGrid>
+        <SimplePanelCard eyebrow="Pipeline" title="Cơ hội bán hàng" description="Tổng quan lead/deal theo trạng thái." icon={BarChart3} tone="cyan" items={['Lead mới', 'Đang tư vấn', 'Chốt/không chốt']} />
+        <SimplePanelCard eyebrow="Khách hàng" title="Follow-up" description="Việc cần nhắc lại và lịch chăm sóc." icon={UsersRound} tone="emerald" items={['Gọi lại', 'Gửi báo giá', 'Nhắc thanh toán']} />
+        <SimplePanelCard eyebrow="Báo giá" title="Pricing" description="Giữ bảng giá và đề xuất đơn giản." icon={Target} tone="violet" items={['Gói cơ bản', 'Gói mở rộng', 'Ưu đãi']} />
+        <SimplePanelCard eyebrow="Review" title="Dữ liệu sạch" description="Ẩn mô phỏng/prompt bán hàng dài khỏi giao diện chính." icon={ShieldCheck} tone="amber" items={['Không prompt mẫu dài', 'Không bảng giả thừa', 'Ưu tiên lead thật']} />
+      </CardGrid>
+      {subtab === 'followup' && <CompactModuleNotice />}
+    </div>
+  );
+}
 
-// Projects & Delivery
-const DeployBusiness           = React.lazy(() => import('../modules/analytics-sandbox/DeployBusiness'));
+function FinanceWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'ledger') return <LedgerAccountingWorkspace />;
+  if (subtab === 'reports') return <FinancialReportsVN />;
+  if (subtab === 'cashflow') return <RevenueDashboard />;
+  if (subtab === 'approval') return <ApprovalWorkflow />;
+  return <LedgerAccountingWorkspace />;
+}
 
-// Documents & Approval
-const ApprovalWorkflow         = React.lazy(() => import('../modules/dev-ops/ApprovalWorkflow'));
-const InternalAuditWorkspace   = React.lazy(() => import('../modules/finance-accounting/InternalAuditWorkspace'));
+function AIWorkspace({ subtab }: { subtab: string }) {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="AI Operations"
+        description="AI chỉ là trợ lý chạy tác vụ khi cần. Giao diện chính không hiển thị system prompt, role prompt, chain hướng dẫn hay checklist agent dài."
+        chips={["Ra lệnh", "Theo dõi", "Kiểm soát"]}
+      />
+      <CardGrid>
+        <SimplePanelCard eyebrow="AI" title="Trợ lý theo yêu cầu" description="Chỉ dùng khi có việc cụ thể: tóm tắt, kiểm tra lỗi, viết nháp hoặc phân tích." icon={Bot} tone="violet" items={['Nhập yêu cầu ngắn', 'Xem kết quả', 'Duyệt thủ công']} />
+        <SimplePanelCard eyebrow="An toàn" title="Không tự hành động nguy hiểm" description="AI không tự xóa dữ liệu, gửi email, push code hoặc sửa lan rộng nếu chưa được duyệt." icon={ShieldCheck} tone="emerald" items={['Không auto delete', 'Không push main', 'Không lộ secret']} />
+        <SimplePanelCard eyebrow="Automation" title="Chạy ngầm khi cần" description="Tác vụ định kỳ nên chạy ở backend/automation, UI chỉ hiện trạng thái." icon={Sparkles} tone="cyan" items={['Lịch chạy', 'Kết quả cuối', 'Lỗi cần xử lý']} />
+        <SimplePanelCard eyebrow="Review" title="Ẩn prompt nội bộ" description="System instruction và prompt dài nằm trong code/backend, không hiển thị cho người dùng cuối." icon={FileCheck2} tone="amber" items={['Ẩn system prompt', 'Ẩn runbook', 'Giữ nút hành động']} />
+      </CardGrid>
+      {subtab === 'automation' && <CompactModuleNotice />}
+    </div>
+  );
+}
 
-// AI Personnel & Sandbox
-const PeopleTab                = React.lazy(() => import('../modules/ai-hr/PeopleTab'));
-const GeminiPlayground         = React.lazy(() => import('../modules/analytics-sandbox/GeminiPlayground'));
-const PromptPlayground         = React.lazy(() => import('../modules/analytics-sandbox/PromptPlayground'));
+function AnalyticsWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'python_sandbox') return <PythonSandbox />;
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero title="Analytics & Models" description="Không gian phân tích dữ liệu. Chỉ mở notebook/sandbox khi cần xử lý thật, không dàn tài liệu kỹ thuật dài lên màn hình." chips={["Data", "Python", "Report"]} />
+      <CardGrid>
+        <SimplePanelCard eyebrow="Data" title="Nguồn dữ liệu" description="Import/export và chuẩn hóa dữ liệu khi cần." icon={Database} tone="cyan" items={['CSV/Excel', 'JSON', 'Báo cáo']} />
+        <SimplePanelCard eyebrow="Model" title="Phân tích" description="Các mô hình và sandbox chỉ mở khi có câu hỏi dữ liệu cụ thể." icon={BarChart3} tone="violet" items={['Thống kê', 'Dự báo', 'Kiểm tra bất thường']} />
+      </CardGrid>
+    </div>
+  );
+}
 
-// Analytics & Sandbox
-const DataScienceEngineering   = React.lazy(() => import('../modules/analytics-sandbox/DataScienceEngineering'));
-const AIEcosystemArchitecture  = React.lazy(() => import('../modules/analytics-sandbox/AIEcosystemArchitecture'));
-const MLApplied                = React.lazy(() => import('../modules/analytics-sandbox/MLApplied'));
-const GameAndMLWorkbench       = React.lazy(() => import('../modules/product-studio/GameAndMLWorkbench'));
-const PythonSandbox            = React.lazy(() => import('../modules/analytics-sandbox/PythonSandbox'));
+function SettingsWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'general') return <SystemSettingsPanel />;
+  if (subtab === 'integrations') return <IntegrationHub />;
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="DevOps gọn"
+        description="DevOps dùng để kiểm tra build, PR và lỗi preview. Log, prompt, checklist dài nằm ở GitHub/Replit/terminal, không dàn vào app."
+        chips={["Build", "PR", "CI"]}
+      />
+      <CardGrid>
+        <BuildMonitorPanel />
+        <MergeReadinessCenter />
+        <PRControlCenter />
+        <GitHubCIDoctorLauncher />
+      </CardGrid>
+    </div>
+  );
+}
 
-// Integration Hub
-const IntegrationHub           = React.lazy(() => import('../modules/dev-ops/IntegrationHub'));
+function LegacyWorkspace() {
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Module đã được gom lại"
+        description="Route cũ hoặc module thử nghiệm đã được ẩn khỏi giao diện chính để tránh rối. Hãy dùng các workspace chính ở thanh bên."
+        chips={["Ẩn legacy", "Giao diện gọn", "Review mode"]}
+      />
+      <CompactModuleNotice />
+    </div>
+  );
+}
 
-// System Settings
-const SystemSettingsPanel      = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
-
-// Dev-Ops Tools
-const AuditTrailPanel          = React.lazy(() => import('../modules/dev-ops/AuditTrailPanel'));
-const BuildMonitorPanel        = React.lazy(() => import('../modules/dev-ops/BuildMonitorPanel'));
-const ConfigHealthMonitor      = React.lazy(() => import('../modules/dev-ops/ConfigHealthMonitor'));
-const SecurityControlCenter    = React.lazy(() => import('../modules/dev-ops/SecurityControlCenter'));
-const MergeReadinessCenter     = React.lazy(() => import('../modules/dev-ops/MergeReadinessCenter'));
-const PRControlCenter          = React.lazy(() => import('../modules/dev-ops/PRControlCenter'));
-const PatchDiffReviewCenter    = React.lazy(() => import('../modules/dev-ops/PatchDiffReviewCenter'));
-const ReleaseArtifactCenter    = React.lazy(() => import('../modules/dev-ops/ReleaseArtifactCenter'));
-const RollbackCenter           = React.lazy(() => import('../modules/dev-ops/RollbackCenter'));
-const SandboxPatchWorkspace    = React.lazy(() => import('../modules/dev-ops/SandboxPatchWorkspace'));
-const ArtifactInspectorPanel   = React.lazy(() => import('../modules/dev-ops/ArtifactInspectorPanel'));
-const CIRecoveryQueue          = React.lazy(() => import('../modules/dev-ops/CIRecoveryQueue'));
-const CIRunInspectorPanel      = React.lazy(() => import('../modules/dev-ops/CIRunInspectorPanel'));
-const DevHandoffLauncher       = React.lazy(() => import('../modules/dev-ops/DevHandoffLauncher'));
-const GitHubCIDoctorLauncher   = React.lazy(() => import('../modules/dev-ops/GitHubCIDoctorLauncher'));
-const ApprovedPrLauncher       = React.lazy(() => import('../modules/dev-ops/ApprovedPrLauncher'));
-
-// Finance & Accounting (additional)
-const RevenueDashboard         = React.lazy(() => import('../modules/finance-accounting/RevenueDashboard'));
-const FounderReviewChecklist   = React.lazy(() => import('../modules/finance-accounting/FounderReviewChecklist'));
-
-// Product Studio (additional)
-const GameStudioBuilder        = React.lazy(() => import('../modules/product-studio/GameStudioBuilder'));
-
-// Analytics & Sandbox (additional)
-const FinancialDataScienceLab  = React.lazy(() => import('../modules/analytics-sandbox/FinancialDataScienceLab'));
-const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-sandbox/ProjectMemoryDecisionLog'));
-
-// AI Personnel — simplified (OpenClaw-style Command Center)
-const AICommandCenter = React.lazy(() => import('../modules/ai-hr/AICommandCenter'));
-const AISettingsLauncher = React.lazy(() => import('../modules/ai-hr/AISettingsLauncher'));
-const AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-hr/AIWorkforceCommandCenter'));
-const AIOperationsCenter = React.lazy(() => import('../modules/ai-hr/AIOperationsCenter'));
-const AIOperationsDaemonPanel = React.lazy(() => import('../modules/ai-hr/AIOperationsDaemonPanel'));
-const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-hr/AIWorkforceMobileCommandCenter'));
-const AIGovernanceQualityHubPanel = React.lazy(() => import('../modules/ai-hr/AIGovernanceQualityHubPanel'));
-const AIOutputQualityReview = React.lazy(() => import('../modules/ai-hr/AIOutputQualityReview'));
-const AIWorkforceRuntimePanel = React.lazy(() => import('../modules/ai-hr/AIWorkforceRuntimePanel'));
-const AIWorkforceMissionControl = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionControl'));
-const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionTemplates'));
-const AIWorkforceMissionTrace = React.lazy(() => import('../modules/ai-hr/AIWorkforceMissionTrace'));
-const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-hr/MissionOperatorRunbookPanel'));
-const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-hr/MissionReleaseGatePanel'));
-const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-hr/MissionSnapshotExportPanel'));
-const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-hr/MissionReviewNoteSavePanel'));
-const ReleaseGateDashboardCard = React.lazy(() => import('../modules/ai-hr/ReleaseGateDashboardCard'));
-const AIMemoryRagPanel = React.lazy(() => import('../modules/ai-hr/AIMemoryRagPanel'));
-const KnowledgeContentHubPanel = React.lazy(() => import('../modules/ai-hr/KnowledgeContentHubPanel'));
-const AdvancedAIEngine = React.lazy(() => import('../modules/ai-hr/AdvancedAIEngine'));
-const AIWorkforceOpenClawReadiness = React.lazy(() => import('../modules/ai-hr/AIWorkforceOpenClawReadiness'));
-const AIWorkforceSkillDirectory = React.lazy(() => import('../modules/ai-hr/AIWorkforceSkillDirectory'));
-const AIWorkforceSkillInvocationPlanner = React.lazy(() => import('../modules/ai-hr/AIWorkforceSkillInvocationPlanner'));
-const AIWorkforcePatchSafetyRunbook = React.lazy(() => import('../modules/ai-hr/AIWorkforcePatchSafetyRunbook'));
-const AIWorkforcePatchReviewSessions = React.lazy(() => import('../modules/ai-hr/AIWorkforcePatchReviewSessions'));
-const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-hr/AIWorkforceNextBackendActions'));
-const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../modules/ai-hr/AIWorkforceRobotAutomationBridge'));
-const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-hr/AutomationRulesHealthPanel'));
-const RobotLabPanel = React.lazy(() => import('../modules/ai-hr/RobotLabPanel'));
-const AutomationRulesPanel = React.lazy(() => import('../modules/ai-hr/AutomationRulesPanel'));
-const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-hr/AIWorkforceToolCatalog'));
-const AIWorkforcePluginSecurityGuard = React.lazy(() => import('../modules/ai-hr/AIWorkforcePluginSecurityGuard'));
-const AgentAssemblyBuilder = React.lazy(() => import('../modules/ai-hr/AgentAssemblyBuilder'));
-const FactoryOperatorGuidePanel = React.lazy(() => import('../modules/ai-hr/FactoryOperatorGuidePanel'));
-const FactoryHealthSummaryPanel = React.lazy(() => import('../modules/ai-hr/FactoryHealthSummaryPanel'));
-const FactoryBackendRuntimePanel = React.lazy(() => import('../modules/ai-hr/FactoryBackendRuntimePanel'));
-const FactoryCatalogStatusPanel = React.lazy(() => import('../modules/ai-hr/FactoryCatalogStatusPanel'));
-const FactoryConnectorMatrixPanel = React.lazy(() => import('../modules/ai-hr/FactoryConnectorMatrixPanel'));
-const FactoryExecutionDecisionPanel = React.lazy(() => import('../modules/ai-hr/FactoryExecutionDecisionPanel'));
-const FactoryCommandRunnerPanel = React.lazy(() => import('../modules/ai-hr/FactoryCommandRunnerPanel'));
-const FactoryAuditLogPanel = React.lazy(() => import('../modules/ai-hr/FactoryAuditLogPanel'));
-import AIStaffTaskAssignmentPanel from '../components/ai-hr/AIStaffTaskAssignmentPanel';
-import { ProjectPortfolioPanel, ProcurementLogisticsPanel } from '../components/operations/OperationsPanels';
-import FinancialChartsModelPanel from '../components/analytics/FinancialChartsModelPanel';
-import FounderLabsDock from '../components/shared/FounderLabsDock';
-
-// ─── Subtabs Configuration ────────────────────────────────────────────────────
-const SUB_TABS_CONFIG: Record<string, readonly { id: string; label: string; icon?: LucideIcon }[]> = {
-  ceo_command: [
-    { id: 'brief', label: 'Today', icon: Briefcase },
-    { id: 'daily_weekly', label: 'Standup', icon: Activity },
-    { id: 'library', label: 'Knowledge', icon: Database },
-    { id: 'sop_rd', label: 'SOP & Risk', icon: ShieldCheck }
-  ],
-  finance_accounting: [
-    { id: 'ledger', label: 'Ledger', icon: Database },
-    { id: 'reports', label: 'Reports', icon: Calculator },
-    { id: 'cashflow', label: 'Cashflow', icon: TrendingUp },
-    { id: 'approval', label: 'Approval', icon: CheckCircle },
-    { id: 'audit', label: 'Audit & Control', icon: ShieldCheck }
-  ],
-  product_studio: [
-    { id: 'portfolio', label: 'Portfolio', icon: FolderKanban },
-    { id: 'delivery', label: 'Delivery', icon: ClipboardList },
-  ],
-  marketing_growth: [
-    { id: 'campaigns', label: 'Campaigns', icon: Rocket },
-    { id: 'content', label: 'Content', icon: Mail },
-  ],
-  sales_crm: [
-    { id: 'pipeline', label: 'Pipeline', icon: BarChart3 },
-    { id: 'pricing_retention', label: 'Pricing & Retention', icon: Target },
-  ],
-  operations: [
-    { id: 'product_studio', label: 'Product Studio', icon: FolderKanban },
-    { id: 'growth_marketing', label: 'Marketing & Growth', icon: Rocket },
-    { id: 'sales_crm', label: 'Sales & CRM', icon: BarChart3 },
-    { id: 'logistics', label: 'Logistics', icon: ShoppingCart }
-  ],
-  ai_factory: [
-    { id: 'command', label: 'Ra lệnh', icon: Bot },
-    { id: 'missions', label: 'Nhiệm vụ', icon: ClipboardList },
-    { id: 'robot_auto', label: 'Tự động hóa', icon: Cpu },
-    { id: 'advanced', label: 'Kỹ thuật', icon: ShieldAlert },
-  ],
-  analytics: [
-    { id: 'python_sandbox', label: 'Python Sandbox', icon: Code },
-    { id: 'data_science', label: 'Data Science', icon: Database },
-    { id: 'game_studio', label: 'Game Studio', icon: Rocket },
-    { id: 'ml_applied', label: 'Applied ML', icon: Cpu },
-    { id: 'architecture', label: 'AI Architecture', icon: Network },
-    { id: 'gemini_playground', label: 'Gemini Playground', icon: Sparkles }
-  ],
-  system_settings: [
-    { id: 'general', label: 'Cài đặt chung', icon: Settings },
-    { id: 'devops', label: 'DevOps', icon: Network },
-    { id: 'control', label: 'Bảo mật', icon: ShieldCheck },
-    { id: 'safety_gates', label: 'Duyệt & phát hành', icon: FileCheck2 },
-    { id: 'emergency', label: 'Dừng khẩn cấp', icon: ShieldAlert }
-  ]
-};
-
-// ─── Props ────────────────────────────────────────────────────────────────────
 interface WorkspaceRendererProps {
   activeSegment: TabType;
   activeRole?: RoleType;
   onNavigate?: (tab: TabType, subTab?: string) => void;
 }
 
-// ─── Main Workspace Renderer Component ─────────────────────────────────────────
-export default function WorkspaceRenderer({ activeSegment, activeRole = 'all', onNavigate }: WorkspaceRendererProps) {
-  // Store sub-tab active IDs keyed by the parent segment
-  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>({
-    ceo_command: 'brief',
-    product_studio: 'portfolio',
-    marketing_growth: 'campaigns',
-    sales_crm: 'pipeline',
-    finance_accounting: 'ledger',
-    operations: 'product_studio',
-    ai_factory: 'command',
-    devops_hub: 'build_monitor',
-    control_room: 'system_health',
-    analytics: 'python_sandbox',
-    system_settings: 'general',
-  });
-
-  // Filter subtabs based on role capabilities (Progressive Disclosure)
+export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }: WorkspaceRendererProps) {
+  const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => ({ ...DEFAULT_SUBTAB }));
   const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
   const subTabs = rawSubTabs.filter((tab) => {
     if (activeRole === 'all' || activeRole === 'founder' || activeRole === 'admin') return true;
-    
-    // Hide Developer diagnostics tabs from non-technical/non-admin roles
-    if (tab.id === 'advanced' && !['devops', 'agentops'].includes(activeRole)) return false;
-    if (tab.id === 'devops' && !['devops', 'agentops'].includes(activeRole)) return false;
-    if (tab.id === 'control' && !['devops', 'agentops', 'operations'].includes(activeRole)) return false;
-    if (tab.id === 'safety_gates' && !['devops', 'agentops', 'operations'].includes(activeRole)) return false;
-    if (tab.id === 'emergency' && !['devops', 'agentops', 'operations'].includes(activeRole)) return false;
+    if (activeSegment === 'system_settings' && tab.id === 'devops') return ['devops', 'agentops'].includes(activeRole);
     return true;
   });
+  const validSubTabIds = useMemo(() => subTabs.map((tab) => tab.id), [subTabs]);
+  const currentSubTabId = resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds) || subTabs[0]?.id || '';
 
-  const validSubTabIds = subTabs.map((tab) => tab.id);
-  const currentSubTabId =
-    resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds)
-    || subTabs[0]?.id
-    || '';
-
-  // Sync subtab from hash if present
   React.useEffect(() => {
     const hash = window.location.hash;
     const match = hash.match(/\?subtab=([^&]+)/);
-    if (match && match[1]) {
-      const subTabId = decodeURIComponent(match[1]);
-      const normalizedSubTabId = resolveWorkspaceSubTab(
-        activeSegment,
-        subTabId,
-        validSubTabIds,
-      );
-
-      if (normalizedSubTabId) {
-        setActiveSubTabs((prev) => ({
-          ...prev,
-          [activeSegment]: normalizedSubTabId,
-        }));
-      }
+    if (!match?.[1]) return;
+    const normalized = resolveWorkspaceSubTab(activeSegment, decodeURIComponent(match[1]), validSubTabIds);
+    if (normalized) {
+      setActiveSubTabs((prev) => ({ ...prev, [activeSegment]: normalized }));
     }
   }, [activeSegment, validSubTabIds]);
 
   const handleSubTabChange = (newSubTabId: string) => {
-    const normalizedSubTabId = resolveWorkspaceSubTab(activeSegment, newSubTabId, validSubTabIds) || newSubTabId;
-    setActiveSubTabs((prev) => ({
-      ...prev,
-      [activeSegment]: normalizedSubTabId,
-    }));
-    window.location.hash = `/${activeSegment}?subtab=${normalizedSubTabId}`;
+    const normalized = resolveWorkspaceSubTab(activeSegment, newSubTabId, validSubTabIds) || newSubTabId;
+    setActiveSubTabs((prev) => ({ ...prev, [activeSegment]: normalized }));
+    window.location.hash = `/${activeSegment}?subtab=${normalized}`;
   };
-
-  const nav = onNavigate || (() => {});
 
   return (
     <div className="space-y-6">
-      {/* Secondary Navigation Headers (rendered only if >1 subtabs exist for this role) */}
       {subTabs.length > 1 && (
-        <WorkspaceSubNavigation
-          tabs={subTabs}
-          activeTab={currentSubTabId}
-          onChange={handleSubTabChange}
-        />
+        <WorkspaceSubNavigation tabs={subTabs} activeTab={currentSubTabId} onChange={handleSubTabChange} />
       )}
 
-      {/* Main Subcomponent Content Switcher */}
       <Suspense fallback={<LoadingFallback />}>
-        {/* 1. CEO Command Center */}
-        {activeSegment === 'ceo_command' && (
-          <>
-            {currentSubTabId === 'brief' && <CommandCenter onNavigate={nav} activeRole={activeRole} />}
-            {currentSubTabId === 'daily_weekly' && <CEOStandupRhythm />}
-            {currentSubTabId === 'library' && (
-              <div className="space-y-6">
-                <KnowledgeBaseTab />
-                <OperatingKnowledgeLayerPanel />
-              </div>
-            )}
-            {currentSubTabId === 'sop_rd' && (
-              <div className="space-y-6">
-                <section className="grid gap-4 lg:grid-cols-2">
-                  {OPERATING_SOP_LIBRARY.map((item) => (
-                    <Card key={item.sop}>
-                      <CheckCircle2 className="mb-3 h-5 w-5 text-emerald-300" />
-                      <h2 className="text-sm font-black text-white">{item.sop}</h2>
-                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Trigger: {item.trigger}</p>
-                      <p className="mt-4 text-[10px] font-black uppercase text-cyan-300">Các bước</p>
-                      <BulletList items={item.steps} className="text-cyan-100" />
-                      <p className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Output: {item.output}</p>
-                    </Card>
-                  ))}
-                </section>
-                <Card>
-                  <h2 className="text-sm font-black text-white">Release readiness checklist</h2>
-                  <div className="mt-4 grid gap-2 md:grid-cols-2">
-                    <BulletList items={RELEASE_READINESS_CHECKLIST} className="text-cyan-100" />
-                  </div>
-                </Card>
-                <DecisionBoundaryPanel />
-                <div className="grid gap-4 lg:grid-cols-2">
-                  {FOUNDER_RISK_REGISTER.map((item) => (
-                    <Card key={item.risk}>
-                      <ShieldCheck className="mb-3 h-5 w-5 text-rose-300" />
-                      <p className="text-[10px] font-black uppercase text-rose-300">Severity: {item.severity}</p>
-                      <h2 className="mt-2 text-sm font-black text-white">{item.risk}</h2>
-                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Tín hiệu: {item.signal}</p>
-                      <p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-bold leading-6 text-emerald-100">Kiểm soát: {item.control}</p>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 2. Finance & Accounting */}
-        {activeSegment === 'finance_accounting' && (
-          <>
-            {currentSubTabId === 'ledger' && <LedgerAccountingWorkspace />}
-            {currentSubTabId === 'reports' && <FinancialReportsVN />}
-            {currentSubTabId === 'cashflow' && (
-              <div className="space-y-6">
-                <RevenueDashboard />
-                <FinancialChartsModelPanel />
-                <AdvisoryBoardReport />
-                <FounderReviewChecklist />
-              </div>
-            )}
-            {currentSubTabId === 'approval' && <ApprovalWorkflow />}
-            {currentSubTabId === 'audit' && (
-              <div className="space-y-6">
-                <TaxAuditSimulator />
-                <InternalAuditWorkspace />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 3. Product Studio */}
-        {activeSegment === 'product_studio' && (
-          <>
-            {currentSubTabId === 'portfolio' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SoloFounderBusiness />
-                  <WebAccountingRoadmap />
-                </div>
-                <GameStudioBuilder />
-                <MoatDefensibilityTracker />
-                <section className="grid gap-4 lg:grid-cols-2 text-left">
-                  {PRODUCT_IDEA_PORTFOLIO.map((item) => (
-                    <Card key={item.idea}>
-                      <p className="text-[10px] font-black uppercase text-emerald-300">Product idea</p>
-                      <h2 className="mt-2 text-sm font-black text-white">{item.idea}</h2>
-                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Người dùng: {item.targetUser}</p>
-                      <div className="mt-4 grid gap-2 sm:grid-cols-4">
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-cyan-200">Pain {item.pain}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-emerald-200">MVP {item.mvpCheapness}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-sky-200">Dist {item.distribution}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-amber-200">Risk {item.technicalRisk}</span>
-                      </div>
-                      <p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">MVP: {item.firstMvp}</p>
-                    </Card>
-                  ))}
-                </section>
-              </div>
-            )}
-            {currentSubTabId === 'delivery' && (
-              <div className="space-y-6">
-                <ProjectPortfolioPanel />
-                <details className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left">
-                  <summary className="cursor-pointer select-none text-xs font-black uppercase tracking-[0.16em] text-slate-300 hover:text-white">
-                    Optional logistics and industry-template operations
-                  </summary>
-                  <div className="mt-5">
-                    <ProcurementLogisticsPanel />
-                  </div>
-                </details>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 4. Marketing & Growth */}
-        {activeSegment === 'marketing_growth' && (
-          <>
-            {currentSubTabId === 'campaigns' && (
-              <div className="space-y-6">
-                <MarketingCommandCenter />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <MarketingSuite />
-                  <MarketingFunnelLab />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SyntheticSurveyBuilder />
-                  <AdCampaignSimulator />
-                </div>
-              </div>
-            )}
-            {currentSubTabId === 'content' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <LandingPageCopyLab />
-                  <EmailSequenceBuilder />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <ZaloMarketingHub />
-                  <AIContentVideoLab />
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 5. Sales & CRM */}
-        {activeSegment === 'sales_crm' && (
-          <>
-            {currentSubTabId === 'pipeline' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <OutboundSalesHub />
-                  <DistributionLeadBoard />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <LeadScoringEngine />
-                  <SalesRoleplayLab />
-                </div>
-              </div>
-            )}
-            {currentSubTabId === 'pricing_retention' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <PricingStrategyLab />
-                  <PricingOfferBuilder />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <CustomerLTVDashboard />
-                  <NPSReviewManager />
-                </div>
-                <AffiliateReferralHub />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* Legacy Operations Hub */}
-        {activeSegment === 'operations' && (
-          <>
-            {currentSubTabId === 'product_studio' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SoloFounderBusiness />
-                  <WebAccountingRoadmap />
-                </div>
-                <GameStudioBuilder />
-                <MoatDefensibilityTracker />
-                <section className="grid gap-4 lg:grid-cols-2 text-left">
-                  {PRODUCT_IDEA_PORTFOLIO.map((item) => (
-                    <Card key={item.idea}>
-                      <p className="text-[10px] font-black uppercase text-emerald-300">Idea Portfolio</p>
-                      <h2 className="mt-2 text-sm font-black text-white">{item.idea}</h2>
-                      <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Người dùng: {item.targetUser}</p>
-                      <div className="mt-4 grid gap-2 sm:grid-cols-4">
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-cyan-200">Pain {item.pain}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-emerald-200">MVP {item.mvpCheapness}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-sky-200">Dist {item.distribution}</span>
-                        <span className="rounded-xl border border-slate-800 bg-slate-950/70 p-2 text-[10px] font-black text-amber-200">Risk {item.technicalRisk}</span>
-                      </div>
-                      <p className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-bold leading-6 text-cyan-100">MVP: {item.firstMvp}</p>
-                    </Card>
-                  ))}
-                </section>
-              </div>
-            )}
-            {currentSubTabId === 'growth_marketing' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <MarketingSuite />
-                  <MarketingFunnelLab />
-                </div>
-                <MarketingCommandCenter />
-                <div className="grid gap-4 md:grid-cols-2">
-                  <LandingPageCopyLab />
-                  <ZaloMarketingHub />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <SyntheticSurveyBuilder />
-                  <AIContentVideoLab />
-                </div>
-                <AdCampaignSimulator />
-              </div>
-            )}
-            {currentSubTabId === 'sales_crm' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <OutboundSalesHub />
-                  <DistributionLeadBoard />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <LeadScoringEngine />
-                  <AffiliateReferralHub />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <PricingStrategyLab />
-                  <SalesRoleplayLab />
-                </div>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <CustomerLTVDashboard />
-                  <PricingOfferBuilder />
-                </div>
-              </div>
-            )}
-            {currentSubTabId === 'logistics' && (
-              <div className="space-y-6">
-                <ProjectPortfolioPanel />
-                <ProcurementLogisticsPanel />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* AI Operations */}
-        {activeSegment === 'ai_factory' && (
-          <>
-            {currentSubTabId === 'command' && (
-              <div className="space-y-6">
-                <AIWorkforceCommandCenter />
-                <AIWorkforceMissionControl />
-              </div>
-            )}
-            {currentSubTabId === 'missions' && (
-              <div className="space-y-6">
-                <AIWorkforceRuntimePanel />
-                <MissionOperatorRunbookPanel />
-                <AIWorkforceMissionControl />
-                <AIWorkforceMissionTemplates />
-                <AIWorkforceMissionTrace />
-                <MissionReleaseGatePanel />
-                <MissionSnapshotExportPanel />
-                <MissionReviewNoteSavePanel />
-                <ReleaseGateDashboardCard />
-              </div>
-            )}
-            {currentSubTabId === 'advanced' && (
-              <div className="space-y-6">
-                <AIOperationsCenter />
-                <AIOperationsDaemonPanel />
-                <AIWorkforceMobileCommandCenter />
-                <AIGovernanceQualityHubPanel />
-                <AIOutputQualityReview />
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <PeopleTab />
-                  <AIStaffTaskAssignmentPanel />
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <AIMemoryRagPanel />
-                  <KnowledgeContentHubPanel />
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <PromptPlayground />
-                  <AISettingsLauncher />
-                </div>
-                <AdvancedAIEngine />
-                <AIWorkforceOpenClawReadiness />
-                <details className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 text-left">
-                  <summary className="cursor-pointer select-none text-xs font-black uppercase tracking-[0.16em] text-slate-300 hover:text-white">
-                    Mở MCP/tools, runtime, audit và diagnostics
-                  </summary>
-                  <div className="mt-5 space-y-6">
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <AIWorkforceSkillDirectory />
-                      <AIWorkforceSkillInvocationPlanner />
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <AIWorkforcePatchSafetyRunbook />
-                      <AIWorkforcePatchReviewSessions />
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <AIWorkforceNextBackendActions />
-                      <AIWorkforceToolCatalog />
-                    </div>
-                    <AIWorkforcePluginSecurityGuard />
-                    <AgentAssemblyBuilder />
-                    <FactoryOperatorGuidePanel />
-                    <FactoryHealthSummaryPanel />
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <FactoryBackendRuntimePanel />
-                      <FactoryCatalogStatusPanel />
-                    </div>
-                    <div className="grid gap-4 lg:grid-cols-2">
-                      <FactoryConnectorMatrixPanel />
-                      <FactoryExecutionDecisionPanel />
-                    </div>
-                    <FactoryCommandRunnerPanel />
-                    <FactoryAuditLogPanel />
-                    <FounderLabsDock embedded />
-                  </div>
-                </details>
-              </div>
-            )}
-            {currentSubTabId === 'robot_auto' && (
-              <div className="space-y-6">
-                <AIWorkforceRobotAutomationBridge />
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <AutomationRulesHealthPanel />
-                  <AutomationRulesPanel />
-                </div>
-                <RobotLabPanel />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 5. DevOps Hub */}
-        {activeSegment === 'devops_hub' && (
-          <>
-            {currentSubTabId === 'build_monitor' && (
-              <div className="space-y-6">
-                <BuildMonitorPanel />
-                <MergeReadinessCenter />
-              </div>
-            )}
-            {currentSubTabId === 'pr_control' && (
-              <div className="space-y-6">
-                <PRControlCenter />
-                <ApprovedPrLauncher />
-              </div>
-            )}
-            {currentSubTabId === 'patch_review' && (
-              <div className="space-y-6">
-                <PatchDiffReviewCenter />
-                <SandboxPatchWorkspace />
-              </div>
-            )}
-            {currentSubTabId === 'rollback_center' && <RollbackCenter />}
-            {currentSubTabId === 'ci_doctor' && (
-              <div className="space-y-6">
-                <GitHubCIDoctorLauncher />
-                <CIRecoveryQueue />
-              </div>
-            )}
-            {currentSubTabId === 'runtime_logs' && (
-              <div className="space-y-6">
-                <CIRunInspectorPanel />
-                <DevHandoffLauncher />
-              </div>
-            )}
-          </>
-        )}
-
-        {/* 6. Control Room */}
-        {activeSegment === 'control_room' && (
-          <>
-            {currentSubTabId === 'system_health' && (
-              <div className="space-y-6">
-                <ConfigHealthMonitor />
-              </div>
-            )}
-            {currentSubTabId === 'security' && <SecurityControlCenter />}
-            {currentSubTabId === 'audit_trail' && <AuditTrailPanel />}
-            {currentSubTabId === 'approvals' && <ApprovalWorkflow />}
-            {currentSubTabId === 'backup_restore' && <ArtifactInspectorPanel />}
-            {currentSubTabId === 'emergency_stop' && (
-              <Card className="border-rose-900 bg-rose-950/20 text-center max-w-xl mx-auto py-10">
-                <ShieldAlert className="mx-auto h-16 w-16 text-rose-500 animate-pulse" />
-                <h2 className="mt-4 text-lg font-black text-rose-200">EMERGENCY STOP CENTER</h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-rose-300/80">
-                  Nhấn nút bên dưới sẽ lập tức ngắt toàn bộ tiến trình chạy tự động (Agent loops, browser automation, robot movement) trên local và ghi nhận biên bản sự cố.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => alert('EMERGENCY STOP TRIGGERED: Daemon loop paused, emergency log serialized.')}
-                  className="mt-6 rounded-2xl bg-rose-600 px-8 py-4 text-xs font-black uppercase tracking-wider text-white hover:bg-rose-700 active:scale-95 transition shadow-lg shadow-rose-950/50 border border-rose-500/30"
-                >
-                  Dừng khẩn cấp (Emergency Stop)
-                </button>
-              </Card>
-            )}
-          </>
-        )}
-
-        {/* 7. Analytics Lab */}
-        {activeSegment === 'analytics' && (
-          <>
-            {currentSubTabId === 'python_sandbox' && <PythonSandbox />}
-            {currentSubTabId === 'data_science' && (
-              <div className="space-y-6">
-                <DataScienceEngineering />
-                <FinancialDataScienceLab />
-                <FinancialChartsModelPanel />
-              </div>
-            )}
-            {currentSubTabId === 'game_studio' && (
-              <div className="space-y-6">
-                <GameStudioBuilder />
-                <GameAndMLWorkbench />
-              </div>
-            )}
-            {currentSubTabId === 'ml_applied' && <MLApplied />}
-            {currentSubTabId === 'architecture' && <AIEcosystemArchitecture />}
-            {currentSubTabId === 'gemini_playground' && <GeminiPlayground />}
-          </>
-        )}
-
-        {/* 8. Settings & Admin */}
-        {activeSegment === 'system_settings' && (
-          <>
-            {currentSubTabId === 'general' && (
-              <div className="space-y-6">
-                <SystemSettingsPanel />
-                <IntegrationHub />
-                <Card>
-                  <h2 className="text-sm font-black text-white">User Roles</h2>
-                  <p className="mt-1 text-xs text-slate-500">Founder, Admin, Finance, AgentOps, DevOps, Marketing và Viewer dùng cùng workspace nhưng khác mức hiển thị.</p>
-                  <div className="mt-4 grid gap-3 md:grid-cols-3">
-                    {['Founder: toàn quyền điều hành', 'AgentOps: AI Nhân sự và approvals', 'DevOps: build, CI, rollback'].map((item) => (
-                      <div key={item} className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 text-xs font-bold text-slate-300">
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              </div>
-            )}
-            {currentSubTabId === 'devops' && (
-              <div className="space-y-6">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <BuildMonitorPanel />
-                  <MergeReadinessCenter />
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <PRControlCenter />
-                  <PatchDiffReviewCenter />
-                </div>
-                <SandboxPatchWorkspace />
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <GitHubCIDoctorLauncher />
-                  <CIRecoveryQueue />
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <CIRunInspectorPanel />
-                  <DevHandoffLauncher />
-                </div>
-              </div>
-            )}
-            {currentSubTabId === 'control' && (
-              <div className="space-y-6">
-                <ConfigHealthMonitor />
-                <SecurityControlCenter />
-                <AuditTrailPanel />
-                <RollbackCenter />
-              </div>
-            )}
-            {currentSubTabId === 'safety_gates' && (
-              <div className="space-y-6">
-                <ApprovalWorkflow />
-                <ApprovedPrLauncher />
-                <ReleaseArtifactCenter />
-                <ArtifactInspectorPanel />
-              </div>
-            )}
-            {currentSubTabId === 'emergency' && (
-              <Card className="border-rose-900 bg-rose-950/20 text-center max-w-xl mx-auto py-10">
-                <ShieldAlert className="mx-auto h-16 w-16 text-rose-500 animate-pulse" />
-                <h2 className="mt-4 text-lg font-black text-rose-200">EMERGENCY STOP CENTER</h2>
-                <p className="mt-2 text-xs font-semibold leading-5 text-rose-300/80">
-                  Dừng toàn bộ automation/agent loop trên local và ghi nhận biên bản sự cố để founder rà soát.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => alert('EMERGENCY STOP TRIGGERED: Daemon loop paused, emergency log serialized.')}
-                  className="mt-6 rounded-2xl bg-rose-600 px-8 py-4 text-xs font-black uppercase tracking-wider text-white hover:bg-rose-700 active:scale-95 transition shadow-lg shadow-rose-950/50 border border-rose-500/30"
-                >
-                  Dừng khẩn cấp (Emergency Stop)
-                </button>
-              </Card>
-            )}
-            {currentSubTabId === 'ai_gateway' && <SystemSettingsPanel />}
-            {currentSubTabId === 'integrations' && <IntegrationHub />}
-            {currentSubTabId === 'user_roles' && (
-              <Card>
-                <h2 className="text-sm font-black text-white">Enterprise User Roles</h2>
-                <p className="mt-1 text-xs text-slate-500">Bảng phân quyền truy cập module dựa trên chức vụ nhân sự thực tế.</p>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="w-full border-collapse text-left text-xs font-semibold text-slate-300">
-                    <thead>
-                      <tr className="border-b border-slate-800 text-slate-400">
-                        <th className="py-2">Chức vụ (Role)</th>
-                        <th className="py-2">Module được phép</th>
-                        <th className="py-2">Đặc quyền nguy hiểm</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr className="border-b border-slate-800/50">
-                        <td className="py-3 font-black text-cyan-200">Founder</td>
-                        <td className="py-3">Tất cả modules</td>
-                        <td className="py-3 text-emerald-400">Đầy đủ (Full Access)</td>
-                      </tr>
-                      <tr className="border-b border-slate-800/50">
-                        <td className="py-3 font-black text-cyan-200">Finance CFO</td>
-                        <td className="py-3">Finance & Accounting, Analytics</td>
-                        <td className="py-3 text-emerald-400">Phê duyệt giải ngân</td>
-                      </tr>
-                      <tr className="border-b border-slate-800/50">
-                        <td className="py-3 font-black text-cyan-200">DevOps Engineer</td>
-                        <td className="py-3">DevOps Hub, Control Room, Analytics</td>
-                        <td className="py-3 text-amber-500">Rollback, PR Release</td>
-                      </tr>
-                      <tr className="border-b border-slate-800/50">
-                        <td className="py-3 font-black text-cyan-200">AgentOps Engineer</td>
-                        <td className="py-3">AI Operations, Control Room</td>
-                        <td className="py-3 text-amber-500">Dừng khẩn cấp Agent</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </Card>
-            )}
-            {currentSubTabId === 'permissions' && (
-              <Card>
-                <h2 className="text-sm font-black text-white">Agent Capabilities Allowed</h2>
-                <p className="mt-1 text-xs text-slate-500">Danh mục các hành vi mà AI/Agent được phép thực hiện trên máy chủ.</p>
-                <div className="mt-4 space-y-3">
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-xl">
-                    <strong className="text-cyan-200 block text-xs">read_file / read_directory</strong>
-                    <span className="text-[11px] text-slate-400">Cho phép AI đọc cấu trúc code và file tĩnh để hỗ trợ tư vấn.</span>
-                  </div>
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-xl">
-                    <strong className="text-cyan-200 block text-xs">write_file / code_patch</strong>
-                    <span className="text-[11px] text-slate-400">Chỉ thực hiện trong sandbox, yêu cầu approval gate từ DevOps trước khi merge PR.</span>
-                  </div>
-                </div>
-              </Card>
-            )}
-            {currentSubTabId === 'environment' && (
-              <Card>
-                <h2 className="text-sm font-black text-white">Environment Configuration</h2>
-                <p className="mt-1 text-xs text-slate-500">Trạng thái cấu hình server thực thi cục bộ (Local parity check).</p>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 text-xs">
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex justify-between">
-                    <span>Daemon Executable:</span>
-                    <strong className="text-emerald-400">node (Standard CJS)</strong>
-                  </div>
-                  <div className="p-3 bg-slate-950/40 border border-slate-800 rounded-xl flex justify-between">
-                    <span>SQLite Backend:</span>
-                    <strong className="text-emerald-400">Ready (Local persistent)</strong>
-                  </div>
-                </div>
-              </Card>
-            )}
-          </>
-        )}
-
-        {/* Dynamic Fallback Modules (for Auto-Registration from Backend) */}
-        {!['ceo_command', 'product_studio', 'marketing_growth', 'sales_crm', 'finance_accounting', 'operations', 'ai_factory', 'devops_hub', 'control_room', 'analytics', 'system_settings'].includes(activeSegment) && (
-          <DynamicModuleComponentLoader moduleId={activeSegment} />
-        )}
+        {activeSegment === 'ceo_command' && <CommandWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'product_studio' && <ProductWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'marketing_growth' && <MarketingWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'sales_crm' && <SalesWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'finance_accounting' && <FinanceWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'ai_factory' && <AIWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'analytics' && <AnalyticsWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'system_settings' && <SettingsWorkspace subtab={currentSubTabId} />}
+        {!['ceo_command', 'product_studio', 'marketing_growth', 'sales_crm', 'finance_accounting', 'ai_factory', 'analytics', 'system_settings'].includes(activeSegment) && <LegacyWorkspace />}
       </Suspense>
     </div>
   );
