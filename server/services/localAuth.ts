@@ -29,10 +29,18 @@ function sameSecret(left: string, right: string): boolean {
   return leftBuffer.length === rightBuffer.length && timingSafeEqual(leftBuffer, rightBuffer);
 }
 
+function firstNonEmptyEnv(names: string[]): string | null {
+  for (const name of names) {
+    const value = process.env[name]?.trim();
+    if (value) return value;
+  }
+  return null;
+}
+
 function sessionSecret(): string {
-  const explicit = process.env.LOCAL_AUTH_SESSION_SECRET;
+  const explicit = firstNonEmptyEnv(["LOCAL_AUTH_SESSION_SECRET", "LEDGERFLOW_SESSION_SECRET", "JWT_SECRET"]);
   if (explicit) return explicit;
-  const fallback = process.env.LOCAL_AUTH_DEV_PASSWORD;
+  const fallback = firstNonEmptyEnv(["LOCAL_AUTH_DEV_PASSWORD", "LOCAL_AUTH_PASSWORD", "ADMIN_PASSWORD"]);
   if (fallback) return fallback;
   const localRuntime = process.env.NODE_ENV !== "production" || process.env.ELECTRON_DESKTOP === "true";
   if (!localRuntime) {
@@ -82,7 +90,7 @@ function pruneRevokedTokens() {
 }
 
 function configuredPassword(): { password: string; usesDevPassword: boolean } | null {
-  const explicit = process.env.LOCAL_AUTH_DEV_PASSWORD;
+  const explicit = firstNonEmptyEnv(["LOCAL_AUTH_DEV_PASSWORD", "LOCAL_AUTH_PASSWORD", "ADMIN_PASSWORD"]);
   if (explicit) return { password: explicit, usesDevPassword: false };
   const localRuntime = process.env.NODE_ENV !== "production" || process.env.ELECTRON_DESKTOP === "true";
   return localRuntime ? { password: "admin123", usesDevPassword: true } : null;
@@ -104,7 +112,7 @@ export function createLocalSession(email: string, password: string) {
   const auth = configuredPassword();
   if (!auth) throw new Error("LOCAL_AUTH_DEV_PASSWORD must be configured for a hosted production runtime.");
   if (!sameSecret(password, auth.password)) return null;
-  const ownerEmail = (process.env.LOCAL_AUTH_OWNER_EMAIL || "").trim().toLowerCase();
+  const ownerEmail = (firstNonEmptyEnv(["LOCAL_AUTH_OWNER_EMAIL", "LOCAL_AUTH_EMAIL", "ADMIN_EMAIL"]) || "").toLowerCase();
   if (ownerEmail && email.trim().toLowerCase() !== ownerEmail) return null;
   const stored = { email, role: "owner" as const, loggedInAt: new Date().toISOString(), expiresAt: Date.now() + SESSION_TTL_MS };
   const token = createSignedToken(stored);

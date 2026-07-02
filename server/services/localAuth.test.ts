@@ -70,3 +70,34 @@ test("middleware rejects anonymous requests and accepts configured bearer token"
   }
 });
 
+test("login accepts fallback env names for hosted platforms", () => {
+  const previous = {
+    LOCAL_AUTH_DEV_PASSWORD: process.env.LOCAL_AUTH_DEV_PASSWORD,
+    LOCAL_AUTH_OWNER_EMAIL: process.env.LOCAL_AUTH_OWNER_EMAIL,
+    LOCAL_AUTH_PASSWORD: process.env.LOCAL_AUTH_PASSWORD,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+  };
+  delete process.env.LOCAL_AUTH_DEV_PASSWORD;
+  delete process.env.LOCAL_AUTH_OWNER_EMAIL;
+  process.env.LOCAL_AUTH_PASSWORD = "vercel-password";
+  process.env.ADMIN_EMAIL = "davidbao1704@gmail.com";
+
+  try {
+    const ok = createLocalSession("davidbao1704@gmail.com", "vercel-password");
+    assert.ok(ok);
+
+    const wrongEmail = createLocalSession("other@gmail.com", "vercel-password");
+    assert.equal(wrongEmail, null);
+
+    const wrongPass = createLocalSession("davidbao1704@gmail.com", "wrong");
+    assert.equal(wrongPass, null);
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+    delete process.env.LOCAL_AUTH_PASSWORD;
+    delete process.env.ADMIN_EMAIL;
+  }
+});
+
