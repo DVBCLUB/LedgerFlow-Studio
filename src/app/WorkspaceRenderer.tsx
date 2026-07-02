@@ -1,4 +1,5 @@
 import React, { Suspense, useMemo, useState } from 'react';
+import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
   BarChart3,
@@ -11,8 +12,6 @@ import {
   Database,
   FileCheck2,
   FolderKanban,
-  GitPullRequest,
-  LucideIcon,
   Mail,
   Network,
   Rocket,
@@ -40,7 +39,23 @@ const MergeReadinessCenter = React.lazy(() => import('../modules/dev-ops/MergeRe
 const PRControlCenter = React.lazy(() => import('../modules/dev-ops/PRControlCenter'));
 const GitHubCIDoctorLauncher = React.lazy(() => import('../modules/dev-ops/GitHubCIDoctorLauncher'));
 
+type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
 type WorkspaceSubtab = { id: string; label: string; icon?: LucideIcon };
+type CardConfig = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  tone: Tone;
+  items: string[];
+};
+type StaticWorkspaceConfig = {
+  title: string;
+  description: string;
+  chips: string[];
+  cards: CardConfig[];
+  compactNoticeOn?: string;
+};
 
 const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
   ceo_command: [
@@ -84,12 +99,71 @@ const DEFAULT_SUBTAB: Record<string, string> = Object.fromEntries(
   Object.entries(SUB_TABS_CONFIG).map(([key, tabs]) => [key, tabs[0]?.id || 'overview']),
 );
 
+const STATIC_WORKSPACES: Partial<Record<TabType, StaticWorkspaceConfig>> = {
+  ceo_command: {
+    title: 'Command Center',
+    description: 'Màn hình điều hành gọn: việc cần làm, tình trạng tiền, pipeline và điểm nghẽn. Không hiển thị runbook hay prompt nội bộ trên giao diện chính.',
+    chips: ['Hôm nay', 'Cảnh báo', 'Ưu tiên'],
+    compactNoticeOn: 'today',
+    cards: [
+      { eyebrow: 'Hôm nay', title: 'Việc cần xử lý', description: 'Tập trung vào các việc chặn tiến độ hoặc cần quyết định.', icon: ClipboardList, tone: 'cyan', items: ['Review module đang sửa', 'Kiểm tra lỗi preview', 'Chốt việc tiếp theo'] },
+      { eyebrow: 'Tài chính', title: 'Dòng tiền & chi phí', description: 'Xem nhanh tình trạng tài chính, không trộn checklist kỹ thuật vào dashboard.', icon: TrendingUp, tone: 'emerald', items: ['Thu/chi chính', 'Chi phí cần duyệt', 'Báo cáo cần xem'] },
+      { eyebrow: 'Sản phẩm', title: 'Module đang build', description: 'Theo dõi phần đang cải tổ, ảnh trước/sau và lỗi còn lại.', icon: FolderKanban, tone: 'violet', items: ['UI cleanup', 'Replit preview', 'Module tiếp theo'] },
+      { eyebrow: 'Rủi ro', title: 'Điểm cần chú ý', description: 'Chỉ hiển thị rủi ro thật sự ảnh hưởng sử dụng.', icon: ShieldCheck, tone: 'amber', items: ['Build lỗi', 'UI quá dài', 'Agent sửa lan man'] },
+    ],
+  },
+  product_studio: {
+    title: 'Product Studio',
+    description: 'Quản lý sản phẩm, roadmap và bản phát hành. Các ý tưởng/prompt AI dài được đưa về hậu trường, chỉ giữ mục tiêu và trạng thái review.',
+    chips: ['Roadmap', 'Review', 'Release'],
+    compactNoticeOn: 'release',
+    cards: [
+      { eyebrow: 'Portfolio', title: 'Sản phẩm đang làm', description: 'Danh sách gọn các sản phẩm/module cần ưu tiên.', icon: FolderKanban, tone: 'cyan', items: ['LedgerFlow core app', 'Finance workflow', 'AI helper khi cần'] },
+      { eyebrow: 'Roadmap', title: 'Việc tiếp theo', description: 'Một lần chỉ cải tổ một module để dễ test và revert.', icon: Target, tone: 'emerald', items: ['Dọn UI dài', 'Giữ chức năng chính', 'Ẩn phần kỹ thuật'] },
+      { eyebrow: 'Review', title: 'Tiêu chí đạt', description: 'Màn hình dễ đọc, ít chữ thừa, không còn câu giao việc cho AI.', icon: FileCheck2, tone: 'violet', items: ['Không prompt lộ trên UI', 'Có nút hành động rõ', 'Không phá build'] },
+      { eyebrow: 'Release', title: 'Phát hành nội bộ', description: 'Dùng Replit/local để xem trước; deploy public chỉ khi cần chia sẻ.', icon: Rocket, tone: 'amber', items: ['Pull code', 'Restart preview', 'Chụp lỗi nếu có'] },
+    ],
+  },
+  marketing_growth: {
+    title: 'Marketing & Growth',
+    description: 'Giữ phần marketing ở mức tác nghiệp: chiến dịch, nội dung, kênh phân phối và kết quả. Prompt copywriting dài không nằm sẵn trên màn hình.',
+    chips: ['Campaign', 'Content', 'Metrics'],
+    compactNoticeOn: 'content',
+    cards: [
+      { eyebrow: 'Chiến dịch', title: 'Kế hoạch đang chạy', description: 'Theo dõi mục tiêu, kênh và trạng thái triển khai.', icon: Rocket, tone: 'cyan', items: ['Kênh chính', 'Thông điệp', 'Việc cần làm'] },
+      { eyebrow: 'Nội dung', title: 'Content queue', description: 'Chỉ giữ danh sách nội dung cần sản xuất, không dàn prompt AI ra UI.', icon: Mail, tone: 'violet', items: ['Bài viết', 'Video ngắn', 'Landing page'] },
+      { eyebrow: 'Tăng trưởng', title: 'Tín hiệu cần xem', description: 'Tập trung dữ liệu phản hồi thật, tránh dashboard giả quá nhiều chữ.', icon: TrendingUp, tone: 'emerald', items: ['Lead mới', 'Conversion', 'Feedback'] },
+      { eyebrow: 'Review', title: 'Dọn nội dung', description: 'Các kịch bản/prompt nên nằm trong tool tạo nội dung hoặc docs, không ở màn hình chính.', icon: ShieldCheck, tone: 'amber', items: ['Ẩn prompt', 'Giữ CTA', 'Giữ số liệu'] },
+    ],
+  },
+  sales_crm: {
+    title: 'Sales & CRM',
+    description: 'Quản lý khách hàng, pipeline và follow-up. Màn hình CRM chỉ nên hiện thông tin bán hàng cần hành động.',
+    chips: ['Leads', 'Deals', 'Follow-up'],
+    compactNoticeOn: 'followup',
+    cards: [
+      { eyebrow: 'Pipeline', title: 'Cơ hội bán hàng', description: 'Tổng quan lead/deal theo trạng thái.', icon: BarChart3, tone: 'cyan', items: ['Lead mới', 'Đang tư vấn', 'Chốt/không chốt'] },
+      { eyebrow: 'Khách hàng', title: 'Follow-up', description: 'Việc cần nhắc lại và lịch chăm sóc.', icon: UsersRound, tone: 'emerald', items: ['Gọi lại', 'Gửi báo giá', 'Nhắc thanh toán'] },
+      { eyebrow: 'Báo giá', title: 'Pricing', description: 'Giữ bảng giá và đề xuất đơn giản.', icon: Target, tone: 'violet', items: ['Gói cơ bản', 'Gói mở rộng', 'Ưu đãi'] },
+      { eyebrow: 'Review', title: 'Dữ liệu sạch', description: 'Ẩn mô phỏng/prompt bán hàng dài khỏi giao diện chính.', icon: ShieldCheck, tone: 'amber', items: ['Không prompt mẫu dài', 'Không bảng giả thừa', 'Ưu tiên lead thật'] },
+    ],
+  },
+  ai_factory: {
+    title: 'AI Operations',
+    description: 'AI chỉ là trợ lý chạy tác vụ khi cần. Giao diện chính không hiển thị system prompt, role prompt, chain hướng dẫn hay checklist agent dài.',
+    chips: ['Ra lệnh', 'Theo dõi', 'Kiểm soát'],
+    compactNoticeOn: 'automation',
+    cards: [
+      { eyebrow: 'AI', title: 'Trợ lý theo yêu cầu', description: 'Chỉ dùng khi có việc cụ thể: tóm tắt, kiểm tra lỗi, viết nháp hoặc phân tích.', icon: Bot, tone: 'violet', items: ['Nhập yêu cầu ngắn', 'Xem kết quả', 'Duyệt thủ công'] },
+      { eyebrow: 'An toàn', title: 'Không tự hành động nguy hiểm', description: 'AI không tự xóa dữ liệu, gửi email, push code hoặc sửa lan rộng nếu chưa được duyệt.', icon: ShieldCheck, tone: 'emerald', items: ['Không auto delete', 'Không push main', 'Không lộ secret'] },
+      { eyebrow: 'Automation', title: 'Chạy ngầm khi cần', description: 'Tác vụ định kỳ nên chạy ở backend/automation, UI chỉ hiện trạng thái.', icon: Sparkles, tone: 'cyan', items: ['Lịch chạy', 'Kết quả cuối', 'Lỗi cần xử lý'] },
+      { eyebrow: 'Review', title: 'Ẩn prompt nội bộ', description: 'System instruction và prompt dài nằm trong code/backend, không hiển thị cho người dùng cuối.', icon: FileCheck2, tone: 'amber', items: ['Ẩn system prompt', 'Ẩn runbook', 'Giữ nút hành động'] },
+    ],
+  },
+};
+
 function LoadingFallback() {
-  return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm font-semibold text-slate-400">
-      Đang tải module...
-    </div>
-  );
+  return <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm font-semibold text-slate-400">Đang tải module...</div>;
 }
 
 function WorkspaceHero({ title, description, chips = [] }: { title: string; description: string; chips?: string[] }) {
@@ -100,11 +174,7 @@ function WorkspaceHero({ title, description, chips = [] }: { title: string; desc
       <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-400">{description}</p>
       {chips.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2">
-          {chips.map((chip) => (
-            <span key={chip} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-300">
-              {chip}
-            </span>
-          ))}
+          {chips.map((chip) => <span key={chip} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-300">{chip}</span>)}
         </div>
       )}
     </section>
@@ -134,78 +204,14 @@ function CompactModuleNotice() {
   );
 }
 
-function CommandWorkspace({ subtab }: { subtab: string }) {
+function StaticWorkspace({ config, subtab }: { config: StaticWorkspaceConfig; subtab: string }) {
   return (
     <div className="space-y-5">
-      <WorkspaceHero
-        title="Command Center"
-        description="Màn hình điều hành gọn: việc cần làm, tình trạng tiền, pipeline và điểm nghẽn. Không hiển thị runbook hay prompt nội bộ trên giao diện chính."
-        chips={["Hôm nay", "Cảnh báo", "Ưu tiên"]}
-      />
+      <WorkspaceHero title={config.title} description={config.description} chips={config.chips} />
       <CardGrid>
-        <SimplePanelCard eyebrow="Hôm nay" title="Việc cần xử lý" description="Tập trung vào các việc chặn tiến độ hoặc cần quyết định." icon={ClipboardList} tone="cyan" items={['Review module đang sửa', 'Kiểm tra lỗi preview', 'Chốt việc tiếp theo']} />
-        <SimplePanelCard eyebrow="Tài chính" title="Dòng tiền & chi phí" description="Xem nhanh tình trạng tài chính, không trộn checklist kỹ thuật vào dashboard." icon={TrendingUp} tone="emerald" items={['Thu/chi chính', 'Chi phí cần duyệt', 'Báo cáo cần xem']} />
-        <SimplePanelCard eyebrow="Sản phẩm" title="Module đang build" description="Theo dõi phần đang cải tổ, ảnh trước/sau và lỗi còn lại." icon={FolderKanban} tone="violet" items={['Cài đặt & DevOps', 'UI cleanup', 'Replit preview']} />
-        <SimplePanelCard eyebrow="Rủi ro" title="Điểm cần chú ý" description="Chỉ hiển thị rủi ro thật sự ảnh hưởng sử dụng." icon={ShieldCheck} tone="amber" items={['Build lỗi', 'UI quá dài', 'Agent sửa lan man']} />
+        {config.cards.map((card) => <SimplePanelCard key={card.title} {...card} />)}
       </CardGrid>
-      {subtab === 'today' && <CompactModuleNotice />}
-    </div>
-  );
-}
-
-function ProductWorkspace({ subtab }: { subtab: string }) {
-  return (
-    <div className="space-y-5">
-      <WorkspaceHero
-        title="Product Studio"
-        description="Quản lý sản phẩm, roadmap và bản phát hành. Các ý tưởng/prompt AI dài được đưa về hậu trường, chỉ giữ mục tiêu và trạng thái review."
-        chips={["Roadmap", "Review", "Release"]}
-      />
-      <CardGrid>
-        <SimplePanelCard eyebrow="Portfolio" title="Sản phẩm đang làm" description="Danh sách gọn các sản phẩm/module cần ưu tiên." icon={FolderKanban} tone="cyan" items={['LedgerFlow core app', 'Finance workflow', 'AI helper khi cần']} />
-        <SimplePanelCard eyebrow="Roadmap" title="Việc tiếp theo" description="Một lần chỉ cải tổ một module để dễ test và revert." icon={Target} tone="emerald" items={['Dọn UI dài', 'Giữ chức năng chính', 'Ẩn phần kỹ thuật']} />
-        <SimplePanelCard eyebrow="Review" title="Tiêu chí đạt" description="Màn hình dễ đọc, ít chữ thừa, không còn câu giao việc cho AI." icon={FileCheck2} tone="violet" items={['Không prompt lộ trên UI', 'Có nút hành động rõ', 'Không phá build']} />
-        <SimplePanelCard eyebrow="Release" title="Phát hành nội bộ" description="Dùng Replit/local để xem trước; deploy public chỉ khi cần chia sẻ." icon={Rocket} tone="amber" items={['Pull code', 'Restart preview', 'Chụp lỗi nếu có']} />
-      </CardGrid>
-      {subtab === 'release' && <CompactModuleNotice />}
-    </div>
-  );
-}
-
-function MarketingWorkspace({ subtab }: { subtab: string }) {
-  return (
-    <div className="space-y-5">
-      <WorkspaceHero
-        title="Marketing & Growth"
-        description="Giữ phần marketing ở mức tác nghiệp: chiến dịch, nội dung, kênh phân phối và kết quả. Prompt copywriting dài không nằm sẵn trên màn hình."
-        chips={["Campaign", "Content", "Metrics"]}
-      />
-      <CardGrid>
-        <SimplePanelCard eyebrow="Chiến dịch" title="Kế hoạch đang chạy" description="Theo dõi mục tiêu, kênh và trạng thái triển khai." icon={Rocket} tone="cyan" items={['Kênh chính', 'Thông điệp', 'Việc cần làm']} />
-        <SimplePanelCard eyebrow="Nội dung" title="Content queue" description="Chỉ giữ danh sách nội dung cần sản xuất, không dàn prompt AI ra UI." icon={Mail} tone="violet" items={['Bài viết', 'Video ngắn', 'Landing page']} />
-        <SimplePanelCard eyebrow="Tăng trưởng" title="Tín hiệu cần xem" description="Tập trung dữ liệu phản hồi thật, tránh dashboard giả quá nhiều chữ." icon={TrendingUp} tone="emerald" items={['Lead mới', 'Conversion', 'Feedback']} />
-        <SimplePanelCard eyebrow="Review" title="Dọn nội dung" description="Các kịch bản/prompt nên nằm trong tool tạo nội dung hoặc docs, không ở màn hình chính." icon={ShieldCheck} tone="amber" items={['Ẩn prompt', 'Giữ CTA', 'Giữ số liệu']} />
-      </CardGrid>
-      {subtab === 'content' && <CompactModuleNotice />}
-    </div>
-  );
-}
-
-function SalesWorkspace({ subtab }: { subtab: string }) {
-  return (
-    <div className="space-y-5">
-      <WorkspaceHero
-        title="Sales & CRM"
-        description="Quản lý khách hàng, pipeline và follow-up. Màn hình CRM chỉ nên hiện thông tin bán hàng cần hành động."
-        chips={["Leads", "Deals", "Follow-up"]}
-      />
-      <CardGrid>
-        <SimplePanelCard eyebrow="Pipeline" title="Cơ hội bán hàng" description="Tổng quan lead/deal theo trạng thái." icon={BarChart3} tone="cyan" items={['Lead mới', 'Đang tư vấn', 'Chốt/không chốt']} />
-        <SimplePanelCard eyebrow="Khách hàng" title="Follow-up" description="Việc cần nhắc lại và lịch chăm sóc." icon={UsersRound} tone="emerald" items={['Gọi lại', 'Gửi báo giá', 'Nhắc thanh toán']} />
-        <SimplePanelCard eyebrow="Báo giá" title="Pricing" description="Giữ bảng giá và đề xuất đơn giản." icon={Target} tone="violet" items={['Gói cơ bản', 'Gói mở rộng', 'Ưu đãi']} />
-        <SimplePanelCard eyebrow="Review" title="Dữ liệu sạch" description="Ẩn mô phỏng/prompt bán hàng dài khỏi giao diện chính." icon={ShieldCheck} tone="amber" items={['Không prompt mẫu dài', 'Không bảng giả thừa', 'Ưu tiên lead thật']} />
-      </CardGrid>
-      {subtab === 'followup' && <CompactModuleNotice />}
+      {subtab === config.compactNoticeOn && <CompactModuleNotice />}
     </div>
   );
 }
@@ -216,25 +222,6 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'cashflow') return <RevenueDashboard />;
   if (subtab === 'approval') return <ApprovalWorkflow />;
   return <LedgerAccountingWorkspace />;
-}
-
-function AIWorkspace({ subtab }: { subtab: string }) {
-  return (
-    <div className="space-y-5">
-      <WorkspaceHero
-        title="AI Operations"
-        description="AI chỉ là trợ lý chạy tác vụ khi cần. Giao diện chính không hiển thị system prompt, role prompt, chain hướng dẫn hay checklist agent dài."
-        chips={["Ra lệnh", "Theo dõi", "Kiểm soát"]}
-      />
-      <CardGrid>
-        <SimplePanelCard eyebrow="AI" title="Trợ lý theo yêu cầu" description="Chỉ dùng khi có việc cụ thể: tóm tắt, kiểm tra lỗi, viết nháp hoặc phân tích." icon={Bot} tone="violet" items={['Nhập yêu cầu ngắn', 'Xem kết quả', 'Duyệt thủ công']} />
-        <SimplePanelCard eyebrow="An toàn" title="Không tự hành động nguy hiểm" description="AI không tự xóa dữ liệu, gửi email, push code hoặc sửa lan rộng nếu chưa được duyệt." icon={ShieldCheck} tone="emerald" items={['Không auto delete', 'Không push main', 'Không lộ secret']} />
-        <SimplePanelCard eyebrow="Automation" title="Chạy ngầm khi cần" description="Tác vụ định kỳ nên chạy ở backend/automation, UI chỉ hiện trạng thái." icon={Sparkles} tone="cyan" items={['Lịch chạy', 'Kết quả cuối', 'Lỗi cần xử lý']} />
-        <SimplePanelCard eyebrow="Review" title="Ẩn prompt nội bộ" description="System instruction và prompt dài nằm trong code/backend, không hiển thị cho người dùng cuối." icon={FileCheck2} tone="amber" items={['Ẩn system prompt', 'Ẩn runbook', 'Giữ nút hành động']} />
-      </CardGrid>
-      {subtab === 'automation' && <CompactModuleNotice />}
-    </div>
-  );
 }
 
 function AnalyticsWorkspace({ subtab }: { subtab: string }) {
@@ -255,11 +242,7 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'integrations') return <IntegrationHub />;
   return (
     <div className="space-y-5">
-      <WorkspaceHero
-        title="DevOps gọn"
-        description="DevOps dùng để kiểm tra build, PR và lỗi preview. Log, prompt, checklist dài nằm ở GitHub/Replit/terminal, không dàn vào app."
-        chips={["Build", "PR", "CI"]}
-      />
+      <WorkspaceHero title="DevOps gọn" description="DevOps dùng để kiểm tra build, PR và lỗi preview. Log, prompt, checklist dài nằm ở GitHub/Replit/terminal, không dàn vào app." chips={["Build", "PR", "CI"]} />
       <CardGrid>
         <BuildMonitorPanel />
         <MergeReadinessCenter />
@@ -273,11 +256,7 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
 function LegacyWorkspace() {
   return (
     <div className="space-y-5">
-      <WorkspaceHero
-        title="Module đã được gom lại"
-        description="Route cũ hoặc module thử nghiệm đã được ẩn khỏi giao diện chính để tránh rối. Hãy dùng các workspace chính ở thanh bên."
-        chips={["Ẩn legacy", "Giao diện gọn", "Review mode"]}
-      />
+      <WorkspaceHero title="Module đã được gom lại" description="Route cũ hoặc module thử nghiệm đã được ẩn khỏi giao diện chính để tránh rối. Hãy dùng các workspace chính ở thanh bên." chips={["Ẩn legacy", "Giao diện gọn", "Review mode"]} />
       <CompactModuleNotice />
     </div>
   );
@@ -291,23 +270,23 @@ interface WorkspaceRendererProps {
 
 export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }: WorkspaceRendererProps) {
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => ({ ...DEFAULT_SUBTAB }));
-  const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
-  const subTabs = rawSubTabs.filter((tab) => {
-    if (activeRole === 'all' || activeRole === 'founder' || activeRole === 'admin') return true;
-    if (activeSegment === 'system_settings' && tab.id === 'devops') return ['devops', 'agentops'].includes(activeRole);
-    return true;
-  });
+  const subTabs = useMemo(() => {
+    const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
+    return rawSubTabs.filter((tab) => {
+      if (activeRole === 'all' || activeRole === 'founder' || activeRole === 'admin') return true;
+      if (activeSegment === 'system_settings' && tab.id === 'devops') return ['devops', 'agentops'].includes(activeRole);
+      return true;
+    });
+  }, [activeSegment, activeRole]);
   const validSubTabIds = useMemo(() => subTabs.map((tab) => tab.id), [subTabs]);
   const currentSubTabId = resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds) || subTabs[0]?.id || '';
 
   React.useEffect(() => {
-    const hash = window.location.hash;
-    const match = hash.match(/\?subtab=([^&]+)/);
+    const match = window.location.hash.match(/\?subtab=([^&]+)/);
     if (!match?.[1]) return;
     const normalized = resolveWorkspaceSubTab(activeSegment, decodeURIComponent(match[1]), validSubTabIds);
-    if (normalized) {
-      setActiveSubTabs((prev) => ({ ...prev, [activeSegment]: normalized }));
-    }
+    if (!normalized) return;
+    setActiveSubTabs((prev) => (prev[activeSegment] === normalized ? prev : { ...prev, [activeSegment]: normalized }));
   }, [activeSegment, validSubTabIds]);
 
   const handleSubTabChange = (newSubTabId: string) => {
@@ -316,22 +295,17 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
     window.location.hash = `/${activeSegment}?subtab=${normalized}`;
   };
 
+  const staticConfig = STATIC_WORKSPACES[activeSegment];
+
   return (
     <div className="space-y-6">
-      {subTabs.length > 1 && (
-        <WorkspaceSubNavigation tabs={subTabs} activeTab={currentSubTabId} onChange={handleSubTabChange} />
-      )}
-
+      {subTabs.length > 1 && <WorkspaceSubNavigation tabs={subTabs} activeTab={currentSubTabId} onChange={handleSubTabChange} />}
       <Suspense fallback={<LoadingFallback />}>
-        {activeSegment === 'ceo_command' && <CommandWorkspace subtab={currentSubTabId} />}
-        {activeSegment === 'product_studio' && <ProductWorkspace subtab={currentSubTabId} />}
-        {activeSegment === 'marketing_growth' && <MarketingWorkspace subtab={currentSubTabId} />}
-        {activeSegment === 'sales_crm' && <SalesWorkspace subtab={currentSubTabId} />}
+        {staticConfig && <StaticWorkspace config={staticConfig} subtab={currentSubTabId} />}
         {activeSegment === 'finance_accounting' && <FinanceWorkspace subtab={currentSubTabId} />}
-        {activeSegment === 'ai_factory' && <AIWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'analytics' && <AnalyticsWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'system_settings' && <SettingsWorkspace subtab={currentSubTabId} />}
-        {!['ceo_command', 'product_studio', 'marketing_growth', 'sales_crm', 'finance_accounting', 'ai_factory', 'analytics', 'system_settings'].includes(activeSegment) && <LegacyWorkspace />}
+        {!staticConfig && !['finance_accounting', 'analytics', 'system_settings'].includes(activeSegment) && <LegacyWorkspace />}
       </Suspense>
     </div>
   );
