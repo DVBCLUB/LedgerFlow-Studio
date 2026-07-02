@@ -9,7 +9,7 @@ import { execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
-import { appendAuditEvent } from './auditLog';
+import { appendAuditEvent } from './auditLog.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type SandboxMode = 'local' | 'docker' | 'dry_run';

@@ -1,8 +1,8 @@
 # AI Workforce Runtime BRIEF4 - Runbook Van Hanh
 
 ## 1) Pham vi
-Runbook nay mo ta quy trinh van hanh hang ngay cho bo kiem soat runtime BRIEF4:
-- Theo doi va sua lech (drift) mission queue
+Runbook nay mo ta quy trinh van hanh hang ngay cho bo kiem soat runtime BRIEF4/BRIEF5:
+- Theo doi drift nhu health check cho mission queue, AgentRun va agentic loop visibility
 - Theo doi diagnostics va cooldown cho browser fallback
 - Xac minh snapshot suc khoe Gateway
 
@@ -21,21 +21,26 @@ Ket qua mong doi:
 ## 3) Theo doi Drift va Sua Drift
 ### Kiem tra drift report
 - Endpoint: GET /api/ai-workforce/mission-execution-queue/drift
-- Muc dich: doi chieu linked mission queue voi source runtime cua AgentRun.
+- Muc dich: doi chieu linked mission queue voi source runtime cua AgentRun, hien thi agenticLoopRuns va unified agent_execution_run snapshots trong cung report.
 
 Cach doc ket qua:
 - issueCount = 0: he thong on dinh
 - criticalIssues > 0: can xu ly ngay
+- checkedAgenticLoopRuns: so agentic loop run duoc dua vao health payload trong migration window
+- agenticLoopRuns: danh sach runId/status/goal de operator thay duong thuc thi thu ba ma khong can drift patch rieng
+- checkedRuntimeRunRecords: so unified agent_execution_run snapshots da doc tu runtime store
+- runtimeRunRecords: danh sach recordId/runId/status/goal/surface de operator doi chieu AgentRun va agentic loop bang cung mot record type
 
 ### Sua drift
 - Endpoint: POST /api/ai-workforce/mission-execution-queue/drift/repair
-- Muc dich: tu dong sua cac mau drift da biet va luu lai link/snapshot da chinh.
+- Muc dich: tu dong sua cac mau drift da biet va luu lai link/snapshot da chinh. Sau BRIEF5, day la fallback sua lech, con mac dinh drift endpoint nen duoc doc nhu health check xac nhan issueCount = 0.
 
 Quy trinh de xuat cho operator:
 1. Goi drift check.
-2. Neu co critical issues, goi drift repair mot lan.
-3. Chay lai drift check.
-4. Neu van critical, tam dung mission execution va escalte kem log/snapshot ID.
+2. Neu issueCount = 0, ghi nhan health OK; khong can repair.
+3. Neu co critical issues, goi drift repair mot lan.
+4. Chay lai drift check.
+5. Neu van critical, tam dung mission execution va escalate kem log/snapshot ID.
 
 ## 4) Van hanh Browser Fallback
 ### Chinh sach

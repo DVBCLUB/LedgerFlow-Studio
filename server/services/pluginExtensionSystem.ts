@@ -224,45 +224,6 @@ export async function invokePlugin(pluginId: string, capability: string, params:
   plugin.metrics.successRate = +((plugin.metrics.successRate * (plugin.invokeCount - 1) + (decision.allowed ? 100 : 100)) / plugin.invokeCount).toFixed(1);
   save().catch(() => undefined);
   return { success: true, output: decision.output, latencyMs };
-
-  try {
-    // Dynamic require (if entry point exists)
-    let output = '';
-    const entryPath = path.join(PLUGINS_DIR, plugin.manifest.name, plugin.manifest.entryPoint);
-
-    if (fs.existsSync(entryPath)) {
-      try {
-        const mod = require(entryPath);
-        if (typeof mod[capability] === 'function') {
-          output = await Promise.resolve(mod[capability](params));
-        } else {
-          output = `Capability "${capability}" not exported from plugin module.`;
-        }
-      } catch (err: any) {
-        output = `Plugin execution error: ${err.message}`;
-      }
-    } else {
-      // Simulate: return capability description
-      output = `[Plugin ${plugin.manifest.name}] ${capability}: ${cap.description}. Executed with ${Object.keys(params).length} params.`;
-    }
-
-    const latencyMs = Date.now() - start;
-
-    // Update metrics
-    plugin.invokeCount++;
-    plugin.lastInvoked = new Date().toISOString();
-    plugin.metrics.avgLatencyMs = Math.round((plugin.metrics.avgLatencyMs * (plugin.invokeCount - 1) + latencyMs) / plugin.invokeCount);
-    plugin.metrics.successRate = +((plugin.metrics.successRate * (plugin.invokeCount - 1) + 100) / plugin.invokeCount).toFixed(1);
-
-    save().catch(() => undefined);
-    return { success: true, output, latencyMs };
-  } catch (err: any) {
-    const latencyMs = Date.now() - start;
-    plugin.invokeCount++;
-    plugin.metrics.successRate = +((plugin.metrics.successRate * (plugin.invokeCount - 1) + 0) / plugin.invokeCount).toFixed(1);
-    save().catch(() => undefined);
-    return { success: false, output: err.message, latencyMs };
-  }
 }
 
 export function getPluginStats(): {

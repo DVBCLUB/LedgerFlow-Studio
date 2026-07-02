@@ -1,8 +1,8 @@
 import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type DecryptedAIKeyEntry } from "./aiKeyVault.ts";
-import type { CallAIOptions, CallAIResult, ChatMessage } from "./aiClient.ts";
+import type { CallAIOptions, CallAIResult, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
 import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog.ts";
 
-interface ProviderCallResult { content: string; modelUsed?: string; raw: unknown }
+interface ProviderCallResult { content: string; modelUsed?: string; raw: unknown; toolCalls?: NormalizedToolCall[] }
 export interface AIRouterDiagnosticItem { provider: AIProviderName | "litellm-proxy"; label: string; model?: string; status: "ok" | "quota" | "error" | "skipped"; latencyMs?: number; message?: string }
 export interface AIRouterDiagnostics { ok: boolean; checkedAt: string; totalEnabledKeys: number; results: AIRouterDiagnosticItem[] }
 
@@ -28,6 +28,102 @@ class ProviderError extends Error {
 const DEFAULT_PROXY_URL = process.env.AI_PROXY_URL ?? "http://127.0.0.1:4000";
 const DEFAULT_PROXY_KEY = process.env.AI_PROXY_KEY ?? "sk-ledgerflow-local-2026";
 
+export function nativeToolCallingSupported(provider: AIProviderName | "litellm-proxy"): boolean {
+  return provider !== "ollama";
+}
+
+export function toAnthropicTools(tools: ToolSpec[]): Array<Record<string, unknown>> {
+  return tools.map((tool) => ({
+    name: tool.name,
+    description: tool.description,
+    input_schema: tool.parameters,
+  }));
+}
+
+export function toOpenAITools(tools: ToolSpec[]): Array<Record<string, unknown>> {
+  return tools.map((tool) => ({
+    type: "function",
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+    },
+  }));
+}
+
+export function toGeminiTools(tools: ToolSpec[]): Array<Record<string, unknown>> {
+  return [{
+    functionDeclarations: tools.map((tool) => ({
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.parameters,
+    })),
+  }];
+}
+
+export function toAnthropicToolChoice(choice: CallAIOptions["toolChoice"]): Record<string, unknown> | undefined {
+  if (!choice || choice === "auto") return undefined;
+  if (choice === "required") return { type: "any" };
+  return { type: "tool", name: choice.name };
+}
+
+export function toOpenAIToolChoice(choice: CallAIOptions["toolChoice"]): unknown {
+  if (!choice) return undefined;
+  if (choice === "auto" || choice === "required") return choice;
+  return { type: "function", function: { name: choice.name } };
+}
+
+export function toGeminiToolConfig(choice: CallAIOptions["toolChoice"]): Record<string, unknown> | undefined {
+  if (!choice || choice === "auto") return undefined;
+  if (choice === "required") return { functionCallingConfig: { mode: "ANY" } };
+  return { functionCallingConfig: { mode: "ANY", allowedFunctionNames: [choice.name] } };
+}
+
+function normalizeArgs(value: unknown): Record<string, unknown> {
+  if (!value) return {};
+  if (typeof value === "string") {
+    try {
+      const parsed = JSON.parse(value);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed as Record<string, unknown> : {};
+    } catch {
+      return {};
+    }
+  }
+  return typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+export function parseAnthropicToolCalls(data: unknown): NormalizedToolCall[] {
+  const content = (data as any)?.content;
+  if (!Array.isArray(content)) return [];
+  return content
+    .filter((part: any) => part?.type === "tool_use" && typeof part.name === "string")
+    .map((part: any) => ({ id: String(part.id || `tool_${part.name}`), name: part.name, args: normalizeArgs(part.input) }));
+}
+
+export function parseOpenAIToolCalls(data: unknown): NormalizedToolCall[] {
+  const calls = (data as any)?.choices?.[0]?.message?.tool_calls;
+  if (!Array.isArray(calls)) return [];
+  return calls
+    .filter((call: any) => typeof call?.function?.name === "string")
+    .map((call: any) => ({
+      id: String(call.id || `tool_${call.function.name}`),
+      name: call.function.name,
+      args: normalizeArgs(call.function.arguments),
+    }));
+}
+
+export function parseGeminiToolCalls(data: unknown): NormalizedToolCall[] {
+  const parts = (data as any)?.candidates?.[0]?.content?.parts;
+  if (!Array.isArray(parts)) return [];
+  return parts
+    .filter((part: any) => typeof part?.functionCall?.name === "string")
+    .map((part: any, index: number) => ({
+      id: String(part.functionCall.id || `gemini_tool_${index + 1}`),
+      name: part.functionCall.name,
+      args: normalizeArgs(part.functionCall.args),
+    }));
+}
+
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
   const entries = await getEnabledAIKeyEntries();
   const orderedEntries = orderEntriesByPolicy(entries, options);
@@ -40,7 +136,7 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
       const result = await callProvider(entry, messages, options);
       await setAIKeyStatus(entry.id, "ok");
       await logEntry(entry, "call", "ok", started, result.modelUsed || entry.model, promptChars, result.content.length);
-      return { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw };
+      return { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw, toolCalls: result.toolCalls || [] };
     } catch (err: any) {
       const isQuota = isQuotaLikeError(err);
       await setAIKeyStatus(entry.id, isQuota ? "quota" : "error", err.message || String(err));
@@ -151,11 +247,11 @@ export async function diagnoseAIRouter(): Promise<AIRouterDiagnostics> {
   return { ok: results.some(r => r.status === "ok"), checkedAt: new Date().toISOString(), totalEnabledKeys: entries.length, results };
 }
 
-export async function testAIKey(input: { provider: AIProviderName; apiKey?: string; model?: string; baseUrl?: string }): Promise<{ success: boolean; content?: string; modelUsed?: string; error?: string }> {
+export async function testAIKey(input: { provider: AIProviderName; apiKey?: string; model?: string; baseUrl?: string }, options: Pick<CallAIOptions, "tools" | "toolChoice"> = {}): Promise<{ success: boolean; content?: string; modelUsed?: string; error?: string }> {
   const temp: DecryptedAIKeyEntry = { id: "test", provider: input.provider, label: "Test key", apiKey: input.apiKey?.trim() || "", model: input.model, baseUrl: input.baseUrl, enabled: true, priority: 0, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
   const started = Date.now();
   try {
-    const result = await callProvider(temp, [{ role: "user", content: "Trả lời ngắn gọn: OK" }], { temperature: 0.1, maxTokens: 32 });
+    const result = await callProvider(temp, [{ role: "user", content: "Trả lời ngắn gọn: OK" }], { temperature: 0.1, maxTokens: 32, ...options });
     await appendAIUsageLog({ provider: input.provider, label: "Test key", model: result.modelUsed || input.model, mode: "test", status: "ok", latencyMs: Date.now() - started, promptChars: 21, outputChars: result.content.length });
     return { success: true, content: result.content, modelUsed: result.modelUsed };
   }
@@ -193,7 +289,7 @@ async function callGemini(entry: DecryptedAIKeyEntry, messages: ChatMessage[], o
   const url = `${entry.baseUrl || "https://generativelanguage.googleapis.com/v1beta"}/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(entry.apiKey)}`;
   const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(buildGeminiRequest(messages, options)) });
   const data = await readJson(response); if (!response.ok) throw providerHttpError("gemini", response.status, data);
-  return { content: data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "", modelUsed: model, raw: data };
+  return { content: data?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || "").join("") || "", modelUsed: model, raw: data, toolCalls: parseGeminiToolCalls(data) };
 }
 async function* streamGemini(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
   if (!entry.apiKey) throw new ProviderError("Gemini API key is empty.", 401, undefined, "gemini");
@@ -206,15 +302,22 @@ async function* streamGemini(entry: DecryptedAIKeyEntry, messages: ChatMessage[]
 function buildGeminiRequest(messages: ChatMessage[], options: CallAIOptions): Record<string, unknown> {
   const systemInstruction = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n") || undefined;
   const contents = messages.filter(m => m.role !== "system").map(m => ({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] }));
-  return { contents, systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined, generationConfig: { temperature: options.temperature ?? 0.7, maxOutputTokens: options.maxTokens } };
+  return {
+    contents,
+    systemInstruction: systemInstruction ? { parts: [{ text: systemInstruction }] } : undefined,
+    generationConfig: { temperature: options.temperature ?? 0.7, maxOutputTokens: options.maxTokens },
+    tools: options.tools?.length ? toGeminiTools(options.tools) : undefined,
+    toolConfig: options.tools?.length ? toGeminiToolConfig(options.toolChoice) : undefined,
+  };
 }
 
 async function callOpenAICompatible(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions, defaultUrl: string, extraHeaders: Record<string, string> = {}): Promise<ProviderCallResult> {
   if (!entry.apiKey) throw new ProviderError(`${entry.provider} API key is empty.`, 401, undefined, entry.provider);
   const model = entry.model || resolveDefaultModel(entry.provider, options.model);
-  const response = await fetch(entry.baseUrl || defaultUrl, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${entry.apiKey}`, ...extraHeaders }, body: JSON.stringify({ model, messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false }) });
+  const body = { model, messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false, tools: options.tools?.length ? toOpenAITools(options.tools) : undefined, tool_choice: options.tools?.length ? toOpenAIToolChoice(options.toolChoice) : undefined };
+  const response = await fetch(entry.baseUrl || defaultUrl, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${entry.apiKey}`, ...extraHeaders }, body: JSON.stringify(body) });
   const data = await readJson(response); if (!response.ok) throw providerHttpError(entry.provider, response.status, data);
-  return { content: data?.choices?.[0]?.message?.content ?? "", modelUsed: data?.model || model, raw: data };
+  return { content: data?.choices?.[0]?.message?.content ?? "", modelUsed: data?.model || model, raw: data, toolCalls: parseOpenAIToolCalls(data) };
 }
 async function* streamOpenAICompatible(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions, defaultUrl: string, extraHeaders: Record<string, string> = {}): AsyncGenerator<string, void, unknown> {
   if (!entry.apiKey) throw new ProviderError(`${entry.provider} API key is empty.`, 401, undefined, entry.provider);
@@ -229,7 +332,7 @@ async function callAnthropic(entry: DecryptedAIKeyEntry, messages: ChatMessage[]
   const model = entry.model || resolveDefaultModel(entry.provider, options.model);
   const response = await fetch(entry.baseUrl || "https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": entry.apiKey, "anthropic-version": "2023-06-01" }, body: JSON.stringify(buildAnthropicRequest(messages, options, model, false)) });
   const data = await readJson(response); if (!response.ok) throw providerHttpError("anthropic", response.status, data);
-  return { content: Array.isArray(data?.content) ? data.content.map((p: any) => p.text || "").join("") : "", modelUsed: data?.model || model, raw: data };
+  return { content: Array.isArray(data?.content) ? data.content.map((p: any) => p.text || "").join("") : "", modelUsed: data?.model || model, raw: data, toolCalls: parseAnthropicToolCalls(data) };
 }
 async function* streamAnthropic(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
   if (!entry.apiKey) throw new ProviderError("Anthropic API key is empty.", 401, undefined, "anthropic");
@@ -241,7 +344,7 @@ async function* streamAnthropic(entry: DecryptedAIKeyEntry, messages: ChatMessag
 function buildAnthropicRequest(messages: ChatMessage[], options: CallAIOptions, model: string, stream: boolean): Record<string, unknown> {
   const system = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n") || undefined;
   const anthropicMessages = messages.filter(m => m.role !== "system").map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
-  return { model, system, messages: anthropicMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens ?? 1024, stream };
+  return { model, system, messages: anthropicMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens ?? 1024, stream, tools: options.tools?.length ? toAnthropicTools(options.tools) : undefined, tool_choice: options.tools?.length ? toAnthropicToolChoice(options.toolChoice) : undefined };
 }
 
 async function callOllama(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): Promise<ProviderCallResult> {
@@ -258,9 +361,10 @@ async function* streamOllama(entry: DecryptedAIKeyEntry, messages: ChatMessage[]
 }
 
 async function callLiteLLMProxy(messages: ChatMessage[], options: CallAIOptions): Promise<CallAIResult> {
-  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEFAULT_PROXY_KEY}` }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false }) });
+  const body = { model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: false, tools: options.tools?.length ? toOpenAITools(options.tools) : undefined, tool_choice: options.tools?.length ? toOpenAIToolChoice(options.toolChoice) : undefined };
+  const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEFAULT_PROXY_KEY}` }, body: JSON.stringify(body) });
   const data = await readJson(response); if (!response.ok) throw providerHttpError("litellm-proxy", response.status, data);
-  return { content: data?.choices?.[0]?.message?.content ?? "", modelUsed: data?.model, raw: data };
+  return { content: data?.choices?.[0]?.message?.content ?? "", modelUsed: data?.model, raw: data, toolCalls: parseOpenAIToolCalls(data) };
 }
 async function* streamLiteLLMProxy(messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
   const response = await fetch(`${DEFAULT_PROXY_URL}/v1/chat/completions`, { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${DEFAULT_PROXY_KEY}` }, body: JSON.stringify({ model: options.model ?? "ai-assistant", messages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens, stream: true }) });

@@ -2,6 +2,8 @@
 
 Company OS la module trong Founder Labs, khong phai thay the cho app chinh LedgerFlow.
 
+Company OS is a Founder Labs module, not a replacement for the main LedgerFlow app.
+
 ## Module nay dung de lam gi
 
 Company OS chuyen hoa bang danh gia Claude thanh dashboard van hanh noi bo cho workflow solo-founder:

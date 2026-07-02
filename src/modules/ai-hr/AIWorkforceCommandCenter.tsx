@@ -196,7 +196,7 @@ export default function AIWorkforceCommandCenter() {
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-base font-black text-white">Bảng kỹ thuật</h2>
+                <h2 className="text-base font-black text-white">Gap Matrix</h2>
                 <p className="text-xs font-semibold text-slate-400">Dành cho AgentOps/DevOps khi cần xem khoảng thiếu kỹ thuật.</p>
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function AIWorkforceCommandCenter() {
           <ShellCard className="border-violet-500/20">
             <div className="flex items-center gap-3">
               <Target className="h-5 w-5 text-violet-300" />
-              <h2 className="text-base font-black text-white">Upgrade backlog</h2>
+              <h2 className="text-base font-black text-white">Upgrade Backlog</h2>
             </div>
             <div className="mt-5 grid gap-3 lg:grid-cols-4">
               {AI_WORKFORCE_UPGRADE_BACKLOG.map((item) => (

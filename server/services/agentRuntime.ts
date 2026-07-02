@@ -2,12 +2,12 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { appendAuditEvent } from './auditLog.ts';
 import { createApprovalFingerprint, getAgentToolContract } from './agentToolRegistry.ts';
-import { searchAgentMemory } from './agentMemoryStore.ts';
 import { createAgentPlan, shouldReplan, type AgentPlan, type AgentToolId } from './agentPlanner.ts';
-import { executeSandboxTool } from './sandboxToolExecutor.ts';
+import { executeControlledAgentStep } from './agentExecutionCore.ts';
 import { readSecureJson, writeSecureJson } from './secureJsonStore.ts';
 import { signRecord, verifyRecord } from './signedRecords.ts';
 import { publish } from './agentEventBus.ts';
+import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
 
 export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
 export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
@@ -44,6 +44,32 @@ function planSteps(plan: AgentPlan, maxSteps: number, toolInputs: Partial<Record
   });
 }
 
+function recordAgentRunSnapshot(run: AgentRun, event: string) {
+  return appendAIWorkforceRuntimeRecord({
+    id: `agent_execution_run_${run.id}`,
+    type: 'agent_execution_run',
+    createdAt: run.updatedAt,
+    payload: {
+      surface: 'agent_runtime',
+      event,
+      runId: run.id,
+      status: run.status,
+      goal: run.goal,
+      requestedBy: run.requestedBy,
+      sourceType: run.sourceType,
+      sourceId: run.sourceId,
+      planner: run.planner,
+      createdAt: run.createdAt,
+      updatedAt: run.updatedAt,
+      completedAt: run.completedAt,
+      stepCount: run.steps.length,
+      completedStepCount: run.steps.filter((step) => step.status === 'completed').length,
+      waitingApprovalCount: run.steps.filter((step) => step.status === 'waiting_approval').length,
+      artifactCount: run.artifacts.length,
+    },
+  }).catch(() => undefined);
+}
+
 export async function createAgentRun(input: { goal: string; requestedBy?: string; requestedTools?: AgentToolId[]; toolInputs?: Partial<Record<AgentToolId, Record<string, unknown>>>; maxSteps?: number; maxRuntimeMs?: number; plannerMode?: 'auto' | 'ai' | 'deterministic'; sourceType?: AgentRun['sourceType']; sourceId?: string }) {
   const maxSteps = Math.max(1, Math.min(input.maxSteps || 6, 12));
   const plan = await createAgentPlan({ goal: input.goal, requestedTools: input.requestedTools, mode: input.plannerMode || 'auto' });
@@ -55,6 +81,7 @@ export async function createAgentRun(input: { goal: string; requestedBy?: string
   };
   await mutate((store) => { const duplicate = input.sourceId && Object.values(store.runs).find((item) => item.sourceType === run.sourceType && item.sourceId === input.sourceId); if (duplicate) throw new Error('Source is already linked to an AgentRun.'); store.runs[run.id] = run; });
   await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'run.created', target: run.id, risk: 'LOW', status: 'planned', summary: run.goal, evidence: { planner: run.planner, steps: run.steps.map((step) => step.toolId), sourceType: run.sourceType, sourceId: run.sourceId } });
+  await recordAgentRunSnapshot(run, 'created');
   return run;
 }
 
@@ -71,11 +98,7 @@ export async function importLegacyAgentRuns(items: Array<{ id: string; title?: s
 
 async function executeStep(run: AgentRun, step: AgentRunStep) {
   step.status = 'running'; step.startedAt = new Date().toISOString(); run.status = 'running';
-  let result: Record<string, unknown>;
-  if (step.toolId === 'read_knowledge') { const memories = await searchAgentMemory(run.goal, { limit: 5 }); result = { action: step.toolId, mode: 'retrieval', citations: memories.map((item) => item.citation), memories }; }
-  else if (step.toolId === 'external_connector') result = { action: step.toolId, mode: 'connector_preview', blocked: true, reason: 'A separately scoped connector approval is required.' };
-  else result = await executeSandboxTool({ runId: run.id, stepId: step.id, toolId: step.toolId, goal: run.goal, toolInput: step.toolInput });
-  const observation = `${step.toolId} completed with inspectable ${String(result.mode || 'sandbox')} evidence.`;
+  const { result, observation } = await executeControlledAgentStep({ runId: run.id, stepId: step.id, toolId: step.toolId, goal: run.goal, toolInput: step.toolInput });
   step.status = 'completed'; step.completedAt = new Date().toISOString(); step.observation = observation; step.evidence = result; run.observations.push(observation);
   run.artifacts.push({ id: `artifact_${randomUUID()}`, type: step.toolId, summary: observation, evidence: result, createdAt: step.completedAt });
   await appendAuditEvent({ actor: 'ai-agent', workspace: 'agent-runtime', action: 'tool.executed', target: step.id, risk: step.risk.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH', status: result.blocked ? 'pending_approval' : 'sandbox', summary: observation, evidence: { runId: run.id, toolId: step.toolId, mode: result.mode } });
@@ -115,7 +138,7 @@ async function maybeReplanAfterStep(run: AgentRun) {
 }
 
 export async function advanceAgentRun(id: string) {
-  return mutate(async (store) => {
+  const run = await mutate(async (store) => {
     const run = store.runs[id]; if (!run) throw new Error('Agent run not found.');
     if (store.emergencyStop) throw new Error(`Agent runtime emergency stop is active${store.stopReason ? `: ${store.stopReason}` : '.'}`);
     if (['completed', 'failed', 'stopped', 'rejected'].includes(run.status)) return run;
@@ -148,6 +171,8 @@ export async function advanceAgentRun(id: string) {
     }
     run.updatedAt = new Date().toISOString(); return run;
   });
+  await recordAgentRunSnapshot(run, 'advanced');
+  return run;
 }
 
 export async function replanAgentRun(id: string, mode: 'auto' | 'ai' | 'deterministic' = 'auto') {
@@ -155,12 +180,14 @@ export async function replanAgentRun(id: string, mode: 'auto' | 'ai' | 'determin
   if (snapshot.replanCount >= 3) throw new Error('Re-plan limit reached.');
   const remaining = snapshot.steps.filter((step) => step.status !== 'completed').map((step) => step.toolId);
   const plan = await createAgentPlan({ goal: snapshot.goal, requestedTools: remaining, observations: snapshot.observations, mode });
-  return mutate((store) => {
+  const run = await mutate((store) => {
     const run = store.runs[id]; if (!run) throw new Error('Agent run not found.');
     const completed = run.steps.filter((step) => step.status === 'completed');
     run.steps = [...completed, ...planSteps(plan, Math.max(0, run.maxSteps - completed.length))].map((step, index) => ({ ...step, index }));
     run.planner = plan.planner; run.plannerSummary = plan.summary; run.plannerFallbackReason = plan.fallbackReason; run.replanCount += 1; run.status = 'planned'; run.updatedAt = new Date().toISOString(); return run;
   });
+  await recordAgentRunSnapshot(run, 'replanned');
+  return run;
 }
 
 export async function approveAgentRunStep(runId: string, input: { stepId: string; fingerprint: string; signature?: string; phrase: string }) {
@@ -182,7 +209,9 @@ export async function approveAgentRunStep(runId: string, input: { stepId: string
     }
     return current;
   });
-  await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'step.approved', target: input.stepId, risk: 'MEDIUM', status: 'approved', summary: `Approved signed step for ${runId}.`, evidence: { runId, fingerprint: input.fingerprint } }); return run;
+  await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'step.approved', target: input.stepId, risk: 'MEDIUM', status: 'approved', summary: `Approved signed step for ${runId}.`, evidence: { runId, fingerprint: input.fingerprint } });
+  await recordAgentRunSnapshot(run, 'approved_step');
+  return run;
 }
 
 export async function rejectAgentRunStep(runId: string, input: { stepId: string; fingerprint?: string; reason?: string }) {
@@ -200,11 +229,33 @@ export async function rejectAgentRunStep(runId: string, input: { stepId: string;
     return current;
   });
   await appendAuditEvent({ actor: 'founder', workspace: 'agent-runtime', action: 'step.rejected', target: input.stepId, risk: 'MEDIUM', status: 'rejected', summary: reason, evidence: { runId, fingerprint: input.fingerprint } });
+  await recordAgentRunSnapshot(run, 'rejected_step');
   return run;
 }
 
-export async function stopAgentRun(id: string, reason: string) { return mutate((store) => { const run = store.runs[id]; if (!run) throw new Error('Agent run not found.'); run.status = 'stopped'; run.stoppedReason = reason; run.completedAt = new Date().toISOString(); run.updatedAt = run.completedAt; run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; }); return run; }); }
-export async function setAgentRuntimeEmergencyStop(active: boolean, reason?: string) { return mutate((store) => { store.emergencyStop = active; store.stopReason = active ? reason || 'Founder emergency stop.' : undefined; if (active) Object.values(store.runs).filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).forEach((run) => { run.status = 'stopped'; run.stoppedReason = store.stopReason; run.completedAt = new Date().toISOString(); run.updatedAt = run.completedAt; run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; }); }); return { emergencyStop: store.emergencyStop, reason: store.stopReason }; }); }
+export async function stopAgentRun(id: string, reason: string) {
+  const run = await mutate((store) => { const run = store.runs[id]; if (!run) throw new Error('Agent run not found.'); run.status = 'stopped'; run.stoppedReason = reason; run.completedAt = new Date().toISOString(); run.updatedAt = run.completedAt; run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; }); return run; });
+  await recordAgentRunSnapshot(run, 'stopped');
+  return run;
+}
+export async function setAgentRuntimeEmergencyStop(active: boolean, reason?: string) {
+  const stoppedRuns: AgentRun[] = [];
+  const control = await mutate((store) => {
+    store.emergencyStop = active;
+    store.stopReason = active ? reason || 'Founder emergency stop.' : undefined;
+    if (active) Object.values(store.runs).filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).forEach((run) => {
+      run.status = 'stopped';
+      run.stoppedReason = store.stopReason;
+      run.completedAt = new Date().toISOString();
+      run.updatedAt = run.completedAt;
+      run.steps.filter((step) => ['queued', 'running', 'waiting_approval'].includes(step.status)).forEach((step) => { step.status = 'stopped'; });
+      stoppedRuns.push(run);
+    });
+    return { emergencyStop: store.emergencyStop, reason: store.stopReason };
+  });
+  await Promise.all(stoppedRuns.map((run) => recordAgentRunSnapshot(run, 'emergency_stopped')));
+  return control;
+}
 export async function listAgentRuns(limit = 50) { await writeQueue.catch(() => undefined); const store = await readStoreUnsafe(); return { emergencyStop: store.emergencyStop, stopReason: store.stopReason, encrypted: true, runs: Object.values(store.runs).sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, Math.max(1, Math.min(limit, 200))) }; }
 export async function getAgentRun(id: string) { await writeQueue.catch(() => undefined); return (await readStoreUnsafe()).runs[id] || null; }
 export async function getAgentRuntimeMetrics() { const { runs, emergencyStop } = await listAgentRuns(200); const steps = runs.flatMap((run) => run.steps); const completedDurations = steps.filter((step) => step.startedAt && step.completedAt).map((step) => Date.parse(step.completedAt!) - Date.parse(step.startedAt!)); return { emergencyStop, totalRuns: runs.length, activeRuns: runs.filter((run) => ['planned', 'running', 'waiting_approval'].includes(run.status)).length, waitingApproval: runs.filter((run) => run.status === 'waiting_approval').length, completedRuns: runs.filter((run) => run.status === 'completed').length, failedRuns: runs.filter((run) => run.status === 'failed').length, rejectedRuns: runs.filter((run) => run.status === 'rejected').length, artifactCount: runs.reduce((sum, run) => sum + run.artifacts.length, 0), averageStepLatencyMs: completedDurations.length ? Math.round(completedDurations.reduce((a, b) => a + b, 0) / completedDurations.length) : 0, aiPlannedRuns: runs.filter((run) => run.planner === 'ai').length, fallbackPlannedRuns: runs.filter((run) => Boolean(run.plannerFallbackReason)).length };

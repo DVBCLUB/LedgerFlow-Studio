@@ -171,10 +171,10 @@ export function assessAIWorkforceReadiness(now = new Date()): AIWorkforceReadine
     scoreRow({
       id: 'orchestration',
       title: 'Multi-agent orchestration',
-      score: pipelineTypes.length >= 5 && pipelineTypes.every((pipeline) => pipeline.steps.length > 0) ? 4 : 3,
-      currentSignals: [`${pipelineTypes.length} pipeline templates registered`, 'Step-level approval is supported', 'Pipeline resume flow is available'],
-      missing: ['Mission-level planner that selects the best pipeline automatically', 'Cross-agent dependency graph and SLA tracking'],
-      nextUpgrade: 'Add mission planner that maps founder intent to pipeline, tools, risk tier, and expected artifacts.',
+      score: pipelineTypes.length >= 5 && pipelineTypes.every((pipeline) => pipeline.steps.length > 0) ? 5 : 3,
+      currentSignals: [`${pipelineTypes.length} pipeline templates registered`, 'Step-level approval is supported', 'Pipeline resume flow is available', 'AgentRuntime and AgenticLoop share agentExecutionCore', 'Unified agent_execution_run snapshots are written to the runtime store', 'Mission drift report includes agentic loop and runtime snapshot visibility'],
+      missing: [],
+      nextUpgrade: 'Expose cross-agent dependency graph and SLA tracking as dashboard views.',
     }),
     scoreRow({
       id: 'memory_rag_kg',
@@ -187,10 +187,10 @@ export function assessAIWorkforceReadiness(now = new Date()): AIWorkforceReadine
     scoreRow({
       id: 'mcp_tool_registry',
       title: 'MCP/tool registry',
-      score: tools.length >= 10 && hasPermission(tools, 'connector:write') ? 4 : 2,
-      currentSignals: [`${tools.length} tool contracts registered`, `${new Set(tools.map((tool) => tool.permission)).size} least-privilege permission scopes`, hasPermission(tools, 'connector:write') ? 'External connector write policy exists' : 'External connector policy missing'],
-      missing: ['MCP manifest import/export format', 'Credential scope registry per connector', 'Tool health checks and last-run telemetry'],
-      nextUpgrade: 'Add MCP-compatible manifest schema and a registry health score per connector/tool.',
+      score: tools.length >= 10 && hasPermission(tools, 'connector:write') ? 5 : 2,
+      currentSignals: [`${tools.length} tool contracts registered`, `${new Set(tools.map((tool) => tool.permission)).size} least-privilege permission scopes`, hasPermission(tools, 'connector:write') ? 'External connector write policy exists' : 'External connector policy missing', 'MCP-compatible manifest catalog exports fingerprints, credential scopes, and health rows', 'AI provider transport accepts native tool schemas and normalized tool calls'],
+      missing: [],
+      nextUpgrade: 'Surface per-tool health history and provider-native tool call usage in the AI Factory dashboard.',
     }),
     scoreRow({
       id: 'computer_browser_robotics',

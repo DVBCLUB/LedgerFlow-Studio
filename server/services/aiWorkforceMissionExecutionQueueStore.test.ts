@@ -12,6 +12,7 @@ import {
   createAndSaveMissionExecutionQueue,
   getMissionExecutionQueue,
   getMissionExecutionQueueStoreStats,
+  getMissionQueueRuntimeDriftReport,
   listMissionExecutionQueues,
   startStoredMissionExecutionStep,
 } from './aiWorkforceMissionExecutionQueueStore.ts';
@@ -75,6 +76,12 @@ test('persistent mission queue store saves, lists and resumes queues across step
   assert.equal(stats.total, 1);
   assert.ok(stats.storage.bytes > 0);
   assert.ok(stats.latestQueue?.id === queue.id);
+
+  const drift = await getMissionQueueRuntimeDriftReport();
+  assert.equal(typeof drift.checkedAgenticLoopRuns, 'number');
+  assert.equal(typeof drift.checkedRuntimeRunRecords, 'number');
+  assert.ok(Array.isArray(drift.agenticLoopRuns));
+  assert.ok(Array.isArray(drift.runtimeRunRecords));
 });
 
 test('persistent mission queue store can cancel resumable queues', async (t) => {

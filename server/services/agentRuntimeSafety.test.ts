@@ -7,15 +7,20 @@ import { advanceAgentRun, approveAgentRunStep, createAgentRun, setAgentRuntimeEm
 import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from './agentMemoryStore.ts';
 import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from './agentToolExecutionGate.ts';
 import { setRobotEmergencyStop, simulateRobotCommand } from './robotConnector.ts';
+import { clearAIWorkforceRuntimeStoreForTest, listAIWorkforceRuntimeRecords } from './aiWorkforceRuntimeStore.ts';
 
 test('agent runtime executes safe steps and waits for fingerprint-bound approval', async (t) => {
   const directory = await fs.promises.mkdtemp(path.join(os.tmpdir(), 'ledgerflow-agent-run-'));
   const previousRuntime = process.env.AGENT_RUNTIME_STORE_FILE;
+  const previousRuntimeRecords = process.env.AI_WORKFORCE_RUNTIME_STORE_FILE;
   const previousMemory = process.env.AGENT_MEMORY_STORE_FILE;
   process.env.AGENT_RUNTIME_STORE_FILE = path.join(directory, 'runtime.json');
+  process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = path.join(directory, 'runtime-records.json');
   process.env.AGENT_MEMORY_STORE_FILE = path.join(directory, 'memory.json');
+  await clearAIWorkforceRuntimeStoreForTest();
   t.after(async () => {
     if (previousRuntime === undefined) delete process.env.AGENT_RUNTIME_STORE_FILE; else process.env.AGENT_RUNTIME_STORE_FILE = previousRuntime;
+    if (previousRuntimeRecords === undefined) delete process.env.AI_WORKFORCE_RUNTIME_STORE_FILE; else process.env.AI_WORKFORCE_RUNTIME_STORE_FILE = previousRuntimeRecords;
     if (previousMemory === undefined) delete process.env.AGENT_MEMORY_STORE_FILE; else process.env.AGENT_MEMORY_STORE_FILE = previousMemory;
     await fs.promises.rm(directory, { recursive: true, force: true });
   });
@@ -32,6 +37,26 @@ test('agent runtime executes safe steps and waits for fingerprint-bound approval
   const approved = await approveAgentRunStep(created.id, { stepId: approvalStep.id, fingerprint: approvalStep.approvalFingerprint!, phrase: 'APPROVE AGENT STEP' });
   assert.equal(approved.status, 'completed');
   assert.equal(approved.artifacts.length, 3);
+
+  const runtimeRecords = await listAIWorkforceRuntimeRecords({ type: 'agent_execution_run' });
+  const record = runtimeRecords.find((item) => item.id === `agent_execution_run_${created.id}`);
+  assert.ok(record);
+  assert.deepEqual(
+    {
+      surface: (record.payload as any).surface,
+      event: (record.payload as any).event,
+      status: (record.payload as any).status,
+      stepCount: (record.payload as any).stepCount,
+      completedStepCount: (record.payload as any).completedStepCount,
+    },
+    {
+      surface: 'agent_runtime',
+      event: 'approved_step',
+      status: 'completed',
+      stepCount: 3,
+      completedStepCount: 3,
+    },
+  );
 });
 
 test('runtime emergency stop blocks new execution', async (t) => {

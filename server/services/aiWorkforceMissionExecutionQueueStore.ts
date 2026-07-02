@@ -11,6 +11,8 @@ import {
   stopAgentRun,
   type AgentRun,
 } from './agentRuntime.ts';
+import { listAgenticLoopRuns } from './agenticLoopEngine.ts';
+import { listAIWorkforceRuntimeRecords } from './aiWorkforceRuntimeStore.ts';
 import {
   approveMissionExecutionStep,
   cancelMissionExecutionQueue,
@@ -66,7 +68,11 @@ export interface MissionQueueRuntimeDriftIssue {
 export interface MissionQueueRuntimeDriftReport {
   generatedAt: string;
   checkedLinks: number;
+  checkedAgenticLoopRuns: number;
+  checkedRuntimeRunRecords: number;
   linkedQueues: number;
+  agenticLoopRuns: Array<{ runId: string; status: string; goal: string; createdAt: string; source: 'agentic_loop' }>;
+  runtimeRunRecords: Array<{ recordId: string; runId: string; status: string; goal: string; surface: string; updatedAt: string }>;
   issues: MissionQueueRuntimeDriftIssue[];
   repaired: string[];
 }
@@ -250,6 +256,27 @@ function compareQueueWithMirroredRun(
 export async function getMissionQueueRuntimeDriftReport(options: { autoRepair?: boolean; limit?: number } = {}): Promise<MissionQueueRuntimeDriftReport> {
   const state = await queueStore.read();
   const links = Object.values(state.queueLinks).slice(0, options.limit || Number.MAX_SAFE_INTEGER);
+  const agenticLoopRuns = listAgenticLoopRuns()
+    .slice(0, options.limit || Number.MAX_SAFE_INTEGER)
+    .map((run) => ({
+      runId: run.id,
+      status: run.status,
+      goal: run.goal,
+      createdAt: run.createdAt,
+      source: 'agentic_loop' as const,
+    }));
+  const runtimeRunRecords = (await listAIWorkforceRuntimeRecords({ type: 'agent_execution_run', limit: options.limit || 200 }))
+    .map((record) => {
+      const payload = record.payload && typeof record.payload === 'object' ? record.payload as Record<string, unknown> : {};
+      return {
+        recordId: record.id,
+        runId: typeof payload.runId === 'string' ? payload.runId : record.id,
+        status: typeof payload.status === 'string' ? payload.status : 'unknown',
+        goal: typeof payload.goal === 'string' ? payload.goal : '',
+        surface: typeof payload.surface === 'string' ? payload.surface : 'unknown',
+        updatedAt: typeof payload.updatedAt === 'string' ? payload.updatedAt : record.createdAt,
+      };
+    });
   const issues: MissionQueueRuntimeDriftIssue[] = [];
   const repairs: Record<string, MissionExecutionQueue> = {};
 
@@ -310,7 +337,11 @@ export async function getMissionQueueRuntimeDriftReport(options: { autoRepair?: 
   return {
     generatedAt: new Date().toISOString(),
     checkedLinks: links.length,
+    checkedAgenticLoopRuns: agenticLoopRuns.length,
+    checkedRuntimeRunRecords: runtimeRunRecords.length,
     linkedQueues: Object.keys(state.queueLinks).length,
+    agenticLoopRuns,
+    runtimeRunRecords,
     issues,
     repaired,
   };

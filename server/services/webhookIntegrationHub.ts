@@ -12,7 +12,7 @@ import { runAgenticLoop } from './agenticLoopEngine';
 import { appendAuditEvent } from './auditLog';
 import { searchCodebase } from './localSearchService';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type WebhookSource = 'github' | 'slack' | 'generic' | 'file_watcher';
@@ -49,55 +49,59 @@ export interface WebhookStats {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const EVENTS_FILE = path.join(process.cwd(), 'webhook_events.json');
-const RULES_FILE = path.join(process.cwd(), 'webhook_rules.json');
+const EVENTS_FILE = resolveRuntimePathFromEnv('WEBHOOK_EVENTS_FILE', 'webhook_events.json');
+const RULES_FILE = resolveRuntimePathFromEnv('WEBHOOK_RULES_FILE', 'webhook_rules.json');
 
 let events: WebhookEvent[] = [];
 let rules: WebhookRule[] = [];
 
-async function loadAll(): Promise<void> {
+function loadAllSync(): void {
   try {
-    if (fs.existsSync(EVENTS_FILE)) events = JSON.parse(await fs.promises.readFile(EVENTS_FILE, 'utf8'));
-    if (fs.existsSync(RULES_FILE)) rules = JSON.parse(await fs.promises.readFile(RULES_FILE, 'utf8'));
+    const eventsFile = resolveRuntimeReadPathFromEnv('WEBHOOK_EVENTS_FILE', 'webhook_events.json');
+    const rulesFile = resolveRuntimeReadPathFromEnv('WEBHOOK_RULES_FILE', 'webhook_rules.json');
+    if (fs.existsSync(eventsFile)) events = JSON.parse(fs.readFileSync(eventsFile, 'utf8'));
+    if (fs.existsSync(rulesFile)) rules = JSON.parse(fs.readFileSync(rulesFile, 'utf8'));
   } catch { }
 }
-loadAll().catch(() => undefined);
+loadAllSync();
 
 async function saveEvents(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(EVENTS_FILE, JSON.stringify(events.slice(-200), null, 2), 'utf8');
 }
 async function saveRules(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8');
 }
 
 // ─── Default Rules ──────────────────────────────────────────────────
 function ensureDefaults(): void {
   if (rules.length > 0) return;
-  const now = new Date().toISOString();
+  const createdAt = '2026-01-01T00:00:00.000Z';
   rules.push(
     {
-      id: `rule_${Date.now()}_01`, name: 'GitHub PR Review', source: 'github',
+      id: 'rule_default_github_pr_review', name: 'GitHub PR Review', source: 'github',
       eventFilter: 'pull_request',
       conditions: { action: 'opened' },
       action: 'run_agent_loop',
       goalTemplate: 'Review pull request #{{number}}: {{pull_request.title}}. Repository: {{repository.full_name}}',
-      enabled: true, createdAt: now,
+      enabled: true, createdAt,
     },
     {
-      id: `rule_${Date.now()}_02`, name: 'GitHub Push - Security Audit', source: 'github',
+      id: 'rule_default_github_push_security_audit', name: 'GitHub Push - Security Audit', source: 'github',
       eventFilter: 'push',
       conditions: {},
       action: 'dispatch_fabric',
       goalTemplate: 'Security audit the latest changes pushed to {{repository.full_name}} on branch {{ref}}',
-      enabled: false, createdAt: now,
+      enabled: false, createdAt,
     },
     {
-      id: `rule_${Date.now()}_03`, name: 'Slack AI Query', source: 'slack',
+      id: 'rule_default_slack_ai_query', name: 'Slack AI Query', source: 'slack',
       eventFilter: 'slash_command',
       conditions: { command: '/ai' },
       action: 'dispatch_fabric',
       goalTemplate: '{{text}}',
-      enabled: true, createdAt: now,
+      enabled: true, createdAt,
     },
   );
   saveRules().catch(() => undefined);

@@ -5,40 +5,27 @@
  * Biến Control Plane từ "chạy một lần" thành "agent tự suy nghĩ,
  * thực thi, quan sát và điều chỉnh" với giới hạn an toàn.
  */
-import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric, type FabricRun } from './aiFabric';
-import { appendAuditEvent } from './auditLog';
-import { recordObservation } from './compoundMemory';
-import { createSandboxSession, executeInSandbox, completeSandboxSession, autoTestAndRepair, type SandboxResult } from './sandboxCodeExecutor';
-import { recordUsage } from './costObservability';
-import { upsertNode, addEdge } from './knowledgeGraph';
-import type { ChatMessage } from './aiClient';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { appendAuditEvent } from './auditLog.ts';
+import { createSandboxSession, completeSandboxSession } from './sandboxCodeExecutor.ts';
+import { recordUsage } from './costObservability.ts';
+import { upsertNode, addEdge } from './knowledgeGraph.ts';
+import type { ChatMessage } from './aiClient.ts';
+import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
+import {
+  attemptRepair,
+  executeLoopStep,
+  runSandboxVerification,
+  type AgentExecutionLoopRun,
+  type AgentExecutionLoopStep,
+} from './agentExecutionCore.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type LoopStatus = 'planning' | 'executing' | 'observing' | 'replanning' | 'completed' | 'failed' | 'stopped';
 
-export interface AgenticLoopStep {
-  id: string;
-  index: number;
-  phase: LoopStatus;
-  goal: string;
-  plan: string;
-  result?: FabricRun;
-  observation: {
-    success: boolean;
-    summary: string;
-    error?: string;
-    evidence?: Record<string, unknown>;
-    filesChanged?: string[];
-    testsPassed?: boolean;
-  };
-  repairAttempts: number;
-  startedAt: string;
-  completedAt?: string;
-  durationMs: number;
-}
+export type AgenticLoopStep = AgentExecutionLoopStep;
 
-export interface AgenticLoopRun {
+export interface AgenticLoopRun extends AgentExecutionLoopRun {
   id: string;
   goal: string;
   domain: string;
@@ -75,6 +62,33 @@ export interface AgenticLoopOptions {
 const activeRuns = new Map<string, AgenticLoopRun>();
 const stoppedRuns = new Set<string>();
 
+function recordAgenticLoopSnapshot(run: AgenticLoopRun, event: string) {
+  return appendAIWorkforceRuntimeRecord({
+    id: `agent_execution_run_${run.id}`,
+    type: 'agent_execution_run',
+    createdAt: run.updatedAt,
+    payload: {
+      surface: 'agentic_loop',
+      event,
+      runId: run.id,
+      status: run.status,
+      goal: run.goal,
+      domain: run.domain,
+      createdAt: run.createdAt,
+      updatedAt: run.updatedAt,
+      completedAt: run.completedAt,
+      stepCount: run.steps.length,
+      completedStepCount: run.steps.filter((step) => step.status === 'completed').length,
+      failedStepCount: run.steps.filter((step) => step.status === 'failed').length,
+      maxLoops: run.maxLoops,
+      maxRepairAttempts: run.maxRepairAttempts,
+      autoRepair: run.autoRepair,
+      totalDurationMs: run.totalDurationMs,
+      summary: run.summary,
+    },
+  }).catch(() => undefined);
+}
+
 // ─── Core Loop ──────────────────────────────────────────────────────
 
 export async function runAgenticLoop(options: AgenticLoopOptions): Promise<AgenticLoopRun> {
@@ -102,6 +116,7 @@ export async function runAgenticLoop(options: AgenticLoopOptions): Promise<Agent
   };
 
   activeRuns.set(runId, run);
+  await recordAgenticLoopSnapshot(run, 'started');
 
   await appendAuditEvent({
     actor: 'system',
@@ -141,7 +156,7 @@ export async function runAgenticLoop(options: AgenticLoopOptions): Promise<Agent
 
       // Run sandbox test after each step if enabled
       if (sandboxId && options.testCommand) {
-        const testResult = await runSandboxVerification(sandboxId, options.testCommand, step);
+        const testResult = await runSandboxVerification(sandboxId, options.testCommand);
         step.observation.evidence = {
           ...(step.observation.evidence || {}),
           sandboxTest: testResult.ok,
@@ -221,6 +236,8 @@ export async function runAgenticLoop(options: AgenticLoopOptions): Promise<Agent
     const domainNode = upsertNode('memory', `domain_${run.domain}`, run.domain, {}, 1);
     addEdge(loopNode.id, domainNode.id, 'belongs_to', 1);
   } catch { /* non-critical */ }
+
+  await recordAgenticLoopSnapshot(run, 'completed');
   }
 
   return run;
@@ -283,184 +300,6 @@ Ví dụ cho coding task:
 
 // ─── Step execution ─────────────────────────────────────────────────
 
-async function executeLoopStep(
-  run: AgenticLoopRun,
-  stepGoal: string,
-  index: number,
-  options: AgenticLoopOptions
-): Promise<AgenticLoopStep> {
-  const step: AgenticLoopStep = {
-    id: randomUUID(),
-    index,
-    phase: 'executing',
-    goal: stepGoal,
-    plan: run.plan.join(' → '),
-    observation: { success: false, summary: '' },
-    repairAttempts: 0,
-    startedAt: new Date().toISOString(),
-    durationMs: 0,
-  };
-
-  const stepStart = Date.now();
-
-  try {
-    // Dispatch qua AI Fabric — tự động fallback API→Web→Local
-    const result = await dispatchTextThroughFabric(
-      `Bước ${index + 1}/${run.plan.length}: ${stepGoal}\n\nMục tiêu tổng thể: ${run.goal}`,
-      undefined,
-      {
-        domain: run.domain as any,
-        task: run.domain,
-        webPlatform: options.webPlatform,
-        profileId: options.profileId,
-        localFallback: true,
-        filePath: options.filePaths?.[0],
-      }
-    );
-
-    step.result = result;
-    step.durationMs = Date.now() - stepStart;
-    step.completedAt = new Date().toISOString();
-
-    if (result.status === 'completed') {
-      step.observation = {
-        success: true,
-        summary: result.winner?.contentPreview?.slice(0, 300) || 'Step completed.',
-        evidence: {
-          modelUsed: result.modelUsed,
-          route: result.winner?.route,
-          steps: result.steps.length,
-          latencyMs: result.totalLatencyMs,
-        },
-      };
-
-      // Ghi observation vào compound memory
-      recordObservation(
-        run.domain,
-        `Step ${index + 1}: ${stepGoal.slice(0, 80)}`,
-        step.observation.summary,
-        0.75,
-        `agentic-loop:${run.id}:step:${index}`,
-        true,
-      ).catch(() => undefined);
-    } else {
-      step.observation = {
-        success: false,
-        summary: 'AI Fabric failed to complete this step.',
-        error: `All routes exhausted. Steps: ${result.steps.map(s => `${s.route}=${s.status}`).join(', ')}`,
-      };
-
-      // Ghi failure vào memory
-      recordObservation(
-        run.domain,
-        `FAILED Step ${index + 1}: ${stepGoal.slice(0, 80)}`,
-        step.observation.error || 'Fabric exhausted',
-        0.3,
-        `agentic-loop:${run.id}:step:${index}`,
-        false,
-      ).catch(() => undefined);
-    }
-  } catch (err: any) {
-    step.durationMs = Date.now() - stepStart;
-    step.completedAt = new Date().toISOString();
-    step.observation = {
-      success: false,
-      summary: 'Step execution threw an exception.',
-      error: err.message?.slice(0, 300),
-    };
-
-    recordObservation(
-      run.domain,
-      `CRASH Step ${index + 1}`,
-      err.message?.slice(0, 300) || 'Unknown',
-      0.1,
-      `agentic-loop:${run.id}:step:${index}`,
-      false,
-    ).catch(() => undefined);
-  }
-
-  run.steps.push(step);
-  run.updatedAt = new Date().toISOString();
-  return step;
-}
-
-// ─── Sandbox verification ─────────────────────────────────────────
-
-async function runSandboxVerification(
-  sandboxId: string,
-  testCommand: string,
-  step: AgenticLoopStep,
-): Promise<SandboxResult> {
-  return executeInSandbox(sandboxId, testCommand).catch(err => ({
-    ok: false, exitCode: -1, stdout: '', stderr: err.message,
-    durationMs: 0, command: testCommand, mode: 'local',
-  }));
-}
-
-// ─── Auto-repair ────────────────────────────────────────────────────
-
-async function attemptRepair(
-  run: AgenticLoopRun,
-  failedStep: AgenticLoopStep,
-  options: AgenticLoopOptions,
-  sandboxId?: string,
-): Promise<boolean> {
-  const attempt = failedStep.repairAttempts + 1;
-  failedStep.repairAttempts = attempt;
-  failedStep.phase = 'replanning';
-
-  const sandboxError = failedStep.observation.evidence?.sandboxOutput as string || '';
-  const repairGoal = `SỬA LỖI (lần ${attempt}/${run.maxRepairAttempts}): ${failedStep.goal}\n\nLỖI: ${failedStep.observation.error || 'Không rõ lỗi'}\n${sandboxError ? 'SANDBOX OUTPUT:\n' + sandboxError : ''}\n\nHãy đề xuất cách sửa cụ thể.`;
-
-  try {
-    const result = await dispatchTextThroughFabric(
-      repairGoal,
-      undefined,
-      { domain: run.domain as any, task: 'coding', localFallback: true }
-    );
-
-    if (result.status === 'completed') {
-      // Run sandbox test again to verify repair
-      let testsPassed = false;
-      let sandboxExitCode = -1;
-      if (sandboxId && options.testCommand) {
-        const testResult = await runSandboxVerification(sandboxId, options.testCommand, failedStep);
-        testsPassed = testResult.ok;
-        sandboxExitCode = testResult.exitCode;
-      }
-
-      failedStep.observation = {
-        success: true,
-        summary: `Đã sửa sau ${attempt} lần thử: ${result.winner?.contentPreview?.slice(0, 200)}`,
-        evidence: {
-          modelUsed: result.modelUsed,
-          repairAttempt: attempt,
-          sandboxTest: testsPassed,
-          sandboxExitCode,
-        },
-        testsPassed,
-      };
-
-      recordObservation(
-        run.domain,
-        `REPAIRED Step: ${failedStep.goal.slice(0, 80)}`,
-        `Đã sửa trong ${attempt} lần thử. Test: ${testsPassed ? 'PASS' : 'FAIL'}`,
-        testsPassed ? 0.7 : 0.4,
-        `agentic-loop:${run.id}:repair`,
-        testsPassed,
-      ).catch(() => undefined);
-
-      return true;
-    }
-
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-// ─── Stop / Query ───────────────────────────────────────────────────
-
 export function stopAgenticLoop(runId: string, reason?: string): boolean {
   const run = activeRuns.get(runId);
   if (!run) return false;
@@ -469,6 +308,7 @@ export function stopAgenticLoop(runId: string, reason?: string): boolean {
   run.updatedAt = new Date().toISOString();
   run.completedAt = run.updatedAt;
   run.summary = `Stopped by user: ${reason || 'manual stop'}`;
+  recordAgenticLoopSnapshot(run, 'stopped').catch(() => undefined);
   return true;
 }
 

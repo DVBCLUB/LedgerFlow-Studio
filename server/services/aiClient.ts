@@ -25,6 +25,18 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface ToolSpec {
+  name: string;
+  description: string;
+  parameters: Record<string, unknown>;
+}
+
+export interface NormalizedToolCall {
+  id: string;
+  name: string;
+  args: Record<string, unknown>;
+}
+
 export interface CallAIOptions {
   /** "ai-assistant" (default rotation) or "ai-assistant-pro" */
   model?: "ai-assistant" | "ai-assistant-pro";
@@ -35,6 +47,8 @@ export interface CallAIOptions {
   strictPreferred?: boolean;
   temperature?: number;
   maxTokens?: number;
+  tools?: ToolSpec[];
+  toolChoice?: "auto" | "required" | { name: string };
 }
 
 export interface CallAIResult {
@@ -47,6 +61,7 @@ export interface CallAIResult {
   provider?: string;
   model?: string;
   usage?: unknown;
+  toolCalls?: NormalizedToolCall[];
   raw: unknown;
 }
 

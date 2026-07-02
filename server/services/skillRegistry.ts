@@ -8,7 +8,7 @@
 import { randomUUID } from 'node:crypto';
 import { searchMemory } from './compoundMemory';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type SkillStatus = 'draft' | 'published' | 'deprecated';
@@ -43,15 +43,19 @@ export interface SkillRecommendation {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const FILE = path.join(process.cwd(), 'skill_registry.json');
+const FILE = resolveRuntimePathFromEnv('SKILL_REGISTRY_FILE', 'skill_registry.json');
 let skills: SkillDefinition[] = [];
 
-async function load(): Promise<void> {
-  try { if (fs.existsSync(FILE)) skills = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { }
+function loadSync(): void {
+  try {
+    const file = resolveRuntimeReadPathFromEnv('SKILL_REGISTRY_FILE', 'skill_registry.json');
+    if (fs.existsSync(file)) skills = JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch { }
 }
-load().catch(() => undefined);
+loadSync();
 
 async function save(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(FILE, JSON.stringify(skills, null, 2), 'utf8');
 }
 
@@ -102,10 +106,8 @@ const DEFAULT_SKILLS: Omit<SkillDefinition, 'id' | 'createdAt' | 'updatedAt'>[] 
 // ─── Init defaults ──────────────────────────────────────────────────
 function ensureDefaults(): void {
   if (skills.length > 0) return;
-  for (const s of DEFAULT_SKILLS) {
-    const now = new Date().toISOString();
-    skills.push({ ...s, id: `skill_${Date.now()}_${randomUUID().slice(0, 6)}`, createdAt: now, updatedAt: now });
-  }
+  const createdAt = '2026-01-01T00:00:00.000Z';
+  for (const s of DEFAULT_SKILLS) skills.push({ ...s, id: `skill_default_${s.name.replace(/[^a-z0-9]+/gi, '_').toLowerCase()}`, createdAt, updatedAt: createdAt });
   save().catch(() => undefined);
 }
 ensureDefaults();

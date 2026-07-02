@@ -10,11 +10,13 @@
  */
 import { randomUUID } from 'node:crypto';
 import { dispatchTextThroughFabric } from './aiFabric';
+import { callAIWithFallback } from './aiRouter';
 import { appendAuditEvent } from './auditLog';
 import { recordUsage } from './costObservability';
 import { searchCodebase } from './localSearchService';
 import { searchMemory } from './compoundMemory';
 import { searchKnowledgeGraph } from './knowledgeGraph';
+import type { NormalizedToolCall, ToolSpec } from './aiClient';
 import fs from 'fs';
 import path from 'path';
 
@@ -178,6 +180,104 @@ function registerDefaultTools(): void {
 let initialized = false;
 function ensureInit(): void { if (!initialized) { registerDefaultTools(); initialized = true; } }
 
+function toolDefinitionToSpec(tool: ToolDefinition): ToolSpec {
+  const entries = Object.entries(tool.parameters);
+  return {
+    name: tool.name,
+    description: tool.description,
+    parameters: {
+      type: 'object',
+      properties: Object.fromEntries(entries.map(([name, param]) => [name, {
+        type: param.type,
+        description: param.description,
+      }])),
+      required: entries.filter(([, param]) => param.required).map(([name]) => name),
+      additionalProperties: false,
+    },
+  };
+}
+
+function normalizeToolParams(args: Record<string, unknown>): Record<string, string> {
+  return Object.fromEntries(Object.entries(args).map(([key, value]) => [
+    key,
+    typeof value === 'string' ? value : JSON.stringify(value),
+  ]));
+}
+
+function parseLegacyToolCall(responseText: string): { toolCall?: NormalizedToolCall; answer?: string } {
+  const toolCallMatch = responseText.match(/TOOL:\s*(\w+)\s*\nARGS:\s*(\{[\s\S]*?\})/i);
+  const doneMatch = responseText.match(/ANSWER:\s*([\s\S]*)/i);
+
+  if (!toolCallMatch) return { answer: doneMatch?.[1]?.trim() };
+
+  let args: Record<string, unknown> = {};
+  try {
+    args = JSON.parse(toolCallMatch[2]);
+  } catch {
+    const kvPairs = toolCallMatch[2].replace(/[{}]/g, '').split(',').map(s => s.trim());
+    for (const kv of kvPairs) {
+      const [k, ...v] = kv.split('=');
+      if (k) args[k.trim()] = v.join('=').trim().replace(/^['"]|['"]$/g, '');
+    }
+  }
+
+  return {
+    toolCall: {
+      id: `legacy_${Date.now()}_${randomUUID().slice(0, 4)}`,
+      name: toolCallMatch[1].trim(),
+      args,
+    },
+    answer: doneMatch?.[1]?.trim(),
+  };
+}
+
+async function selectToolOrAnswer(input: {
+  currentContext: string;
+  toolNames: string[];
+  session: ToolUseSession;
+  domain: string;
+}): Promise<{ toolCall?: NormalizedToolCall; answer?: string; responseText: string; native: boolean }> {
+  const tools = input.toolNames
+    .map((name) => toolRegistry.get(name))
+    .filter((tool): tool is ToolDefinition => Boolean(tool))
+    .map(toolDefinitionToSpec);
+
+  const messages = [
+    {
+      role: 'system' as const,
+      content: 'You are a tool-using LedgerFlow agent. Use a provided tool when evidence is needed. If no tool is needed, answer directly and clearly.',
+    },
+    {
+      role: 'user' as const,
+      content: `TASK: ${input.session.task}\n\nCONTEXT:\n${input.currentContext.slice(-3000)}\n\nDecide whether to call one available tool or provide the final answer.`,
+    },
+  ];
+
+  try {
+    const result = await callAIWithFallback(messages, {
+      task: input.domain as any,
+      tools,
+      toolChoice: 'auto',
+      temperature: 0.1,
+      maxTokens: 1_000,
+    });
+    const responseText = result.content || '';
+    const nativeToolCall = result.toolCalls?.find((call) => input.toolNames.includes(call.name));
+    if (nativeToolCall) return { toolCall: nativeToolCall, responseText, native: true };
+    const fallback = parseLegacyToolCall(responseText);
+    return { ...fallback, responseText, native: false };
+  } catch {
+    const toolSelectionPrompt = buildToolSelectionPrompt(input.currentContext, input.toolNames, input.session);
+    const selection = await dispatchTextThroughFabric(
+      toolSelectionPrompt, undefined,
+      { domain: input.domain as any, localFallback: true }
+    );
+    const responseText = selection.winner?.contentPreview || '';
+    const fallback = parseLegacyToolCall(responseText);
+    return { ...fallback, responseText, native: false };
+  }
+}
+
 // ─── Core API ───────────────────────────────────────────────────────
 
 export function getToolDefinitions(): ToolDefinition[] {
@@ -217,41 +317,22 @@ export async function executeWithTools(
     while (toolCallCount < maxToolCalls) {
       session.status = 'thinking';
 
-      // Ask AI: do you need a tool, or is the answer ready?
-      const toolSelectionPrompt = buildToolSelectionPrompt(currentContext, toolNames, session);
+      const selection = await selectToolOrAnswer({
+        currentContext,
+        toolNames,
+        session,
+        domain: options.domain || 'general',
+      });
 
-      const selection = await dispatchTextThroughFabric(
-        toolSelectionPrompt, undefined,
-        { domain: (options.domain || 'general') as any, localFallback: true }
-      );
-
-      const responseText = selection.winner?.contentPreview || '';
-
-      // Check if AI wants to use a tool
-      const toolCallMatch = responseText.match(/TOOL:\s*(\w+)\s*\nARGS:\s*(\{[\s\S]*?\})/i);
-      const doneMatch = responseText.match(/ANSWER:\s*([\s\S]*)/i);
-
-      if (doneMatch && !toolCallMatch) {
-        session.finalAnswer = doneMatch[1].trim();
+      if (selection.answer && !selection.toolCall) {
+        session.finalAnswer = selection.answer;
         session.log.push(`Agent finished. Answer: ${session.finalAnswer.slice(0, 100)}...`);
         break;
       }
 
-      if (toolCallMatch) {
-        const toolName = toolCallMatch[1].trim();
-        let params: Record<string, string> = {};
-
-        try {
-          params = JSON.parse(toolCallMatch[2]);
-        } catch {
-          // Try key=value parsing
-          const kvPairs = toolCallMatch[2].replace(/[{}]/g, '').split(',').map(s => s.trim());
-          for (const kv of kvPairs) {
-            const [k, ...v] = kv.split('=');
-            if (k) params[k.trim()] = v.join('=').trim().replace(/^['"]|['"]$/g, '');
-          }
-        }
-
+      if (selection.toolCall) {
+        const toolName = selection.toolCall.name;
+        const params = normalizeToolParams(selection.toolCall.args);
         const tool = toolRegistry.get(toolName);
         if (!tool) {
           currentContext += `\n\n[Tool "${toolName}" not found. Available: ${toolNames.join(', ')}]`;
@@ -269,7 +350,7 @@ export async function executeWithTools(
         // Execute tool
         session.status = 'calling_tool';
         const tcStart = Date.now();
-        session.log.push(`Calling tool: ${toolName}(${JSON.stringify(params).slice(0, 80)})`);
+        session.log.push(`Calling ${selection.native ? 'native ' : ''}tool: ${toolName}(${JSON.stringify(params).slice(0, 80)})`);
 
         try {
           const result = await tool.execute(params);
@@ -296,8 +377,13 @@ export async function executeWithTools(
           toolCallCount++;
         }
       } else {
-        // No clear tool call or answer - ask again
-        currentContext += `\n\n[Please respond with TOOL: or ANSWER: format]`;
+        const directAnswer = selection.responseText.trim();
+        if (directAnswer) {
+          session.finalAnswer = directAnswer.replace(/^ANSWER:\s*/i, '').trim();
+          session.log.push(`Agent finished without tool call. Answer: ${session.finalAnswer.slice(0, 100)}...`);
+          break;
+        }
+        currentContext += `\n\n[Please respond with a direct answer or call one available tool.]`;
         toolCallCount++;
       }
     }

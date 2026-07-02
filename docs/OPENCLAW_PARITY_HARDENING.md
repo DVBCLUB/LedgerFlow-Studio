@@ -2,7 +2,7 @@
 
 Nhanh nay tang cuong LedgerFlow AI Workforce theo mo hinh tro ly tu hanh local kieu OpenClaw, dong thoi van giu safety rules uu tien founder.
 
-## 1. Dong bo tool schema
+## 1. Tool schema sync
 
 `npm run ai:patch-daemon-tools` patch `server/assistant-daemon.ts` de mission creation validate `requestedTools` theo source of truth chung `AGENT_TOOL_IDS`. `npm run check:agent-tool-ids` hien xem daemon schema drift la loi chan (blocking error).
 

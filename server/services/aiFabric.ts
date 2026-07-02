@@ -7,13 +7,13 @@
  * Quy tắc ưu tiên: API trước → Web sau → Local cuối
  * Mỗi bước dispatch đều ghi audit log để truy vết.
  */
-import { callAIWithFallback, type AIRouterDiagnostics } from "./aiRouter";
-import { executeWebAIAutomation, profileStatusForWebAIError, WebAIError } from "./webAiAutomator";
-import { WebAiSessionManager, type WebAIProfile } from "./webAiSessionManager";
-import { WebAiTaskRouter, type TaskDomain } from "./webAiTaskRouter";
-import { appendAuditEvent } from "./auditLog";
-import { recordUsage } from "./costObservability";
-import type { ChatMessage } from "./aiClient";
+import { callAIWithFallback, type AIRouterDiagnostics } from "./aiRouter.ts";
+import { executeWebAIAutomation, profileStatusForWebAIError, WebAIError } from "./webAiAutomator.ts";
+import { WebAiSessionManager, type WebAIProfile } from "./webAiSessionManager.ts";
+import { WebAiTaskRouter, type TaskDomain } from "./webAiTaskRouter.ts";
+import { appendAuditEvent } from "./auditLog.ts";
+import { recordUsage } from "./costObservability.ts";
+import type { ChatMessage } from "./aiClient.ts";
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type FabricRoute = "api" | "web" | "local" | "bypass";
@@ -361,7 +361,7 @@ export async function checkFabricHealth(): Promise<{
 // Deferred import to avoid circular dependency
 async function getEnabledAIKeyEntriesWrapper(): Promise<Array<{ id: string }>> {
   try {
-    const { getEnabledAIKeyEntries } = await import("./aiKeyVault");
+    const { getEnabledAIKeyEntries } = await import("./aiKeyVault.ts");
     return await getEnabledAIKeyEntries();
   } catch {
     return [];
