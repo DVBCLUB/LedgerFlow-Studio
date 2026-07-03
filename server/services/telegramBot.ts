@@ -40,6 +40,8 @@ import {
 import path from "path";
 import fs from "fs";
 import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands";
+import { subscribe } from "./agentEventBus.ts";
+import { getAgentRun, approveAgentRunStep, rejectAgentRunStep } from "./agentRuntime.ts";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -92,6 +94,60 @@ const MAX_MESSAGE_LENGTH = 4000; // Telegram max is 4096
 
 export function createTelegramHandler(ctx: TelegramHandlerContext) {
   return async (update: TelegramUpdate): Promise<void> => {
+    // 1. Process Callback Queries (Approve/Reject from Telegram inline buttons)
+    if (update.callback_query) {
+      const cb = update.callback_query;
+      const data = cb.data ?? "";
+      const chatId = cb.message?.chat.id ?? 0;
+      const userId = cb.from.id;
+
+      // Whitelist check
+      if (ALLOWED_CHAT_IDS.length > 0 && !ALLOWED_CHAT_IDS.includes(userId)) {
+        await sendMessage(chatId, "⛔ Unauthorized. You cannot approve or reject steps.");
+        return;
+      }
+
+      if (data.startsWith("approve_step:") || data.startsWith("reject_step:")) {
+        const parts = data.split(":");
+        const action = parts[0];
+        const runId = parts[1];
+        const stepId = parts[2];
+        const fingerprint = parts[3];
+
+        try {
+          if (action === "approve_step") {
+            const run = await getAgentRun(runId);
+            const step = run?.steps.find(s => s.id === stepId);
+            const signature = step?.approvalSignature || "";
+            await approveAgentRunStep(runId, {
+              stepId,
+              fingerprint,
+              signature,
+              phrase: "APPROVE AGENT STEP"
+            });
+            await sendMessage(chatId, `✅ *Đã duyệt thành công* bước \`${step?.toolId || 'step'}\` cho Mission \`${runId}\`.`);
+          } else {
+            await rejectAgentRunStep(runId, {
+              stepId,
+              fingerprint,
+              reason: "Founder từ chối qua Telegram."
+            });
+            await sendMessage(chatId, `❌ *Đã từ chối* bước chạy cho Mission \`${runId}\`.`);
+          }
+        } catch (err: any) {
+          await sendMessage(chatId, `❌ *Lỗi thực thi phê duyệt:* ${err.message}`);
+        }
+      }
+
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ callback_query_id: cb.id })
+      }).catch(() => undefined);
+      return;
+    }
+
+    // 2. Process Standard text messages
     const message = update.message;
     if (!message?.text) return;
 
@@ -550,3 +606,52 @@ async function getUpdates(offset: number, timeout = 30): Promise<TelegramUpdate[
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+// ---------------------------------------------------------------------------
+// Telegram Notification & Event Subscriptions
+// ---------------------------------------------------------------------------
+
+export async function sendTelegramNotification(
+  text: string,
+  replyMarkup?: Record<string, unknown>
+): Promise<void> {
+  if (ALLOWED_CHAT_IDS.length === 0) return;
+  for (const chatId of ALLOWED_CHAT_IDS) {
+    try {
+      await sendMessage(chatId, text, replyMarkup);
+    } catch (err) {
+      console.error("[Telegram Notification Error]", err);
+    }
+  }
+}
+
+// Subscribe to approval requested events
+subscribe("agent.step.approval_required" as any, async (event) => {
+  const { runId, stepId, toolId, fingerprint } = event.payload as { runId: string; stepId: string; toolId: string; fingerprint: string };
+  try {
+    const run = await getAgentRun(runId);
+    const step = run?.steps.find(s => s.id === stepId);
+    if (!run || !step) return;
+
+    await sendTelegramNotification(
+      `⚠️ *YÊU CẦU PHÊ DUYỆT BƯỚC CHẠY AGENT*\n\n` +
+      `🧭 *Goal:* ${run.goal}\n` +
+      `🛠️ *Công cụ:* \`${toolId}\` (Rủi ro: \`${step.risk}\`)\n` +
+      `📝 *Nội dung:* ${step.title}\n` +
+      `🔑 *Fingerprint:* \`${fingerprint}\`\n\n` +
+      `Founder vui lòng duyệt nhanh bằng cách bấm nút bên dưới:`,
+      {
+        reply_markup: {
+          inline_keyboard: [
+            [
+              { text: "Duyệt chạy ✅", callback_data: `approve_step:${runId}:${stepId}:${fingerprint}` },
+              { text: "Từ chối ❌", callback_data: `reject_step:${runId}:${stepId}:${fingerprint}` }
+            ]
+          ]
+        }
+      }
+    );
+  } catch (err) {
+    console.error("[Telegram Approval Sub Error]", err);
+  }
+});

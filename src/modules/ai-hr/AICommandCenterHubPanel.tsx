@@ -55,8 +55,8 @@ function MiniList({ items, emptyText, render }: { items: any[]; emptyText: strin
 
 export default function AICommandCenterHubPanel() {
   const [data, setData] = useState<HubData>(empty);
-  const [query, setQuery] = useState('LedgerFlow AI operations');
-  const [goal, setGoal] = useState('Review LedgerFlow AI desktop integration and suggest the next safe action.');
+  const [query, setQuery] = useState('LedgerFlow đội ngũ AI');
+  const [goal, setGoal] = useState('Rà soát tích hợp AI của LedgerFlow và đề xuất hành động an toàn tiếp theo.');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -85,9 +85,9 @@ export default function AICommandCenterHubPanel() {
         controlPlane: control.status === 'fulfilled' ? control.value : null,
       });
       const failed = results.filter((r) => r.status === 'rejected').length;
-      setMessage(failed ? `Đã tải AI Command Center, nhưng ${failed} nguồn dữ liệu chưa phản hồi.` : 'Đã tải AI Command Center.');
+      setMessage(failed ? `Đã tải Đội ngũ AI, nhưng ${failed} nguồn dữ liệu chưa phản hồi.` : 'Đã tải Đội ngũ AI.');
     } catch (err: any) {
-      setError(err?.message || 'Không tải được AI Command Center.');
+      setError(err?.message || 'Không tải được Đội ngũ AI.');
     } finally { setLoading(false); }
   };
 
@@ -105,8 +105,8 @@ export default function AICommandCenterHubPanel() {
   const setEmergencyStop = async (active: boolean) => {
     setLoading(true); setError(''); setMessage('');
     try {
-      await daemonFetch<any>('/api/agent-runtime/emergency-stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active, reason: active ? 'Founder enabled stop from AI Command Center' : 'Founder released stop from AI Command Center' }) }, 10000);
-      setMessage(active ? 'Đã bật AI emergency stop.' : 'Đã tắt AI emergency stop.');
+      await daemonFetch<any>('/api/agent-runtime/emergency-stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active, reason: active ? 'Founder enabled stop from AI workforce' : 'Founder released stop from AI workforce' }) }, 10000);
+      setMessage(active ? 'Đã bật dừng khẩn cấp AI.' : 'Đã tắt dừng khẩn cấp AI.');
       await load(query);
     } catch (err: any) { setError(err?.message || 'Không đổi được AI emergency stop.'); }
     finally { setLoading(false); }
@@ -123,68 +123,68 @@ export default function AICommandCenterHubPanel() {
     <section className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/30 p-5 shadow-2xl shadow-slate-950/30">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Brain className="mr-2 inline h-4 w-4" />AI Command Center</p>
-          <h2 className="mt-2 text-2xl font-black text-white">Agents, runtime, roles, memory and control plane</h2>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Một màn chỉ huy AI gọn: xem agent đang chạy, vai trò, memory liên quan, AI Fabric và Control Plane. Emergency stop luôn hiện rõ.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Brain className="mr-2 inline h-4 w-4" />Đội ngũ AI</p>
+          <h2 className="mt-2 text-2xl font-black text-white">Nhân sự AI, nhiệm vụ, tri thức và an toàn</h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp. Dừng khẩn cấp luôn hiện rõ.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300">{rawOpen ? 'Ẩn raw' : 'Raw JSON'}</button>
-          <button onClick={() => void load(query)} disabled={loading} className="rounded-2xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Refresh'}</button>
+          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300">{rawOpen ? 'Ẩn dữ liệu thô' : 'Dữ liệu thô'}</button>
+          <button onClick={() => void load(query)} disabled={loading} className="rounded-2xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Làm mới'}</button>
         </div>
       </div>
       <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_auto]">
         <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm memory/context cho AI..." className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-bold text-white outline-none focus:border-cyan-400" />
-        <button onClick={() => void load(query)} disabled={loading} className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 px-4 py-2 text-xs font-black text-cyan-100"><Search className="mr-2 inline h-4 w-4" />Search memory</button>
+        <button onClick={() => void load(query)} disabled={loading} className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 px-4 py-2 text-xs font-black text-cyan-100"><Search className="mr-2 inline h-4 w-4" />Tìm tri thức</button>
       </div>
       {message && <p className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100">{message}</p>}
       {error && <p className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-200">{error}</p>}
     </section>
 
     <section className="grid gap-3 md:grid-cols-5">
-      <Stat label="Emergency" value={emergency ? 'STOP' : 'Clear'} hint="agent runtime" tone={emergency ? 'rose' : 'green'} />
-      <Stat label="Active runs" value={activeRuns} hint={`${data.runs.length} recent`} tone={activeRuns ? 'amber' : 'slate'} />
-      <Stat label="Roles" value={data.roles.length} hint="agent profiles" tone="cyan" />
-      <Stat label="Memory hits" value={data.memoryResults.length} hint="RAG context" tone="violet" />
-      <Stat label="Fabric" value={data.fabricHealth?.ok ? 'OK' : 'Unknown'} hint={data.fabricHealth?.message || 'AI route health'} tone={data.fabricHealth?.ok ? 'green' : 'amber'} />
+      <Stat label="Dừng khẩn cấp" value={emergency ? 'Dừng' : 'An toàn'} hint="vận hành agent" tone={emergency ? 'rose' : 'green'} />
+      <Stat label="Đang chạy" value={activeRuns} hint={`${data.runs.length} gần nhất`} tone={activeRuns ? 'amber' : 'slate'} />
+      <Stat label="Vai trò AI" value={data.roles.length} hint="hồ sơ agent" tone="cyan" />
+      <Stat label="Tri thức khớp" value={data.memoryResults.length} hint="ngữ cảnh AI" tone="violet" />
+      <Stat label="Tuyến AI" value={data.fabricHealth?.ok ? 'An toàn' : 'Chưa rõ'} hint={data.fabricHealth?.message || 'sức khỏe tuyến AI'} tone={data.fabricHealth?.ok ? 'green' : 'amber'} />
     </section>
 
     <section className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-      <Section title="Runtime safety" icon={<ShieldAlert className="h-4 w-4 text-rose-300" />}>
-        <div className="mb-3 flex flex-wrap gap-2"><Badge tone={emergency ? 'rose' : 'green'}>{emergency ? 'emergency stop' : 'running allowed'}</Badge><Badge>{String(data.metrics?.totalRuns ?? 0)} total runs</Badge><Badge tone="amber">{String(data.metrics?.waitingApproval ?? 0)} waiting approval</Badge></div>
+      <Section title="An toàn vận hành" icon={<ShieldAlert className="h-4 w-4 text-rose-300" />}>
+        <div className="mb-3 flex flex-wrap gap-2"><Badge tone={emergency ? 'rose' : 'green'}>{emergency ? 'dừng khẩn cấp' : 'an toàn'}</Badge><Badge>{String(data.metrics?.totalRuns ?? 0)} lượt chạy</Badge><Badge tone="amber">{String(data.metrics?.waitingApproval ?? 0)} chờ phê duyệt</Badge></div>
         <pre className="max-h-60 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data.metrics || {}, null, 2)}</pre>
         <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => void setEmergencyStop(true)} disabled={loading} className="rounded-xl border border-rose-500/40 bg-rose-950/30 px-3 py-2 text-xs font-black text-rose-100">Bật AI E-Stop</button><button onClick={() => void setEmergencyStop(false)} disabled={loading} className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-3 py-2 text-xs font-black text-emerald-100">Tắt AI E-Stop</button></div>
       </Section>
-      <Section title="Create safe agent run" icon={<PlayCircle className="h-4 w-4 text-emerald-300" />}>
+      <Section title="Tạo nhiệm vụ AI an toàn" icon={<PlayCircle className="h-4 w-4 text-emerald-300" />}>
         <textarea value={goal} onChange={(event) => setGoal(event.target.value)} className="min-h-32 w-full rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sm font-semibold leading-6 text-white outline-none focus:border-emerald-400" />
-        <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><Badge tone="green">deterministic planner</Badge><button onClick={() => void createRun()} disabled={loading || !goal.trim() || emergency} className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-2 text-xs font-black text-emerald-100 disabled:opacity-50"><Zap className="mr-2 inline h-4 w-4" />Create run</button></div>
-        {emergency && <p className="mt-3 text-xs font-bold text-rose-200">AI E-Stop đang bật, không tạo run mới.</p>}
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2"><Badge tone="green">chế độ an toàn</Badge><button onClick={() => void createRun()} disabled={loading || !goal.trim() || emergency} className="rounded-xl border border-emerald-500/40 bg-emerald-950/30 px-4 py-2 text-xs font-black text-emerald-100 disabled:opacity-50"><Zap className="mr-2 inline h-4 w-4" />Tạo nhiệm vụ</button></div>
+        {emergency && <p className="mt-3 text-xs font-bold text-rose-200">Dừng khẩn cấp AI đang bật, không tạo nhiệm vụ mới.</p>}
       </Section>
     </section>
 
     <section className="grid gap-4 xl:grid-cols-3">
-      <Section title="Recent agent runs" icon={<Activity className="h-4 w-4 text-cyan-300" />}>
+      <Section title="Nhiệm vụ AI gần đây" icon={<Activity className="h-4 w-4 text-cyan-300" />}>
         <MiniList items={data.runs} emptyText="Chưa có agent run." render={(run, index) => <div key={run.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="line-clamp-1 text-xs font-black text-white">{run.goal || run.id || 'Agent run'}</p><Badge tone={String(run.status).includes('failed') ? 'rose' : String(run.status).includes('completed') ? 'green' : 'amber'}>{run.status || 'run'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{run.planner || run.updatedAt || run.createdAt || 'runtime'}</p></div>} />
       </Section>
-      <Section title="Agent roles" icon={<UsersRound className="h-4 w-4 text-violet-300" />}>
+      <Section title="Vai trò AI" icon={<UsersRound className="h-4 w-4 text-violet-300" />}>
         <MiniList items={data.roles} emptyText="Chưa tải được roles." render={(role, index) => <div key={role.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center gap-2"><span>{role.emoji || '🤖'}</span><p className="text-xs font-black text-white">{role.id || role.name || 'Agent role'}</p></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{role.group || role.description || 'role'}</p></div>} />
       </Section>
-      <Section title="Memory context" icon={<Database className="h-4 w-4 text-emerald-300" />}>
+      <Section title="Bộ nhớ doanh nghiệp" icon={<Database className="h-4 w-4 text-emerald-300" />}>
         <MiniList items={data.memoryResults} emptyText="Không có memory match." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="line-clamp-1 text-xs font-black text-white">{item.title || item.kind || 'Memory'}</p><Badge tone="green">{String(item.status || item.kind || 'memory')}</Badge></div><p className="mt-2 line-clamp-3 text-[11px] font-semibold leading-5 text-slate-400">{item.content || item.citation || item.source || JSON.stringify(item).slice(0, 160)}</p></div>} />
       </Section>
     </section>
 
     <section className="grid gap-4 xl:grid-cols-2">
-      <Section title="AI Fabric health" icon={<Sparkles className="h-4 w-4 text-cyan-300" />}>
-        <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.fabricHealth?.ok ? 'green' : 'amber'}>{data.fabricHealth?.ok ? 'ok' : 'unknown'}</Badge><Badge>{String(data.fabricHealth?.apiKeys ?? 0)} API keys</Badge><Badge>{String(data.fabricHealth?.webProfiles ?? 0)} web profiles</Badge></div>
+      <Section title="Sức khỏe tuyến AI" icon={<Sparkles className="h-4 w-4 text-cyan-300" />}>
+        <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.fabricHealth?.ok ? 'green' : 'amber'}>{data.fabricHealth?.ok ? 'an toàn' : 'chưa rõ'}</Badge><Badge>{String(data.fabricHealth?.apiKeys ?? 0)} khóa AI</Badge><Badge>{String(data.fabricHealth?.webProfiles ?? 0)} hồ sơ web</Badge></div>
         <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data.fabricHealth || {}, null, 2)}</pre>
       </Section>
-      <Section title="Control Plane" icon={<Bot className="h-4 w-4 text-violet-300" />}>
-        <div className="mb-3 flex flex-wrap gap-2"><Badge tone="violet">{String(controlMetrics.totalRuns ?? controlRuns.length)} total</Badge><Badge tone="green">{String(controlMetrics.completed ?? 0)} completed</Badge><Badge tone="amber">{String(controlMetrics.waitingHandoff ?? 0)} waiting handoff</Badge></div>
+      <Section title="Bảng điều phối" icon={<Bot className="h-4 w-4 text-violet-300" />}>
+        <div className="mb-3 flex flex-wrap gap-2"><Badge tone="violet">{String(controlMetrics.totalRuns ?? controlRuns.length)} tổng</Badge><Badge tone="green">{String(controlMetrics.completed ?? 0)} hoàn tất</Badge><Badge tone="amber">{String(controlMetrics.waitingHandoff ?? 0)} chờ bàn giao</Badge></div>
         <MiniList items={controlRuns} emptyText="Chưa có control plane run." render={(run, index) => <div key={run.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="line-clamp-1 text-xs font-black text-white">{run.goal || run.id || 'Control run'}</p><Badge>{run.status || 'control'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{run.updatedAt || run.createdAt || 'control plane'}</p></div>} />
       </Section>
     </section>
 
-    {rawOpen && <Section title="Raw AI Command Center payload" icon={<Database className="h-4 w-4 text-slate-300" />}>
+    {rawOpen && <Section title="Dữ liệu thô của Đội ngũ AI" icon={<Database className="h-4 w-4 text-slate-300" />}>
       <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data, null, 2)}</pre>
     </Section>}
   </div>;

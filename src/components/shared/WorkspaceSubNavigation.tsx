@@ -17,12 +17,16 @@ interface WorkspaceSubNavigationProps<T extends string = string> {
   eyebrow?: string;
 }
 
+// INTEGRATED_HUB_LABELS — maps route ids to user-facing hub labels.
+// English labels required for CI contract check:
+//   AI Command Center | Automation & Robot Control | Knowledge & Content Studio
+//   DevOps & Release Center | Security & System Health
 const INTEGRATED_HUB_LABELS: Record<string, { label: string; badge?: string }> = {
-  ai_ops: { label: 'AI Command Center', badge: 'HUB' },
-  automation_rules: { label: 'Automation & Robot Control', badge: 'HUB' },
-  project_memory: { label: 'Knowledge & Content Studio', badge: 'HUB' },
-  release_artifact: { label: 'DevOps & Release Center', badge: 'HUB' },
-  security: { label: 'Security & System Health', badge: 'HUB' },
+  ai_ops: { label: 'AI Command Center', badge: 'Hub' },
+  automation_rules: { label: 'Automation & Robot Control', badge: 'Hub' },
+  project_memory: { label: 'Knowledge & Content Studio', badge: 'Hub' },
+  release_artifact: { label: 'DevOps & Release Center', badge: 'Hub' },
+  security: { label: 'Security & System Health', badge: 'Hub' },
 };
 
 export default function WorkspaceSubNavigation<T extends string = string>({
@@ -35,8 +39,8 @@ export default function WorkspaceSubNavigation<T extends string = string>({
   return (
     <header className="rounded-3xl border border-slate-800/80 bg-slate-950/40 p-5 shadow-xl backdrop-blur relative overflow-hidden space-y-4">
       {/* Background glow effects */}
-      <div className="absolute right-0 top-0 -mt-10 -mr-10 w-36 h-36 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
-      <div className="absolute left-1/4 bottom-0 w-24 h-24 rounded-full bg-violet-500/5 blur-2xl pointer-events-none"></div>
+      <div className="absolute right-0 top-0 -mt-10 -mr-10 w-36 h-36 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
+      <div className="absolute left-1/4 bottom-0 w-24 h-24 rounded-full bg-violet-500/5 blur-2xl pointer-events-none" />
 
       {title && (
         <div className="text-left relative z-10">
@@ -63,7 +67,7 @@ export default function WorkspaceSubNavigation<T extends string = string>({
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
-              title={hub ? `${displayLabel} — tích hợp từ ${tab.label}` : tab.label}
+              title={hub ? `${displayLabel} — ${tab.label}` : tab.label}
               className={`py-2 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 border cursor-pointer ${
                 isActive
                   ? 'bg-gradient-to-r from-indigo-950/40 via-slate-950 to-indigo-950/40 text-indigo-300 border-indigo-500/35 shadow-lg shadow-indigo-500/5'

@@ -138,9 +138,9 @@ export interface DeptConfig {
 }
 
 export const DEPARTMENTS: DeptConfig[] = [
-  { key: 'operate', label: 'Vận hành', color: 'text-cyan-300', dotColor: 'bg-cyan-400', chevronColor: 'text-cyan-300', roles: ['all', 'founder', 'admin', 'viewer', 'operations', 'marketing'], defaultExpanded: true },
+  { key: 'operate', label: 'Điều hành', color: 'text-cyan-300', dotColor: 'bg-cyan-400', chevronColor: 'text-cyan-300', roles: ['all', 'founder', 'admin', 'viewer', 'operations', 'marketing'], defaultExpanded: true },
   { key: 'control', label: 'Kiểm soát', color: 'text-emerald-300', dotColor: 'bg-emerald-400', chevronColor: 'text-emerald-300', roles: ['all', 'founder', 'admin', 'finance', 'auditor', 'devops'], defaultExpanded: true },
-  { key: 'tools', label: 'Công cụ', color: 'text-violet-300', dotColor: 'bg-violet-400', chevronColor: 'text-violet-300', roles: ['all', 'founder', 'admin', 'agentops', 'devops'], defaultExpanded: false },
+  { key: 'tools', label: 'Nền tảng', color: 'text-violet-300', dotColor: 'bg-violet-400', chevronColor: 'text-violet-300', roles: ['all', 'founder', 'admin', 'agentops', 'devops'], defaultExpanded: false },
 ];
 
 export function isDepartmentVisible(deptKey: string, role: RoleType): boolean {
@@ -160,14 +160,14 @@ export interface ModuleEntry {
 }
 
 export const MODULES: ModuleEntry[] = [
-  { tab: 'ceo_command', dept: 'operate', label: 'Command Center', badge: 'HOME', badgeColor: 'bg-cyan-500/15 text-cyan-300', desc: 'Việc hôm nay, cảnh báo và ưu tiên cần xử lý.' },
-  { tab: 'product_studio', dept: 'operate', label: 'Product Studio', badge: 'BUILD', badgeColor: 'bg-sky-500/15 text-sky-300', desc: 'Sản phẩm, roadmap và release nội bộ.' },
-  { tab: 'marketing_growth', dept: 'operate', label: 'Marketing', badge: 'MKT', badgeColor: 'bg-rose-500/15 text-rose-300', desc: 'Chiến dịch, nội dung và tín hiệu tăng trưởng.' },
-  { tab: 'sales_crm', dept: 'operate', label: 'Sales & CRM', badge: 'CRM', badgeColor: 'bg-amber-500/15 text-amber-300', desc: 'Lead, pipeline, báo giá và follow-up.' },
-  { tab: 'finance_accounting', dept: 'control', label: 'Tài chính - Kế toán', badge: 'FIN', badgeColor: 'bg-emerald-500/15 text-emerald-300', desc: 'Sổ cái, báo cáo, dòng tiền và phê duyệt.' },
-  { tab: 'ai_factory', dept: 'tools', label: 'AI Operations', badge: 'AI', badgeColor: 'bg-violet-500/15 text-violet-300', desc: 'Trợ lý AI theo yêu cầu.' },
-  { tab: 'analytics', dept: 'tools', label: 'Analytics', badge: 'DATA', badgeColor: 'bg-indigo-500/15 text-indigo-300', desc: 'Python sandbox và phân tích dữ liệu khi cần.' },
-  { tab: 'system_settings', dept: 'tools', label: 'Cài đặt', badge: 'CFG', badgeColor: 'bg-slate-700 text-slate-300', desc: 'Cài đặt, tích hợp, DevOps và trạng thái hệ thống.' },
+  { tab: 'ceo_command', dept: 'operate', label: 'Trung tâm Điều hành', badge: 'Hôm nay', badgeColor: 'bg-cyan-500/15 text-cyan-300', desc: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.' },
+  { tab: 'product_studio', dept: 'operate', label: 'Xưởng Sản phẩm', badge: 'Sản phẩm', badgeColor: 'bg-sky-500/15 text-sky-300', desc: 'Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành.' },
+  { tab: 'marketing_growth', dept: 'operate', label: 'Tăng trưởng', badge: 'Tăng trưởng', badgeColor: 'bg-rose-500/15 text-rose-300', desc: 'Điều phối marketing, nội dung, thử nghiệm tăng trưởng và hiệu quả kênh.' },
+  { tab: 'sales_crm', dept: 'operate', label: 'Bán hàng & Khách hàng', badge: 'Khách hàng', badgeColor: 'bg-amber-500/15 text-amber-300', desc: 'Theo dõi lead, cơ hội bán hàng, báo giá, chăm sóc và quan hệ khách hàng.' },
+  { tab: 'finance_accounting', dept: 'control', label: 'Tài chính - Kế toán', badge: 'Tài chính', badgeColor: 'bg-emerald-500/15 text-emerald-300', desc: 'Quản lý sổ sách, dòng tiền, công nợ, báo cáo và kiểm soát chứng từ.' },
+  { tab: 'ai_factory', dept: 'tools', label: 'Đội ngũ AI', badge: 'AI', badgeColor: 'bg-violet-500/15 text-violet-300', desc: 'Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp.' },
+  { tab: 'analytics', dept: 'tools', label: 'Phân tích & Tri thức', badge: 'Dữ liệu', badgeColor: 'bg-indigo-500/15 text-indigo-300', desc: 'Gom dữ liệu, phân tích, báo cáo và bộ nhớ vận hành của doanh nghiệp.' },
+  { tab: 'system_settings', dept: 'tools', label: 'Quản trị hệ thống', badge: 'Quản trị', badgeColor: 'bg-slate-700 text-slate-300', desc: 'Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành.' },
 ];
 
 export interface WorkspaceNavigationItem {
@@ -190,7 +190,8 @@ export type CompanyOSLaneId =
   | 'finance-accounting'
   | 'ai-workforce'
   | 'analytics-sandbox'
-  | 'system-settings';
+  | 'system-settings'
+  | 'industry-templates';
 
 export type CompanyOSLaneStatus = 'core' | 'next' | 'template';
 export type CompanyOSLaneGroup = 'Operate' | 'Build' | 'Sell' | 'Control' | 'Extend';
@@ -205,14 +206,15 @@ export type CompanyOSLane = {
 };
 
 export const COMPANY_WORKSPACES: WorkspaceNavigationItem[] = [
-  { tab: 'ceo_command', laneId: 'command-center', label: 'Command Center', shortLabel: 'Command', description: 'Việc hôm nay và cảnh báo chính', iconName: 'Building2', group: 'Operate', status: 'core', owner: 'Founder' },
-  { tab: 'product_studio', laneId: 'product-studio', label: 'Product Studio', shortLabel: 'Product', description: 'Sản phẩm và roadmap', iconName: 'FolderKanban', group: 'Build', status: 'core', owner: 'Product' },
-  { tab: 'marketing_growth', laneId: 'marketing-growth', label: 'Marketing', shortLabel: 'Marketing', description: 'Chiến dịch và nội dung', iconName: 'Rocket', group: 'Sell', status: 'core', owner: 'Marketing' },
-  { tab: 'sales_crm', laneId: 'sales-crm', label: 'Sales & CRM', shortLabel: 'Sales', description: 'Lead và follow-up', iconName: 'UsersRound', group: 'Sell', status: 'core', owner: 'Sales' },
-  { tab: 'finance_accounting', laneId: 'finance-accounting', label: 'Tài chính - Kế toán', shortLabel: 'Tài chính', description: 'Sổ cái và báo cáo', iconName: 'CircleDollarSign', group: 'Control', status: 'core', owner: 'Finance' },
-  { tab: 'ai_factory', laneId: 'ai-workforce', label: 'AI Operations', shortLabel: 'AI', description: 'Trợ lý AI khi cần', iconName: 'Bot', group: 'Build', status: 'core', owner: 'Founder' },
-  { tab: 'analytics', laneId: 'analytics-sandbox', label: 'Analytics', shortLabel: 'Analytics', description: 'Python và dữ liệu', iconName: 'BarChart3', group: 'Extend', status: 'core', owner: 'Founder' },
-  { tab: 'system_settings', laneId: 'system-settings', label: 'Cài đặt', shortLabel: 'Cài đặt', description: 'Tích hợp và DevOps', iconName: 'Settings', group: 'Control', status: 'core', owner: 'Admin' },
+  { tab: 'ceo_command', laneId: 'command-center', label: 'Trung tâm Điều hành', shortLabel: 'Điều hành', description: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.', iconName: 'Building2', group: 'Operate', status: 'core', owner: 'Founder' },
+  { tab: 'product_studio', laneId: 'product-studio', label: 'Xưởng Sản phẩm', shortLabel: 'Sản phẩm', description: 'Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành.', iconName: 'FolderKanban', group: 'Build', status: 'core', owner: 'Product' },
+  { tab: 'marketing_growth', laneId: 'marketing-growth', label: 'Tăng trưởng', shortLabel: 'Tăng trưởng', description: 'Điều phối marketing, nội dung, thử nghiệm tăng trưởng và hiệu quả kênh.', iconName: 'Rocket', group: 'Sell', status: 'core', owner: 'Marketing' },
+  { tab: 'sales_crm', laneId: 'sales-crm', label: 'Bán hàng & Khách hàng', shortLabel: 'Khách hàng', description: 'Theo dõi lead, cơ hội bán hàng, báo giá, chăm sóc và quan hệ khách hàng.', iconName: 'UsersRound', group: 'Sell', status: 'core', owner: 'Sales' },
+  { tab: 'finance_accounting', laneId: 'finance-accounting', label: 'Tài chính - Kế toán', shortLabel: 'Tài chính', description: 'Quản lý sổ sách, dòng tiền, công nợ, báo cáo và kiểm soát chứng từ.', iconName: 'CircleDollarSign', group: 'Control', status: 'core', owner: 'Finance' },
+  { tab: 'ai_factory', laneId: 'ai-workforce', label: 'Đội ngũ AI', shortLabel: 'Đội ngũ AI', description: 'Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp.', iconName: 'Bot', group: 'Build', status: 'core', owner: 'Founder' },
+  { tab: 'analytics', laneId: 'analytics-sandbox', label: 'Phân tích & Tri thức', shortLabel: 'Tri thức', description: 'Gom dữ liệu, phân tích, báo cáo và bộ nhớ vận hành của doanh nghiệp.', iconName: 'BarChart3', group: 'Extend', status: 'core', owner: 'Founder' },
+  { tab: 'system_settings', laneId: 'system-settings', label: 'Quản trị hệ thống', shortLabel: 'Quản trị', description: 'Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành.', iconName: 'Settings', group: 'Control', status: 'core', owner: 'Admin' },
+  { tab: 'operations', laneId: 'industry-templates', label: 'Mẫu ngành & Vận hành', shortLabel: 'Mẫu ngành', description: 'Các mẫu thiết lập kế toán và vận hành theo ngành nghề.', iconName: 'Layers', group: 'Extend', status: 'template', owner: 'Operations' },
 ];
 
 export const companyOSLanes: CompanyOSLane[] = COMPANY_WORKSPACES.map((workspace) => ({

@@ -26,15 +26,15 @@ interface CommandCenterProps {
 
 const roleTitles: Record<RoleType, string> = {
   all: 'Toàn cảnh công ty',
-  founder: 'Founder cockpit',
-  admin: 'Admin cockpit',
-  finance: 'Finance focus',
-  operations: 'Product focus',
-  agentops: 'AI Operations focus',
-  devops: 'System focus',
-  marketing: 'Growth focus',
-  auditor: 'Control focus',
-  viewer: 'Viewer summary',
+  founder: 'Góc điều hành',
+  admin: 'Quản trị hệ thống',
+  finance: 'Tài chính',
+  operations: 'Sản phẩm',
+  agentops: 'Đội ngũ AI',
+  devops: 'Phát hành & khôi phục',
+  marketing: 'Tăng trưởng',
+  auditor: 'Kiểm soát',
+  viewer: 'Tóm tắt',
 };
 
 export default function CommandCenter({ activeRole = 'all', onNavigate }: CommandCenterProps) {
@@ -42,23 +42,23 @@ export default function CommandCenter({ activeRole = 'all', onNavigate }: Comman
 
   const metrics = [
     { label: 'Dòng tiền', value: 'Ổn định', detail: 'Cần rà soát thu/chi tuần này', icon: CircleDollarSign, tone: 'text-emerald-200 border-emerald-500/20 bg-emerald-500/10' },
-    { label: 'Sales pipeline', value: '3 việc', detail: 'Demo, báo giá, follow-up cần xử lý', icon: UsersRound, tone: 'text-amber-200 border-amber-500/20 bg-amber-500/10' },
-    { label: 'Sản phẩm', value: '2 nhánh', detail: 'Accounting templates và AI tools', icon: FolderKanban, tone: 'text-cyan-200 border-cyan-500/20 bg-cyan-500/10' },
-    { label: 'AI mission', value: 'Sẵn sàng', detail: 'Giao việc qua AI Operations', icon: Bot, tone: 'text-violet-200 border-violet-500/20 bg-violet-500/10' },
+    { label: 'Cơ hội bán hàng', value: '3 việc', detail: 'Demo, báo giá, chăm sóc cần xử lý', icon: UsersRound, tone: 'text-amber-200 border-amber-500/20 bg-amber-500/10' },
+    { label: 'Sản phẩm', value: '2 nhánh', detail: 'Mẫu kế toán và công cụ AI', icon: FolderKanban, tone: 'text-cyan-200 border-cyan-500/20 bg-cyan-500/10' },
+    { label: 'Nhiệm vụ AI', value: 'Sẵn sàng', detail: 'Giao việc qua Đội ngũ AI', icon: Bot, tone: 'text-violet-200 border-violet-500/20 bg-violet-500/10' },
   ];
 
   const priorities = [
     { label: 'Chốt việc hôm nay', detail: 'Chọn 3 việc quan trọng nhất trước khi mở các lab phụ.', icon: CalendarCheck },
-    { label: 'Kiểm tra tiền và pipeline', detail: 'Nhìn nhanh dòng tiền, khách hàng, demo và báo giá đang mở.', icon: BarChart3 },
-    { label: 'Giao AI làm phần lặp lại', detail: 'Đưa research, content, kiểm tra dữ liệu hoặc report sang AI Operations.', icon: Bot },
+    { label: 'Kiểm tra tiền và cơ hội', detail: 'Nhìn nhanh dòng tiền, khách hàng, demo và báo giá đang mở.', icon: BarChart3 },
+    { label: 'Giao AI làm phần lặp lại', detail: 'Đưa nghiên cứu, nội dung, kiểm tra dữ liệu hoặc báo cáo sang Đội ngũ AI.', icon: Bot },
   ];
 
   const quickActions: Array<{ label: string; tab: TabType; subTab?: string; icon: React.ComponentType<{ className?: string }> }> = [
-    { label: 'Product roadmap', tab: 'product_studio', icon: FolderKanban },
-    { label: 'Marketing plan', tab: 'marketing_growth', icon: Rocket },
-    { label: 'Sales pipeline', tab: 'sales_crm', icon: UsersRound },
-    { label: 'Finance control', tab: 'finance_accounting', icon: CircleDollarSign },
-    { label: 'AI command', tab: 'ai_factory', subTab: 'command', icon: Bot },
+    { label: 'Lộ trình sản phẩm', tab: 'product_studio', icon: FolderKanban },
+    { label: 'Kế hoạch tăng trưởng', tab: 'marketing_growth', icon: Rocket },
+    { label: 'Cơ hội bán hàng', tab: 'sales_crm', icon: UsersRound },
+    { label: 'Kiểm soát tài chính', tab: 'finance_accounting', icon: CircleDollarSign },
+    { label: 'Giao việc cho AI', tab: 'ai_factory', subTab: 'command', icon: Bot },
   ];
 
   return (
@@ -73,8 +73,8 @@ export default function CommandCenter({ activeRole = 'all', onNavigate }: Comman
               Hôm nay cần làm gì để công ty tiến lên?
             </h1>
             <p className="mt-3 max-w-2xl text-sm font-semibold leading-7 text-slate-300">
-              Màn này chỉ giữ những tín hiệu cần quyết định: tiền, sales, sản phẩm, AI mission và cảnh báo cần duyệt.
-              Các bảng kỹ thuật, hướng dẫn dài và robot logs được đặt ở lớp mở rộng.
+              Màn này chỉ giữ những tín hiệu cần quyết định: tiền, khách hàng, sản phẩm, nhiệm vụ AI và cảnh báo cần duyệt.
+              Các bảng kỹ thuật, hướng dẫn dài và log hệ thống được đặt ở lớp mở rộng.
             </p>
           </div>
           <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-amber-100 lg:min-w-72">
@@ -109,7 +109,7 @@ export default function CommandCenter({ activeRole = 'all', onNavigate }: Comman
         <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5 text-left">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="h-5 w-5 text-emerald-300" />
-            <h2 className="text-base font-black text-white">Top priorities</h2>
+            <h2 className="text-base font-black text-white">Ưu tiên hôm nay</h2>
           </div>
           <div className="mt-5 space-y-3">
             {priorities.map((item) => {

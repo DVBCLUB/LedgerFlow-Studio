@@ -4,19 +4,19 @@ import SimplePanelCard from '../../components/shared/SimplePanelCard';
 export default function BuildMonitorPanel() {
   return (
     <SimplePanelCard
-      eyebrow="DevOps"
-      title="Build monitor"
-      description="Theo dõi nhanh trạng thái build/review mà không kéo dài màn hình bằng log chi tiết. Khi cần đào sâu hãy mở CI Doctor hoặc Replit logs."
+      eyebrow="Phát hành"
+      title="Theo dõi bản build"
+      description="Theo dõi nhanh trạng thái build và duyệt thay đổi mà không kéo dài màn hình bằng log chi tiết."
       icon={Activity}
-      status="Gọn"
+      status="Đang theo dõi"
       tone="cyan"
       items={[
-        'Kiểm tra npm run dev/build khi có lỗi hiển thị',
+        'Kiểm tra build khi có lỗi hiển thị',
         'Ưu tiên lỗi chặn app chạy trước cảnh báo phụ',
-        'Log chi tiết để trong terminal/Replit thay vì dàn đầy UI',
-        'Dùng cho review nhanh một người dùng local-first',
+        'Log chi tiết để trong terminal hoặc môi trường preview',
+        'Dùng cho duyệt nhanh trên máy local',
       ]}
-      actions={["Run", "Build", "Review"]}
+      actions={["Chạy thử", "Build", "Duyệt"]}
     />
   );
 }

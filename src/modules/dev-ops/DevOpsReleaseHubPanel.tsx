@@ -88,9 +88,9 @@ export default function DevOpsReleaseHubPanel() {
       };
       setData(next);
       const failed = [statusRes, diffRes, ciRes, deployConfigRes, deployRunRes, snapshotRes].filter((r) => r.status === 'rejected').length;
-      setMessage(failed ? `Đã tải hub, nhưng ${failed} nguồn dữ liệu chưa phản hồi.` : 'Đã tải DevOps & Release Center.');
+      setMessage(failed ? `Đã tải khu phát hành, nhưng ${failed} nguồn dữ liệu chưa phản hồi.` : 'Đã tải Phát hành & Khôi phục.');
     } catch (err: any) {
-      setError(err?.message || 'Không tải được DevOps & Release Center.');
+      setError(err?.message || 'Không tải được Phát hành & Khôi phục.');
     } finally {
       setLoading(false);
     }
@@ -101,14 +101,14 @@ export default function DevOpsReleaseHubPanel() {
     try {
       const res = await daemonFetch<any>('/api/git/commit-msg', undefined, 30000);
       setData((current) => ({ ...current, commitMessage: String(res?.message || res?.commitMessage || '') }));
-      setMessage('Đã tạo commit message gợi ý.');
-    } catch (err: any) { setError(err?.message || 'Không tạo được commit message.'); }
+      setMessage('Đã tạo gợi ý nội dung commit.');
+    } catch (err: any) { setError(err?.message || 'Không tạo được gợi ý nội dung commit.'); }
     finally { setLoading(false); }
   };
 
   const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
-    setMessage('Đã copy.');
+    setMessage('Đã sao chép.');
   };
 
   useEffect(() => { void load(); }, []);
@@ -124,33 +124,33 @@ export default function DevOpsReleaseHubPanel() {
     <section className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/30 p-5 shadow-2xl shadow-slate-950/30">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Rocket className="mr-2 inline h-4 w-4" />DevOps & Release Center</p>
-          <h2 className="mt-2 text-2xl font-black text-white">Code → CI → Artifact → Deploy → Rollback</h2>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Một màn gọn để xem Git status, CI, release/deploy history và snapshot an toàn. Các thao tác nguy hiểm chưa tự chạy ngầm.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Rocket className="mr-2 inline h-4 w-4" />Phát hành & Khôi phục</p>
+          <h2 className="mt-2 text-2xl font-black text-white">Kiểm tra → Đóng gói → Phát hành → Khôi phục</h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Một màn gọn để xem thay đổi mã nguồn, kiểm thử, lịch sử phát hành và điểm khôi phục an toàn.</p>
         </div>
-        <button onClick={() => void load()} disabled={loading} className="rounded-2xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Refresh'}</button>
+        <button onClick={() => void load()} disabled={loading} className="rounded-2xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Làm mới'}</button>
       </div>
       {message && <p className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100">{message}</p>}
       {error && <p className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-200"><AlertTriangle className="mr-2 inline h-4 w-4" />{error}</p>}
     </section>
 
     <section className="grid gap-3 md:grid-cols-4">
-      <StatCard label="Git changes" value={changedCount} hint="staged + modified + untracked + deleted" />
-      <StatCard label="CI status" value={data.ci?.selectedRun?.conclusion || data.ci?.selectedRun?.status || 'unknown'} hint={data.ci?.selectedRun?.name || 'latest run'} />
-      <StatCard label="Deploy configs" value={data.deployConfigs.length} hint="saved deploy targets" />
-      <StatCard label="Snapshots" value={data.snapshots.length} hint="restore points" />
+      <StatCard label="Thay đổi mã nguồn" value={changedCount} hint="đã chọn + đã sửa + chưa theo dõi + đã xóa" />
+      <StatCard label="Trạng thái kiểm thử" value={data.ci?.selectedRun?.conclusion || data.ci?.selectedRun?.status || 'chưa rõ'} hint={data.ci?.selectedRun?.name || 'lần chạy gần nhất'} />
+      <StatCard label="Cấu hình phát hành" value={data.deployConfigs.length} hint="đích phát hành đã lưu" />
+      <StatCard label="Điểm khôi phục" value={data.snapshots.length} hint="mốc có thể khôi phục" />
     </section>
 
     <section className="grid gap-4 xl:grid-cols-2">
-      <Section title="Git assistant" icon={<GitBranch className="h-4 w-4 text-emerald-300" />}>
-        <div className="mb-3 flex flex-wrap gap-2"><StatusBadge tone="cyan">{changedCount} changed</StatusBadge><StatusBadge>{countList((data.status as any).untracked)} untracked</StatusBadge><StatusBadge tone="amber">{countList((data.status as any).modified)} modified</StatusBadge></div>
+      <Section title="Trợ lý mã nguồn" icon={<GitBranch className="h-4 w-4 text-emerald-300" />}>
+        <div className="mb-3 flex flex-wrap gap-2"><StatusBadge tone="cyan">{changedCount} thay đổi</StatusBadge><StatusBadge>{countList((data.status as any).untracked)} chưa theo dõi</StatusBadge><StatusBadge tone="amber">{countList((data.status as any).modified)} đã sửa</StatusBadge></div>
         <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data.status, null, 2)}</pre>
-        <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => void generateCommit()} disabled={loading} className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-2 text-xs font-black text-emerald-100">Generate commit message</button>{data.commitMessage && <button onClick={() => void copy(data.commitMessage)} className="rounded-xl border border-cyan-500/30 px-3 py-2 text-xs font-black text-cyan-100"><Clipboard className="mr-1 inline h-3.5 w-3.5" />Copy</button>}</div>
+        <div className="mt-3 flex flex-wrap gap-2"><button onClick={() => void generateCommit()} disabled={loading} className="rounded-xl border border-emerald-500/30 bg-emerald-950/30 px-3 py-2 text-xs font-black text-emerald-100">Tạo gợi ý commit</button>{data.commitMessage && <button onClick={() => void copy(data.commitMessage)} className="rounded-xl border border-cyan-500/30 px-3 py-2 text-xs font-black text-cyan-100"><Clipboard className="mr-1 inline h-3.5 w-3.5" />Sao chép</button>}</div>
         {data.commitMessage && <pre className="mt-3 whitespace-pre-wrap rounded-2xl border border-emerald-500/20 bg-emerald-950/10 p-3 text-xs font-semibold leading-6 text-emerald-50">{data.commitMessage}</pre>}
       </Section>
 
-      <Section title="CI doctor" icon={<Stethoscope className="h-4 w-4 text-amber-300" />}>
-        <div className="mb-3 flex flex-wrap gap-2"><StatusBadge tone={ciTone as any}>{data.ci?.selectedRun?.conclusion || data.ci?.selectedRun?.status || 'unknown'}</StatusBadge><StatusBadge>{data.ci?.repo || 'DVBCLUB/LedgerFlow-Studio'}</StatusBadge></div>
+      <Section title="Kiểm tra CI" icon={<Stethoscope className="h-4 w-4 text-amber-300" />}>
+        <div className="mb-3 flex flex-wrap gap-2"><StatusBadge tone={ciTone as any}>{data.ci?.selectedRun?.conclusion || data.ci?.selectedRun?.status || 'chưa rõ'}</StatusBadge><StatusBadge>{data.ci?.repo || 'DVBCLUB/LedgerFlow-Studio'}</StatusBadge></div>
         <p className="text-sm font-black text-white">{data.ci?.selectedRun?.name || 'Chưa có workflow run'}</p>
         <p className="mt-1 text-xs font-semibold text-slate-500">Checked: {data.ci?.lastCheckedAt ? new Date(data.ci.lastCheckedAt).toLocaleString('vi-VN') : '—'}</p>
         <div className="mt-3 max-h-64 space-y-2 overflow-auto">{(data.ci?.failedJobs || []).length === 0 ? <p className="text-xs font-bold text-slate-500">Không có failed job cụ thể.</p> : data.ci?.failedJobs?.map((job: any) => <div key={job.id || job.name} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-white">{job.name}</p><StatusBadge tone={job.conclusion === 'success' ? 'green' : 'rose'}>{job.conclusion || job.status || 'unknown'}</StatusBadge></div><p className="mt-2 text-[11px] font-semibold text-slate-500">{(job.failedSteps || []).map((s: any) => `${s.number}. ${s.name}`).join(', ') || 'No failed steps in summary.'}</p></div>)}</div>
@@ -158,18 +158,18 @@ export default function DevOpsReleaseHubPanel() {
     </section>
 
     <section className="grid gap-4 xl:grid-cols-3">
-      <Section title="Deploy configs" icon={<Rocket className="h-4 w-4 text-cyan-300" />}>
+      <Section title="Cấu hình phát hành" icon={<Rocket className="h-4 w-4 text-cyan-300" />}>
         <div className="space-y-2">{data.deployConfigs.length === 0 ? <p className="text-xs font-bold text-slate-500">Chưa có deploy config.</p> : data.deployConfigs.slice(0, 6).map((config) => <div key={config.id || config.name} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{config.name || config.id}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{config.environment || config.target || 'deploy target'}</p></div>)}</div>
       </Section>
-      <Section title="Deploy runs" icon={<Package className="h-4 w-4 text-violet-300" />}>
+      <Section title="Lịch sử phát hành" icon={<Package className="h-4 w-4 text-violet-300" />}>
         <div className="space-y-2">{data.deployRuns.length === 0 ? <p className="text-xs font-bold text-slate-500">Chưa có deploy run.</p> : data.deployRuns.slice(0, 6).map((run) => <div key={run.id || run.createdAt} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-white">{run.configName || run.id}</p><StatusBadge tone={run.status === 'success' || run.status === 'completed' ? 'green' : run.status === 'failed' ? 'rose' : 'amber'}>{run.status || 'run'}</StatusBadge></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{run.createdAt || run.startedAt || '—'}</p></div>)}</div>
       </Section>
-      <Section title="Snapshots / rollback" icon={<ShieldCheck className="h-4 w-4 text-emerald-300" />}>
+      <Section title="Điểm khôi phục" icon={<ShieldCheck className="h-4 w-4 text-emerald-300" />}>
         <div className="space-y-2">{data.snapshots.length === 0 ? <p className="text-xs font-bold text-slate-500">Chưa có snapshot.</p> : data.snapshots.slice(0, 6).map((snap) => <div key={snap.id || snap.name} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{snap.name || snap.id}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{snap.createdAt || snap.description || 'restore point'}</p></div>)}</div>
       </Section>
     </section>
 
-    <Section title="Raw diff summary" icon={<Package className="h-4 w-4 text-slate-300" />}>
+    <Section title="Tóm tắt diff thô" icon={<Package className="h-4 w-4 text-slate-300" />}>
       <pre className="max-h-72 overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data.diff, null, 2)}</pre>
     </Section>
   </div>;

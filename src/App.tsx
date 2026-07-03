@@ -3,6 +3,7 @@ import { BrowserRouter as Router } from 'react-router-dom';
 import './index.css';
 
 import { DynamicModuleProvider } from './context/DynamicModuleContext';
+import { AIWorkforceProvider } from './context/AIWorkforceContext';
 
 const LocalLoginGate = lazy(() => import('./components/LocalLoginGate'));
 const ErpApp = lazy(() => import('./app/ErpApp'));
@@ -29,7 +30,9 @@ function App() {
         <ErrorBoundary fallback={<ErrorFallback />}>
           <LocalLoginGate>
             <DynamicModuleProvider>
-              <ErpApp />
+              <AIWorkforceProvider>
+                <ErpApp />
+              </AIWorkforceProvider>
             </DynamicModuleProvider>
           </LocalLoginGate>
         </ErrorBoundary>

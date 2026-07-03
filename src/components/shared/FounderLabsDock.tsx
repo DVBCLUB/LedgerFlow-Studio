@@ -41,52 +41,52 @@ type LabId = 'start_here' | 'company_os' | 'dashboard' | 'ai_staff' | 'ai_qualit
 type LabLane = 'Command' | 'Product' | 'Growth' | 'AI Ops' | 'Finance' | 'Learning' | 'Sandbox' | 'Control';
 
 const labLanes: Array<{ id: LabLane; label: string }> = [
-  { id: 'Command', label: 'Command Office' },
-  { id: 'Product', label: 'Product Studio' },
-  { id: 'Growth', label: 'Marketing & Sales' },
-  { id: 'AI Ops', label: 'AI Nhân sự' },
-  { id: 'Finance', label: 'Finance & Tool Control' },
-  { id: 'Learning', label: 'Learning Products' },
-  { id: 'Sandbox', label: 'Analytics & Sandbox' },
-  { id: 'Control', label: 'Controls & Handoff' }
+  { id: 'Command', label: 'Trung tâm Điều hành' },
+  { id: 'Product', label: 'Xưởng Sản phẩm' },
+  { id: 'Growth', label: 'Tăng trưởng & Khách hàng' },
+  { id: 'AI Ops', label: 'Đội ngũ AI' },
+  { id: 'Finance', label: 'Tài chính & Công cụ' },
+  { id: 'Learning', label: 'Sản phẩm học tập' },
+  { id: 'Sandbox', label: 'Phân tích & Tri thức' },
+  { id: 'Control', label: 'Kiểm soát & Bàn giao' }
 ];
 
 const labs: Array<{ id: LabId; label: string; note: string; lane: LabLane }> = [
-  { id: 'start_here', label: 'Start Here', note: 'Màn hình bắt đầu: chọn đúng luồng dùng app, game, finance, backup hoặc release.', lane: 'Command' },
-  { id: 'company_os', label: 'Company OS', note: 'Scorecard, AI workforce, roadmap, doanh thu, vận hành và GTM.', lane: 'Command' },
-  { id: 'dashboard', label: 'Experiment Dashboard', note: 'Tổng hợp interview, lead và quyết định.', lane: 'Command' },
-  { id: 'monthly_review', label: 'Monthly Review', note: 'Chốt tháng này nên BUILD, HOLD hay KILL.', lane: 'Command' },
-  { id: 'one_page_report', label: 'One-Page Report', note: 'Báo cáo một trang để in hoặc save PDF.', lane: 'Command' },
-  { id: 'weekly_actions', label: 'Weekly Actions', note: 'Kế hoạch tuần: việc, owner, deadline, trạng thái.', lane: 'Command' },
-  { id: 'daily_standup', label: 'Daily Standup', note: 'Nhật ký ngày: focus, blocker, AI help, next action.', lane: 'Command' },
-  { id: 'decisions', label: 'Decision Log', note: 'BUILD / HOLD / KILL có bằng chứng.', lane: 'Command' },
-  { id: 'pricing_offer', label: 'Pricing Offer', note: 'Thiết kế gói bán, giá, promise, refund và pilot.', lane: 'Product' },
-  { id: 'product_launch', label: 'Product Launch', note: 'Checklist paid pilot, launch score và blocker.', lane: 'Product' },
-  { id: 'moat', label: 'Moat Tracker', note: 'Theo dõi lợi thế dữ liệu, workflow, phân phối và trust.', lane: 'Product' },
-  { id: 'strategy', label: 'Strategic Labs', note: 'Persona, payment, distribution và game lab.', lane: 'Product' },
-  { id: 'leads', label: 'Lead Board', note: 'Nguồn khách, demo, paid signal, next action.', lane: 'Growth' },
-  { id: 'persona', label: 'Persona Interview', note: 'Pain, pay signal và evidence score.', lane: 'Growth' },
-  { id: 'content', label: 'Content Repurpose', note: 'Biến case, lead, interview thành post, demo, email.', lane: 'Growth' },
-  { id: 'synthetic_survey', label: 'Synthetic Survey', note: 'Khảo sát giả lập, bias warning và validation plan.', lane: 'Growth' },
-  { id: 'ab_simulation', label: 'A/B Simulation', note: 'So sánh pricing, landing, onboarding, demo script.', lane: 'Growth' },
-  { id: 'ai_staff', label: 'AI Staff Board', note: 'Giao việc cho ChatGPT, Claude, Gemini, Copilot/Codex.', lane: 'AI Ops' },
-  { id: 'ai_quality', label: 'AI Quality Review', note: 'Kiểm tra output AI trước khi dùng vào code, content, tài liệu.', lane: 'AI Ops' },
-  { id: 'automation', label: 'Automation Blueprint', note: 'n8n workflow, human approval và anti-spam guard.', lane: 'AI Ops' },
-  { id: 'finance', label: 'Finance Lab', note: 'Burn rate, runway, MRR và margin.', lane: 'Finance' },
-  { id: 'tool_budget', label: 'Tool Budget', note: 'Theo dõi tiền AI, hosting, marketing và dev tool.', lane: 'Finance' },
-  { id: 'tool_cancel', label: 'Tool Cancel Plan', note: 'Lập lịch hủy tool, checklist backup và tiền tiết kiệm.', lane: 'Finance' },
-  { id: 'case_bank', label: 'Case Bank', note: 'Case kế toán/kiểm toán đa ngành và red flags.', lane: 'Learning' },
-  { id: 'learning_path', label: 'Learning Path', note: 'Lộ trình học theo vai trò, ngành, bài tập và evidence.', lane: 'Learning' },
-  { id: 'audit_game', label: 'Audit Game', note: 'Game chọn red flags và chứng từ cần kiểm tra.', lane: 'Learning' },
-  { id: 'document_matching_game', label: 'Document Matching Game', note: 'Game ghép chứng từ với nghiệp vụ và rủi ro kiểm toán.', lane: 'Learning' },
-  { id: 'cost_flow_game', label: 'Cost Flow Game', note: 'Game sắp xếp luồng chi phí theo ngành và chứng từ.', lane: 'Learning' },
-  { id: 'cash_runway_game', label: 'Cash Runway Game', note: 'Game runway, burn, MRR, churn và quyết định sống còn.', lane: 'Sandbox' },
-  { id: 'pmf_game', label: 'PMF Decision Game', note: 'Game quyết định BUILD/HOLD/KILL theo tín hiệu thị trường.', lane: 'Sandbox' },
-  { id: 'game_library', label: 'Game Library', note: 'Thư viện mini-game học kế toán, kiểm toán và founder finance.', lane: 'Sandbox' },
-  { id: 'game_progress', label: 'Game Progress', note: 'Tổng hợp điểm, attempts và game nên chơi tiếp.', lane: 'Sandbox' },
-  { id: 'game_history', label: 'Game History', note: 'Lịch sử từng lượt chơi, điểm, verdict và ngày chơi.', lane: 'Sandbox' },
-  { id: 'mor_readiness', label: 'MoR Readiness', note: 'Refund, terms, privacy, tax note và payment path.', lane: 'Control' },
-  { id: 'backup', label: 'Backup / Restore', note: 'Xuất, nhập và reset dữ liệu Founder Labs.', lane: 'Control' }
+  { id: 'start_here', label: 'Bắt đầu', note: 'Chọn đúng luồng dùng app, game, tài chính, sao lưu hoặc phát hành.', lane: 'Command' },
+  { id: 'company_os', label: 'LedgerFlow OS', note: 'Toàn cảnh vận hành, đội ngũ AI, lộ trình, doanh thu và tăng trưởng.', lane: 'Command' },
+  { id: 'dashboard', label: 'Bảng thử nghiệm', note: 'Tổng hợp phỏng vấn, lead và quyết định.', lane: 'Command' },
+  { id: 'monthly_review', label: 'Rà soát tháng', note: 'Chốt tháng này nên xây tiếp, giữ lại hay dừng.', lane: 'Command' },
+  { id: 'one_page_report', label: 'Báo cáo một trang', note: 'Báo cáo một trang để in hoặc lưu PDF.', lane: 'Command' },
+  { id: 'weekly_actions', label: 'Kế hoạch tuần', note: 'Kế hoạch tuần: việc, phụ trách, hạn chót, trạng thái.', lane: 'Command' },
+  { id: 'daily_standup', label: 'Nhật ký ngày', note: 'Nhật ký ngày: trọng tâm, điểm nghẽn, AI hỗ trợ, bước tiếp theo.', lane: 'Command' },
+  { id: 'decisions', label: 'Sổ quyết định', note: 'Quyết định xây tiếp, giữ lại hoặc dừng đều có bằng chứng.', lane: 'Command' },
+  { id: 'pricing_offer', label: 'Gói giá', note: 'Thiết kế gói bán, giá, cam kết, hoàn tiền và thử nghiệm trả phí.', lane: 'Product' },
+  { id: 'product_launch', label: 'Ra mắt sản phẩm', note: 'Danh sách kiểm tra thử nghiệm trả phí, điểm sẵn sàng và điểm nghẽn.', lane: 'Product' },
+  { id: 'moat', label: 'Lợi thế cạnh tranh', note: 'Theo dõi lợi thế dữ liệu, quy trình, phân phối và niềm tin.', lane: 'Product' },
+  { id: 'strategy', label: 'Phòng chiến lược', note: 'Chân dung khách hàng, thanh toán, phân phối và game lab.', lane: 'Product' },
+  { id: 'leads', label: 'Nguồn khách', note: 'Nguồn khách, demo, tín hiệu trả phí và hành động tiếp theo.', lane: 'Growth' },
+  { id: 'persona', label: 'Phỏng vấn khách hàng', note: 'Nỗi đau, tín hiệu chi trả và điểm bằng chứng.', lane: 'Growth' },
+  { id: 'content', label: 'Tái sử dụng nội dung', note: 'Biến case, lead, phỏng vấn thành bài viết, demo, email.', lane: 'Growth' },
+  { id: 'synthetic_survey', label: 'Khảo sát giả lập', note: 'Khảo sát giả lập, cảnh báo thiên lệch và kế hoạch kiểm chứng.', lane: 'Growth' },
+  { id: 'ab_simulation', label: 'Thử nghiệm A/B', note: 'So sánh giá, trang giới thiệu, onboarding và kịch bản demo.', lane: 'Growth' },
+  { id: 'ai_staff', label: 'Bảng nhân sự AI', note: 'Giao việc cho ChatGPT, Claude, Gemini, Copilot/Codex.', lane: 'AI Ops' },
+  { id: 'ai_quality', label: 'Duyệt kết quả AI', note: 'Kiểm tra kết quả AI trước khi dùng vào code, nội dung, tài liệu.', lane: 'AI Ops' },
+  { id: 'automation', label: 'Kế hoạch tự động hóa', note: 'Luồng n8n, phê duyệt của người dùng và chống spam.', lane: 'AI Ops' },
+  { id: 'finance', label: 'Phòng tài chính', note: 'Burn rate, runway, MRR và biên lợi nhuận.', lane: 'Finance' },
+  { id: 'tool_budget', label: 'Ngân sách công cụ', note: 'Theo dõi tiền AI, hosting, marketing và công cụ phát triển.', lane: 'Finance' },
+  { id: 'tool_cancel', label: 'Kế hoạch hủy công cụ', note: 'Lập lịch hủy công cụ, sao lưu và tiền tiết kiệm.', lane: 'Finance' },
+  { id: 'case_bank', label: 'Kho tình huống', note: 'Tình huống kế toán/kiểm toán đa ngành và cảnh báo rủi ro.', lane: 'Learning' },
+  { id: 'learning_path', label: 'Lộ trình học', note: 'Lộ trình học theo vai trò, ngành, bài tập và bằng chứng.', lane: 'Learning' },
+  { id: 'audit_game', label: 'Game kiểm toán', note: 'Game chọn cảnh báo rủi ro và chứng từ cần kiểm tra.', lane: 'Learning' },
+  { id: 'document_matching_game', label: 'Ghép chứng từ', note: 'Game ghép chứng từ với nghiệp vụ và rủi ro kiểm toán.', lane: 'Learning' },
+  { id: 'cost_flow_game', label: 'Luồng chi phí', note: 'Game sắp xếp luồng chi phí theo ngành và chứng từ.', lane: 'Learning' },
+  { id: 'cash_runway_game', label: 'Dòng tiền sống còn', note: 'Game runway, burn, MRR, churn và quyết định sống còn.', lane: 'Sandbox' },
+  { id: 'pmf_game', label: 'Quyết định PMF', note: 'Game quyết định xây tiếp, giữ lại hoặc dừng theo tín hiệu thị trường.', lane: 'Sandbox' },
+  { id: 'game_library', label: 'Thư viện game', note: 'Thư viện mini-game học kế toán, kiểm toán và tài chính founder.', lane: 'Sandbox' },
+  { id: 'game_progress', label: 'Tiến độ chơi', note: 'Tổng hợp điểm, lượt thử và game nên chơi tiếp.', lane: 'Sandbox' },
+  { id: 'game_history', label: 'Lịch sử chơi', note: 'Lịch sử từng lượt chơi, điểm, kết luận và ngày chơi.', lane: 'Sandbox' },
+  { id: 'mor_readiness', label: 'Sẵn sàng bán hàng', note: 'Hoàn tiền, điều khoản, riêng tư, thuế và đường thanh toán.', lane: 'Control' },
+  { id: 'backup', label: 'Sao lưu / Khôi phục', note: 'Xuất, nhập và đặt lại dữ liệu Founder Labs.', lane: 'Control' }
 ];
 
 function renderLab(active: LabId) {
@@ -142,9 +142,9 @@ export default function FounderLabsDock({ embedded = false }: FounderLabsDockPro
         <div className={embedded ? 'flex min-h-[680px] w-full flex-col overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-slate-100' : 'mb-3 flex max-h-[84vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-3xl border border-emerald-500/25 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur'}>
           <div className="flex items-start justify-between gap-4 border-b border-slate-800 p-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Founder Labs</p>
-              <h2 className="mt-1 text-lg font-black text-white">Bảng lab thương mại hóa</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Mở nhanh các lab mới mà không cần sửa route chính.</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Phòng thử nghiệm</p>
+              <h2 className="mt-1 text-lg font-black text-white">Bảng thử nghiệm thương mại hóa</h2>
+              <p className="mt-1 text-xs font-semibold text-slate-400">Mở nhanh các khu thử nghiệm mà không cần sửa điều hướng chính.</p>
             </div>
             {!embedded && (
               <button onClick={() => setOpen(false)} className="rounded-xl border border-slate-800 p-2 text-slate-400 hover:text-white" aria-label="Đóng Founder Labs">

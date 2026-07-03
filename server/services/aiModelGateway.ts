@@ -79,6 +79,10 @@ const PROVIDER_POOL: ProviderConfig[] = [
   { provider: 'deepseek', model: 'deepseek-reasoner', priority: 3, weight: 20, maxConcurrent: 6, rateLimitPerMin: 20, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.002 },
   { provider: 'groq', model: 'llama-3.3-70b', priority: 2, weight: 15, maxConcurrent: 10, rateLimitPerMin: 30, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.0005 },
   { provider: 'groq', model: 'mixtral-8x7b', priority: 4, weight: 10, maxConcurrent: 15, rateLimitPerMin: 60, circuitThreshold: 3, circuitRecoveryMs: 30000, costPer1KTokens: 0.0003 },
+  { provider: 'mistral', model: 'mistral-large-latest', priority: 2, weight: 20, maxConcurrent: 5, rateLimitPerMin: 20, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.004 },
+  { provider: 'together', model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo', priority: 3, weight: 15, maxConcurrent: 10, rateLimitPerMin: 40, circuitThreshold: 3, circuitRecoveryMs: 30000, costPer1KTokens: 0.0008 },
+  { provider: 'perplexity', model: 'sonar-reasoning-pro', priority: 2, weight: 15, maxConcurrent: 5, rateLimitPerMin: 10, circuitThreshold: 3, circuitRecoveryMs: 60000, costPer1KTokens: 0.005 },
+  { provider: 'xai', model: 'grok-2-latest', priority: 2, weight: 20, maxConcurrent: 5, rateLimitPerMin: 15, circuitThreshold: 4, circuitRecoveryMs: 45000, costPer1KTokens: 0.005 },
   { provider: 'ollama', model: 'local', priority: 10, weight: 5, maxConcurrent: 2, rateLimitPerMin: 999, circuitThreshold: 10, circuitRecoveryMs: 30000, costPer1KTokens: 0 },
 ];
 
@@ -128,21 +132,42 @@ export function getProviderHealth(): ProviderHealth[] {
   return Array.from(healthMap.values());
 }
 
+import { getSupportedAIProviders } from './aiKeyVault.ts';
+
 export async function getProviderHealthSnapshot(): Promise<ProviderHealth[]> {
   try {
     const diagnostics = await diagnoseAIRouter();
-    if (!diagnostics.results?.length) return getProviderHealth();
-    return diagnostics.results.map((item) => ({
-      provider: item.provider,
-      model: item.model || 'default',
-      status: item.status === 'ok' ? 'online' : item.status === 'quota' ? 'rate_limited' : 'degraded',
-      latencyMs: item.latencyMs || 0,
-      successRate: item.status === 'ok' ? 100 : item.status === 'quota' ? 60 : 30,
-      lastCheck: diagnostics.checkedAt,
-      consecutiveFailures: item.status === 'ok' ? 0 : 1,
-      rateLimitRemaining: item.status === 'quota' ? 0 : 1,
-      circuitOpen: false,
-    }));
+    const supported = getSupportedAIProviders();
+
+    return supported.map((prov) => {
+      const match = diagnostics.results?.find((r) => r.provider === prov.id);
+      if (match) {
+        return {
+          provider: match.provider,
+          model: match.model || prov.defaultModel,
+          status: match.status === 'ok' ? 'online' : match.status === 'quota' ? 'rate_limited' : 'degraded',
+          latencyMs: match.latencyMs || 0,
+          successRate: match.status === 'ok' ? 100 : match.status === 'quota' ? 60 : 30,
+          lastCheck: diagnostics.checkedAt,
+          consecutiveFailures: match.status === 'ok' ? 0 : 1,
+          rateLimitRemaining: match.status === 'quota' ? 0 : 1,
+          circuitOpen: match.status === 'error',
+        };
+      }
+
+      // Chưa cấu hình hoặc tắt
+      return {
+        provider: prov.id,
+        model: prov.defaultModel,
+        status: 'offline',
+        latencyMs: 0,
+        successRate: 0,
+        lastCheck: diagnostics.checkedAt || new Date().toISOString(),
+        consecutiveFailures: 0,
+        rateLimitRemaining: 0,
+        circuitOpen: false,
+      };
+    });
   } catch {
     return getProviderHealth();
   }

@@ -648,3 +648,73 @@ export async function requestCloseGitHubPullRequest(input: CloseGitHubPullReques
     rollbackNote: input.rollbackNote,
   };
 }
+
+import { execFile } from "child_process";
+import { promisify } from "util";
+const execFileAsync = promisify(execFile);
+
+export interface GitLocalStatus {
+  branch: string;
+  uncommittedFiles: number;
+  uncommittedDetails: string[];
+  ahead: number;
+  behind: number;
+}
+
+export async function getGitLocalStatus(): Promise<GitLocalStatus> {
+  try {
+    const cwd = process.cwd();
+    const branchRes = await execFileAsync("git", ["branch", "--show-current"], { cwd, timeout: 3000 });
+    const branch = branchRes.stdout.trim() || "unknown";
+
+    const statusRes = await execFileAsync("git", ["status", "-s"], { cwd, timeout: 3000 });
+    const lines = statusRes.stdout.split("\n").map(l => l.trim()).filter(Boolean);
+    const uncommittedFiles = lines.length;
+
+    let ahead = 0;
+    let behind = 0;
+    try {
+      const revRes = await execFileAsync("git", ["rev-list", "--count", "--left-right", "@{u}...HEAD"], { cwd, timeout: 3000 });
+      const [bStr, aStr] = revRes.stdout.trim().split(/\s+/);
+      behind = parseInt(bStr, 10) || 0;
+      ahead = parseInt(aStr, 10) || 0;
+    } catch {}
+
+    return {
+      branch,
+      uncommittedFiles,
+      uncommittedDetails: lines,
+      ahead,
+      behind,
+    };
+  } catch (err: any) {
+    return {
+      branch: "unknown",
+      uncommittedFiles: 0,
+      uncommittedDetails: [],
+      ahead: 0,
+      behind: 0,
+    };
+  }
+}
+
+export async function gitPullLocal(): Promise<{ success: boolean; log: string }> {
+  try {
+    const cwd = process.cwd();
+    const res = await execFileAsync("git", ["pull", "--rebase"], { cwd, timeout: 20000 });
+    return { success: true, log: res.stdout || res.stderr || "Đã kéo code mới nhất thành công." };
+  } catch (err: any) {
+    return { success: false, log: err.stdout || err.stderr || err.message || "Lỗi khi chạy git pull." };
+  }
+}
+
+export async function gitPushLocal(): Promise<{ success: boolean; log: string }> {
+  try {
+    const cwd = process.cwd();
+    const status = await getGitLocalStatus();
+    const res = await execFileAsync("git", ["push", "origin", `HEAD:${status.branch}`], { cwd, timeout: 25000 });
+    return { success: true, log: res.stdout || res.stderr || "Đã đẩy code lên remote repo thành công." };
+  } catch (err: any) {
+    return { success: false, log: err.stdout || err.stderr || err.message || "Lỗi khi chạy git push." };
+  }
+}

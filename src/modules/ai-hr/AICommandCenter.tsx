@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Bot, Cpu, Send, Terminal, Play, Square, Activity, Brain, Zap, Shield, RefreshCw, Wifi, WifiOff, Settings, Trash2, Clock, CheckCircle2, AlertTriangle, Loader2 } from 'lucide-react';
+import { useAIWorkforce } from '../../context/AIWorkforceContext';
 
 // ─── Types ───────────────────────────────────────────────────────────
 interface AgentStatus {
@@ -30,11 +31,12 @@ interface ChatMessage {
   timestamp: string;
 }
 
-// ─── Mock Data (sẽ thay bằng API thật khi có key) ────────────────────
+// DEFAULT_AGENTS — chỉ dùng khi chưa có snapshot tử context
 const DEFAULT_AGENTS: AgentStatus[] = [
-  { id: '1', name: 'AI Assistant', status: 'idle', lastActive: '--' },
-  { id: '2', name: 'Code Agent', status: 'idle', lastActive: '--' },
-  { id: '3', name: 'Automation Bot', status: 'idle', lastActive: '--' },
+  { id: '1', name: 'AI Gateway', status: 'idle', lastActive: '--' },
+  { id: '2', name: 'Agent Runtime', status: 'idle', lastActive: '--' },
+  { id: '3', name: 'Mission Queue', status: 'idle', lastActive: '--' },
+  { id: '4', name: 'Observability', status: 'idle', lastActive: '--' },
 ];
 
 const DEFAULT_MISSIONS: Mission[] = [];
@@ -51,10 +53,19 @@ function StatusBadge({ status }: { status: string }) {
     done: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
     failed: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
   };
+  const labels: Record<string, string> = {
+    idle: 'Sẵn sàng',
+    running: 'Đang chạy',
+    error: 'Cần xử lý',
+    stopped: 'Đã dừng',
+    pending: 'Chờ phê duyệt',
+    done: 'Hoàn tất',
+    failed: 'Có rủi ro',
+  };
   return (
     <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${colors[status] || colors.idle}`}>
       {status === 'running' && <Loader2 className="h-3 w-3 animate-spin" />}
-      {status}
+      {labels[status] || status}
     </span>
   );
 }
@@ -81,7 +92,7 @@ function StatCard({ icon: Icon, label, value, sub, color = 'text-slate-400' }: {
 // ─── AI Chat Panel ───────────────────────────────────────────────────
 function AIChatPanel({ daemonOnline }: { daemonOnline: boolean }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'system', content: 'Chào mừng đến LedgerFlow AI Command Center. Gõ lệnh hoặc câu hỏi để bắt đầu.', timestamp: new Date().toISOString() }
+    { role: 'system', content: 'Chào mừng đến Đội ngũ AI LedgerFlow. Gõ yêu cầu hoặc câu hỏi để bắt đầu.', timestamp: new Date().toISOString() }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -126,11 +137,11 @@ function AIChatPanel({ daemonOnline }: { daemonOnline: boolean }) {
       <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <Bot className="h-4 w-4 text-violet-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-slate-300">AI Chat</span>
+          <span className="text-xs font-black uppercase tracking-wider text-slate-300">Trao đổi với AI</span>
           {daemonOnline ? (
-            <span className="flex items-center gap-1 text-[10px] text-emerald-400"><Wifi className="h-3 w-3" /> Online</span>
+            <span className="flex items-center gap-1 text-[10px] text-emerald-400"><Wifi className="h-3 w-3" /> Đang kết nối</span>
           ) : (
-            <span className="flex items-center gap-1 text-[10px] text-rose-400"><WifiOff className="h-3 w-3" /> Offline</span>
+            <span className="flex items-center gap-1 text-[10px] text-rose-400"><WifiOff className="h-3 w-3" /> Mất kết nối</span>
           )}
         </div>
         <button
@@ -178,7 +189,7 @@ function AIChatPanel({ daemonOnline }: { daemonOnline: boolean }) {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && sendMessage()}
-            placeholder="Ra lệnh cho AI... (vd: kiểm tra trạng thái hệ thống)"
+            placeholder="Giao việc cho AI... (vd: kiểm tra trạng thái hệ thống)"
             className="flex-1 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs text-slate-200 placeholder-slate-500 outline-none focus:border-violet-500/50 transition"
             disabled={loading}
           />
@@ -191,7 +202,7 @@ function AIChatPanel({ daemonOnline }: { daemonOnline: boolean }) {
           </button>
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5">
-          {['Trạng thái agent', 'Tạo nhiệm vụ mới', 'Kiểm tra bảo mật', 'Chạy automation'].map(cmd => (
+          {['Trạng thái AI', 'Tạo nhiệm vụ mới', 'Kiểm tra bảo mật', 'Chạy tự động hóa'].map(cmd => (
             <button
               key={cmd}
               onClick={() => setInput(cmd)}
@@ -212,7 +223,7 @@ function AgentControlPanel({ agents, onToggle }: { agents: AgentStatus[]; onTogg
     <div className="rounded-2xl border border-slate-800 bg-slate-950/80 overflow-hidden">
       <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-3">
         <Cpu className="h-4 w-4 text-cyan-400" />
-        <span className="text-xs font-black uppercase tracking-wider text-slate-300">Agent Control</span>
+        <span className="text-xs font-black uppercase tracking-wider text-slate-300">Kiểm soát AI</span>
       </div>
       <div className="divide-y divide-slate-800/50">
         {agents.map(agent => (
@@ -255,7 +266,7 @@ function MissionQueue({ missions }: { missions: Mission[] }) {
       <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
         <div className="flex items-center gap-2">
           <Activity className="h-4 w-4 text-amber-400" />
-          <span className="text-xs font-black uppercase tracking-wider text-slate-300">Mission Queue</span>
+          <span className="text-xs font-black uppercase tracking-wider text-slate-300">Hàng đợi nhiệm vụ</span>
         </div>
         <span className="text-[10px] font-bold text-slate-500">{missions.length} nhiệm vụ</span>
       </div>
@@ -283,10 +294,10 @@ function MissionQueue({ missions }: { missions: Mission[] }) {
 // ─── Quick Actions ───────────────────────────────────────────────────
 function QuickActions() {
   const actions = [
-    { icon: Play, label: 'Chạy Automation', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10 hover:bg-emerald-500/20' },
-    { icon: Brain, label: 'Train Memory', color: 'text-violet-400', border: 'border-violet-500/30', bg: 'bg-violet-500/10 hover:bg-violet-500/20' },
-    { icon: Zap, label: 'Quick Scan', color: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/10 hover:bg-amber-500/20' },
-    { icon: Shield, label: 'Security Audit', color: 'text-cyan-400', border: 'border-cyan-500/30', bg: 'bg-cyan-500/10 hover:bg-cyan-500/20' },
+    { icon: Play, label: 'Chạy tự động hóa', color: 'text-emerald-400', border: 'border-emerald-500/30', bg: 'bg-emerald-500/10 hover:bg-emerald-500/20' },
+    { icon: Brain, label: 'Cập nhật bộ nhớ', color: 'text-violet-400', border: 'border-violet-500/30', bg: 'bg-violet-500/10 hover:bg-violet-500/20' },
+    { icon: Zap, label: 'Quét nhanh', color: 'text-amber-400', border: 'border-amber-500/30', bg: 'bg-amber-500/10 hover:bg-amber-500/20' },
+    { icon: Shield, label: 'Kiểm tra an toàn', color: 'text-cyan-400', border: 'border-cyan-500/30', bg: 'bg-cyan-500/10 hover:bg-cyan-500/20' },
   ];
 
   return (
@@ -306,26 +317,29 @@ function QuickActions() {
 
 // ─── Main AI Command Center ──────────────────────────────────────────
 export default function AICommandCenter() {
+  // Lấy trạng thái từ AIWorkforceContext (chạy ngầm)
+  const { snapshot, connected, refresh } = useAIWorkforce();
+
+  // Dựng agent list từ background services snapshot
   const [agents, setAgents] = useState<AgentStatus[]>(DEFAULT_AGENTS);
   const [missions] = useState<Mission[]>(DEFAULT_MISSIONS);
-  const [daemonOnline, setDaemonOnline] = useState(false);
   const [robotStatus] = useState<RobotStatus>({ connected: false, mode: 'manual', activeScripts: 0 });
 
-  // Kiểm tra daemon health
+  // Cập nhật agent list khi snapshot thay đổi
   useEffect(() => {
-    const check = async () => {
-      try {
-        const res = await fetch('http://127.0.0.1:3001/health');
-        const data = await res.json();
-        setDaemonOnline(data?.ok === true);
-      } catch {
-        setDaemonOnline(false);
-      }
-    };
-    check();
-    const interval = setInterval(check, 15000);
-    return () => clearInterval(interval);
-  }, []);
+    if (!snapshot?.backgroundServices?.length) return;
+    setAgents(
+      snapshot.backgroundServices.map((svc, i) => ({
+        id: String(i + 1),
+        name: svc.name,
+        status: svc.status === 'running' ? 'running' :
+               svc.status === 'error' ? 'error' : 'idle',
+        lastActive: snapshot.lastAuditAt
+          ? new Date(snapshot.lastAuditAt).toLocaleTimeString('vi-VN')
+          : '--',
+      }))
+    );
+  }, [snapshot]);
 
   const toggleAgent = (id: string) => {
     setAgents(prev => prev.map(a =>
@@ -333,26 +347,27 @@ export default function AICommandCenter() {
     ));
   };
 
-  const runningAgents = agents.filter(a => a.status === 'running').length;
+  const runningAgents = snapshot?.activeRuns ?? agents.filter(a => a.status === 'running').length;
+  const daemonOnline = connected;
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-black text-white">AI Command Center</h2>
+          <h2 className="text-lg font-black text-white">Đội ngũ AI</h2>
           <p className="mt-1 text-xs font-semibold text-slate-400">
-            Điều khiển agent, robot, automation và chat với AI — tất cả trong một giao diện.
+            Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp.
           </p>
         </div>
         <div className="flex items-center gap-3">
           {daemonOnline ? (
             <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase text-emerald-300">
-              <Wifi className="h-3 w-3" /> Daemon Online
+              <Wifi className="h-3 w-3" /> Đang kết nối
             </span>
           ) : (
             <span className="flex items-center gap-1.5 rounded-full border border-rose-500/30 bg-rose-500/10 px-3 py-1 text-[10px] font-black uppercase text-rose-300">
-              <WifiOff className="h-3 w-3" /> Daemon Offline
+              <WifiOff className="h-3 w-3" /> Mất kết nối
             </span>
           )}
           <button
@@ -367,11 +382,11 @@ export default function AICommandCenter() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
-        <StatCard icon={Cpu} label="Agent đang chạy" value={runningAgents} sub={`/ ${agents.length} total`} color="text-cyan-400" />
-        <StatCard icon={Activity} label="Nhiệm vụ" value={missions.length} sub="trong hàng đợi" color="text-amber-400" />
-        <StatCard icon={Zap} label="Automation" value={robotStatus.activeScripts} sub="scripts active" color="text-violet-400" />
-        <StatCard icon={Brain} label="Memory" value="--" sub="entries" color="text-emerald-400" />
-        <StatCard icon={Shield} label="Security" value={robotStatus.mode === 'emergency_stop' ? 'STOP' : 'OK'} sub={robotStatus.mode} color={robotStatus.mode === 'emergency_stop' ? 'text-rose-400' : 'text-cyan-400'} />
+        <StatCard icon={Cpu} label="AI đang chạy" value={runningAgents} sub={`/ ${agents.length} tổng`} color="text-cyan-400" />
+        <StatCard icon={Activity} label="Nhiệm vụ" value={snapshot?.totalQueued ?? missions.length} sub="trong hàng đợi" color="text-amber-400" />
+        <StatCard icon={AlertTriangle} label="Chờ duyệt" value={snapshot?.pendingApprovals ?? 0} sub="cần phê duyệt" color="text-rose-400" />
+        <StatCard icon={CheckCircle2} label="Grade" value={snapshot?.readinessGrade ?? '--'} sub={`điểm ${snapshot?.readinessScore ?? 0}/5`} color="text-emerald-400" />
+        <StatCard icon={Shield} label="An toàn" value={robotStatus.mode === 'emergency_stop' ? 'Dừng' : 'An toàn'} sub={robotStatus.mode} color={robotStatus.mode === 'emergency_stop' ? 'text-rose-400' : 'text-cyan-400'} />
       </div>
 
       {/* Main Grid: Chat + Controls */}
@@ -395,17 +410,15 @@ export default function AICommandCenter() {
       <div className="flex items-center justify-between rounded-xl border border-slate-800 bg-slate-950/50 px-4 py-2.5">
         <div className="flex items-center gap-4 text-[10px] font-semibold text-slate-500">
           <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {new Date().toLocaleTimeString('vi-VN')}</span>
-          <span>Robot: {robotStatus.connected ? 'Connected' : 'Disconnected'}</span>
-          <span>Mode: {robotStatus.mode}</span>
+          <span>Robot: {robotStatus.connected ? 'Đã kết nối' : 'Chưa kết nối'}</span>
+          <span>Chế độ: {robotStatus.mode}</span>
         </div>
         <button
-          onClick={() => {
-            setAgents(DEFAULT_AGENTS);
-          }}
+          onClick={refresh}
           className="flex items-center gap-1 rounded-lg p-1.5 text-[10px] text-slate-500 hover:text-slate-300 transition"
         >
           <RefreshCw className="h-3 w-3" />
-          Reset
+          Làm mới
         </button>
       </div>
     </div>

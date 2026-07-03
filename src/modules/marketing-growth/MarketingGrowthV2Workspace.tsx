@@ -37,91 +37,91 @@ const MARKETING_GROWTH_V2_TABS: Array<{
 }> = [
   {
     id: 'command',
-    label: 'Command Center',
-    note: 'Tổng hợp kênh, scorecard và battle cards.',
+    label: 'Tổng quan tăng trưởng',
+    note: 'Tổng hợp kênh, điểm hiệu quả và luận điểm bán hàng.',
     icon: BarChart3,
   },
   {
     id: 'landing',
-    label: 'Landing Copy',
-    note: 'AI prompt + công thức viết landing page tiếng Việt.',
+    label: 'Trang giới thiệu',
+    note: 'Khung viết trang giới thiệu tiếng Việt.',
     icon: LayoutTemplate,
   },
   {
     id: 'email',
-    label: 'Email Sequence',
-    note: 'Welcome, activation, churn, winback drip sequence.',
+    label: 'Chuỗi email',
+    note: 'Email chào mừng, kích hoạt, giữ chân và quay lại.',
     icon: Mail,
   },
   {
     id: 'plg',
-    label: 'PLG Hub',
-    note: 'Aha moment, activation path, free-to-paid playbook.',
+    label: 'Chuyển đổi dùng thử',
+    note: 'Khoảnh khắc giá trị, kích hoạt và chuyển đổi trả phí.',
     icon: Rocket,
   },
   {
     id: 'launch',
-    label: 'Launch Playbook',
-    note: 'Thứ tự đưa Marketing V2 vào vận hành thật.',
+    label: 'Kế hoạch ra mắt',
+    note: 'Thứ tự đưa khu vực tăng trưởng vào vận hành thật.',
     icon: Rocket,
   },
   {
     id: 'execution',
-    label: 'Execution Board',
-    note: 'Bảng tiến độ spec: done, wired, pending, owner.',
+    label: 'Bảng triển khai',
+    note: 'Bảng tiến độ: hoàn tất, đang theo dõi, cần xử lý, phụ trách.',
     icon: LayoutList,
   },
   {
     id: 'access',
-    label: 'Access Guide',
-    note: 'Cách nối workspace vào app mà không phá router.',
+    label: 'Hướng dẫn truy cập',
+    note: 'Cách nối khu vực này vào app mà không phá điều hướng.',
     icon: Compass,
   },
   {
     id: 'export',
-    label: 'Export Pack',
+    label: 'Gói xuất dữ liệu',
     note: 'Xuất kế hoạch V2 thành Markdown để gửi/handoff.',
     icon: Download,
   },
   {
     id: 'artifacts',
-    label: 'Saved Artifacts',
-    note: 'Lưu draft AI, prompt và handoff note bằng localStorage.',
+    label: 'Tài liệu đã lưu',
+    note: 'Lưu bản nháp, prompt và ghi chú bàn giao trên máy.',
     icon: Archive,
   },
   {
     id: 'approval',
-    label: 'Approval Checklist',
+    label: 'Danh sách phê duyệt',
     note: 'Các điểm cần người duyệt trước khi dùng thật.',
     icon: ClipboardCheck,
   },
   {
     id: 'rollout',
-    label: 'Rollout Status',
-    note: 'Checklist triển khai V2 và các lệnh cần chạy.',
+    label: 'Trạng thái triển khai',
+    note: 'Danh sách triển khai và các bước cần chạy.',
     icon: Route,
   },
   {
     id: 'qa',
-    label: 'QA Console',
-    note: 'Manual checks + lint/build commands sau khi nối UI.',
+    label: 'Kiểm tra chất lượng',
+    note: 'Kiểm tra thủ công và lệnh build sau khi nối UI.',
     icon: ClipboardCheck,
   },
 ];
 
 const STATUS_META = {
   done: {
-    label: 'Done',
+    label: 'Hoàn tất',
     className: 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200',
     icon: CheckCircle2,
   },
   wired: {
-    label: 'Wired',
+    label: 'Đang theo dõi',
     className: 'border-cyan-400/35 bg-cyan-400/10 text-cyan-200',
     icon: Wrench,
   },
   pending: {
-    label: 'Pending',
+    label: 'Cần xử lý',
     className: 'border-amber-400/35 bg-amber-400/10 text-amber-200',
     icon: Clock3,
   },
@@ -144,29 +144,28 @@ export default function MarketingGrowthV2Workspace() {
     <div className="space-y-6">
       <section className="rounded-3xl border border-purple-400/30 bg-purple-400/10 p-6">
         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-purple-200">
-          Marketing Growth V2 · spec-driven workspace
+          Tăng trưởng · khu vực vận hành
         </p>
         <div className="mt-2 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-black text-white">Marketing Growth V2 Workspace</h2>
+            <h2 className="text-2xl font-black text-white">Tăng trưởng</h2>
             <p className="mt-3 max-w-4xl text-sm font-semibold leading-7 text-slate-400">
-              Màn hình tổng hợp bốn nâng cấp theo spec Marketing Upgrade: landing page copy,
-              email sequence, PLG conversion và marketing command center. Tất cả dữ liệu đang chạy
-              offline-first từ <span className="font-black text-purple-200">src/data</span>, chưa cần backend hoặc paid API.
+              Điều phối nội dung, trang giới thiệu, chuỗi email, chuyển đổi dùng thử và tổng quan kênh.
+              Tất cả dữ liệu đang chạy cục bộ để dễ kiểm thử trước khi nối backend.
             </p>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-3 py-2">
               <p className="text-lg font-black text-emerald-200">{rolloutStats.done}</p>
-              <p className="text-[9px] font-black uppercase tracking-wider text-emerald-300/80">Done</p>
+              <p className="text-[9px] font-black uppercase tracking-wider text-emerald-300/80">Hoàn tất</p>
             </div>
             <div className="rounded-2xl border border-cyan-400/25 bg-cyan-400/10 px-3 py-2">
               <p className="text-lg font-black text-cyan-200">{rolloutStats.wired}</p>
-              <p className="text-[9px] font-black uppercase tracking-wider text-cyan-300/80">Wired</p>
+              <p className="text-[9px] font-black uppercase tracking-wider text-cyan-300/80">Đang theo dõi</p>
             </div>
             <div className="rounded-2xl border border-amber-400/25 bg-amber-400/10 px-3 py-2">
               <p className="text-lg font-black text-amber-200">{rolloutStats.pending}</p>
-              <p className="text-[9px] font-black uppercase tracking-wider text-amber-300/80">Pending</p>
+              <p className="text-[9px] font-black uppercase tracking-wider text-amber-300/80">Cần xử lý</p>
             </div>
           </div>
         </div>
@@ -200,11 +199,11 @@ export default function MarketingGrowthV2Workspace() {
       <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-4">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Active tool</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-500">Khu vực đang mở</p>
             <h3 className="mt-1 text-lg font-black text-white">{activeMeta.label}</h3>
           </div>
           <span className="rounded-2xl border border-slate-700 px-3 py-1 text-[10px] font-black uppercase text-slate-400">
-            Offline-first · Data-driven
+            Dữ liệu cục bộ · Đang theo dõi
           </span>
         </div>
 
@@ -274,7 +273,7 @@ function RolloutStatusPanel() {
       </div>
 
       <section className="rounded-3xl border border-cyan-400/25 bg-cyan-400/10 p-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Checks to run after wiring</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-200">Kiểm tra sau khi nối giao diện</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {MARKETING_V2_NEXT_CHECKS.map((command) => (
             <code key={command} className="rounded-2xl border border-cyan-300/30 bg-slate-950 px-3 py-2 text-xs font-black text-cyan-100">

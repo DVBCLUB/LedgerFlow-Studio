@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths.ts";
 
-export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek";
+export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek" | "mistral" | "together" | "perplexity" | "xai" | "runway" | "luma" | "leonardo" | "elevenlabs" | "replicate";
 
 export interface AIProviderDefinition {
   id: AIProviderName;
@@ -170,6 +170,78 @@ const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
     defaultModel: "qwen2.5:7b",
     docsUrl: "https://ollama.com",
     note: "Fallback chạy local, không cần API key. Cần cài Ollama và pull model trước.",
+  },
+  {
+    id: "mistral",
+    label: "Mistral AI",
+    requiresApiKey: true,
+    defaultModel: "mistral-large-latest",
+    docsUrl: "https://console.mistral.ai/api-keys",
+    note: "Dùng API key từ Mistral (La Plateforme). Hỗ trợ các model mistral-large, pixtral, v.v.",
+  },
+  {
+    id: "together",
+    label: "Together AI",
+    requiresApiKey: true,
+    defaultModel: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
+    docsUrl: "https://api.together.xyz/settings/api-keys",
+    note: "Nền tảng Cloud cung cấp nhiều mô hình Open Source mạnh với tốc độ cao.",
+  },
+  {
+    id: "perplexity",
+    label: "Perplexity",
+    requiresApiKey: true,
+    defaultModel: "sonar-reasoning-pro",
+    docsUrl: "https://www.perplexity.ai/settings/api",
+    note: "Tích hợp mô hình Sonar chuyên dành cho Search/Reasoning của Perplexity.",
+  },
+  {
+    id: "xai",
+    label: "xAI (Grok)",
+    requiresApiKey: true,
+    defaultModel: "grok-2-latest",
+    docsUrl: "https://console.x.ai/",
+    note: "Mô hình Grok của xAI. Hỗ trợ qua giao thức tương thích OpenAI.",
+  },
+  {
+    id: "runway",
+    label: "Runway (Video Gen)",
+    requiresApiKey: true,
+    defaultModel: "gen3a-turbo",
+    docsUrl: "https://platform.runwayml.com/api-keys",
+    note: "API sinh video AI Gen-3 Alpha của RunwayML.",
+  },
+  {
+    id: "luma",
+    label: "Luma AI (Dream Machine)",
+    requiresApiKey: true,
+    defaultModel: "dream-machine",
+    docsUrl: "https://lumalabs.ai/dream-machine/api",
+    note: "Nền tảng sinh video và 3D Model chất lượng cao của Luma.",
+  },
+  {
+    id: "leonardo",
+    label: "Leonardo.Ai",
+    requiresApiKey: true,
+    defaultModel: "leonardo-kino-xl",
+    docsUrl: "https://app.leonardo.ai/api",
+    note: "Công cụ mạnh mẽ để tạo Concept Art, Texture và hình ảnh truyện tranh.",
+  },
+  {
+    id: "elevenlabs",
+    label: "ElevenLabs (Voice)",
+    requiresApiKey: true,
+    defaultModel: "eleven_multilingual_v2",
+    docsUrl: "https://elevenlabs.io/api",
+    note: "Mô hình sinh giọng nói (Voice-over) cực kỳ cảm xúc.",
+  },
+  {
+    id: "replicate",
+    label: "Replicate (Open Source)",
+    requiresApiKey: true,
+    defaultModel: "black-forest-labs/flux-schnell",
+    docsUrl: "https://replicate.com/account/api-tokens",
+    note: "Tổng hợp các Open-source Model (Flux, Stable Diffusion, Llama, v.v).",
   },
 ];
 

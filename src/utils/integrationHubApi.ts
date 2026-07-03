@@ -423,3 +423,26 @@ export async function generateIDEHandoff(target: string, task: string, files?: s
   );
   return data.prompt;
 }
+
+export interface GitLocalStatus {
+  branch: string;
+  uncommittedFiles: number;
+  uncommittedDetails: string[];
+  ahead: number;
+  behind: number;
+}
+
+export async function fetchGitLocalStatus(): Promise<GitLocalStatus> {
+  const data = await readJson<{ success: true; status: GitLocalStatus }>(await fetch('/api/integrations/git/status'));
+  return data.status;
+}
+
+export async function triggerGitPull(): Promise<{ success: boolean; log: string }> {
+  const data = await readJson<{ success: boolean; log: string }>(await fetch('/api/integrations/git/pull', { method: 'POST' }));
+  return data;
+}
+
+export async function triggerGitPush(): Promise<{ success: boolean; log: string }> {
+  const data = await readJson<{ success: boolean; log: string }>(await fetch('/api/integrations/git/push', { method: 'POST' }));
+  return data;
+}

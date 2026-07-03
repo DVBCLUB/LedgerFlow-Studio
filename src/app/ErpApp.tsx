@@ -14,10 +14,16 @@ import {
   Settings,
   UsersRound,
   X,
+  Command,
+  UserCircle,
+  Mic
 } from 'lucide-react';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
 import { COMPANY_WORKSPACES, type TabType, type RoleType } from './companyNavigation';
+import AgenticStatusBar from '../components/shared/AgenticStatusBar';
+import GlobalCommandSpotlight from '../components/shared/GlobalCommandSpotlight';
+import NeuralNotificationCenter from '../components/shared/NeuralNotificationCenter';
 
 const IconMap: Record<string, typeof Building2> = {
   Building2,
@@ -138,9 +144,9 @@ export default function ErpApp() {
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
       tab: 'ceo_command' as TabType,
-      label: 'Command Center',
-      shortLabel: 'Command',
-      description: 'Việc hôm nay và cảnh báo chính',
+      label: 'Trung tâm Điều hành',
+      shortLabel: 'Điều hành',
+      description: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.',
       icon: Building2,
     };
   }, [navigation, activeTab]);
@@ -174,79 +180,141 @@ export default function ErpApp() {
   };
 
   return (
-    <div className={`erp-app ${collapsed ? 'erp-app--collapsed' : ''}`}>
-      {sidebarOpen && <button className="erp-sidebar-backdrop" aria-label="Đóng menu" onClick={() => setSidebarOpen(false)} />}
+    <div className="min-h-screen bg-[#09090b] text-slate-300 font-sans selection:bg-indigo-500/30 flex">
+      <GlobalCommandSpotlight />
+      
+      {/* Mobile Backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity" 
+          onClick={() => setSidebarOpen(false)} 
+        />
+      )}
 
-      <aside className={`erp-sidebar ${sidebarOpen ? 'erp-sidebar--open' : ''}`}>
-        <div className="erp-brand">
-          <img src="/ledgerflow-icon.svg" alt="" className="erp-brand__logo" />
-          {!collapsed && (
-            <div className="min-w-0">
-              <strong>LedgerFlow Hub</strong>
-              <span>Solo local workspace</span>
+      {/* SIDEBAR */}
+      <aside 
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#09090b] border-r border-white/5 transition-all duration-300
+          ${collapsed ? 'w-[68px]' : 'w-[260px]'}
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+      >
+        {/* Brand Area */}
+        <div className={`flex items-center h-14 shrink-0 border-b border-white/5 px-4 ${collapsed ? 'justify-center' : 'justify-between'}`}>
+          <div className="flex items-center gap-3 truncate">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+              <Command className="w-4 h-4" />
             </div>
+            {!collapsed && (
+              <div className="flex flex-col truncate">
+                <span className="text-sm font-semibold text-white tracking-tight leading-none">LedgerFlow</span>
+                <span className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">OS Enterprise</span>
+              </div>
+            )}
+          </div>
+          {!collapsed && (
+            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
+              <X className="w-4 h-4" />
+            </button>
           )}
-          <button className="erp-icon-button ml-auto lg:hidden" onClick={() => setSidebarOpen(false)} aria-label="Đóng menu">
-            <X size={18} />
-          </button>
         </div>
 
+        {/* Search Area */}
         {!collapsed && (
-          <label className="erp-sidebar-search">
-            <Search size={15} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm module" />
-          </label>
+          <div className="px-3 py-4">
+            <div className="relative group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+              <input 
+                value={query} 
+                onChange={(e) => setQuery(e.target.value)} 
+                placeholder="Tìm không gian làm việc..." 
+                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/5 focus:border-indigo-500/50 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
+              />
+            </div>
+          </div>
         )}
 
-        <nav className="erp-navigation" aria-label="Module chính">
+        {/* Navigation */}
+        <div className="flex-1 overflow-y-auto px-2 space-y-0.5 mt-2 scrollbar-thin scrollbar-thumb-white/10">
           {filteredNavigation.map((item) => {
             const Icon = item.icon;
             const active = item.tab === activeTab;
             return (
               <button
                 key={item.tab}
-                type="button"
-                className={`erp-navigation__item ${active ? 'is-active' : ''}`}
                 onClick={() => navigate(item.tab)}
                 title={collapsed ? item.label : undefined}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all group
+                  ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
               >
-                <Icon size={18} />
+                <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
                 {!collapsed && (
-                  <span>
-                    <strong>{item.label}</strong>
-                    <small>{item.description}</small>
-                  </span>
+                  <div className="flex flex-col truncate">
+                    <span className="text-xs font-medium">{item.label}</span>
+                  </div>
                 )}
               </button>
             );
           })}
-        </nav>
+        </div>
 
-        <div className="erp-sidebar__footer">
-          {!collapsed && <span className="erp-status"><i /> Local mode</span>}
-          <button className="erp-collapse-button" onClick={toggleCollapsed} aria-label={collapsed ? 'Mở rộng menu' : 'Thu gọn menu'}>
-            {collapsed ? <ChevronRight size={17} /> : <><ChevronLeft size={17} /><span>Thu gọn menu</span></>}
+        {/* Footer Area */}
+        <div className="mt-auto border-t border-white/5 p-2">
+          {!collapsed && (
+            <div className="px-3 py-2 flex items-center gap-3 mb-2 rounded-lg bg-white/[0.02] border border-white/5">
+              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Local SQLite Sync</span>
+            </div>
+          )}
+          <button 
+            onClick={toggleCollapsed} 
+            className="w-full flex items-center justify-center p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <div className="flex items-center gap-2"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-medium">Thu gọn menu</span></div>}
           </button>
         </div>
       </aside>
 
-      <div className="erp-workspace">
-        <header className="erp-topbar">
-          <button className="erp-icon-button lg:hidden" onClick={() => setSidebarOpen(true)} aria-label="Mở menu">
-            <Menu size={19} />
-          </button>
-          <div className="min-w-0">
-            <p>LedgerFlow / {current.shortLabel}</p>
-            <h1>{current.label}</h1>
+      {/* MAIN WORKSPACE */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]'}`}>
+        
+        {/* TOPBAR */}
+        <header className="h-14 shrink-0 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 sticky top-0 z-30">
+          <div className="flex items-center gap-3">
+            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
+              <Menu className="w-5 h-5" />
+            </button>
+            
+            <nav className="flex items-center gap-2 text-xs font-medium">
+              <span className="text-slate-500 hidden sm:inline-block">LedgerFlow OS</span>
+              <span className="text-slate-600 hidden sm:inline-block">/</span>
+              <span className="text-slate-400">{current.shortLabel}</span>
+              <span className="text-slate-600">/</span>
+              <span className="text-white">{current.label}</span>
+            </nav>
           </div>
-          <div className="erp-topbar__actions">
-            <span className="erp-status"><i /> Dữ liệu local</span>
+
+          <div className="flex items-center gap-4">
+            <AgenticStatusBar />
+            <div className="flex items-center gap-2">
+              <NeuralNotificationCenter />
+              <button className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shadow-inner" title="Giao tiếp Giọng nói với AI (Hold to speak)" onClick={() => alert('Đang lắng nghe: "Agent Marketing, báo cáo chiến dịch hôm nay"...')}>
+                <Mic className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
+            <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+              <UserCircle className="w-5 h-5" />
+              <span className="text-xs font-medium hidden sm:block">Solopreneur</span>
+            </button>
           </div>
         </header>
 
-        <main className="erp-content">
-          <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
+        {/* CONTENT */}
+        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
+          <div className="max-w-[1600px] mx-auto">
+            <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
+          </div>
         </main>
+
       </div>
     </div>
   );

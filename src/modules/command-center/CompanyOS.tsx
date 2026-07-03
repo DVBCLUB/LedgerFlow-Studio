@@ -37,11 +37,11 @@ const tabs = [
   { id: 'company', label: 'Công ty hôm nay' },
   { id: 'library', label: 'Thư viện tri thức' },
   { id: 'ai', label: 'AI Nhân sự' },
-  { id: 'product', label: 'Product Studio' },
-  { id: 'marketing', label: 'Marketing & Sales' },
-  { id: 'sandbox', label: 'Models & Sandbox' },
+  { id: 'product', label: 'Xưởng Sản phẩm' },
+  { id: 'marketing', label: 'Tăng trưởng & Khách hàng' },
+  { id: 'sandbox', label: 'Phân tích & Tri thức' },
   { id: 'finance', label: 'Tài chính' },
-  { id: 'v2', label: 'V2 Readiness' }
+  { id: 'v2', label: 'Sẵn sàng nâng cấp' }
 ] as const;
 
 type TabId = (typeof tabs)[number]['id'];
@@ -70,7 +70,7 @@ const starterKnowledge: KnowledgeItem[] = [
   {
     id: 'k-003',
     title: 'AI Nhân sự là trung tâm điều phối hệ thống',
-    category: 'AI Operations',
+    category: 'Đội ngũ AI',
     source: 'Founder correction',
     tags: 'ai-nhân-sự, github, vscode, code, push, design',
     content: 'AI Nhân sự không phải HCNS thường. Đây là nơi điều phối AI/AI agent: trả lời câu hỏi, tạo code, review, push qua GitHub, thiết kế UI, liên kết VS Code/Cursor/GitHub, nhận dữ liệu vào và đẩy dữ liệu ra.',
@@ -83,49 +83,49 @@ const agentLanes: AgentLane[] = [
   {
     title: 'AI Điều phối trưởng',
     mission: 'Nhận yêu cầu từ founder, phân loại thành việc hỏi đáp, code, thiết kế, dữ liệu, marketing hoặc tích hợp.',
-    tools: ['AI Gateway', 'Task Router', 'Knowledge Library'],
-    outputs: ['Kế hoạch xử lý', 'Việc giao cho AI khác', 'Checklist kiểm tra'],
+    tools: ['Cổng AI', 'Bộ điều phối việc', 'Thư viện tri thức'],
+    outputs: ['Kế hoạch xử lý', 'Việc giao cho AI khác', 'Danh sách kiểm tra'],
     tone: 'violet'
   },
   {
     title: 'AI Code / Dev Agent',
     mission: 'Tạo code, sửa bug, refactor, viết prompt handoff cho Cursor/VS Code/Copilot và theo dõi CI.',
-    tools: ['VS Code', 'Cursor', 'GitHub', 'CI Doctor'],
-    outputs: ['Patch', 'PR/commit plan', 'Test checklist', 'Build status'],
+    tools: ['VS Code', 'Cursor', 'GitHub', 'Bộ kiểm tra CI'],
+    outputs: ['Bản sửa', 'Kế hoạch đưa lên GitHub', 'Danh sách kiểm thử', 'Trạng thái build'],
     tone: 'emerald'
   },
   {
     title: 'AI Thiết kế sản phẩm',
     mission: 'Biến ý tưởng thành màn hình, flow, wireframe, PRD, UX copy và cấu trúc module.',
-    tools: ['Product Studio', 'Design Prompt', 'Screenshot Review'],
-    outputs: ['PRD', 'UI flow', 'Component brief', 'Acceptance criteria'],
+    tools: ['Xưởng Sản phẩm', 'Prompt thiết kế', 'Duyệt ảnh giao diện'],
+    outputs: ['Đặc tả sản phẩm', 'Luồng giao diện', 'Tóm tắt component', 'Tiêu chí nghiệm thu'],
     tone: 'cyan'
   },
   {
     title: 'AI Dữ liệu / Tri thức',
     mission: 'Gom dữ liệu từ thư viện, file, log, issue, ghi chú và biến thành context cho AI trả lời đúng.',
-    tools: ['Thư viện tri thức', 'Import/Export', 'Analytics Sandbox'],
-    outputs: ['Context pack', 'Tóm tắt tri thức', 'Nguồn dữ liệu'],
+    tools: ['Thư viện tri thức', 'Nhập/xuất dữ liệu', 'Sandbox dữ liệu'],
+    outputs: ['Gói ngữ cảnh', 'Tóm tắt tri thức', 'Nguồn dữ liệu'],
     tone: 'blue'
   },
   {
     title: 'AI Marketing / Sales',
     mission: 'Tạo nội dung bán hàng, khảo sát thị trường, kịch bản demo, follow-up khách hàng và phân tích funnel.',
-    tools: ['Marketing Hub', 'Sales CRM', 'Survey Simulator'],
-    outputs: ['Content plan', 'Demo script', 'Lead notes', 'Campaign idea'],
+    tools: ['Tăng trưởng', 'Bán hàng & Khách hàng', 'Mô phỏng khảo sát'],
+    outputs: ['Kế hoạch nội dung', 'Kịch bản demo', 'Ghi chú lead', 'Ý tưởng chiến dịch'],
     tone: 'rose'
   },
   {
     title: 'AI Kiểm soát / Auditor',
     mission: 'Kiểm tra output trước khi dùng: đúng yêu cầu, không lệch hướng, không phá code, không sai nghiệp vụ.',
-    tools: ['Quality checklist', 'GitHub Actions', 'Release notes'],
-    outputs: ['GO/HOLD/NO-GO', 'Risk list', 'Fix request'],
+    tools: ['Danh sách kiểm tra chất lượng', 'GitHub Actions', 'Ghi chú phát hành'],
+    outputs: ['Đạt / chờ / dừng', 'Danh sách rủi ro', 'Yêu cầu sửa'],
     tone: 'amber'
   }
 ];
 
 const productLines = [
-  ['LedgerFlow Company OS', 'Hệ điều hành công ty phần mềm: điều phối sản phẩm, AI, dữ liệu, tích hợp, tài chính, marketing.'],
+  ['LedgerFlow OS', 'Nền tảng Doanh nghiệp AI tự vận hành cho solopreneur: điều phối sản phẩm, AI, dữ liệu, tích hợp, tài chính và tăng trưởng.'],
   ['Accounting for Construction', 'Template kế toán ngành xây dựng: công trình, chi phí, hồ sơ, vật tư nếu cần. Không phải global app.'],
   ['Accounting for Services', 'Dịch vụ, hợp đồng, doanh thu, chi phí nhân sự, nghiệm thu, công nợ.'],
   ['Accounting for Trading', 'Mua bán hàng hóa, tồn kho, biên lợi nhuận, công nợ, hóa đơn.'],
@@ -286,7 +286,7 @@ function KnowledgeLibraryTab() {
 function AIOpsCenterTab() {
   return (
     <div>
-      <SectionTitle title="AI Nhân sự / AI Operations Center" subtitle="Đây là trung tâm điều phối AI, AI agent, phần mềm liên quan và dữ liệu vào/ra: hỏi đáp, tạo code, push code, thiết kế, VS Code, GitHub, sandbox, knowledge base." />
+      <SectionTitle title="Đội ngũ AI" subtitle="Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp." />
       <div className="mb-4 grid gap-3 md:grid-cols-4">
         {[
           ['Dữ liệu vào', 'Tri thức, file, log, issue, prompt, yêu cầu founder', 'blue' as Tone],
@@ -333,7 +333,7 @@ function AIOpsCenterTab() {
 function ProductStudioTab() {
   return (
     <div>
-      <SectionTitle title="Product Studio" subtitle="Nơi quản lý các dòng sản phẩm: Company OS, phần mềm kế toán đa ngành, AI/data tools và game." />
+      <SectionTitle title="Xưởng Sản phẩm" subtitle="Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành." />
       <div className="grid gap-3 md:grid-cols-2">
         {productLines.map(([title, note], index) => <Panel key={title} tone={(['emerald', 'cyan', 'blue', 'orange', 'amber', 'violet'] as Tone[])[index]}><p className="text-sm font-black text-white">{title}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{note}</p></Panel>)}
       </div>
@@ -344,7 +344,7 @@ function ProductStudioTab() {
 function MarketingSalesTab() {
   return (
     <div>
-      <SectionTitle title="Marketing & Sales" subtitle="Phần mềm phải có phòng marketing và bán hàng: nghiên cứu khách hàng, tạo nội dung, demo, lead, follow-up và CRM." />
+      <SectionTitle title="Tăng trưởng & Khách hàng" subtitle="Điều phối marketing, nội dung, cơ hội bán hàng, chăm sóc và hiệu quả kênh." />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
         {[
           ['Định vị', 'LedgerFlow dành cho founder/công ty nhỏ muốn dùng AI để xây, bán và vận hành sản phẩm.'],
@@ -362,9 +362,9 @@ function MarketingSalesTab() {
 function SandboxTab() {
   return (
     <div>
-      <SectionTitle title="Analytics, Models & Sandbox" subtitle="Khôi phục đúng tinh thần Google AI Studio ban đầu: biểu đồ, mô hình, mô phỏng, sandbox SQL/Python, game/ML và thử nghiệm dữ liệu." />
+      <SectionTitle title="Phân tích & Tri thức" subtitle="Gom dữ liệu, phân tích, báo cáo và bộ nhớ vận hành của doanh nghiệp." />
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-        {['SQL Sandbox', 'Python Sandbox', 'What-if Financial Model', 'Market Survey Simulator', 'Forecasting / ML Workbench', 'Game & Education Lab', 'Synthetic Data Lab', 'Dashboard & Charts', 'Model Registry'].map((name, index) => <Panel key={name} tone={(['cyan', 'blue', 'emerald', 'rose', 'violet', 'amber', 'orange', 'cyan', 'emerald'] as Tone[])[index]}><p className="text-sm font-black text-white">{name}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">Module này phải được đưa lên rõ ràng, không chôn trong demo/lộ trình.</p></Panel>)}
+        {['Sandbox SQL', 'Sandbox dữ liệu Python', 'Mô hình tài chính giả định', 'Mô phỏng khảo sát thị trường', 'Dự báo & mô hình học máy', 'Game & học qua tình huống', 'Dữ liệu giả lập', 'Báo cáo & biểu đồ', 'Danh mục mô hình'].map((name, index) => <Panel key={name} tone={(['cyan', 'blue', 'emerald', 'rose', 'violet', 'amber', 'orange', 'cyan', 'emerald'] as Tone[])[index]}><p className="text-sm font-black text-white">{name}</p><p className="mt-2 text-xs font-semibold leading-5 text-slate-400">Khu vực này được đưa lên rõ ràng để phục vụ phân tích và thử nghiệm dữ liệu.</p></Panel>)}
       </div>
     </div>
   );
@@ -396,14 +396,14 @@ export default function CompanyOS() {
   return (
     <div className="mx-auto max-w-6xl text-slate-100">
       <div className="mb-5 rounded-3xl border border-emerald-500/25 bg-slate-950/70 p-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">Software company operating dashboard</p>
-        <h2 className="mt-2 text-2xl font-black text-white">LedgerFlow Hub — Company OS</h2>
-        <p className="mt-2 text-sm font-semibold leading-6 text-slate-400">Trung tâm điều hành công ty phần mềm: sản phẩm, marketing, sales, tài chính, thư viện tri thức, AI nhân sự, sandbox, tích hợp GitHub/VS Code/AI Gateway. Không còn đóng khung thành công ty xây dựng.</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">LedgerFlow OS</p>
+        <h2 className="mt-2 text-2xl font-black text-white">LedgerFlow OS</h2>
+        <p className="mt-2 text-sm font-semibold leading-6 text-slate-400">Nền tảng Doanh nghiệp AI tự vận hành cho solopreneur: điều phối sản phẩm, tăng trưởng, khách hàng, tài chính, tri thức, đội ngũ AI và tích hợp hệ thống.</p>
       </div>
       <section className="mb-5 rounded-2xl border border-amber-500/25 bg-amber-500/5 p-5">
         <h3 className="mb-3 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-100">
           <ShieldCheck className="h-4 w-4 text-amber-300" />
-          Simulation boundary
+          Ranh giới mô phỏng
         </h3>
         <p className="text-xs font-semibold leading-7 text-slate-300">
           Company OS hien la operating dashboard offline-first: nhieu lane dung static data, localStorage va metric mo phong de dieu phoi cong viec truoc khi co backend that.

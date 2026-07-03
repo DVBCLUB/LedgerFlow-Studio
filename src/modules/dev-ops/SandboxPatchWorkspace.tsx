@@ -4,19 +4,19 @@ import SimplePanelCard from '../../components/shared/SimplePanelCard';
 export default function SandboxPatchWorkspace() {
   return (
     <SimplePanelCard
-      eyebrow="DevOps"
-      title="Sandbox patch workspace"
-      description="Không dàn form tạo patch trên màn hình chính nữa. Dùng khu này như nhắc việc: sửa trong Replit/GitHub, test local, rồi mới đưa vào review."
+      eyebrow="Phát hành"
+      title="Khu thử thay đổi"
+      description="Không dàn form tạo patch trên màn hình chính nữa. Dùng khu này như nhắc việc: sửa trong GitHub hoặc IDE, test local, rồi mới đưa vào duyệt."
       icon={FlaskConical}
-      status="Ẩn chi tiết"
+      status="Đang theo dõi"
       tone="slate"
       items={[
-        'Tạo patch trong Replit Agent hoặc VSCode để có diff rõ',
+        'Tạo patch trong GitHub hoặc VS Code để có diff rõ',
         'Mỗi lần chỉ chỉnh một module hoặc một flow',
-        'Chụp lỗi màn hình/terminal làm bằng chứng review',
-        'Không dùng sandbox để sửa dữ liệu production',
+        'Chụp lỗi màn hình hoặc terminal làm bằng chứng duyệt',
+        'Không dùng khu thử nghiệm để sửa dữ liệu production',
       ]}
-      actions={["Replit", "GitHub", "Local"]}
+      actions={["VS Code", "GitHub", "Local"]}
     />
   );
 }

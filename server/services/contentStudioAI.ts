@@ -11,7 +11,7 @@ import fs from 'fs';
 import path from 'path';
 
 // ─── Types ──────────────────────────────────────────────────────────
-export type ContentType = 'blog_post' | 'email' | 'social_post' | 'tech_doc' | 'tutorial' | 'linkedin_post';
+export type ContentType = 'blog_post' | 'email' | 'social_post' | 'tech_doc' | 'tutorial' | 'linkedin_post' | 'video_script' | 'comic_storyboard' | 'image_prompt_set' | '3d_concept';
 
 export type ContentTone = 'professional' | 'casual' | 'technical' | 'enthusiastic' | 'formal';
 
@@ -71,6 +71,61 @@ export async function generateContent(request: ContentRequest): Promise<ContentA
   let format = '';
 
   switch (request.type) {
+    case 'video_script':
+      format = `**Title**: [Video Title]
+**Target Duration**: [e.g., 60 seconds]
+**Visual Style**: [e.g., Cinematic, 3D Render, Anime]
+
+## Scene 1
+**Visuals/Camera**: [Detailed prompt for Runway/Luma API: subject, camera movement, lighting]
+**Voice-over**: [Text for ElevenLabs API]
+**Duration**: [e.g., 5s]
+
+## Scene 2
+[continue...]`;
+      prompt = `Write a ${tone} video script and prompt structure about: ${request.topic}
+Target audience: ${audience}
+Language: ${lang}
+This script is designed to be fed directly into Multi-modal AI (Runway/Luma for video, ElevenLabs for voice).
+Ensure the 'Visuals/Camera' prompt is highly descriptive.
+Follow this format:
+${format}`;
+      break;
+
+    case 'comic_storyboard':
+      format = `**Comic Title**: [Title]
+**Art Style**: [e.g., Cyberpunk, Studio Ghibli, Marvel Comic]
+
+## Panel 1
+**Image Prompt**: [Detailed prompt for Leonardo.Ai: character description, background, framing, lighting]
+**Caption**: [Narration text]
+**Dialogue**: [Character speech]
+
+## Panel 2
+[continue...]`;
+      prompt = `Write a comic storyboard about: ${request.topic}
+Tone: ${tone}
+Language: ${lang}
+This storyboard is designed to generate images via Leonardo.Ai or Replicate.
+Ensure the 'Image Prompt' is highly descriptive for image generation models.
+Follow this format:
+${format}`;
+      break;
+
+    case '3d_concept':
+      format = `**Asset Name**: [Name of 3D asset]
+**Style**: [e.g., Low-poly, Photorealistic, Stylized]
+
+**Luma Dream Machine Prompt**: [Detailed prompt describing the object from all angles, materials, lighting]
+**Use Case**: [How this 3D model will be used in the software/game]`;
+      prompt = `Write a 3D model concept and AI generation prompt about: ${request.topic}
+Tone: ${tone}
+Language: ${lang}
+This is designed to be fed into Luma AI's 3D generation API.
+Follow this format:
+${format}`;
+      break;
+
     case 'blog_post':
       format = `**Title**: [catchy title]
 **Subtitle**: [engaging subtitle]

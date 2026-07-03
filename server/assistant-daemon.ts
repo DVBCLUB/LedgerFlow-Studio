@@ -170,6 +170,7 @@ import { gatherSystemOverview } from "./services/crossServiceDataLinker";
 import { startWorkflow as startAgentWorkflowEngine, approveWorkflowStep, stopWorkflow as stopAgentWorkflow, listWorkflows as listAgentWorkflows, getWorkflow as getAgentWorkflow, listWorkflowTemplates } from "./services/agentWorkflowEngine";
 import { getGitHubCIFailureContext, analyzeGitHubCIFailure } from "./services/githubCiDoctor";
 import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
+import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, executeRuntimeMissionStepToolConnector, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
 import { buildRuntimeReleaseGateExport } from "./services/aiWorkforceReleaseGateExportRuntime";
 import { buildAIWorkforceReleaseGateExport } from "./services/aiWorkforceReleaseGateExport";
 import { getAIWorkforceReleaseGateDashboard } from "./services/aiWorkforceReleaseGateDashboard";
@@ -177,7 +178,7 @@ import { buildRuntimeMissionReleaseGate } from "./services/aiWorkforceMissionRel
 import { buildMissionQueueSnapshotExport } from "./services/aiWorkforceMissionSnapshotExport";
 import { listMissionExecutionQueues, requireMissionExecutionQueue } from "./services/aiWorkforceMissionExecutionQueueStore";
 import { buildStoredMissionOperatorReviewDossier, getMissionOperatorReviewNoteStoreStats, listMissionOperatorReviewNotes, saveMissionOperatorReviewNote } from "./services/aiWorkforceMissionReviewNoteStore";
-import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, listRuntimeMissionQueueDrift, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, repairRuntimeMissionQueueDrift, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
+import { approveRuntimeMissionExecutionStep, buildRuntimeGitHubPRControlReport, buildRuntimeGroundedContext, buildRuntimeMissionExecutionQueue, buildRuntimeMissionPlan, buildRuntimePRControlReport, cancelRuntimeMissionExecutionQueue, completeRuntimeMissionExecutionStep, executeRuntimeMissionStepToolSimulation, executeRuntimeMissionStepToolConnector, getAIWorkforceRuntimeDashboard, listRuntimeMissionExecutionQueues, listRuntimeMissionQueueDrift, previewRuntimeAutomation, previewRuntimeMissionStepToolExecution, repairRuntimeMissionQueueDrift, resumeRuntimeMissionExecutionQueue, scoreRuntimePRReadiness, startRuntimeMissionExecutionStep } from "./services/aiWorkforceRuntimeHub";
 
 // ---------------------------------------------------------------------------
 // In-memory session store: last AI suggestion per file (for apply/rollback)
@@ -1392,6 +1393,34 @@ app.post('/api/automation-scheduler/start', async (req: Request, res: Response) 
 
 app.post('/api/automation-scheduler/stop', async (_req: Request, res: Response) => {
   res.json({ ok: true, status: stopAutomationScheduler() });
+});
+
+app.get('/api/automation/rules', async (_req: Request, res: Response) => {
+  res.json({ ok: true, rules: listAutomationRules() });
+});
+
+app.post('/api/automation/rules/:id/toggle', async (req: Request, res: Response) => {
+  const parsed = z.object({ enabled: z.boolean() }).parse(req.body || {});
+  const rule = toggleAutomationRule(req.params.id, parsed.enabled);
+  res.json({ ok: true, rule });
+});
+
+app.get('/api/automation/execution-log', async (_req: Request, res: Response) => {
+  res.json({ ok: true, logs: getAutomationExecutionLog(50) });
+});
+
+app.get('/api/gateway/health', async (_req: Request, res: Response) => {
+  res.json({ ok: true, health: getProviderHealthSnapshot(), stats: getGatewayStatsSnapshot() });
+});
+
+app.post('/api/gateway/circuit/:provider/reset', async (req: Request, res: Response) => {
+  resetCircuitBreaker(req.params.provider);
+  res.json({ ok: true, provider: req.params.provider });
+});
+
+app.post('/api/gateway/circuit/reset-all', async (_req: Request, res: Response) => {
+  resetAllCircuits();
+  res.json({ ok: true });
 });
 
 
@@ -3904,7 +3933,10 @@ app.post("/api/ai-workforce/mission-execution-queue/tool-preview", async (req: R
 });
 app.post("/api/ai-workforce/mission-execution-queue/tool-execute", async (req: Request, res: Response) => {
   try {
-    const result = await executeRuntimeMissionStepToolSimulation(req.body as any);
+    const payload = req.body as any;
+    const result = payload.executionMode === 'connector'
+      ? await executeRuntimeMissionStepToolConnector(payload)
+      : await executeRuntimeMissionStepToolSimulation(payload);
     res.json({ ok: true, ...result });
   } catch (err: any) { res.status(500).json({ ok: false, error: err.message }); }
 });

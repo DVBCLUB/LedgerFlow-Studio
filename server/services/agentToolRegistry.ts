@@ -13,7 +13,9 @@ export type AgentToolPermission =
   | 'notification:send'
   | 'web:search'
   | 'robot:inspect'
-  | 'robot:move';
+  | 'robot:move'
+  | 'github:push'
+  | 'github:pull';
 
 export interface AgentToolContract {
   id: string;
@@ -151,6 +153,27 @@ const contracts = [
     timeoutMs: 30_000,
     maxAttempts: 1,
     execution: 'simulation',
+  },
+  // ─── New tools — DevOps & GitHub ───────────────────────────────────────────
+  {
+    id: 'github_create_draft_pr',
+    description: 'Create an approved Draft Pull Request on GitHub with local changes.',
+    permission: 'github:push',
+    risk: 'high',
+    requiresApproval: true,
+    timeoutMs: 90_000,
+    maxAttempts: 1,
+    execution: 'connector',
+  },
+  {
+    id: 'github_pull_local',
+    description: 'Pull the latest code from GitHub to the local environment.',
+    permission: 'github:pull',
+    risk: 'medium',
+    requiresApproval: true,
+    timeoutMs: 60_000,
+    maxAttempts: 1,
+    execution: 'connector',
   },
 ] as const satisfies readonly AgentToolContract[];
 

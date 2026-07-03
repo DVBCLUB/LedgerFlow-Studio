@@ -12,7 +12,7 @@ import { buildAIUsageMetrics } from "./server/services/aiUsageMetrics";
 import { AI_PROMPT_TASKS, activatePromptVersion, createPromptVersion, getActivePrompt, listPromptTemplates } from "./server/services/aiPromptRegistry";
 import { disarmAIVaultAutoLock, getAIVaultAutoLockStatus, markAIVaultActivity, updateAIVaultAutoLockConfig } from "./server/services/aiVaultAutoLock";
 import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnectors, readIntegrationEvents, testIntegrationConnector, updateIntegrationConnector } from "./server/services/integrationRegistry";
-import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest } from "./server/services/githubConnector";
+import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest, getGitLocalStatus, gitPullLocal, gitPushLocal } from "./server/services/githubConnector";
 import { getGitHubWorkflowRunArtifacts } from "./server/services/githubArtifacts";
 import { getLocalToolSummary, openLocalTool } from "./server/services/localToolConnector";
 import { seedContractsFromRegistry, listContracts, getContract, updateContractHealth } from "./server/services/connectorContract";
@@ -38,6 +38,11 @@ import { agenticRetrieve } from "./server/services/agenticRagRouter";
 import { analyzeAndOptimize } from "./server/services/promptOptimizer";
 // ── Observability & Cost ─────────────────────────────────────────────
 import { getSnapshot as getCostSnapshot, getDailyCosts } from "./server/services/costObservability";
+// ── AI Workforce Health ───────────────────────────────────────────────
+import { getAIWorkforceHealthSnapshot } from "./server/services/aiWorkforceRuntimeHub";
+import { videoMakerRoutes } from "./server/services/videoMakerRoutes";
+import { aiTaskBoardRoutes } from "./server/services/aiTaskBoardRoutes";
+import { localOfficeRoutes } from "./server/services/localOfficeRoutes";
 
 // ── Core Module Loader (Modular Monolith Setup) ─────────────────────
 import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
@@ -181,6 +186,34 @@ async function startServer() {
   app.post("/api/integrations/github/prs/:pullNumber/request-close", async (req, res) => { try { const pullNumber = Number(req.params.pullNumber); const parsed = githubClosePullRequestSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await requestCloseGitHubPullRequest({ ...parsed.data, pullNumber }); await appendIntegrationEvent({ connectorId: "github", type: "handoff", level: "success", message: `Closed GitHub PR #${result.pullRequest.number} on ${result.repo}.` }); res.json({ success: true, result }); } catch (err: any) { await appendIntegrationEvent({ connectorId: "github", type: "handoff", level: "error", message: err.message || "Close GitHub PR failed." }).catch(() => undefined); res.status(400).json({ success: false, error: err.message || "Failed to close GitHub pull request." }); } });
   app.get("/api/integrations/local-tools/summary", async (_req, res) => { try { res.json({ success: true, summary: await getLocalToolSummary() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load local tool summary." }); } });
   app.post("/api/integrations/local-tools/open", async (req, res) => { try { const parsed = localToolOpenSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await openLocalTool(parsed.data.tool); await appendIntegrationEvent({ connectorId: "local-tools", type: "handoff", level: result.success ? "success" : "warning", message: result.message }); res.json({ success: result.success, message: result.message }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to open local tool." }); } });
+
+  app.get("/api/integrations/git/status", async (_req, res) => {
+    try {
+      res.json({ success: true, status: await getGitLocalStatus() });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || "Failed to load local Git status." });
+    }
+  });
+
+  app.post("/api/integrations/git/pull", async (_req, res) => {
+    try {
+      const result = await gitPullLocal();
+      await appendIntegrationEvent({ connectorId: "github", type: "handoff", level: result.success ? "success" : "warning", message: "Git Pull executed local." });
+      res.json({ success: result.success, log: result.log });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message || "Git Pull failed." });
+    }
+  });
+
+  app.post("/api/integrations/git/push", async (_req, res) => {
+    try {
+      const result = await gitPushLocal();
+      await appendIntegrationEvent({ connectorId: "github", type: "handoff", level: result.success ? "success" : "warning", message: "Git Push executed local." });
+      res.json({ success: result.success, log: result.log });
+    } catch (err: any) {
+      res.status(400).json({ success: false, error: err.message || "Git Push failed." });
+    }
+  });
 
   // ── Connector Contracts API ──────────────────────────────────────────
   app.get("/api/contracts", async (req, res) => {
@@ -662,6 +695,69 @@ async function startServer() {
       const result = await analyzeAndOptimize(roleId, domain, currentPrompt);
       res.json({ success: true, result });
     } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+  });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Video & Media Maker Studio
+  // ═══════════════════════════════════════════════════════════════════
+  app.use("/api/video-maker", videoMakerRoutes);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AI Workforce Task Board (Kanban)
+  // ═══════════════════════════════════════════════════════════════════
+  app.use("/api/ai-tasks", aiTaskBoardRoutes);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AI Local Office Agent (Thao tác File)
+  // ═══════════════════════════════════════════════════════════════════
+  app.use("/api/local-office", localOfficeRoutes);
+
+  // ═══════════════════════════════════════════════════════════════════
+  // AI Workforce Health & Stream — background engine cho frontend
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Lightweight health snapshot — dùng cho background polling, trả về nhanh
+  app.get("/api/ai-workforce/health", async (_req, res) => {
+    try {
+      const snapshot = await getAIWorkforceHealthSnapshot();
+      res.json({ success: true, snapshot });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || "AI workforce health check failed." });
+    }
+  });
+
+  // Server-Sent Events stream — frontend subscribe nhận push update
+  // Không block UI, chạy ngầm hoàn toàn
+  const sseClients = new Set<import("http").ServerResponse>();
+
+  app.get("/api/ai-workforce/stream", async (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.setHeader("X-Accel-Buffering", "no");
+    res.flushHeaders();
+    sseClients.add(res);
+
+    // Gửi snapshot ngay khi kết nối
+    try {
+      const snapshot = await getAIWorkforceHealthSnapshot();
+      res.write(`event: health\ndata: ${JSON.stringify(snapshot)}\n\n`);
+    } catch { /* ignore */ }
+
+    // Heartbeat mỗi 30s để giữ kết nối và cập nhật trạng thái
+    const heartbeat = setInterval(async () => {
+      try {
+        const snapshot = await getAIWorkforceHealthSnapshot();
+        res.write(`event: health\ndata: ${JSON.stringify(snapshot)}\n\n`);
+      } catch {
+        res.write("event: ping\ndata: {}\n\n");
+      }
+    }, 30_000);
+
+    req.on("close", () => {
+      clearInterval(heartbeat);
+      sseClients.delete(res);
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════

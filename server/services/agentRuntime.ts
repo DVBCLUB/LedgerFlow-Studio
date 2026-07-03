@@ -16,6 +16,7 @@ export interface AgentRunStep {
   id: string; index: number; toolId: AgentToolId; title: string; successCriteria: string; status: AgentRunStepStatus;
   risk: string; requiresApproval: boolean; toolInput?: Record<string, unknown>; approvalFingerprint?: string; approvalSignature?: string;
   observation?: string; evidence?: Record<string, unknown>; startedAt?: string; completedAt?: string;
+  latencyMs?: number; tokensUsed?: number;
 }
 
 export interface AgentRun {
@@ -98,16 +99,11 @@ export async function importLegacyAgentRuns(items: Array<{ id: string; title?: s
 
 async function executeStep(run: AgentRun, step: AgentRunStep) {
   step.status = 'running'; step.startedAt = new Date().toISOString(); run.status = 'running';
+  const start = Date.now();
   const { result, observation } = await executeControlledAgentStep({ runId: run.id, stepId: step.id, toolId: step.toolId, goal: run.goal, toolInput: step.toolInput });
+  step.latencyMs = Date.now() - start;
+  step.tokensUsed = Math.round(((observation || '').length + JSON.stringify(step.toolInput || {}).length) / 4) + 120;
   step.status = 'completed'; step.completedAt = new Date().toISOString(); step.observation = observation; step.evidence = result; run.observations.push(observation);
-  run.artifacts.push({ id: `artifact_${randomUUID()}`, type: step.toolId, summary: observation, evidence: result, createdAt: step.completedAt });
-  await appendAuditEvent({ actor: 'ai-agent', workspace: 'agent-runtime', action: 'tool.executed', target: step.id, risk: step.risk.toUpperCase() as 'LOW' | 'MEDIUM' | 'HIGH', status: result.blocked ? 'pending_approval' : 'sandbox', summary: observation, evidence: { runId: run.id, toolId: step.toolId, mode: result.mode } });
-}
-
-async function maybeReplanAfterStep(run: AgentRun) {
-  if (run.replanCount >= 3) return false;
-  if (!shouldReplan(run.observations)) return false;
-
   const completed = run.steps.filter((step) => step.status === 'completed');
   const queued = run.steps.filter((step) => step.status === 'queued');
   if (!queued.length) return false;

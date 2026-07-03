@@ -29,6 +29,7 @@ import {
   cancelStoredMissionExecutionQueue,
   completeStoredMissionExecutionStep,
   createLinkedMissionExecutionQueue,
+  executeMissionStepToolConnector,
   getMissionQueueRuntimeDriftReport,
   getMissionExecutionQueueStoreStats,
   listMissionExecutionQueues,
@@ -404,6 +405,37 @@ export async function executeRuntimeMissionStepToolSimulation(options: { queueId
   return { result, queue: completedQueue };
 }
 
+export async function executeRuntimeMissionStepToolConnector(options: { queueId: string; stepId: string; actor?: string }) {
+  const startedAt = Date.now();
+  let queue = await requireMissionExecutionQueue(options.queueId);
+  const step = queue.steps.find((item) => item.id === options.stepId || item.missionStepId === options.stepId);
+  if (!step) throw new Error(`Mission execution step not found: ${options.stepId}`);
+  if (step.status === 'ready') {
+    queue = await startStoredMissionExecutionStep({ queueId: options.queueId, stepId: options.stepId, actor: options.actor || 'Mission Tool Executor' });
+  }
+  
+  // Call the connector executor instead of simulation
+  const result = await executeMissionStepToolConnector(queue, options.stepId);
+  
+  const completedQueue = await completeStoredMissionExecutionStep({
+    queueId: options.queueId,
+    stepId: options.stepId,
+    actor: options.actor || 'Mission Tool Executor',
+    evidence: result.evidence.map((item) => ({ kind: 'artifact' as const, title: item.title, value: item.value })),
+  });
+  
+  await recordMissionToolExecution({
+    result,
+    queue: completedQueue,
+    action: 'mission_tool_executed',
+    actor: options.actor || 'Mission Tool Executor',
+    summary: `Mission tool connector executed for ${result.requestedToolId} via ${result.adapterToolId}.`,
+    startedAt,
+    status: 'success',
+  });
+  return { result, queue: completedQueue };
+}
+
 export async function previewRuntimeAutomation(plan: AutomationSafetyPlan) {
   const startedAt = Date.now();
   const decision = validateAutomationSafetyEnvelope(plan);
@@ -527,6 +559,81 @@ export async function buildRuntimeGitHubPRControlReport(options: GitHubPRControl
 
 export async function getAIWorkforceToolManifestCatalog() {
   return exportMCPToolManifestCatalog(toMCPToolRunSignals(await listRuntimeObservabilityMetrics()));
+}
+
+/**
+ * getAIWorkforceHealthSnapshot — Lightweight snapshot for background polling.
+ * Returns only essential health metrics without full dashboard overhead.
+ * Used by frontend background engine to keep UI status bar updated.
+ */
+export async function getAIWorkforceHealthSnapshot(): Promise<{
+  ok: boolean;
+  generatedAt: string;
+  readinessGrade: string;
+  readinessScore: number;
+  activeRuns: number;
+  pendingApprovals: number;
+  blockedCount: number;
+  totalQueued: number;
+  lastAuditAction: string;
+  lastAuditAt: string;
+  backgroundServices: Array<{ name: string; status: 'running' | 'idle' | 'error' }>;
+}> {
+  try {
+    const readiness = assessAIWorkforceReadiness();
+    const missionStats = await getMissionExecutionQueueStoreStats();
+    const ledger = await getAIWorkforceOperationalLedgerDashboard();
+    const runtimeStats = await getAIWorkforceRuntimeStoreStats();
+    const metricStats = await getAIWorkforceRunMetricStoreStats();
+
+    const lastAudit = ledger.auditStats?.latestEvent;
+
+    // Estimate active/pending from mission queue stats
+    const totalQueued = missionStats.totalQueues ?? 0;
+    const pendingApprovals = missionStats.totalByStatus?.['needs_approval'] ?? 0;
+    const activeRuns = missionStats.totalByStatus?.['running'] ?? 0;
+    const blockedCount = missionStats.totalByStatus?.['blocked'] ?? 0;
+
+    const backgroundServices = [
+      { name: 'AI Gateway', status: 'running' as const },
+      { name: 'Agent Runtime', status: (runtimeStats.totalRecords ?? 0) > 0 ? 'running' as const : 'idle' as const },
+      { name: 'Mission Queue', status: totalQueued > 0 ? 'running' as const : 'idle' as const },
+      { name: 'Observability', status: (metricStats.total ?? 0) > 0 ? 'running' as const : 'idle' as const },
+    ];
+
+    return {
+      ok: true,
+      generatedAt: new Date().toISOString(),
+      readinessGrade: readiness.grade,
+      readinessScore: readiness.overallScore,
+      activeRuns,
+      pendingApprovals,
+      blockedCount,
+      totalQueued,
+      lastAuditAction: lastAudit?.action ?? 'none',
+      lastAuditAt: lastAudit?.createdAt ?? '',
+      backgroundServices,
+    };
+  } catch (err: any) {
+    return {
+      ok: false,
+      generatedAt: new Date().toISOString(),
+      readinessGrade: 'unknown',
+      readinessScore: 0,
+      activeRuns: 0,
+      pendingApprovals: 0,
+      blockedCount: 0,
+      totalQueued: 0,
+      lastAuditAction: 'error',
+      lastAuditAt: '',
+      backgroundServices: [
+        { name: 'AI Gateway', status: 'error' },
+        { name: 'Agent Runtime', status: 'error' },
+        { name: 'Mission Queue', status: 'error' },
+        { name: 'Observability', status: 'error' },
+      ],
+    };
+  }
 }
 
 export async function getAIWorkforceRuntimeDashboard() {

@@ -39,18 +39,18 @@ export default function OutboundSalesHub() {
   };
 
   const tabs: { id: SalesTab; label: string }[] = [
-    { id: 'icp', label: 'ICP' },
-    { id: 'sequence', label: 'Sequence' },
-    { id: 'objections', label: 'Objections' },
-    { id: 'pipeline', label: 'Pipeline' },
-    { id: 'battle_cards', label: 'Battle cards' },
+    { id: 'icp', label: 'Tệp khách hàng' },
+    { id: 'sequence', label: 'Chuỗi tiếp cận' },
+    { id: 'objections', label: 'Phản đối thường gặp' },
+    { id: 'pipeline', label: 'Cơ hội bán hàng' },
+    { id: 'battle_cards', label: 'Luận điểm bán hàng' },
   ];
 
   const metricControls: NumericControl[] = [
     { label: 'Số lead', value: leads, setter: setLeads },
-    { label: 'Reply rate %', value: replyRate, setter: setReplyRate },
-    { label: 'Demo rate %', value: demoRate, setter: setDemoRate },
-    { label: 'Close rate %', value: closeRate, setter: setCloseRate },
+    { label: 'Tỷ lệ phản hồi %', value: replyRate, setter: setReplyRate },
+    { label: 'Tỷ lệ demo %', value: demoRate, setter: setDemoRate },
+    { label: 'Tỷ lệ chốt %', value: closeRate, setter: setCloseRate },
   ];
 
   return (
@@ -60,7 +60,7 @@ export default function OutboundSalesHub() {
           <div className="max-w-4xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-sky-300">
               <Send className="h-3.5 w-3.5" />
-              Outbound Sales Hub
+              Bán hàng chủ động
             </div>
             <h1 className="text-2xl font-black tracking-tight text-white">
               Kịch bản bán hàng cho LedgerFlow Company OS
@@ -75,7 +75,7 @@ export default function OutboundSalesHub() {
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-sky-400 px-4 py-3 text-xs font-black text-slate-950 shadow-lg shadow-sky-500/10"
           >
             <Copy className="h-4 w-4" />
-            {copied === 'brief' ? 'Đã copy' : 'Copy outbound brief'}
+            {copied === 'brief' ? 'Đã sao chép' : 'Sao chép tóm tắt bán hàng'}
           </button>
         </div>
 
@@ -97,10 +97,10 @@ export default function OutboundSalesHub() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-4">
-        <StatCard icon={<Users className="mb-3 h-5 w-5 text-sky-300" />} label="Leads" value={leads} />
-        <StatCard icon={<Mail className="mb-3 h-5 w-5 text-cyan-300" />} label="Replies" value={replies} />
-        <StatCard icon={<PhoneCall className="mb-3 h-5 w-5 text-emerald-300" />} label="Demos" value={demos} />
-        <StatCard icon={<TrendingUp className="mb-3 h-5 w-5 text-emerald-300" />} label="Wins" value={wins} highlight />
+        <StatCard icon={<Users className="mb-3 h-5 w-5 text-sky-300" />} label="Lead" value={leads} />
+        <StatCard icon={<Mail className="mb-3 h-5 w-5 text-cyan-300" />} label="Phản hồi" value={replies} />
+        <StatCard icon={<PhoneCall className="mb-3 h-5 w-5 text-emerald-300" />} label="Demo" value={demos} />
+        <StatCard icon={<TrendingUp className="mb-3 h-5 w-5 text-emerald-300" />} label="Đã chốt" value={wins} highlight />
       </section>
 
       {tab === 'icp' && (
@@ -113,7 +113,7 @@ export default function OutboundSalesHub() {
                 <span className="font-black text-slate-200">Nỗi đau:</span> {item.pain}
               </p>
               <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 text-xs font-semibold leading-6 text-emerald-100">
-                Hook: {item.hook}
+                Gợi ý mở đầu: {item.hook}
               </div>
             </div>
           ))}
@@ -134,7 +134,7 @@ export default function OutboundSalesHub() {
                   <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">{item.text}</p>
                   <button onClick={() => copyText(item.title, item.text)} className="mt-3 inline-flex items-center gap-2 rounded-lg border border-slate-700 px-3 py-2 text-[11px] font-black text-slate-300 hover:border-sky-400 hover:text-white">
                     <Copy className="h-3.5 w-3.5" />
-                    {copied === item.title ? 'Đã copy' : 'Copy'}
+                    {copied === item.title ? 'Đã sao chép' : 'Sao chép'}
                   </button>
                 </div>
               ))}
@@ -189,7 +189,7 @@ export default function OutboundSalesHub() {
           <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
             <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
               <TrendingUp className="h-4 w-4 text-emerald-300" />
-              Funnel calculator
+              Tính nhanh cơ hội
             </h2>
             <div className="space-y-4">
               {metricControls.map((control) => (
@@ -209,7 +209,7 @@ export default function OutboundSalesHub() {
           <div className="lg:col-span-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
             <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
               <ClipboardList className="h-4 w-4 text-cyan-300" />
-              Pipeline stages
+              Các giai đoạn bán hàng
             </h2>
             <div className="space-y-3">
               {PIPELINE_STAGES.map((item) => (

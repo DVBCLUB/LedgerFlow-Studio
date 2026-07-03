@@ -344,11 +344,11 @@ export default function PythonSandbox() {
           </div>
           <div>
             <h1 className="text-xl font-black text-white flex items-center gap-2">
-              Python Data Science Sandbox (Pyodide WebAssembly)
-              <span className="bg-orange-600/15 border border-orange-500/25 text-orange-450 text-[9px] font-black px-2 py-0.5 rounded tracking-wide">Python 3.12 Local</span>
+              Sandbox dữ liệu Python
+              <span className="bg-orange-600/15 border border-orange-500/25 text-orange-450 text-[9px] font-black px-2 py-0.5 rounded tracking-wide">Python 3.12 cục bộ</span>
             </h1>
             <p className="text-xs text-slate-400 mt-1 font-semibold leading-relaxed">
-              Trải nghiệm môi trường lập trình Python thực thi 100% an toàn trong trình duyệt của bạn mà không cần máy chủ (Sandbox Serverless). Thích hợp dọn dẹp big-data sao kê, tính điểm Altman rủi ro và xác thực Benford.
+              Môi trường Python chạy cục bộ trong trình duyệt để dọn dữ liệu sao kê, tính điểm rủi ro Altman và kiểm tra Benford.
             </p>
           </div>
         </div>
@@ -358,12 +358,12 @@ export default function PythonSandbox() {
           {pyodideLoaded ? (
             <span className="text-emerald-400 flex items-center gap-1.5 font-mono">
               <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse inline-block"></span>
-              PYODIDE ENGINE V0.26 READY
+              PYODIDE ĐÃ SẴN SÀNG
             </span>
           ) : isInitializing ? (
             <span className="text-amber-400 flex items-center gap-1.5 font-mono">
               <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-455" />
-              ĐANG NẠP ENGINE (~10MB WA)...
+              ĐANG NẠP PYODIDE...
             </span>
           ) : (
             <span className="text-slate-405 flex items-center gap-1.5 font-sans">
@@ -382,7 +382,7 @@ export default function PythonSandbox() {
           <div className="flex justify-between items-center border-b border-slate-850 pb-3">
             <div className="flex items-center gap-2">
               <FileCode className="w-5 h-5 text-orange-405" />
-              <span className="text-white font-black uppercase">Trình soạn thảo Python Script</span>
+              <span className="text-white font-black uppercase">Trình soạn thảo Python</span>
             </div>
 
             {/* Template Selector dropdown */}
@@ -470,13 +470,13 @@ export default function PythonSandbox() {
             <div className="flex justify-between items-center border-b border-slate-900 pb-2.5 mb-3 shrink-0">
               <span className="text-slate-400 font-black uppercase flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-slate-400" />
-                Màn hình Terminal và Stdout
+                Kết quả chạy Python
               </span>
               <button 
                 onClick={() => setStdout('>>> Sổ lệnh sạch sẽ...')}
                 className="text-slate-500 hover:text-slate-350 text-[10px] font-black uppercase cursor-pointer"
               >
-                Clear
+                Xóa
               </button>
             </div>
 
@@ -488,7 +488,7 @@ export default function PythonSandbox() {
           {/* Background system log monitoring */}
           <div className="bg-[#040812] border border-slate-900 rounded-2xl p-5 h-[155px] shrink-0 flex flex-col">
             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block border-b border-slate-900 pb-1.5 mb-2.5">
-              ⚙️ Hệ thống Máy Chủ Ảo Cục Bộ (Wasm Orchestrator log)
+              Nhật ký hệ thống cục bộ
             </span>
             <div className="flex-1 overflow-y-auto font-mono text-[9.5px] leading-relaxed text-slate-500 space-y-1.5 scrollbar-thin pr-1 select-text">
               {sysLogs.length === 0 ? (

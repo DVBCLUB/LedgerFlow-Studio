@@ -14,7 +14,7 @@ export interface AgentToolExecutionInput {
   title: string;
   target?: string;
   payload?: Record<string, unknown>;
-  executionMode: 'simulation';
+  executionMode: 'simulation' | 'connector';
 }
 
 export interface AgentToolExecutionPreview {
@@ -72,14 +72,14 @@ function inferActionType(tool: AgentToolContract): AutomationActionType {
   if (tool.permission === 'robot:move') return 'move';
   if (tool.permission === 'robot:inspect') return 'inspect';
   if (tool.permission === 'browser:read' || tool.permission === 'web:search') return 'read';
-  if (tool.permission === 'connector:write' || tool.permission === 'notification:send' || tool.permission === 'patch:draft') return 'type';
+  if (tool.permission === 'connector:write' || tool.permission === 'notification:send' || tool.permission === 'patch:draft' || tool.permission === 'github:push' || tool.permission === 'github:pull') return 'type';
   return 'inspect';
 }
 
 function defaultTarget(tool: AgentToolContract) {
   if (tool.permission.startsWith('robot:')) return tool.permission === 'robot:move' ? 'robot://simulator/arm-a/joint-1' : 'robot://simulator/arm-a';
   if (tool.permission === 'browser:read' || tool.permission === 'web:search') return 'browser://sandbox/read-only';
-  if (tool.permission === 'connector:write') return 'connector://configured/write';
+  if (tool.permission === 'connector:write' || tool.permission === 'github:push' || tool.permission === 'github:pull') return 'connector://configured/write';
   if (tool.permission === 'notification:send') return 'notification://configured/channel';
   return `agent-tool://${tool.id}`;
 }
@@ -88,7 +88,7 @@ function defaultAllowedTarget(tool: AgentToolContract, target: string) {
   if (tool.permission === 'robot:move') return 'robot://simulator/arm-a';
   if (tool.permission.startsWith('robot:')) return target;
   if (tool.permission === 'browser:read' || tool.permission === 'web:search') return target;
-  if (tool.permission === 'connector:write') return 'connector://configured';
+  if (tool.permission === 'connector:write' || tool.permission === 'github:push' || tool.permission === 'github:pull') return 'connector://configured';
   if (tool.permission === 'notification:send') return 'notification://configured';
   return target;
 }
@@ -126,7 +126,7 @@ export function createAgentToolExecutionPreview(input: AgentToolExecutionInput):
   cleanupExpired();
   const tool = getAgentToolContract(input.toolId);
   if (!tool || tool.risk === 'blocked') throw new Error('Tool is not registered or is blocked.');
-  if (input.executionMode !== 'simulation') throw new Error('Only simulation execution is enabled in this release.');
+  if (input.executionMode !== 'simulation' && input.executionMode !== 'connector') throw new Error('Only simulation or connector execution is enabled in this release.');
   const id = `tool_preview_${Date.now()}_${randomBytes(6).toString('hex')}`;
   const safetyPlan = buildSafetyPlan(input, tool, id);
   const safetyDecision = validateAutomationSafetyEnvelope(safetyPlan);

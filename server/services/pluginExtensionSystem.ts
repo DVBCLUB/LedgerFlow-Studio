@@ -29,6 +29,8 @@ export interface PluginManifest {
   signature?: string;
   sandbox?: boolean | { enabled: boolean; mode?: 'simulation' | 'process' | 'container' };
   trustLevel?: 'unsigned' | 'signed' | 'sandboxed' | 'trusted';
+  sastIssues?: string[];
+  sastScore?: number;
 }
 
 export interface PluginCapability {
@@ -148,7 +150,29 @@ export function discoverPlugins(dirPath?: string): PluginManifest[] {
       const manifestPath = path.join(scanDir, entry.name, 'manifest.json');
       if (fs.existsSync(manifestPath)) {
         try {
-          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+          const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as PluginManifest;
+          
+          // Perform quick static analysis (SAST Scan) on plugin entry code
+          const entryFile = path.join(scanDir, entry.name, manifest.entryPoint || 'index.js');
+          const issues: string[] = [];
+          if (fs.existsSync(entryFile)) {
+            const code = fs.readFileSync(entryFile, 'utf8');
+            if (code.includes('child_process') || code.includes('exec(') || code.includes('spawn(')) {
+              issues.push('Phát hiện gọi shell command (potential arbitrary command execution).');
+            }
+            if (code.includes('eval(') || code.includes('new Function(')) {
+              issues.push('Phát hiện gọi eval/dynamic function execution.');
+            }
+            if (code.includes('rmSync(') || code.includes('unlinkSync(')) {
+              issues.push('Phát hiện thao tác xóa file hệ thống.');
+            }
+            if (code.includes('fetch(') || code.includes('axios') || code.includes('http.')) {
+              issues.push('Phát hiện kết nối mạng bên ngoài (potential data exfiltration).');
+            }
+          }
+          manifest.sastIssues = issues;
+          manifest.sastScore = Math.max(0, 100 - issues.length * 25);
+
           discovered.push(manifest);
         } catch { }
       }

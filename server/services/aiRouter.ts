@@ -253,6 +253,7 @@ export async function testAIKey(input: { provider: AIProviderName; apiKey?: stri
   try {
     const result = await callProvider(temp, [{ role: "user", content: "Trả lời ngắn gọn: OK" }], { temperature: 0.1, maxTokens: 32, ...options });
     await appendAIUsageLog({ provider: input.provider, label: "Test key", model: result.modelUsed || input.model, mode: "test", status: "ok", latencyMs: Date.now() - started, promptChars: 21, outputChars: result.content.length });
+    await appendAIUsageLog({ provider: input.provider, label: "Test key", model: result.modelUsed || input.model, mode: "test", status: "ok", latencyMs: Date.now() - started, promptChars: 21, outputChars: result.content.length });
     return { success: true, content: result.content, modelUsed: result.modelUsed };
   }
   catch (err: any) {
@@ -270,6 +271,10 @@ async function callProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[],
   if (entry.provider === "openrouter") return callOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return callAnthropic(entry, messages, options);
   if (entry.provider === "ollama") return callOllama(entry, messages, options);
+  if (entry.provider === "mistral") return callOpenAICompatible(entry, messages, options, "https://api.mistral.ai/v1/chat/completions");
+  if (entry.provider === "together") return callOpenAICompatible(entry, messages, options, "https://api.together.xyz/v1/chat/completions");
+  if (entry.provider === "perplexity") return callOpenAICompatible(entry, messages, options, "https://api.perplexity.ai/chat/completions");
+  if (entry.provider === "xai") return callOpenAICompatible(entry, messages, options, "https://api.x.ai/v1/chat/completions");
   throw new ProviderError(`Unsupported provider: ${(entry as any).provider}`);
 }
 function streamProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
@@ -280,6 +285,10 @@ function streamProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], opt
   if (entry.provider === "openrouter") return streamOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return streamAnthropic(entry, messages, options);
   if (entry.provider === "ollama") return streamOllama(entry, messages, options);
+  if (entry.provider === "mistral") return streamOpenAICompatible(entry, messages, options, "https://api.mistral.ai/v1/chat/completions");
+  if (entry.provider === "together") return streamOpenAICompatible(entry, messages, options, "https://api.together.xyz/v1/chat/completions");
+  if (entry.provider === "perplexity") return streamOpenAICompatible(entry, messages, options, "https://api.perplexity.ai/chat/completions");
+  if (entry.provider === "xai") return streamOpenAICompatible(entry, messages, options, "https://api.x.ai/v1/chat/completions");
   throw new ProviderError(`Unsupported provider: ${(entry as any).provider}`);
 }
 
@@ -444,6 +453,10 @@ function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions
   if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
   if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free";
   if (provider === "anthropic") return pro ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest";
+  if (provider === "mistral") return pro ? "mistral-large-latest" : "mistral-small-latest";
+  if (provider === "together") return pro ? "meta-llama/Llama-3.3-70B-Instruct-Turbo" : "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
+  if (provider === "perplexity") return pro ? "sonar-reasoning-pro" : "sonar-pro";
+  if (provider === "xai") return "grok-2-latest";
   return "qwen2.5:7b";
 }
 function isQuotaLikeError(err: any): boolean { const text = `${err?.status || ""} ${err?.message || ""} ${JSON.stringify(err?.body || {})}`.toLowerCase(); return text.includes("429") || text.includes("quota") || text.includes("rate limit") || text.includes("too many requests") || text.includes("resource_exhausted"); }

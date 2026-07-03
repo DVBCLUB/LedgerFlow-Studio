@@ -6,15 +6,15 @@ interface ERPCommandCenterProps {
 }
 
 const priorities = [
-  { title: 'Chốt phạm vi bản phát hành kế tiếp', owner: 'Product', due: 'Hôm nay', tone: 'amber' },
-  { title: 'Theo dõi 3 khách hàng đang chờ demo', owner: 'Sales', due: 'Hôm nay', tone: 'cyan' },
-  { title: 'Đối chiếu chi phí công cụ tháng này', owner: 'Finance', due: '20/06', tone: 'emerald' },
+  { title: 'Chốt phạm vi bản phát hành kế tiếp', owner: 'Sản phẩm', due: 'Hôm nay', tone: 'amber' },
+  { title: 'Theo dõi 3 khách hàng đang chờ demo', owner: 'Bán hàng', due: 'Hôm nay', tone: 'cyan' },
+  { title: 'Đối chiếu chi phí công cụ tháng này', owner: 'Tài chính', due: '20/06', tone: 'emerald' },
 ];
 
 const productRows = [
   { name: 'LedgerFlow Hub', stage: 'Beta nội bộ', progress: 78, status: 'Đang phát triển' },
   { name: 'Kế toán đa ngành', stage: 'Thiết kế nghiệp vụ', progress: 54, status: 'Cần rà soát' },
-  { name: 'AI Operations', stage: 'Thử nghiệm', progress: 42, status: 'Đang thử nghiệm' },
+  { name: 'Đội ngũ AI', stage: 'Thử nghiệm', progress: 42, status: 'Đang theo dõi' },
 ];
 
 const pipeline = [
@@ -78,16 +78,16 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
         <section className="erp-panel">
           <header className="erp-panel__header"><div><h3>Lịch sắp tới</h3><p>Trong 48 giờ tiếp theo</p></div><CalendarDays size={18} /></header>
           <div className="erp-agenda">
-            <article><time>16:30</time><div><strong>Rà soát bản phát hành</strong><small>Product Studio</small></div></article>
-            <article><time>09:00</time><div><strong>Demo khách hàng An Phát</strong><small>Ngày mai · Sales</small></div></article>
-            <article><time>14:00</time><div><strong>Đối chiếu dòng tiền</strong><small>Ngày mai · Finance</small></div></article>
+            <article><time>16:30</time><div><strong>Rà soát bản phát hành</strong><small>Xưởng Sản phẩm</small></div></article>
+            <article><time>09:00</time><div><strong>Demo khách hàng An Phát</strong><small>Ngày mai · Bán hàng</small></div></article>
+            <article><time>14:00</time><div><strong>Đối chiếu dòng tiền</strong><small>Ngày mai · Tài chính</small></div></article>
           </div>
         </section>
 
         <section className="erp-panel erp-panel--wide">
           <header className="erp-panel__header">
             <div><h3>Danh mục sản phẩm</h3><p>Tiến độ theo bản phát hành gần nhất.</p></div>
-            <button onClick={() => onNavigate('product_studio', 'dev_hub')}>Product Studio <ArrowRight size={14} /></button>
+            <button onClick={() => onNavigate('product_studio', 'dev_hub')}>Xưởng Sản phẩm <ArrowRight size={14} /></button>
           </header>
           <div className="erp-table-wrap">
             <table className="erp-table">
@@ -106,7 +106,7 @@ export default function ERPCommandCenter({ onNavigate }: ERPCommandCenterProps) 
         </section>
 
         <section className="erp-panel">
-          <header className="erp-panel__header"><div><h3>Pipeline kinh doanh</h3><p>Giá trị cơ hội dự kiến</p></div><button onClick={() => onNavigate('growth_sales', 'leads_outreach')}>CRM <ArrowRight size={14} /></button></header>
+          <header className="erp-panel__header"><div><h3>Cơ hội kinh doanh</h3><p>Giá trị cơ hội dự kiến</p></div><button onClick={() => onNavigate('growth_sales', 'leads_outreach')}>Khách hàng <ArrowRight size={14} /></button></header>
           <div className="erp-pipeline">
             {pipeline.map((item) => <article key={item.stage}><div><strong>{item.stage}</strong><small>{item.count} cơ hội</small></div><b>{item.value}</b></article>)}
           </div>

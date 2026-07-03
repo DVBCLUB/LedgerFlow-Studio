@@ -6,6 +6,9 @@ import {
   type GitHubConnectorSummary,
   type GitHubIssueSummary,
   type GitHubWorkflowRunSummary,
+  fetchGitLocalStatus,
+  triggerGitPull,
+  triggerGitPush,
 } from '../../utils/integrationHubApi';
 
 interface GitHubConnectorPanelProps {
@@ -40,8 +43,46 @@ export default function GitHubConnectorPanel({ repoUrl, onChanged }: GitHubConne
   const [error, setError] = useState<string | null>(null);
   const [issueTitle, setIssueTitle] = useState('');
   const [issueBody, setIssueBody] = useState('');
+  const [gitStatus, setGitStatus] = useState<any>(null);
+  const [gitConsole, setGitConsole] = useState<string>('');
+  const [gitBusy, setGitBusy] = useState(false);
 
   const repo = summary?.repo || repoUrl || 'DVBCLUB/LedgerFlow-Studio';
+
+  async function loadGitStatus() {
+    try {
+      const data = await fetchGitLocalStatus();
+      setGitStatus(data);
+    } catch {}
+  }
+
+  async function handleGitPull() {
+    setGitBusy(true);
+    setGitConsole('Running: git pull --rebase...\n');
+    try {
+      const res = await triggerGitPull();
+      setGitConsole(prev => prev + res.log + '\n' + (res.success ? '✅ Đồng bộ tải xuống thành công!' : '❌ Thao tác Pull thất bại.'));
+      await loadGitStatus();
+    } catch (err: any) {
+      setGitConsole(prev => prev + '❌ Lỗi kết nối API: ' + err.message);
+    } finally {
+      setGitBusy(false);
+    }
+  }
+
+  async function handleGitPush() {
+    setGitBusy(true);
+    setGitConsole('Running: git push origin HEAD...\n');
+    try {
+      const res = await triggerGitPush();
+      setGitConsole(prev => prev + res.log + '\n' + (res.success ? '✅ Đồng bộ tải lên thành công!' : '❌ Thao tác Push thất bại.'));
+      await loadGitStatus();
+    } catch (err: any) {
+      setGitConsole(prev => prev + '❌ Lỗi kết nối API: ' + err.message);
+    } finally {
+      setGitBusy(false);
+    }
+  }
 
   async function loadSummary() {
     setIsLoading(true);
@@ -50,6 +91,7 @@ export default function GitHubConnectorPanel({ repoUrl, onChanged }: GitHubConne
       const data = await fetchGitHubConnectorSummary(repoUrl);
       setSummary(data);
       if (!issueBody) setIssueBody(defaultIssueBody(data.repo));
+      await loadGitStatus();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Không tải được GitHub summary.');
     } finally {
@@ -129,6 +171,61 @@ export default function GitHubConnectorPanel({ repoUrl, onChanged }: GitHubConne
         <MetricCard icon={Workflow} label="CI mới nhất" value={healthLabel} sub={latestRun ? formatDate(latestRun.updatedAt) : 'Chưa tải'} />
         <MetricCard icon={CheckCircle2} label="Issues mở" value={String(summary?.openIssues.length ?? '—')} sub={`Tổng GitHub: ${summary?.repository?.openIssuesCount ?? '—'}`} />
         <MetricCard icon={GitPullRequest} label="PR mở" value={String(summary?.openPullRequests.length ?? '—')} sub={summary?.tokenConfigured ? 'Token đã cấu hình' : 'Token chưa cấu hình'} />
+      </div>
+
+      {/* Git & GitHub Local Sync Center */}
+      <div className="mt-5 rounded-3xl border border-slate-800 bg-slate-900/40 p-5 text-left">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-900 pb-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Github className="h-5 w-5 text-cyan-300" />
+            <h3 className="text-sm font-black text-white uppercase tracking-wider">Git Sync Hub — Tự động hóa đồng bộ mã nguồn</h3>
+          </div>
+          {gitStatus && (
+            <span className="rounded-full border border-cyan-500/20 bg-cyan-500/10 px-2.5 py-0.5 text-[10px] font-black uppercase text-cyan-200">
+              Nhánh hiện tại: {gitStatus.branch}
+            </span>
+          )}
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-4">
+          <div className="rounded-2xl border border-slate-950 bg-slate-950/30 p-3">
+            <p className="text-[10px] font-black uppercase text-slate-500">Uncommitted Changes</p>
+            <p className="mt-1 text-base font-black text-white">{gitStatus?.uncommittedFiles ?? 0} file đã sửa</p>
+          </div>
+          <div className="rounded-2xl border border-slate-950 bg-slate-950/30 p-3">
+            <p className="text-[10px] font-black uppercase text-slate-500 font-bold">Unpushed Commits</p>
+            <p className="mt-1 text-base font-black text-white">{gitStatus?.ahead ?? 0} ahead (chờ push)</p>
+          </div>
+          <div className="rounded-2xl border border-slate-950 bg-slate-950/30 p-3">
+            <p className="text-[10px] font-black uppercase text-slate-500 font-bold">Unpulled Commits</p>
+            <p className="mt-1 text-base font-black text-white">{gitStatus?.behind ?? 0} behind (cần pull)</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleGitPull}
+              disabled={gitBusy}
+              className="flex-1 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-xs font-black uppercase text-cyan-100 hover:bg-cyan-500/20 transition-all disabled:opacity-40"
+            >
+              Pull
+            </button>
+            <button
+              onClick={handleGitPush}
+              disabled={gitBusy}
+              className="flex-1 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs font-black uppercase text-emerald-100 hover:bg-emerald-500/20 transition-all disabled:opacity-40"
+            >
+              Push
+            </button>
+          </div>
+        </div>
+
+        {gitConsole && (
+          <div className="mt-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500 mb-2">Terminal Git Output Log</p>
+            <pre className="rounded-xl border border-slate-950 bg-slate-950/70 p-3 text-[10px] font-semibold font-mono text-cyan-300 max-h-32 overflow-y-auto whitespace-pre-wrap">
+              {gitConsole}
+            </pre>
+          </div>
+        )}
       </div>
 
       <div className="mt-5 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">

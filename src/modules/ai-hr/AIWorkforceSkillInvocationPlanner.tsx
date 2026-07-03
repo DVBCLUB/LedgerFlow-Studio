@@ -58,9 +58,14 @@ function errorText(err: unknown) {
   return err instanceof Error ? err.message : 'Cannot plan skill invocation.';
 }
 
-export default function AIWorkforceSkillInvocationPlanner() {
+interface AIWorkforceSkillInvocationPlannerProps {
+  preselectedSkillId?: string;
+  hideHeader?: boolean;
+}
+
+export default function AIWorkforceSkillInvocationPlanner({ preselectedSkillId, hideHeader = false }: AIWorkforceSkillInvocationPlannerProps) {
   const [skills, setSkills] = useState<OpenClawSkill[]>([]);
-  const [selectedSkillId, setSelectedSkillId] = useState('');
+  const [selectedSkillId, setSelectedSkillId] = useState(preselectedSkillId || '');
   const [actor, setActor] = useState<'founder' | 'ai-agent' | 'automation' | 'system'>('founder');
   const [payloadText, setPayloadText] = useState('{\n  "dryRun": true\n}');
   const [reason, setReason] = useState('Founder policy preview from AI Workforce UI.');
@@ -76,12 +81,16 @@ export default function AIWorkforceSkillInvocationPlanner() {
       const result = await daemonFetch<unknown>('/api/openclaw-skills?includeBlocked=true', undefined, 10000);
       const loaded = readArray<OpenClawSkill>(result, 'skills');
       setSkills(loaded);
-      setSelectedSkillId((current) => current || loaded[0]?.id || '');
+      setSelectedSkillId((current) => preselectedSkillId || current || loaded[0]?.id || '');
     } catch (err: unknown) {
       setError(`${errorText(err)} Run npm run ai:openclaw-plus locally to patch daemon routes.`);
       setSkills([]);
     } finally { setBusy(false); }
   };
+
+  useEffect(() => {
+    void load();
+  }, [preselectedSkillId]);
 
   const planInvocation = async () => {
     if (!selectedSkillId) {
@@ -99,75 +108,76 @@ export default function AIWorkforceSkillInvocationPlanner() {
       const result = await daemonFetch<unknown>(`/api/openclaw-skills/${encodeURIComponent(selectedSkillId)}/plan-invocation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ actor, payload, reason }),
-      }, 15000);
-      setDecision(readDecision(result));
+        body: JSON.stringify({ actor, reason: reason.trim(), payload }),
+      }, 25000);
+      const parsedDecision = readDecision(result);
+      if (!parsedDecision) throw new Error('Daemon did not return an invocation decision object.');
+      setDecision(parsedDecision);
     } catch (err: unknown) {
       setError(errorText(err));
     } finally { setBusy(false); }
   };
 
-  useEffect(() => { void load(); }, []);
-
   return <section className="rounded-[2rem] border border-slate-800 bg-slate-950/55 p-4 text-left text-slate-100">
-    <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-      <div>
-        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Terminal className="mr-2 inline h-4 w-4" />Skill Invocation Planner</p>
-        <h3 className="mt-2 text-lg font-black text-white">Plan before execute</h3>
-        <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Gọi gateway để biết skill sẽ là dry-run, pending approval hay blocked. Panel này không thực thi side effect.</p>
+    {!hideHeader && (
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Terminal className="mr-2 inline h-4 w-4" />Skill Invocation Planner</p>
+          <h3 className="mt-2 text-lg font-black text-white">Simulate and evaluate dynamic tool calls</h3>
+          <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">Giả lập việc gọi kỹ năng/công cụ để kiểm tra phản hồi từ bộ lọc phân quyền và an toàn (dry-run).</p>
+        </div>
+        <button onClick={() => void load()} disabled={busy} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />Refresh</button>
       </div>
-      <button onClick={() => void load()} disabled={busy} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-cyan-300 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />Refresh skills</button>
-    </div>
+    )}
 
     {error && <p className="mb-4 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-xs font-bold text-amber-100"><AlertTriangle className="mr-2 inline h-4 w-4" />{error}</p>}
 
-    <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
-        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Skill</label>
-        <select value={selectedSkillId} onChange={(event) => setSelectedSkillId(event.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-          {skills.map((skill) => <option key={skill.id} value={skill.id}>{skill.id} — {skill.risk}/{skill.mode}</option>)}
-        </select>
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="space-y-3">
+        <div>
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Select skill targeting</label>
+          <select value={selectedSkillId} onChange={(event) => setSelectedSkillId(event.target.value)} className="mt-2 w-full rounded-2xl border border-slate-850 bg-slate-950 px-3 py-2.5 text-xs font-black text-white outline-none focus:border-cyan-400">
+            {skills.map((skill) => <option key={skill.id} value={skill.id}>{skill.name || skill.id} ({skill.domain})</option>)}
+          </select>
+        </div>
 
-        {selectedSkill && <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
-          <p className="text-sm font-black text-white">{selectedSkill.name || selectedSkill.id}</p>
-          <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">{selectedSkill.description || 'No description.'}</p>
-          <p className="mt-2 text-[11px] font-bold text-slate-500">Domain: {selectedSkill.domain} • Risk: {selectedSkill.risk} • Approval: {selectedSkill.requiresApproval ? 'required' : 'not required'}</p>
-          {selectedSkill.command && <p className="mt-1 text-[11px] font-bold text-cyan-200">Command: {selectedSkill.command}</p>}
-        </div>}
-
-        <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <div className="grid gap-2 sm:grid-cols-2">
           <div>
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Actor</label>
-            <select value={actor} onChange={(event) => setActor(event.target.value as typeof actor)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400">
-              <option value="founder">founder</option>
-              <option value="ai-agent">ai-agent</option>
-              <option value="automation">automation</option>
-              <option value="system">system</option>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Actor trigger</label>
+            <select value={actor} onChange={(event) => setActor(event.target.value as any)} className="mt-2 w-full rounded-2xl border border-slate-850 bg-slate-950 px-3 py-2 text-xs font-black text-white outline-none focus:border-cyan-400">
+              {['founder', 'ai-agent', 'automation', 'system'].map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Reason</label>
-            <input value={reason} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sm font-bold text-white outline-none focus:border-cyan-400" />
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Reason / context</label>
+            <input value={reason} onChange={(event) => setReason(event.target.value)} className="mt-2 w-full rounded-2xl border border-slate-850 bg-slate-950 px-3 py-2 text-xs font-bold text-white outline-none focus:border-cyan-400" />
           </div>
         </div>
 
-        <label className="mt-4 block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Payload JSON</label>
-        <textarea value={payloadText} onChange={(event) => setPayloadText(event.target.value)} rows={7} className="mt-2 w-full rounded-2xl border border-slate-800 bg-slate-950 p-3 font-mono text-xs font-bold text-slate-200 outline-none focus:border-cyan-400" />
+        <div>
+          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Payload input (JSON object)</label>
+          <textarea value={payloadText} onChange={(event) => setPayloadText(event.target.value)} className="mt-2 min-h-24 w-full rounded-2xl border border-slate-850 bg-slate-950 p-3 text-xs font-semibold leading-5 text-white outline-none font-mono focus:border-cyan-400" />
+        </div>
 
-        <button onClick={() => void planInvocation()} disabled={busy || !selectedSkillId} className="mt-4 rounded-2xl border border-cyan-500/30 bg-cyan-500/10 px-4 py-3 text-xs font-black uppercase text-cyan-100 hover:bg-cyan-500/20 disabled:opacity-50"><PlayCircle className="mr-2 inline h-4 w-4" />Plan invocation</button>
+        <button onClick={() => void planInvocation()} disabled={busy || !selectedSkillId} className="w-full inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/40 bg-cyan-400/15 px-4 py-2.5 text-xs font-black text-cyan-100 hover:bg-cyan-400/20 disabled:opacity-50"><PlayCircle className="h-4 w-4" />Evaluate Execution Plan</button>
       </div>
 
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
-        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Gateway decision</p>
-        {decision ? <div className={`mt-3 rounded-2xl border p-4 ${decisionClass(decision.mode)}`}>
-          <div className="flex items-center gap-2 text-sm font-black uppercase">{iconForMode(decision.mode)}{decision.mode || 'unknown'}</div>
-          <p className="mt-3 text-sm font-bold leading-6">{decision.reason || 'No reason.'}</p>
-          <p className="mt-3 rounded-xl border border-current/20 bg-black/10 p-3 text-xs font-semibold leading-5">Next: {decision.nextStep || 'No next step.'}</p>
-          <p className="mt-3 text-[11px] font-black uppercase tracking-[0.2em] opacity-75">OK: {decision.ok ? 'true' : 'false'}</p>
-        </div> : <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
-          <p className="text-sm font-black text-white"><ShieldCheck className="mr-2 inline h-4 w-4 text-cyan-300" />No plan yet</p>
-          <p className="mt-2 text-xs font-semibold leading-5 text-slate-500">Select a skill and run a policy plan. The gateway audits the request and never executes the underlying skill.</p>
-        </div>}
+      <div className="rounded-3xl border border-slate-850 bg-slate-950/40 p-4">
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Invocation decision</p>
+        {decision ? <div className="mt-3 space-y-4">
+          <div className={`rounded-2xl border p-4 ${decisionClass(decision.mode)}`}>
+            <div className="flex items-center gap-2">
+              {iconForMode(decision.mode)}
+              <span className="text-xs font-black uppercase tracking-wider">{decision.mode || 'unknown'}</span>
+            </div>
+            <p className="mt-2 text-xs font-semibold leading-5">{decision.reason || 'Decision evaluated by local safety supervisor.'}</p>
+          </div>
+          {decision.nextStep && <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-3"><p className="text-[10px] font-black uppercase text-slate-500">Next execution step</p><p className="mt-1 text-xs font-bold text-slate-300 font-mono">{decision.nextStep}</p></div>}
+          <div className="grid gap-2 sm:grid-cols-2">
+            <span className="rounded-xl border border-slate-850 bg-slate-900 px-3 py-2 text-[10px] font-bold text-slate-400">Requires Approval: {decision.skill?.requiresApproval ? 'YES' : 'NO'}</span>
+            <span className="rounded-xl border border-slate-850 bg-slate-900 px-3 py-2 text-[10px] font-bold text-slate-400">Risk profile: {decision.skill?.risk || 'low'}</span>
+          </div>
+        </div> : <div className="h-full flex items-center justify-center py-12"><p className="text-xs font-semibold text-slate-500 italic">Fill input parameters and trigger Evaluation to simulate policy routing.</p></div>}
       </div>
     </div>
   </section>;
