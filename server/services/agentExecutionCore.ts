@@ -49,7 +49,7 @@ export interface AgentExecutionLoopOptions {
   testCommand?: string;
 }
 
-function agentToolContractsToSpecs(): ToolSpec[] {
+export function agentToolContractsToSpecs(): ToolSpec[] {
   return listAgentToolContracts().map((tool) => ({
     name: tool.id,
     description: `${tool.description} Permission: ${tool.permission}. Risk: ${tool.risk}. Requires approval: ${tool.requiresApproval ? 'yes' : 'no'}.`,

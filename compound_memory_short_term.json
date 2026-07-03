@@ -1,0 +1,20 @@
+[
+  {
+    "tier": "short_term",
+    "kind": "pattern",
+    "domain": "general",
+    "title": "Multi-agent general: Produce runtime core smoke evidence",
+    "content": "Runtime core smoke task completed.",
+    "confidence": 0.8,
+    "source": "multi-agent:task_1783057981221_18c92b",
+    "tags": [
+      "success",
+      "general"
+    ],
+    "expiresAt": "2026-08-02T05:53:01.257Z",
+    "id": "mem_1783057981257_a1e1",
+    "createdAt": "2026-07-03T05:53:01.257Z",
+    "updatedAt": "2026-07-03T05:53:01.257Z",
+    "usageCount": 0
+  }
+]

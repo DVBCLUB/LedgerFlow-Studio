@@ -2,6 +2,25 @@
 
 Tat ca thay doi quan trong cua du an se duoc ghi lai trong tai lieu nay.
 
+## [2026-07-03] BRIEF6 - Native tool calling & Runtime unification
+
+### Bo sung
+- Bo sung native tool calling wiring vao agent loop.
+- Bo sung co che realtime cho memory bus.
+- Noi job queue truc tiep vao `runRuntimeCoreMission`.
+
+### Thay doi
+- Hop nhat ledger thong qua `aiWorkforceRuntimeStore`.
+- Dong bo native tool calling cho cac multi-agent va swarm coordinator.
+
+### Sua loi
+- Chuan hoa luong thuc thi tool, dam bao tinh nhat quan cua execution loop.
+
+### Xac minh
+- npm run lint: pass
+- npm run build: pass
+- test: pass
+
 ## [2026-07-01] BRIEF4 - Tang cuong runtime va kiem soat van hanh
 
 Commit: db0b205

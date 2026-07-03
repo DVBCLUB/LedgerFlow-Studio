@@ -13,6 +13,7 @@ import { dispatchTextThroughFabric } from './aiFabric.ts';
 import { appendAuditEvent } from './auditLog.ts';
 import { recordUsage } from './costObservability.ts';
 import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
+import { agentToolContractsToSpecs } from './agentExecutionCore.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -247,7 +248,12 @@ DESCRIPTION: [1-2 sentences]`;
         try {
           const result = await dispatchTextThroughFabric(
             agentPrompt, agent.systemPrompt,
-            { domain: (options.domain || 'general') as any, localFallback: true }
+            { 
+              domain: (options.domain || 'general') as any, 
+              localFallback: true,
+              tools: agentToolContractsToSpecs(),
+              toolChoice: 'auto',
+            }
           );
 
           const res: SwarmTaskResult = {
@@ -334,7 +340,7 @@ Produce a well-structured, comprehensive final answer. Include code if applicabl
       stepCount: mission.tasks.length,
       completedStepCount: mission.results.filter((result) => result.status === 'completed').length,
       failedStepCount: mission.results.filter((result) => result.status === 'failed' || result.status === 'skipped').length,
-      waitingApprovalCount: 0,
+      waitingApprovalCount: undefined,
       totalDurationMs: mission.totalLatencyMs,
       metadata: {
         agentCount: mission.agents.length,

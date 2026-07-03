@@ -32,7 +32,7 @@ export interface RuntimeCoreMissionRecord {
   stepCount: number;
   completedStepCount: number;
   failedStepCount: number;
-  waitingApprovalCount: number;
+  waitingApprovalCount?: number;
   totalDurationMs: number;
   sourceRef?: string;
   metadata?: Record<string, unknown>;
@@ -96,7 +96,7 @@ export function agenticLoopRunToRuntimeCoreMission(run: AgenticLoopRun): Runtime
     stepCount: run.steps.length,
     completedStepCount: run.steps.filter((step) => step.status === 'completed' || step.observation.success).length,
     failedStepCount: run.steps.filter((step) => step.status === 'failed' || (!step.observation.success && step.completedAt)).length,
-    waitingApprovalCount: 0,
+    waitingApprovalCount: undefined, // TODO: not tracked at step level yet
     totalDurationMs: run.totalDurationMs,
     metadata: {
       maxLoops: run.maxLoops,

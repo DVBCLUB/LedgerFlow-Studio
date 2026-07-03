@@ -11,6 +11,7 @@ import { dispatchTextThroughFabric } from './aiFabric.ts';
 import { recordObservation, searchMemory } from './compoundMemory.ts';
 import { appendAuditEvent } from './auditLog.ts';
 import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
+import { agentToolContractsToSpecs } from './agentExecutionCore.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type AgentRole = 'code' | 'test' | 'review' | 'finance' | 'planner' | 'general';
@@ -208,6 +209,8 @@ async function executeAgentTask(task: AgentTask, options: MultiAgentOptions): Pr
         webPlatform: options.webPlatform,
         profileId: options.profileId,
         localFallback: true,
+        tools: agentToolContractsToSpecs(),
+        toolChoice: 'auto',
       }
     );
 
@@ -362,7 +365,7 @@ export async function orchestrateMultiAgent(options: MultiAgentOptions): Promise
       stepCount: plan.tasks.length,
       completedStepCount: plan.tasks.filter((task) => task.status === 'completed').length,
       failedStepCount: plan.tasks.filter((task) => task.status === 'failed' || task.status === 'blocked').length,
-      waitingApprovalCount: 0,
+      waitingApprovalCount: undefined, // TODO: not tracked at task level yet
       totalDurationMs: plan.totalLatencyMs,
       metadata: {
         executionOrder: plan.executionOrder,
