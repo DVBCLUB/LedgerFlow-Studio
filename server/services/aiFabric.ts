@@ -7,13 +7,22 @@
  * Quy tắc ưu tiên: API trước → Web sau → Local cuối
  * Mỗi bước dispatch đều ghi audit log để truy vết.
  */
-import { callAIWithFallback, type AIRouterDiagnostics } from "./aiRouter.ts";
+import { callAIWithFallback } from "./aiRouter.ts";
 import { executeWebAIAutomation, profileStatusForWebAIError, WebAIError } from "./webAiAutomator.ts";
 import { WebAiSessionManager, type WebAIProfile } from "./webAiSessionManager.ts";
 import { WebAiTaskRouter, type TaskDomain } from "./webAiTaskRouter.ts";
 import { appendAuditEvent } from "./auditLog.ts";
 import { recordUsage } from "./costObservability.ts";
-import type { ChatMessage } from "./aiClient.ts";
+import type { CallAIOptions, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
+
+let routeAIThroughProvider = callAIWithFallback;
+
+export function setAIFabricRouterForTest(router: typeof callAIWithFallback): () => void {
+  routeAIThroughProvider = router;
+  return () => {
+    routeAIThroughProvider = callAIWithFallback;
+  };
+}
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type FabricRoute = "api" | "web" | "local" | "bypass";
@@ -28,6 +37,7 @@ export interface FabricStep {
   error?: string;
   latencyMs: number;
   contentPreview?: string;
+  toolCalls?: NormalizedToolCall[];
   evidence?: Record<string, unknown>;
 }
 
@@ -52,6 +62,8 @@ export interface AIFabricOptions {
   headless?: boolean;
   maxTokens?: number;
   temperature?: number;
+  tools?: ToolSpec[];
+  toolChoice?: CallAIOptions["toolChoice"];
   captureScreenshot?: boolean;
   localFallback?: boolean; // Cho phép fallback sang Ollama local
   agentRole?: string;
@@ -84,11 +96,13 @@ export async function dispatchThroughFabric(
   // ── Step 1: API route ─────────────────────────────────────────────
   try {
     const stepStart = Date.now();
-    const result = await callAIWithFallback(messages, {
+    const result = await routeAIThroughProvider(messages, {
       model: options.agentRole || "ai-assistant",
       temperature: options.temperature,
       maxTokens: options.maxTokens,
       task: options.task,
+      tools: options.tools,
+      toolChoice: options.toolChoice,
     });
 
     run.steps.push({
@@ -97,6 +111,7 @@ export async function dispatchThroughFabric(
       status: "success",
       latencyMs: Date.now() - stepStart,
       contentPreview: result.content.slice(0, 200),
+      toolCalls: result.toolCalls || [],
     });
 
     run.status = "completed";
@@ -114,7 +129,7 @@ export async function dispatchThroughFabric(
       completionText: result.content,
       latencyMs: run.totalLatencyMs,
       success: true,
-      taskSummary: text.slice(0, 150),
+      taskSummary: userText.slice(0, 150),
     });
 
     await appendAuditEvent({
@@ -235,11 +250,13 @@ export async function dispatchThroughFabric(
         updatedAt: new Date().toISOString(),
       };
 
-      const result = await callAIWithFallback(messages, {
+      const result = await routeAIThroughProvider(messages, {
         model: "ollama-local",
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 1024,
         task: options.task,
+        tools: options.tools,
+        toolChoice: options.toolChoice,
       });
 
       run.steps.push({
@@ -248,6 +265,7 @@ export async function dispatchThroughFabric(
         status: "success",
         latencyMs: Date.now() - stepStart,
         contentPreview: result.content.slice(0, 200),
+        toolCalls: result.toolCalls || [],
       });
 
       run.status = "completed";
@@ -265,7 +283,7 @@ export async function dispatchThroughFabric(
         completionText: result.content,
         latencyMs: run.totalLatencyMs,
         success: true,
-        taskSummary: text.slice(0, 150),
+        taskSummary: userText.slice(0, 150),
       });
 
       await appendAuditEvent({

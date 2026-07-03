@@ -29,7 +29,6 @@ import {
   cancelStoredMissionExecutionQueue,
   completeStoredMissionExecutionStep,
   createLinkedMissionExecutionQueue,
-  executeMissionStepToolConnector,
   getMissionQueueRuntimeDriftReport,
   getMissionExecutionQueueStoreStats,
   listMissionExecutionQueues,
@@ -37,6 +36,7 @@ import {
   startStoredMissionExecutionStep,
 } from './aiWorkforceMissionExecutionQueueStore.ts';
 import {
+  executeMissionStepToolConnector,
   executeMissionStepToolSimulation,
   previewMissionStepToolExecution,
   type MissionToolExecutionAdapterResult,

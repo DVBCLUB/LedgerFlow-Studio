@@ -10,7 +10,7 @@ import { randomUUID } from 'node:crypto';
 import { dispatchTextThroughFabric } from './aiFabric';
 import { appendAuditEvent } from './auditLog';
 import { executeScript } from './rpaEngine';
-import { runAgenticLoop } from './agenticLoopEngine';
+import { runRuntimeCoreMission } from './agentRuntimeCore.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -312,7 +312,7 @@ async function executeJobByType(job: BackgroundJob): Promise<string> {
     case 'agent_loop': {
       const goal = (job.payload.goal || '') as string;
       if (!goal) throw new Error('Missing goal');
-      const loop = await runAgenticLoop({
+      const { run: loop } = await runRuntimeCoreMission({
         goal,
         domain: (job.payload.domain || 'coding') as any,
         maxLoops: (job.payload.maxLoops as number) || 3,

@@ -4,7 +4,10 @@ import { recordObservation } from './compoundMemory.ts';
 import { executeInSandbox, type SandboxResult } from './sandboxCodeExecutor.ts';
 import { searchAgentMemory } from './agentMemoryStore.ts';
 import { executeSandboxTool } from './sandboxToolExecutor.ts';
+import { getAgentToolContract, listAgentToolContracts } from './agentToolRegistry.ts';
+import { isAgentToolId } from './agentToolIds.ts';
 import type { AgentToolId } from './agentPlanner.ts';
+import type { ToolSpec } from './aiClient.ts';
 
 export type AgentExecutionLoopStatus = 'planning' | 'executing' | 'observing' | 'replanning' | 'completed' | 'failed' | 'stopped';
 
@@ -46,6 +49,74 @@ export interface AgentExecutionLoopOptions {
   testCommand?: string;
 }
 
+function agentToolContractsToSpecs(): ToolSpec[] {
+  return listAgentToolContracts().map((tool) => ({
+    name: tool.id,
+    description: `${tool.description} Permission: ${tool.permission}. Risk: ${tool.risk}. Requires approval: ${tool.requiresApproval ? 'yes' : 'no'}.`,
+    parameters: {
+      type: 'object',
+      properties: {
+        goal: {
+          type: 'string',
+          description: 'The concrete subtask or evidence request for this tool.',
+        },
+        input: {
+          type: 'object',
+          description: 'Optional structured input for the tool.',
+          additionalProperties: true,
+        },
+      },
+      required: ['goal'],
+      additionalProperties: true,
+    },
+  }));
+}
+
+async function resolveNativeToolCalls(
+  run: AgentExecutionLoopRun,
+  step: AgentExecutionLoopStep,
+): Promise<void> {
+  const toolCalls = step.result?.winner?.toolCalls || [];
+  if (!toolCalls.length) return;
+
+  const executed: Array<Record<string, unknown>> = [];
+  for (const call of toolCalls.slice(0, 3)) {
+    const contract = getAgentToolContract(call.name);
+    if (!contract || !isAgentToolId(call.name)) {
+      executed.push({ id: call.id, tool: call.name, skipped: true, reason: 'Tool is not registered in the agent tool registry.' });
+      continue;
+    }
+    if (contract.requiresApproval) {
+      executed.push({ id: call.id, tool: call.name, skipped: true, requiresApproval: true, risk: contract.risk });
+      continue;
+    }
+
+    const goal = typeof call.args.goal === 'string' && call.args.goal.trim()
+      ? call.args.goal.trim()
+      : step.goal;
+    const toolInput = call.args.input && typeof call.args.input === 'object' && !Array.isArray(call.args.input)
+      ? call.args.input as Record<string, unknown>
+      : call.args;
+    const controlled = await executeControlledAgentStep({
+      runId: run.id,
+      stepId: step.id,
+      toolId: call.name,
+      goal,
+      toolInput,
+    });
+    executed.push({ id: call.id, tool: call.name, observation: controlled.observation, result: controlled.result });
+  }
+
+  step.observation.evidence = {
+    ...(step.observation.evidence || {}),
+    nativeToolCalls: toolCalls.map((call) => ({ id: call.id, name: call.name, args: call.args })),
+    controlledToolExecutions: executed,
+  };
+  if (executed.length > 0) {
+    step.observation.summary = `${step.observation.summary}\nTool evidence: ${executed.map((item) => `${item.tool}${item.skipped ? ':skipped' : ':executed'}`).join(', ')}`.trim();
+  }
+}
+
 export async function executeLoopStep(
   run: AgentExecutionLoopRun,
   stepGoal: string,
@@ -77,6 +148,8 @@ export async function executeLoopStep(
         profileId: options.profileId,
         localFallback: true,
         filePath: options.filePaths?.[0],
+        tools: agentToolContractsToSpecs(),
+        toolChoice: 'auto',
       },
     );
 
@@ -95,6 +168,8 @@ export async function executeLoopStep(
           latencyMs: result.totalLatencyMs,
         },
       };
+
+      await resolveNativeToolCalls(run, step);
 
       recordObservation(
         run.domain,

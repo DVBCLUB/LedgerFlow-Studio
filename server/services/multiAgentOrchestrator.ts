@@ -7,9 +7,10 @@
  * và tổng hợp kết quả.
  */
 import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric } from './aiFabric';
-import { recordObservation, searchMemory } from './compoundMemory';
-import { appendAuditEvent } from './auditLog';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { recordObservation, searchMemory } from './compoundMemory.ts';
+import { appendAuditEvent } from './auditLog.ts';
+import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type AgentRole = 'code' | 'test' | 'review' | 'finance' | 'planner' | 'general';
@@ -345,6 +346,29 @@ export async function orchestrateMultiAgent(options: MultiAgentOptions): Promise
       summary: `Orchestration ${planId} ${plan.status}: ${plan.summary}`,
       connectorId: 'multi-agent',
       evidence: { planId, taskCount: plan.tasks.length, parallel: options.parallel },
+    }).catch(() => undefined);
+
+    storePlan(plan);
+    await recordRuntimeCoreMission({
+      source: 'multi_agent_orchestrator',
+      missionId: plan.id,
+      goal: plan.goal,
+      domain: plan.domain,
+      status: plan.status === 'failed' ? 'failed' : 'completed',
+      createdAt: plan.createdAt,
+      updatedAt: plan.completedAt,
+      completedAt: plan.completedAt,
+      summary: plan.summary,
+      stepCount: plan.tasks.length,
+      completedStepCount: plan.tasks.filter((task) => task.status === 'completed').length,
+      failedStepCount: plan.tasks.filter((task) => task.status === 'failed' || task.status === 'blocked').length,
+      waitingApprovalCount: 0,
+      totalDurationMs: plan.totalLatencyMs,
+      metadata: {
+        executionOrder: plan.executionOrder,
+        parallel: Boolean(options.parallel),
+        taskRoles: plan.tasks.map((task) => task.role),
+      },
     }).catch(() => undefined);
   }
 

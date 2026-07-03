@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
+import { EventEmitter } from 'node:events';
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export type AgentMemoryKind = 'company' | 'session' | 'procedure' | 'observation' | 'feedback';
@@ -25,6 +26,24 @@ export interface AgentMemoryRecord {
 }
 
 let writeQueue = Promise.resolve();
+const memoryBus = new EventEmitter();
+memoryBus.setMaxListeners(100);
+
+export type AgentMemoryTopic = 'agent-memory.created' | 'agent-memory.reviewed' | `mission:${string}` | string;
+export type AgentMemoryHandler = (record: AgentMemoryRecord, topic: AgentMemoryTopic) => void;
+
+export function subscribe(topic: AgentMemoryTopic, handler: AgentMemoryHandler): () => void {
+  const wrapped = (record: AgentMemoryRecord) => handler(record, topic);
+  memoryBus.on(topic, wrapped);
+  return () => memoryBus.off(topic, wrapped);
+}
+
+export function publish(topic: AgentMemoryTopic, memoryEntry: AgentMemoryRecord): void {
+  memoryBus.emit(topic, memoryEntry);
+  for (const tag of memoryEntry.tags) {
+    if (tag.startsWith('mission:')) memoryBus.emit(tag, memoryEntry);
+  }
+}
 
 function storageFile() {
   return resolveRuntimePathFromEnv('AGENT_MEMORY_STORE_FILE', 'agent_memory.local.json');
@@ -74,7 +93,7 @@ export async function createAgentMemory(input: {
   supersedesId?: string;
   sourceQuality?: number;
 }): Promise<AgentMemoryRecord> {
-  return mutate((records) => {
+  const record = await mutate((records) => {
     const now = new Date().toISOString();
     const sameSource = input.sourceRef ? records.find((item) => item.source === input.source.trim() && item.sourceRef === input.sourceRef) : undefined;
     if (sameSource && sameSource.content.trim() === input.content.trim()) return sameSource;
@@ -105,16 +124,20 @@ export async function createAgentMemory(input: {
     records.unshift(record);
     return record;
   });
+  publish('agent-memory.created', record);
+  return record;
 }
 
 export async function reviewAgentMemory(id: string, status: Extract<AgentMemoryStatus, 'reviewed' | 'rejected'>) {
-  return mutate((records) => {
+  const record = await mutate((records) => {
     const record = records.find((item) => item.id === id);
     if (!record) throw new Error('Memory record not found.');
     record.status = status;
     record.updatedAt = new Date().toISOString();
     return record;
   });
+  publish('agent-memory.reviewed', record);
+  return record;
 }
 
 function terms(value: string) {

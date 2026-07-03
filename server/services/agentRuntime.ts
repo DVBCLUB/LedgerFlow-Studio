@@ -8,6 +8,7 @@ import { readSecureJson, writeSecureJson } from './secureJsonStore.ts';
 import { signRecord, verifyRecord } from './signedRecords.ts';
 import { publish } from './agentEventBus.ts';
 import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
+import { recordRuntimeCoreMission, type RuntimeCoreMissionStatus } from './agentRuntimeCore.ts';
 
 export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
 export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
@@ -45,30 +46,61 @@ function planSteps(plan: AgentPlan, maxSteps: number, toolInputs: Partial<Record
   });
 }
 
-function recordAgentRunSnapshot(run: AgentRun, event: string) {
-  return appendAIWorkforceRuntimeRecord({
-    id: `agent_execution_run_${run.id}`,
-    type: 'agent_execution_run',
-    createdAt: run.updatedAt,
-    payload: {
-      surface: 'agent_runtime',
-      event,
-      runId: run.id,
-      status: run.status,
+function mapAgentRunStatus(status: AgentRunStatus): RuntimeCoreMissionStatus {
+  if (status === 'planned') return 'planning';
+  if (status === 'running') return 'running';
+  return status;
+}
+
+async function recordAgentRunSnapshot(run: AgentRun, event: string) {
+  await Promise.all([
+    appendAIWorkforceRuntimeRecord({
+      id: `agent_execution_run_${run.id}`,
+      type: 'agent_execution_run',
+      createdAt: run.updatedAt,
+      payload: {
+        surface: 'agent_runtime',
+        event,
+        runId: run.id,
+        status: run.status,
+        goal: run.goal,
+        requestedBy: run.requestedBy,
+        sourceType: run.sourceType,
+        sourceId: run.sourceId,
+        planner: run.planner,
+        createdAt: run.createdAt,
+        updatedAt: run.updatedAt,
+        completedAt: run.completedAt,
+        stepCount: run.steps.length,
+        completedStepCount: run.steps.filter((step) => step.status === 'completed').length,
+        waitingApprovalCount: run.steps.filter((step) => step.status === 'waiting_approval').length,
+        artifactCount: run.artifacts.length,
+      },
+    }),
+    recordRuntimeCoreMission({
+      source: 'agent_runtime',
+      missionId: run.id,
       goal: run.goal,
-      requestedBy: run.requestedBy,
-      sourceType: run.sourceType,
-      sourceId: run.sourceId,
-      planner: run.planner,
+      domain: 'agent-runtime',
+      status: mapAgentRunStatus(run.status),
       createdAt: run.createdAt,
       updatedAt: run.updatedAt,
       completedAt: run.completedAt,
+      summary: run.observations.at(-1) || run.plannerSummary,
       stepCount: run.steps.length,
       completedStepCount: run.steps.filter((step) => step.status === 'completed').length,
+      failedStepCount: run.steps.filter((step) => step.status === 'failed' || step.status === 'rejected').length,
       waitingApprovalCount: run.steps.filter((step) => step.status === 'waiting_approval').length,
-      artifactCount: run.artifacts.length,
-    },
-  }).catch(() => undefined);
+      totalDurationMs: run.startedAt && run.completedAt ? Date.parse(run.completedAt) - Date.parse(run.startedAt) : 0,
+      metadata: {
+        event,
+        sourceType: run.sourceType,
+        sourceId: run.sourceId,
+        planner: run.planner,
+        artifactCount: run.artifacts.length,
+      },
+    }),
+  ]).catch(() => undefined);
 }
 
 export async function createAgentRun(input: { goal: string; requestedBy?: string; requestedTools?: AgentToolId[]; toolInputs?: Partial<Record<AgentToolId, Record<string, unknown>>>; maxSteps?: number; maxRuntimeMs?: number; plannerMode?: 'auto' | 'ai' | 'deterministic'; sourceType?: AgentRun['sourceType']; sourceId?: string }) {
@@ -104,8 +136,19 @@ async function executeStep(run: AgentRun, step: AgentRunStep) {
   step.latencyMs = Date.now() - start;
   step.tokensUsed = Math.round(((observation || '').length + JSON.stringify(step.toolInput || {}).length) / 4) + 120;
   step.status = 'completed'; step.completedAt = new Date().toISOString(); step.observation = observation; step.evidence = result; run.observations.push(observation);
+  run.artifacts.push({
+    id: `artifact_${randomUUID()}`,
+    type: step.toolId,
+    summary: observation,
+    evidence: result,
+    createdAt: step.completedAt,
+  });
+}
+
+async function maybeReplanAfterStep(run: AgentRun) {
+  if (run.replanCount >= 3 || !shouldReplan(run.observations)) return false;
   const completed = run.steps.filter((step) => step.status === 'completed');
-  const queued = run.steps.filter((step) => step.status === 'queued');
+  const queued = run.steps.filter((step) => step.status === 'queued' || step.status === 'waiting_approval');
   if (!queued.length) return false;
 
   const carryInputs = queued.reduce((acc, step) => {

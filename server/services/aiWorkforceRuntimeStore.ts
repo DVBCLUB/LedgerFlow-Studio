@@ -11,7 +11,8 @@ export type AIWorkforceRuntimeRecordType =
   | 'mission_release_gate'
   | 'release_gate_export'
   | 'runtime_snapshot'
-  | 'agent_execution_run';
+  | 'agent_execution_run'
+  | 'agent_runtime_core_mission';
 
 export interface AIWorkforceRuntimeRecord<T = unknown> {
   id: string;

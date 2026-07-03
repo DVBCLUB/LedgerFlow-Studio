@@ -9,9 +9,10 @@
  * collects results, merges/selects best output.
  */
 import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric } from './aiFabric';
-import { appendAuditEvent } from './auditLog';
-import { recordUsage } from './costObservability';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { appendAuditEvent } from './auditLog.ts';
+import { recordUsage } from './costObservability.ts';
+import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
 import fs from 'fs';
 import path from 'path';
 
@@ -318,6 +319,28 @@ Produce a well-structured, comprehensive final answer. Include code if applicabl
       summary: `Swarm: ${mission.results.length} results from ${mission.agents.length} agents, status=${mission.status}`,
       connectorId: 'agent-swarm',
       evidence: { missionId, agents: mission.agents.length, tasks: mission.tasks.length, status: mission.status },
+    }).catch(() => undefined);
+
+    await recordRuntimeCoreMission({
+      source: 'agent_swarm_coordinator',
+      missionId: mission.id,
+      goal: mission.goal,
+      domain: mission.domain,
+      status: mission.status === 'failed' ? 'failed' : 'completed',
+      createdAt: mission.startedAt,
+      updatedAt: mission.completedAt,
+      completedAt: mission.completedAt,
+      summary: mission.summary,
+      stepCount: mission.tasks.length,
+      completedStepCount: mission.results.filter((result) => result.status === 'completed').length,
+      failedStepCount: mission.results.filter((result) => result.status === 'failed' || result.status === 'skipped').length,
+      waitingApprovalCount: 0,
+      totalDurationMs: mission.totalLatencyMs,
+      metadata: {
+        agentCount: mission.agents.length,
+        resultCount: mission.results.length,
+        taskAgents: mission.tasks.map((task) => task.assignedTo),
+      },
     }).catch(() => undefined);
 
     save().catch(() => undefined);
