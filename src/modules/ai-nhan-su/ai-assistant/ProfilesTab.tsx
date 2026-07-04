@@ -1,0 +1,219 @@
+import React from 'react';
+import { User, UserPlus, Trash2, Loader2, RefreshCw, ExternalLink } from 'lucide-react';
+import { type WebAIProfile, checkWebAIProfileSession, openWebAIProfileLogin } from '../../../utils/assistantApi';
+
+interface ProfilesTabProps {
+  webAIProfiles: WebAIProfile[];
+  webAIProfilesLoading: boolean;
+  selectedProfileId: string;
+  setSelectedProfileId: (val: string) => void;
+  newProfileName: string;
+  setNewProfileName: (val: string) => void;
+  newProfilePlatform: string;
+  setNewProfilePlatform: (val: string) => void;
+  handleCreateProfile: (e: React.FormEvent) => void;
+  handleDeleteProfile: (id: string) => void;
+  loadWebAIProfiles: (silent?: boolean) => void;
+  pushNotice: (kind: 'success' | 'error', text: string) => void;
+}
+
+export default function ProfilesTab({
+  webAIProfiles,
+  webAIProfilesLoading,
+  selectedProfileId,
+  setSelectedProfileId,
+  newProfileName,
+  setNewProfileName,
+  newProfilePlatform,
+  setNewProfilePlatform,
+  handleCreateProfile,
+  handleDeleteProfile,
+  loadWebAIProfiles,
+  pushNotice,
+}: ProfilesTabProps) {
+  const [checkingIds, setCheckingIds] = React.useState<Record<string, boolean>>({});
+  const [loggingInIds, setLoggingInIds] = React.useState<Record<string, boolean>>({});
+
+  const handleCheckSession = async (profileId: string, platform: string) => {
+    setCheckingIds(prev => ({ ...prev, [profileId]: true }));
+    try {
+      const res = await checkWebAIProfileSession(profileId, platform);
+      if (res.ok) {
+        pushNotice('success', `Kết nối Profile OK: Trạng thái hiện tại là Ready.`);
+      } else {
+        pushNotice('error', `Kết nối thất bại: ${res.error || 'Yêu cầu đăng nhập hoặc có lỗi xảy ra.'}`);
+      }
+      loadWebAIProfiles(true);
+    } catch (err: any) {
+      pushNotice('error', `Lỗi kiểm tra session: ${err.message}`);
+    } finally {
+      setCheckingIds(prev => ({ ...prev, [profileId]: false }));
+    }
+  };
+
+  const handleManualLogin = async (profileId: string, platform: string) => {
+    setLoggingInIds(prev => ({ ...prev, [profileId]: true }));
+    pushNotice('success', `Đang mở trình duyệt. Hãy đăng nhập tài khoản và ĐÓNG cửa sổ trình duyệt Chrome khi hoàn thành!`);
+    try {
+      const res = await openWebAIProfileLogin(profileId, platform);
+      if (res.ok) {
+        pushNotice('success', `Đăng nhập & Lưu session OK cho Profile.`);
+      } else {
+        pushNotice('error', `Kiểm tra session sau khi đóng trình duyệt thất bại: ${res.error || 'Vẫn yêu cầu đăng nhập.'}`);
+      }
+      loadWebAIProfiles(true);
+    } catch (err: any) {
+      pushNotice('error', `Lỗi đăng nhập: ${err.message}`);
+    } finally {
+      setLoggingInIds(prev => ({ ...prev, [profileId]: false }));
+    }
+  };
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* Create profile form */}
+      <div className="rounded-xl border border-border-primary bg-bg-primary/40 p-4 space-y-3">
+        <h3 className="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center gap-1.5">
+          <UserPlus className="h-4 w-4 text-violet-400" /> Thêm tài khoản mới (Web AI Profile)
+        </h3>
+        <form onSubmit={handleCreateProfile} className="space-y-3 pt-2">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">
+                Tên tài khoản
+              </label>
+              <input
+                type="text"
+                required
+                value={newProfileName}
+                onChange={e => setNewProfileName(e.target.value)}
+                placeholder="e.g. Gmail Cá Nhân, Gmail Công Ty"
+                className="w-full bg-slate-950 border border-border-primary rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-700 focus:border-violet-500/60 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black text-text-tertiary uppercase tracking-widest mb-1">
+                Nền tảng AI
+              </label>
+              <select
+                value={newProfilePlatform}
+                onChange={e => setNewProfilePlatform(e.target.value)}
+                className="w-full bg-slate-950 border border-border-primary rounded-xl px-3 py-2 text-xs text-slate-200 outline-none font-bold focus:border-violet-500"
+              >
+                <option value="chatgpt">ChatGPT</option>
+                <option value="gemini">Gemini</option>
+                <option value="claude">Claude</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="grok">Grok</option>
+                <option value="copilot">Copilot</option>
+              </select>
+            </div>
+          </div>
+          <button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 py-2 bg-violet-600 hover:bg-violet-500 text-text-primary text-xs font-black rounded-xl transition-colors"
+          >
+            <UserPlus className="h-3.5 w-3.5" /> Tạo Profile Tài Khoản
+          </button>
+        </form>
+      </div>
+
+      {/* Profiles list */}
+      <div className="rounded-xl border border-border-primary bg-bg-primary/40 p-4 space-y-3">
+        <h3 className="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center gap-1.5">
+          <User className="h-4 w-4 text-violet-400" /> Danh sách tài khoản đã lưu
+        </h3>
+        
+        {webAIProfilesLoading ? (
+          <div className="flex items-center justify-center py-6 text-xs text-text-tertiary gap-2">
+            <Loader2 className="h-4 w-4 animate-spin text-violet-400" /> Đang tải danh sách profile...
+          </div>
+        ) : webAIProfiles.length === 0 ? (
+          <div className="text-center py-8 text-xs text-text-tertiary font-semibold">
+            Chưa có profile tài khoản nào. Hãy đăng ký một tài khoản ở trên.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {webAIProfiles.map(p => (
+              <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-border-primary bg-slate-950/60 hover:border-border-secondary/60 transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-bg-primary border border-border-primary flex items-center justify-center">
+                    <User className="h-4 w-4 text-text-secondary" />
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-text-primary flex items-center gap-2">
+                      {p.name}
+                      <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-violet-950 text-violet-400 border border-violet-800/40 font-mono">
+                        {p.platform}
+                      </span>
+                    </div>
+                    <div className="text-[10px] text-text-tertiary font-mono mt-0.5">
+                      Thư mục: .chrome_profiles/{p.profileDir}
+                    </div>
+                    {p.lastUsedAt && (
+                      <div className="text-[9px] text-slate-600 mt-0.5 font-semibold">
+                        Sử dụng cuối: {new Date(p.lastUsedAt).toLocaleString('vi-VN')}
+                      </div>
+                    )}
+                    <div className="mt-1 text-[9px] font-bold text-text-tertiary">
+                      Status: {p.status} · Failures: {p.consecutiveFailures}
+                    </div>
+                    {p.lastError && <div className="mt-1 max-w-md truncate text-[9px] text-rose-400" title={p.lastError}>{p.lastError}</div>}
+                  </div>
+                </div>
+                 <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleCheckSession(p.id, p.platform)}
+                    disabled={checkingIds[p.id] || loggingInIds[p.id]}
+                    className="px-2 py-1 text-[10px] font-black rounded-lg border border-border-primary bg-bg-primary text-text-secondary hover:bg-bg-surface disabled:opacity-50 flex items-center gap-1"
+                    title="Kiểm tra trạng thái session cookies"
+                  >
+                    {checkingIds[p.id] ? (
+                      <Loader2 className="h-3 w-3 animate-spin text-violet-400" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3 text-text-secondary" />
+                    )}
+                    <span>Check</span>
+                  </button>
+                  <button
+                    onClick={() => handleManualLogin(p.id, p.platform)}
+                    disabled={checkingIds[p.id] || loggingInIds[p.id]}
+                    className="px-2 py-1 text-[10px] font-black rounded-lg border border-violet-800/45 bg-violet-950/20 text-violet-300 hover:bg-violet-900 disabled:opacity-50 flex items-center gap-1"
+                    title="Mở trình duyệt để đăng nhập thủ công"
+                  >
+                    {loggingInIds[p.id] ? (
+                      <Loader2 className="h-3 w-3 animate-spin text-violet-400" />
+                    ) : (
+                      <ExternalLink className="h-3 w-3 text-violet-400" />
+                    )}
+                    <span>Login</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setSelectedProfileId(p.id);
+                      pushNotice('success', `Đã chọn profile "${p.name}" cho các tác vụ Web AI.`);
+                    }}
+                    className={`px-2.5 py-1 text-[10px] font-black rounded-lg transition-all ${
+                      selectedProfileId === p.id
+                        ? 'bg-emerald-600 hover:bg-emerald-500 text-text-primary'
+                        : 'bg-bg-primary hover:bg-bg-surface text-text-secondary border border-border-primary'
+                    }`}
+                  >
+                    {selectedProfileId === p.id ? 'Đang Chọn' : 'Chọn'}
+                  </button>
+                  <button
+                    onClick={() => handleDeleteProfile(p.id)}
+                    className="p-1.5 hover:bg-rose-950/40 text-text-tertiary hover:text-rose-400 rounded-lg transition-colors"
+                    title="Xóa Profile"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

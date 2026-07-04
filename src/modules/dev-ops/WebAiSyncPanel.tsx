@@ -573,29 +573,29 @@ const fs = require('fs');
   };
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6 shadow-2xl">
+    <section className="rounded-3xl border border-border-primary bg-slate-950/80 p-6 shadow-2xl">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-900 pb-5">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/30 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-200">
             <Bot className="h-4 w-4" /> ChatGPT & Gemini Web Sync
           </div>
-          <h2 className="mt-3 text-xl font-black text-white">Đồng bộ tri thức từ Web Chat của bạn</h2>
-          <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-400">
+          <h2 className="mt-3 text-xl font-black text-text-primary">Đồng bộ tri thức từ Web Chat của bạn</h2>
+          <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-text-secondary">
             LedgerFlow hỗ trợ nhập dữ liệu hội thoại đã trao đổi trên ChatGPT/Gemini để làm giàu tri thức local, phục vụ cho AI Agent viết code, làm nội dung và hạch toán kế toán.
           </p>
         </div>
 
         {/* Tab Selector */}
-        <div className="flex items-center gap-1 bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 self-start">
+        <div className="flex items-center gap-1 bg-bg-primary/60 p-1.5 rounded-2xl border border-border-primary self-start">
           <button
             onClick={() => setActiveTab('import')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'import' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'import' ? 'bg-violet-600 text-text-primary shadow' : 'text-text-secondary hover:text-text-primary'}`}
           >
             Nhập dữ liệu
           </button>
           <button
             onClick={() => setActiveTab('list')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all relative ${activeTab === 'list' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all relative ${activeTab === 'list' ? 'bg-violet-600 text-text-primary shadow' : 'text-text-secondary hover:text-text-primary'}`}
           >
             Hội thoại đã nhập
             {conversations.length > 0 && (
@@ -606,7 +606,7 @@ const fs = require('fs');
           </button>
           <button
             onClick={() => setActiveTab('script')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'script' ? 'bg-violet-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${activeTab === 'script' ? 'bg-violet-600 text-text-primary shadow' : 'text-text-secondary hover:text-text-primary'}`}
           >
             Script tự động (Code)
           </button>
@@ -618,14 +618,14 @@ const fs = require('fs');
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-800/40 bg-emerald-950/20 px-4 py-3 text-xs font-bold text-emerald-300 animate-pulse">
           <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
           <span>{message}</span>
-          <button onClick={() => setMessage(null)} className="ml-auto text-emerald-500 hover:text-white"><X className="h-3.5 w-3.5" /></button>
+          <button onClick={() => setMessage(null)} className="ml-auto text-emerald-500 hover:text-text-primary"><X className="h-3.5 w-3.5" /></button>
         </div>
       )}
       {error && (
         <div className="mt-4 flex items-center gap-2 rounded-2xl border border-rose-800/40 bg-rose-950/20 px-4 py-3 text-xs font-bold text-rose-300">
           <AlertCircle className="h-4 w-4 text-rose-400 shrink-0" />
           <span>{error}</span>
-          <button onClick={() => setError(null)} className="ml-auto text-rose-500 hover:text-white"><X className="h-3.5 w-3.5" /></button>
+          <button onClick={() => setError(null)} className="ml-auto text-rose-500 hover:text-text-primary"><X className="h-3.5 w-3.5" /></button>
         </div>
       )}
 
@@ -636,33 +636,33 @@ const fs = require('fs');
             {/* Import Type Selector Cards */}
             <button
               onClick={() => setImportType('chatgpt')}
-              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'chatgpt' ? 'border-violet-500 bg-violet-950/15' : 'border-slate-800 bg-slate-900/40 opacity-70'}`}
+              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'chatgpt' ? 'border-violet-500 bg-violet-950/15' : 'border-border-primary bg-bg-primary/40 opacity-70'}`}
             >
               <FileJson className="h-7 w-7 text-emerald-400 mb-3" />
-              <div className="text-xs font-black text-white">ChatGPT JSON Export</div>
-              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-slate-400">
+              <div className="text-xs font-black text-text-primary">ChatGPT JSON Export</div>
+              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-text-secondary">
                 Nhập file `conversations.json` trích xuất trực tiếp từ gói dữ liệu của OpenAI.
               </p>
             </button>
 
             <button
               onClick={() => setImportType('generic')}
-              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'generic' ? 'border-violet-500 bg-violet-950/15' : 'border-slate-800 bg-slate-900/40 opacity-70'}`}
+              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'generic' ? 'border-violet-500 bg-violet-950/15' : 'border-border-primary bg-bg-primary/40 opacity-70'}`}
             >
               <FileText className="h-7 w-7 text-sky-400 mb-3" />
-              <div className="text-xs font-black text-white">Dữ liệu JSON Chuẩn</div>
-              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-slate-400">
+              <div className="text-xs font-black text-text-primary">Dữ liệu JSON Chuẩn</div>
+              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-text-secondary">
                 Nhập danh sách hội thoại tùy biến theo định dạng mẫu JSON [title, messages[]].
               </p>
             </button>
 
             <button
               onClick={() => setImportType('paste')}
-              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'paste' ? 'border-violet-500 bg-violet-950/15' : 'border-slate-800 bg-slate-900/40 opacity-70'}`}
+              className={`rounded-2xl border p-4 text-left transition-all hover:scale-[1.01] ${importType === 'paste' ? 'border-violet-500 bg-violet-950/15' : 'border-border-primary bg-bg-primary/40 opacity-70'}`}
             >
               <Clipboard className="h-7 w-7 text-amber-400 mb-3" />
-              <div className="text-xs font-black text-white">Dán văn bản thô</div>
-              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-slate-400">
+              <div className="text-xs font-black text-text-primary">Dán văn bản thô</div>
+              <p className="mt-1.5 text-[10px] font-semibold leading-5 text-text-secondary">
                 Tự dán hoặc sao chép nội dung chat thủ công phân đoạn từ trình duyệt.
               </p>
             </button>
@@ -670,7 +670,7 @@ const fs = require('fs');
 
           {/* File Upload Mode (ChatGPT / Generic JSON) */}
           {importType !== 'paste' ? (
-            <div className="rounded-2xl border-2 border-dashed border-slate-800 bg-slate-900/20 p-8 text-center hover:border-violet-500 transition-all relative">
+            <div className="rounded-2xl border-2 border-dashed border-border-primary bg-bg-primary/20 p-8 text-center hover:border-violet-500 transition-all relative">
               <input
                 type="file"
                 accept=".json"
@@ -678,39 +678,39 @@ const fs = require('fs');
                 className="absolute inset-0 opacity-0 cursor-pointer"
                 id="file-upload-input"
               />
-              <UploadCloud className="mx-auto h-12 w-12 text-slate-500" />
-              <h3 className="mt-4 text-sm font-black text-white">Nhấp chọn hoặc kéo thả file JSON vào đây</h3>
-              <p className="mt-1.5 text-xs text-slate-500">
+              <UploadCloud className="mx-auto h-12 w-12 text-text-tertiary" />
+              <h3 className="mt-4 text-sm font-black text-text-primary">Nhấp chọn hoặc kéo thả file JSON vào đây</h3>
+              <p className="mt-1.5 text-xs text-text-tertiary">
                 Chỉ chấp nhận file định dạng `.json` ({importType === 'chatgpt' ? 'conversations.json' : 'mẫu JSON hội thoại'}).
               </p>
               
-              <div className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-[10.5px] font-bold text-slate-400">
-                <HelpCircle className="h-3.5 w-3.5 text-slate-500" />
+              <div className="mt-4 inline-flex items-center gap-1.5 rounded-xl bg-bg-primary px-4 py-2 text-[10.5px] font-bold text-text-secondary">
+                <HelpCircle className="h-3.5 w-3.5 text-text-tertiary" />
                 <span>Cách lấy file: ChatGPT.com → Settings → Data Controls → Export Data (Đợi email tải zip).</span>
               </div>
             </div>
           ) : (
             /* Paste Text Mode */
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 space-y-4">
-              <h3 className="text-xs font-black text-white uppercase tracking-widest text-slate-400">Dán thủ công cuộc hội thoại</h3>
+            <div className="rounded-2xl border border-border-primary bg-bg-primary/40 p-5 space-y-4">
+              <h3 className="text-xs font-black text-text-primary uppercase tracking-widest text-text-secondary">Dán thủ công cuộc hội thoại</h3>
               
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1.5">Tiêu đề cuộc hội thoại</label>
+                  <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1.5">Tiêu đề cuộc hội thoại</label>
                   <input
                     type="text"
                     value={pasteTitle}
                     onChange={(e) => setPasteTitle(e.target.value)}
                     placeholder="Ví dụ: Đối chiếu công nợ nhà cung cấp dầu"
-                    className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white outline-none focus:border-violet-500"
+                    className="w-full rounded-xl border border-border-primary bg-slate-950 px-3.5 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase text-slate-500 mb-1.5">Nền tảng gốc</label>
+                  <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1.5">Nền tảng gốc</label>
                   <select
                     value={pasteSource}
                     onChange={(e) => setPasteSource(e.target.value as 'chatgpt' | 'gemini')}
-                    className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-slate-300 outline-none focus:border-violet-500"
+                    className="w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs font-bold text-text-secondary outline-none focus:border-violet-500"
                   >
                     <option value="chatgpt">OpenAI ChatGPT</option>
                     <option value="gemini">Google Gemini</option>
@@ -719,22 +719,22 @@ const fs = require('fs');
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1.5">
+                <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1.5">
                   Nội dung hội thoại (Định dạng: User: ... / ChatGPT: ... hoặc Gemini: ...)
                 </label>
                 <textarea
                   value={pasteText}
                   onChange={(e) => setPasteText(e.target.value)}
                   rows={8}
-                  placeholder={`User: Bạn hãy viết 1 SQL mẫu để tính tổng nợ theo từng công trình.\n\nChatGPT: Dưới đây là câu lệnh SQL truy vấn nhóm doanh số:\nSELECT project_name, SUM(amount) FROM lf_db_transactions GROUP BY project_name;`}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 p-3.5 font-mono text-[11px] text-slate-200 outline-none focus:border-violet-500 leading-relaxed"
+                  placeholder={`User: Bạn hãy viết 1 SQL mẫu để tính tổng nợ theo từng dự án.\n\nChatGPT: Dưới đây là câu lệnh SQL truy vấn nhóm doanh số:\nSELECT project_name, SUM(amount) FROM lf_db_transactions GROUP BY project_name;`}
+                  className="w-full rounded-xl border border-border-primary bg-slate-950 p-3.5 font-mono text-[11px] text-slate-200 outline-none focus:border-violet-500 leading-relaxed"
                 />
               </div>
 
               <button
                 type="button"
                 onClick={handleTextPasteImport}
-                className="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-black text-white transition-all cursor-pointer"
+                className="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-black text-text-primary transition-all cursor-pointer"
               >
                 Nhập hội thoại
               </button>
@@ -749,19 +749,19 @@ const fs = require('fs');
           {/* Search and Filter controls */}
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+              <Search className="pointer-events-none absolute left-3 top-2.5 h-4 w-4 text-text-tertiary" />
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Tìm tiêu đề hoặc nội dung tin nhắn..."
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 py-2.5 pl-9 pr-3 text-xs font-bold text-white outline-none focus:border-violet-500"
+                className="w-full rounded-xl border border-border-primary bg-bg-primary py-2.5 pl-9 pr-3 text-xs font-bold text-text-primary outline-none focus:border-violet-500"
               />
             </div>
             
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value as any)}
-              className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 outline-none focus:border-violet-500"
+              className="rounded-xl border border-border-primary bg-bg-primary px-4 py-2.5 text-xs font-bold text-text-secondary outline-none focus:border-violet-500"
             >
               <option value="all">Tất cả nguồn</option>
               <option value="chatgpt">ChatGPT Export</option>
@@ -772,14 +772,14 @@ const fs = require('fs');
 
           {/* Conversations table */}
           {filteredChats.length === 0 ? (
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-8 text-center text-xs font-bold text-slate-500 italic">
+            <div className="rounded-2xl border border-slate-900 bg-bg-primary/20 p-8 text-center text-xs font-bold text-text-tertiary italic">
               Chưa có dữ liệu nào khớp với bộ lọc tìm kiếm.
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-slate-900">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-900 bg-slate-900/35 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <tr className="border-b border-slate-900 bg-bg-primary/35 text-[10px] font-black uppercase tracking-wider text-text-secondary">
                     <th className="p-3.5">Tiêu đề hội thoại</th>
                     <th className="p-3.5">Nguồn</th>
                     <th className="p-3.5">Số tin nhắn</th>
@@ -789,8 +789,8 @@ const fs = require('fs');
                 </thead>
                 <tbody className="divide-y divide-slate-900">
                   {filteredChats.map((chat) => (
-                    <tr key={chat.id} className="text-xs font-semibold text-slate-300 hover:bg-slate-900/30">
-                      <td className="p-3.5 font-bold text-white max-w-[280px] truncate">{chat.title}</td>
+                    <tr key={chat.id} className="text-xs font-semibold text-text-secondary hover:bg-bg-primary/30">
+                      <td className="p-3.5 font-bold text-text-primary max-w-[280px] truncate">{chat.title}</td>
                       <td className="p-3.5">
                         <span className={`px-2 py-0.5 rounded-lg border text-[10px] font-black ${
                           chat.source === 'chatgpt' 
@@ -803,11 +803,11 @@ const fs = require('fs');
                         </span>
                       </td>
                       <td className="p-3.5 font-mono">{chat.messages.length} lượt</td>
-                      <td className="p-3.5 text-slate-500">{chat.date || 'unknown'}</td>
+                      <td className="p-3.5 text-text-tertiary">{chat.date || 'unknown'}</td>
                       <td className="p-3.5 text-right space-x-2">
                         <button
                           onClick={() => setSelectedChat(chat)}
-                          className="inline-flex items-center gap-1 rounded-lg border border-slate-700 bg-slate-900 px-2.5 py-1.5 hover:border-violet-500 hover:text-white"
+                          className="inline-flex items-center gap-1 rounded-lg border border-border-secondary bg-bg-primary px-2.5 py-1.5 hover:border-violet-500 hover:text-text-primary"
                         >
                           <Eye className="h-3 w-3" /> Xem
                         </button>
@@ -834,7 +834,7 @@ const fs = require('fs');
             <h3 className="text-xs font-black text-amber-200 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-300" /> Giải pháp điều khiển & Tự động hóa qua Chrome Session
             </h3>
-            <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">
+            <p className="mt-1 text-[11px] font-semibold leading-5 text-text-secondary">
               Để tránh các cơ chế chống bot (Cloudflare, Captcha) của ChatGPT và Gemini, LedgerFlow sử dụng giải pháp an toàn cục bộ: 
               Khởi chạy Puppeteer đính kèm trực tiếp vào session đăng nhập Chrome hiện có của bạn thông qua đường dẫn Profile cục bộ. 
               Bạn có thể linh hoạt chọn hoặc cấu hình các tài khoản Gmail/Chrome khác nhau để sinh mã script tương ứng hoặc chạy tự động hóa live ngay tại Dashboard.
@@ -844,11 +844,11 @@ const fs = require('fs');
           {/* Chrome Profiles List */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Danh sách Profile Chrome & Gmail AI Chat</h3>
+              <h3 className="text-xs font-black uppercase tracking-wider text-text-secondary">Danh sách Profile Chrome & Gmail AI Chat</h3>
               <button
                 type="button"
                 onClick={() => setShowAddProfileForm(!showAddProfileForm)}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-black text-slate-300 hover:text-white hover:border-violet-500 transition-all"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border-secondary bg-bg-primary px-3 py-1.5 text-xs font-black text-text-secondary hover:text-text-primary hover:border-violet-500 transition-all"
               >
                 <Plus className="h-3.5 w-3.5 text-violet-400" />
                 {showAddProfileForm ? 'Đóng form' : 'Thêm profile mới'}
@@ -856,25 +856,25 @@ const fs = require('fs');
             </div>
 
             {showAddProfileForm && (
-              <div className="rounded-2xl border border-slate-800 bg-slate-950/40 p-4 space-y-4 animate-fadeIn">
-                <div className="text-xs font-black text-white">Cấu hình Profile mới</div>
+              <div className="rounded-2xl border border-border-primary bg-slate-950/40 p-4 space-y-4 animate-fadeIn">
+                <div className="text-xs font-black text-text-primary">Cấu hình Profile mới</div>
                 <div className="grid gap-3 sm:grid-cols-4">
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Tên gợi nhớ</label>
+                    <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Tên gợi nhớ</label>
                     <input
                       type="text"
                       value={newProfileName}
                       onChange={(e) => setNewProfileName(e.target.value)}
                       placeholder="Ví dụ: Gmail cá nhân"
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-violet-500"
+                      className="w-full rounded-xl border border-border-primary bg-bg-primary px-3 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Nền tảng Web AI</label>
+                    <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Nền tảng Web AI</label>
                     <select
                       value={newProfilePlatform}
                       onChange={(e) => setNewProfilePlatform(e.target.value)}
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-slate-300 outline-none focus:border-violet-500"
+                      className="w-full rounded-xl border border-border-primary bg-bg-primary px-3 py-2 text-xs font-semibold text-text-secondary outline-none focus:border-violet-500"
                     >
                       <option value="chatgpt">ChatGPT</option>
                       <option value="gemini">Gemini</option>
@@ -885,23 +885,23 @@ const fs = require('fs');
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Đường dẫn / Folder Path</label>
+                    <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Đường dẫn / Folder Path</label>
                     <input
                       type="text"
                       value={newProfileFolder}
                       onChange={(e) => setNewProfileFolder(e.target.value)}
                       placeholder="Bỏ trống nếu muốn tạo sandbox"
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-violet-500"
+                      className="w-full rounded-xl border border-border-primary bg-bg-primary px-3 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-500"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Gmail liên kết (nếu có)</label>
+                    <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Gmail liên kết (nếu có)</label>
                     <input
                       type="email"
                       value={newProfileEmail}
                       onChange={(e) => setNewProfileEmail(e.target.value)}
                       placeholder="Ví dụ: my.email@gmail.com"
-                      className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-xs font-semibold text-white outline-none focus:border-violet-500"
+                      className="w-full rounded-xl border border-border-primary bg-bg-primary px-3 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-500"
                     />
                   </div>
                 </div>
@@ -909,14 +909,14 @@ const fs = require('fs');
                   <button
                     type="button"
                     onClick={handleAddProfile}
-                    className="rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2 text-xs font-black text-white transition-all"
+                    className="rounded-xl bg-violet-600 hover:bg-violet-500 px-4 py-2 text-xs font-black text-text-primary transition-all"
                   >
                     Lưu Profile
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowAddProfileForm(false)}
-                    className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-bold text-slate-400 hover:text-white"
+                    className="rounded-xl border border-border-primary bg-bg-primary px-4 py-2 text-xs font-bold text-text-secondary hover:text-text-primary"
                   >
                     Hủy
                   </button>
@@ -934,29 +934,29 @@ const fs = require('fs');
                     className={`relative rounded-2xl border p-4 cursor-pointer transition-all flex flex-col justify-between group hover:scale-[1.01] ${
                       isSelected 
                         ? 'border-violet-500 bg-violet-950/20 shadow-lg shadow-violet-950/10' 
-                        : 'border-slate-800 bg-slate-900/40 opacity-80 hover:opacity-100'
+                        : 'border-border-primary bg-bg-primary/40 opacity-80 hover:opacity-100'
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <User className="h-4 w-4 text-violet-400" />
-                          <span className="text-xs font-black text-white">{p.name}</span>
+                          <span className="text-xs font-black text-text-primary">{p.name}</span>
                         </div>
                         <span className={`rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
                           p.status === 'ready' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/20' :
                           p.status === 'quota' ? 'bg-amber-950/60 text-amber-400 border border-amber-500/20' :
                           p.status === 'login_required' ? 'bg-cyan-950/60 text-cyan-400 border border-cyan-500/20' :
-                          'bg-slate-900 text-slate-400 border border-slate-850'
+                          'bg-bg-primary text-text-secondary border border-slate-850'
                         }`}>
                           {p.status}
                         </span>
                       </div>
-                      <div className="mt-2 text-[11px] font-semibold text-slate-400 truncate">
+                      <div className="mt-2 text-[11px] font-semibold text-text-secondary truncate">
                         Platform: <span className="text-violet-300 font-bold uppercase">{p.platform}</span>
                       </div>
-                      <div className="mt-1 text-[11px] font-semibold text-slate-400 truncate" title={p.profileDir}>
-                        Thư mục: <span className="font-mono text-[10px] text-slate-400">{p.profileDir}</span>
+                      <div className="mt-1 text-[11px] font-semibold text-text-secondary truncate" title={p.profileDir}>
+                        Thư mục: <span className="font-mono text-[10px] text-text-secondary">{p.profileDir}</span>
                       </div>
                       {p.quotaResetAt && (
                         <div className="mt-1 text-[9px] font-semibold text-amber-400">
@@ -970,7 +970,7 @@ const fs = require('fs');
                     <button
                       type="button"
                       onClick={(e) => handleDeleteProfile(p.id, e)}
-                      className="absolute bottom-3 right-3 text-slate-500 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-1"
+                      className="absolute bottom-3 right-3 text-text-tertiary hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-all p-1"
                       title="Xóa profile này"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
@@ -980,27 +980,27 @@ const fs = require('fs');
               })}
             </div>
 
-            <div className="rounded-2xl border border-slate-900 bg-slate-900/20 p-4 text-[11px] font-semibold leading-5 text-slate-500">
-              💡 <span className="font-black text-slate-400">Mẹo tìm thư mục Profile:</span> Mở Google Chrome, truy cập địa chỉ <code className="px-1.5 py-0.5 rounded bg-slate-950 text-violet-300 select-all">chrome://version</code> trên thanh địa chỉ, 
-              và xem giá trị tại dòng <span className="font-bold text-slate-400">Profile Path</span> (Đường dẫn cấu hình). Tên thư mục nằm ở cuối cùng của đường dẫn (Ví dụ: <code className="text-violet-300">Default</code>, <code className="text-violet-300">Profile 1</code>, <code className="text-violet-300">Profile 2</code>, v.v.).
+            <div className="rounded-2xl border border-slate-900 bg-bg-primary/20 p-4 text-[11px] font-semibold leading-5 text-text-tertiary">
+              💡 <span className="font-black text-text-secondary">Mẹo tìm thư mục Profile:</span> Mở Google Chrome, truy cập địa chỉ <code className="px-1.5 py-0.5 rounded bg-slate-950 text-violet-300 select-all">chrome://version</code> trên thanh địa chỉ, 
+              và xem giá trị tại dòng <span className="font-bold text-text-secondary">Profile Path</span> (Đường dẫn cấu hình). Tên thư mục nằm ở cuối cùng của đường dẫn (Ví dụ: <code className="text-violet-300">Default</code>, <code className="text-violet-300">Profile 1</code>, <code className="text-violet-300">Profile 2</code>, v.v.).
             </div>
           </div>
 
           {/* CONTROLLED BROWSER SANDBOX RUNNER (P2) */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="rounded-2xl border border-border-primary bg-bg-primary/50 p-5 space-y-4">
+            <div className="flex items-center justify-between border-b border-border-primary pb-3">
               <div>
                 <div className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-950/30 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-cyan-200">
                   Controlled Browser Sandbox (P2)
                 </div>
-                <h3 className="text-xs font-black text-white mt-1">Trình Chạy Tự Động Hóa Live</h3>
+                <h3 className="text-xs font-black text-text-primary mt-1">Trình Chạy Tự Động Hóa Live</h3>
               </div>
               
               {activeRunId ? (
                 <button
                   type="button"
                   onClick={handleStopSandbox}
-                  className="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-black text-white transition-all animate-pulse"
+                  className="rounded-xl bg-rose-600 hover:bg-rose-500 px-4 py-2 text-xs font-black text-text-primary transition-all animate-pulse"
                 >
                   Dừng Sandbox
                 </button>
@@ -1009,7 +1009,7 @@ const fs = require('fs');
                   type="button"
                   onClick={handleStartSandbox}
                   disabled={!apiFallbackExhausted}
-                  className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-black text-white transition-all cursor-pointer"
+                  className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-black text-text-primary transition-all cursor-pointer"
                 >
                   Chạy Sandbox Live
                 </button>
@@ -1018,12 +1018,12 @@ const fs = require('fs');
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Mục tiêu cào dữ liệu</label>
+                <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Mục tiêu cào dữ liệu</label>
                 <select
                   value={runTaskType}
                   onChange={(e) => setRunTaskType(e.target.value as any)}
                   disabled={!!activeRunId}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-slate-300 outline-none focus:border-violet-500"
+                  className="w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs font-bold text-text-secondary outline-none focus:border-violet-500"
                 >
                   <option value="chatgpt-scrape">Đăng nhập & Cào ChatGPT</option>
                   <option value="gemini-scrape">Đăng nhập & Cào Google Gemini</option>
@@ -1033,13 +1033,13 @@ const fs = require('fs');
                 </select>
               </div>
               <div>
-                <label className="block text-[10px] font-black uppercase text-slate-500 mb-1">Địa chỉ URL</label>
+                <label className="block text-[10px] font-black uppercase text-text-tertiary mb-1">Địa chỉ URL</label>
                 <input
                   type="text"
                   value={actionUrl}
                   onChange={(e) => setActionUrl(e.target.value)}
                   disabled={!!activeRunId}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white outline-none focus:border-violet-500"
+                  className="w-full rounded-xl border border-border-primary bg-slate-950 px-3.5 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-500"
                 />
               </div>
             </div>
@@ -1070,11 +1070,11 @@ const fs = require('fs');
             )}
 
             {browserDiagnostics.length > 0 && (
-              <div className="rounded-xl border border-slate-800 bg-slate-950/40 p-3">
-                <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-slate-500">Browser fallback diagnostics</div>
+              <div className="rounded-xl border border-border-primary bg-slate-950/40 p-3">
+                <div className="mb-2 text-[10px] font-black uppercase tracking-widest text-text-tertiary">Browser fallback diagnostics</div>
                 <div className="space-y-2 text-[11px]">
                   {browserDiagnostics.map((row, idx) => (
-                    <div key={`${row.host || 'host'}-${idx}`} className="flex flex-wrap items-center gap-2 rounded-lg border border-slate-800 bg-slate-900/60 px-2 py-1.5 text-slate-300">
+                    <div key={`${row.host || 'host'}-${idx}`} className="flex flex-wrap items-center gap-2 rounded-lg border border-border-primary bg-bg-primary/60 px-2 py-1.5 text-text-secondary">
                       <span className="font-black text-cyan-300">{row.host}</span>
                       <span>failures: {row.failures ?? 0}</span>
                       <span>reason: {row.reason || 'none'}</span>
@@ -1091,11 +1091,11 @@ const fs = require('fs');
             {(runLogs.length > 0 || runStatus) && (
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-500">
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase text-text-tertiary">
                     <span>Trạng thái logs: <span className={`font-bold ${
                       runStatus === 'running' ? 'text-cyan-400' :
                       runStatus === 'completed' ? 'text-emerald-400' :
-                      runStatus === 'failed' ? 'text-rose-400' : 'text-slate-400'
+                      runStatus === 'failed' ? 'text-rose-400' : 'text-text-secondary'
                     }`}>{runStatus?.toUpperCase()}</span></span>
                     {runStatus === 'running' && <span className="animate-spin text-cyan-400">⚡</span>}
                   </div>
@@ -1105,12 +1105,12 @@ const fs = require('fs');
                         {log}
                       </div>
                     ))}
-                    {runStatus === 'running' && <div className="text-slate-500 animate-pulse">▋ Đang đợi logs...</div>}
+                    {runStatus === 'running' && <div className="text-text-tertiary animate-pulse">▋ Đang đợi logs...</div>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase text-slate-500">
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase text-text-tertiary">
                     <span>Màn hình live viewport</span>
                     {runStatus === 'running' && <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping" />}
                   </div>
@@ -1123,7 +1123,7 @@ const fs = require('fs');
                       />
                     ) : (
                       <div className="text-center p-4">
-                        <div className="animate-pulse text-[11px] font-bold text-slate-500">
+                        <div className="animate-pulse text-[11px] font-bold text-text-tertiary">
                           {runStatus === 'running' ? 'Đang kết nối luồng ảnh...' : 'Không có luồng ảnh hoạt động'}
                         </div>
                       </div>
@@ -1135,15 +1135,15 @@ const fs = require('fs');
           </div>
 
           {/* NodeJS Script Code Box */}
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 space-y-3">
+          <div className="rounded-2xl border border-border-primary bg-bg-primary/50 p-4 space-y-3">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[10px] font-black uppercase tracking-widest text-violet-400">Script NodeJS sinh động</span>
-                <p className="text-[10px] font-semibold text-slate-400 mt-1">Cấu hình cho profile: <span className="text-violet-300 font-bold">{selectedProfObj.name} ({selectedFolder})</span></p>
+                <p className="text-[10px] font-semibold text-text-secondary mt-1">Cấu hình cho profile: <span className="text-violet-300 font-bold">{selectedProfObj.name} ({selectedFolder})</span></p>
               </div>
               <button
                 onClick={handleCopyScript}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs font-black text-slate-300 hover:text-white hover:border-violet-500 transition-all"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-border-secondary bg-slate-950 px-3 py-1.5 text-xs font-black text-text-secondary hover:text-text-primary hover:border-violet-500 transition-all"
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Clipboard className="h-3.5 w-3.5" />}
                 {copied ? 'Đã copy' : 'Copy code'}
@@ -1157,18 +1157,18 @@ const fs = require('fs');
       {/* CHAT TRANSCRIPT MODAL VIEWER */}
       {selectedChat && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm">
-          <div className="flex h-[80vh] w-full max-w-4xl flex-col rounded-3xl border border-slate-800 bg-slate-950 shadow-2xl">
+          <div className="flex h-[80vh] w-full max-w-4xl flex-col rounded-3xl border border-border-primary bg-slate-950 shadow-2xl">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-900 p-4">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-500">
+                <span className="text-[10px] font-black uppercase tracking-[0.14em] text-text-tertiary">
                   Hội thoại nguồn: {selectedChat.source.toUpperCase()} (Ngày {selectedChat.date})
                 </span>
-                <h3 className="mt-1 text-sm font-black text-white">{selectedChat.title}</h3>
+                <h3 className="mt-1 text-sm font-black text-text-primary">{selectedChat.title}</h3>
               </div>
               <button
                 onClick={() => setSelectedChat(null)}
-                className="rounded-xl border border-slate-800 bg-slate-900 p-1.5 text-slate-400 hover:text-white"
+                className="rounded-xl border border-border-primary bg-bg-primary p-1.5 text-text-secondary hover:text-text-primary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -1189,8 +1189,8 @@ const fs = require('fs');
                   <div 
                     className={`rounded-2xl px-4 py-3 text-xs leading-6 font-semibold select-text whitespace-pre-wrap ${
                       m.role === 'user' 
-                        ? 'bg-violet-600 text-white rounded-br-none' 
-                        : 'bg-slate-900 text-slate-200 rounded-bl-none border border-slate-850'
+                        ? 'bg-violet-600 text-text-primary rounded-br-none' 
+                        : 'bg-bg-primary text-slate-200 rounded-bl-none border border-slate-850'
                     }`}
                   >
                     {m.text}
@@ -1200,7 +1200,7 @@ const fs = require('fs');
             </div>
 
             {/* Modal Footer */}
-            <div className="border-t border-slate-900 p-4 flex justify-between gap-3 bg-slate-900/10">
+            <div className="border-t border-slate-900 p-4 flex justify-between gap-3 bg-bg-primary/10">
               <button
                 onClick={() => {
                   navigator.clipboard.writeText(
@@ -1209,14 +1209,14 @@ const fs = require('fs');
                     alert('Đã sao chép toàn bộ hội thoại thô dạng text vào clipboard.');
                   });
                 }}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-800 bg-slate-900 px-4 py-2 text-xs font-black text-slate-350 hover:text-white"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-border-primary bg-bg-primary px-4 py-2 text-xs font-black text-slate-350 hover:text-text-primary"
               >
                 <Clipboard className="h-4 w-4" /> Copy Text hội thoại
               </button>
               
               <button
                 onClick={() => setSelectedChat(null)}
-                className="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-black text-white"
+                className="rounded-xl bg-violet-600 hover:bg-violet-500 px-5 py-2 text-xs font-black text-text-primary"
               >
                 Đóng
               </button>

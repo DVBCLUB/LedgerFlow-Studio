@@ -95,7 +95,7 @@ function startMockGitHub() {
 
     if (url.pathname === '/repos/DVBCLUB/LedgerFlow-Studio/pulls/42/files') {
       json(res, 200, [
-        { filename: 'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx', additions: 70, deletions: 4, status: 'modified' },
+        { filename: 'src/modules/ai-nhan-su/AIWorkforceRuntimePanel.tsx', additions: 70, deletions: 4, status: 'modified' },
         { filename: 'server/services/softwareFactoryGithubPrAdapter.ts', additions: 120, deletions: 0, status: 'added' },
       ]);
       return;

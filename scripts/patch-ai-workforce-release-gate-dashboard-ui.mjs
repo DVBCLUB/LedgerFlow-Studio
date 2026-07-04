@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const panelPath = path.resolve('src/modules/ai-hr/AIWorkforceRuntimePanel.tsx');
+const panelPath = path.resolve('src/modules/ai-nhan-su/AIWorkforceRuntimePanel.tsx');
 
 if (!fs.existsSync(panelPath)) {
   throw new Error(`AIWorkforceRuntimePanel source not found: ${panelPath}`);

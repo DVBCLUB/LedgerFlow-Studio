@@ -104,34 +104,34 @@ export default function ArtifactInspectorPanel() {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-lime-200">Artifact inspector</p>
-          <h3 className="mt-1 text-xl font-black text-white">Đọc artifact GitHub Actions</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Chỉ đọc metadata/link artifact để đưa vào Release Center. Không auto deploy, không auto publish.</p>
+          <h3 className="mt-1 text-xl font-black text-text-primary">Đọc artifact GitHub Actions</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-text-secondary">Chỉ đọc metadata/link artifact để đưa vào Release Center. Không auto deploy, không auto publish.</p>
         </div>
-        {result && <button onClick={() => exportJson('ledgerflow-artifact-inspection.json', result)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-lime-300">Xuất JSON</button>}
+        {result && <button onClick={() => exportJson('ledgerflow-artifact-inspection.json', result)} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-lime-300">Xuất JSON</button>}
       </div>
 
       <div className="grid gap-3 md:grid-cols-[1fr_0.45fr_auto]">
-        <input value={repo} onChange={(event) => setRepo(event.target.value)} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="owner/repo" />
-        <input value={runId} onChange={(event) => setRunId(event.target.value)} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="workflow run id" />
+        <input value={repo} onChange={(event) => setRepo(event.target.value)} className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="owner/repo" />
+        <input value={runId} onChange={(event) => setRunId(event.target.value)} className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="workflow run id" />
         <button onClick={inspectArtifacts} disabled={loading} className="rounded-2xl bg-lime-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-50">{loading ? 'Đang đọc...' : 'Inspect artifacts'}</button>
       </div>
       {error && <p className="mt-3 rounded-2xl border border-rose-400/40 bg-rose-400/10 p-3 text-sm font-bold text-rose-200">{error}</p>}
 
       <div className="mt-4 grid gap-3">
-        {result?.artifacts.map((artifact) => <div key={artifact.id} className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
+        {result?.artifacts.map((artifact) => <div key={artifact.id} className="rounded-3xl border border-border-primary bg-slate-950/70 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-base font-black text-white">{artifact.name}</p>
-              <p className="mt-1 text-xs font-bold text-slate-400">#{artifact.id} · {(artifact.sizeInBytes / 1024 / 1024).toFixed(2)} MB · {artifact.expired ? 'Expired' : 'Available'}</p>
-              <p className="mt-1 text-[11px] font-semibold text-slate-500">Created: {artifact.createdAt} · Expires: {artifact.expiresAt || 'unknown'}</p>
+              <p className="text-base font-black text-text-primary">{artifact.name}</p>
+              <p className="mt-1 text-xs font-bold text-text-secondary">#{artifact.id} · {(artifact.sizeInBytes / 1024 / 1024).toFixed(2)} MB · {artifact.expired ? 'Expired' : 'Available'}</p>
+              <p className="mt-1 text-[11px] font-semibold text-text-tertiary">Created: {artifact.createdAt} · Expires: {artifact.expiresAt || 'unknown'}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {artifact.archiveDownloadUrl && <a href={artifact.archiveDownloadUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300 hover:border-lime-300">Mở link API</a>}
+              {artifact.archiveDownloadUrl && <a href={artifact.archiveDownloadUrl} target="_blank" rel="noreferrer" className="rounded-2xl border border-border-secondary px-3 py-2 text-xs font-black text-text-secondary hover:border-lime-300">Mở link API</a>}
               <button onClick={() => sendToReleaseCenter(artifact)} className="rounded-2xl border border-emerald-400/40 px-3 py-2 text-xs font-black text-emerald-200 hover:bg-emerald-400/10">Đưa sang Release</button>
             </div>
           </div>
         </div>)}
-        {result && result.artifacts.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 text-sm font-semibold text-slate-400">Run này chưa có artifact hoặc artifact đã bị xóa/hết hạn.</p>}
+        {result && result.artifacts.length === 0 && <p className="rounded-2xl border border-border-primary bg-slate-950/60 p-4 text-sm font-semibold text-text-secondary">Run này chưa có artifact hoặc artifact đã bị xóa/hết hạn.</p>}
       </div>
     </section>
   );

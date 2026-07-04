@@ -28,14 +28,14 @@ export default function VaporwareSmokeTester() {
   }, [traffic, signups, budget]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
         <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-xl">
           <Layers className="w-5 h-5 animate-pulse" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">Vaporware / Smoke Test Designer</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Đo lường mức độ quan tâm của thị trường trước khi code bằng cách giả lập phễu đăng ký trước.</p>
+          <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Vaporware / Smoke Test Designer</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Đo lường mức độ quan tâm của thị trường trước khi code bằng cách giả lập phễu đăng ký trước.</p>
         </div>
       </div>
 
@@ -48,9 +48,9 @@ export default function VaporwareSmokeTester() {
               type="number"
               value={traffic}
               onChange={(e) => setTraffic(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 font-semibold"
+              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-sm text-text-primary focus:outline-none focus:border-emerald-500 font-semibold"
             />
-            <span className="text-[9px] text-slate-500 mt-1 block">Lượng view kéo từ bài đăng organic hoặc quảng cáo.</span>
+            <span className="text-[9px] text-text-tertiary mt-1 block">Lượng view kéo từ bài đăng organic hoặc quảng cáo.</span>
           </div>
 
           <div>
@@ -64,7 +64,7 @@ export default function VaporwareSmokeTester() {
               max={Math.max(100, traffic)}
               value={signups}
               onChange={(e) => setSignups(Number(e.target.value))}
-              className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+              className="w-full accent-emerald-500 h-1.5 bg-bg-surface rounded-lg cursor-pointer"
             />
           </div>
 
@@ -74,9 +74,9 @@ export default function VaporwareSmokeTester() {
               type="number"
               value={budget}
               onChange={(e) => setBudget(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-sm text-white focus:outline-none focus:border-emerald-500 font-semibold"
+              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-sm text-text-primary focus:outline-none focus:border-emerald-500 font-semibold"
             />
-            <span className="text-[9px] text-slate-500 mt-1 block">Chi phí chạy ads Facebook/Google hoặc đăng bài trả phí.</span>
+            <span className="text-[9px] text-text-tertiary mt-1 block">Chi phí chạy ads Facebook/Google hoặc đăng bài trả phí.</span>
           </div>
         </div>
 
@@ -84,19 +84,19 @@ export default function VaporwareSmokeTester() {
         <div className="lg:col-span-2 flex flex-col justify-between bg-slate-950/60 rounded-xl p-5 border border-slate-850/80">
           <div className="space-y-4">
             <div>
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Tỷ lệ chuyển đổi ảo</span>
-              <p className="text-3xl font-black text-white font-mono mt-1">{results.conversionRate.toFixed(1)}%</p>
+              <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Tỷ lệ chuyển đổi ảo</span>
+              <p className="text-3xl font-black text-text-primary font-mono mt-1">{results.conversionRate.toFixed(1)}%</p>
             </div>
 
             <div>
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Chi phí / 1 Lead thô (CPL)</span>
+              <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Chi phí / 1 Lead thô (CPL)</span>
               <p className="text-xl font-black text-emerald-400 font-mono mt-1">
                 {new Intl.NumberFormat('vi-VN').format(results.cpl)}đ
               </p>
             </div>
 
             <div className="border-t border-slate-900 pt-3 text-left">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Kết luận đề xuất</span>
+              <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Kết luận đề xuất</span>
               <span className={`inline-block text-[10px] font-black px-2 py-0.5 rounded border mt-2 ${results.verdictColor}`}>
                 {results.verdict}
               </span>

@@ -54,21 +54,21 @@ export default function LocalToolsPanel({ onChanged }: { onChanged?: () => void 
   }, []);
 
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-950/80 p-5 shadow-2xl shadow-slate-950/40">
+    <section className="rounded-3xl border border-border-primary bg-slate-950/80 p-5 shadow-2xl shadow-slate-950/40">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-950/30 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-violet-200">
             <Terminal className="h-4 w-4" /> Local Tools Connector
           </div>
-          <h2 className="mt-3 text-xl font-black text-white">Mở nhanh VS Code / Cursor / GitHub từ LedgerFlow</h2>
-          <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-slate-400">
+          <h2 className="mt-3 text-xl font-black text-text-primary">Mở nhanh VS Code / Cursor / GitHub từ LedgerFlow</h2>
+          <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-text-secondary">
             Connector này biến LedgerFlow thành đầu mối điều phối: app phát hiện tool local, mở đúng repo, sinh lệnh terminal an toàn để bạn copy/chạy thủ công. Không tự chạy lệnh build, delete, push nếu bạn chưa duyệt.
           </p>
         </div>
         <button
           type="button"
           onClick={() => void load()}
-          className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-4 py-2 text-xs font-black text-slate-200 hover:border-violet-500"
+          className="inline-flex items-center justify-center gap-2 rounded-xl border border-border-secondary bg-bg-primary px-4 py-2 text-xs font-black text-slate-200 hover:border-violet-500"
         >
           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           Tải trạng thái
@@ -81,10 +81,10 @@ export default function LocalToolsPanel({ onChanged }: { onChanged?: () => void 
       {summary && (
         <div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="space-y-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">Project root</div>
+            <div className="rounded-2xl border border-border-primary bg-bg-primary/50 p-4">
+              <div className="text-[10px] font-black uppercase tracking-[0.16em] text-text-tertiary">Project root</div>
               <div className="mt-1 break-all font-mono text-xs font-bold text-slate-200">{summary.projectRoot}</div>
-              <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-bold text-slate-400">
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] font-bold text-text-secondary">
                 <span>Repo: {summary.repo}</span>
                 <span>Checked: {new Date(summary.checkedAt).toLocaleString()}</span>
               </div>
@@ -97,22 +97,22 @@ export default function LocalToolsPanel({ onChanged }: { onChanged?: () => void 
             </div>
           </div>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-            <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">
+          <div className="rounded-2xl border border-border-primary bg-bg-primary/50 p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-black text-text-primary">
               <Clipboard className="h-4 w-4 text-amber-300" /> Lệnh terminal an toàn
             </div>
             <div className="space-y-2">
               {summary.safeCommands.map((item) => (
-                <div key={item.command} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+                <div key={item.command} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <div className="text-xs font-black text-white">{item.label}</div>
-                      <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">{item.purpose}</p>
+                      <div className="text-xs font-black text-text-primary">{item.label}</div>
+                      <p className="mt-1 text-[11px] font-semibold leading-5 text-text-secondary">{item.purpose}</p>
                     </div>
                     <button
                       type="button"
                       onClick={() => void copyText(item.command).then(() => setMessage(`Đã copy: ${item.command}`))}
-                      className="rounded-lg border border-slate-700 bg-slate-900 px-2 py-1 text-[10px] font-black text-slate-200 hover:border-amber-400"
+                      className="rounded-lg border border-border-secondary bg-bg-primary px-2 py-1 text-[10px] font-black text-slate-200 hover:border-amber-400"
                     >
                       Copy
                     </button>
@@ -141,20 +141,20 @@ function ToolCard({
   const canOpen = tool.id !== 'terminal' && tool.available;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+    <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-500/30 bg-violet-950/30">
             <Icon className="h-5 w-5 text-violet-200" />
           </div>
           <div>
-            <div className="text-sm font-black text-white">{tool.label}</div>
-            <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">{tool.message}</p>
+            <div className="text-sm font-black text-text-primary">{tool.label}</div>
+            <p className="mt-1 text-[11px] font-semibold leading-5 text-text-secondary">{tool.message}</p>
           </div>
         </div>
         {tool.available ? <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-300" /> : <XCircle className="h-5 w-5 shrink-0 text-rose-300" />}
       </div>
-      {tool.command && <div className="mt-3 break-all rounded-xl border border-slate-800 bg-slate-900/70 p-2 font-mono text-[11px] font-bold text-cyan-100">{tool.command}</div>}
+      {tool.command && <div className="mt-3 break-all rounded-xl border border-border-primary bg-bg-surface/70 p-2 font-mono text-[11px] font-bold text-cyan-100">{tool.command}</div>}
       {canOpen && (
         <button
           type="button"

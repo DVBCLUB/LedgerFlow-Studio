@@ -118,14 +118,14 @@ export default function TaxAuditSimulator() {
   };
 
   return (
-    <div className="rounded-3xl border border-emerald-500/25 bg-slate-950/70 p-5 text-slate-100 space-y-6">
+    <div className="rounded-3xl border border-success/25 bg-bg-primary p-5 text-text-primary space-y-6">
       <div className="flex flex-wrap justify-between items-start gap-3">
         <div>
-          <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[9px] font-black uppercase text-emerald-300">Internal Audit Lab</span>
-          <h3 className="mt-1 text-lg font-black text-white">Vietnamese Tax Red-Flag Auditor</h3>
-          <p className="text-xs font-semibold text-slate-400">Đóng vai kiểm toán viên rà soát chứng từ kế toán, phát hiện các rủi ro về thuế và thực thi quy định Thông tư 200/Luật Thuế.</p>
+          <span className="rounded-full bg-success/10 border border-success/20 px-2.5 py-0.5 text-[9px] font-bold uppercase text-success">Internal Audit Lab</span>
+          <h3 className="mt-1 text-lg font-bold text-text-primary">Vietnamese Tax Red-Flag Auditor</h3>
+          <p className="text-xs font-semibold text-text-secondary">Đóng vai kiểm toán viên rà soát chứng từ kế toán, phát hiện các rủi ro về thuế và thực thi quy định Thông tư 200/Luật Thuế.</p>
         </div>
-        <div className="rounded-full bg-emerald-500/15 border border-emerald-500/20 px-3 py-1 text-xs font-black text-emerald-300">
+        <div className="rounded-full bg-success/15 border border-success/20 px-3 py-1 text-xs font-bold text-success">
           Auditing Score: {score} / 100
         </div>
       </div>
@@ -139,13 +139,13 @@ export default function TaxAuditSimulator() {
             <button
               key={c.id}
               onClick={() => handleNextCase(c.id)}
-              className={`rounded-xl px-3 py-2 text-xs font-black transition cursor-pointer flex items-center gap-1.5 border ${
+              className={`rounded-xl px-3 py-2 text-xs font-bold transition cursor-pointer flex items-center gap-1.5 border ${
                 isActive
                   ? 'bg-emerald-300 text-slate-950 border-emerald-300'
-                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                  : 'bg-bg-surface border-border-primary text-text-secondary hover:text-text-primary'
               }`}
             >
-              {isSolved && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />}
+              {isSolved && <CheckCircle2 className="w-3.5 h-3.5 text-success" />}
               <span>{c.id.toUpperCase()}</span>
             </button>
           );
@@ -155,27 +155,27 @@ export default function TaxAuditSimulator() {
       <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr] text-left">
         
         {/* Case Info and Red Flag Tagging */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 space-y-4">
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4 space-y-4">
           <div>
-            <span className="text-[9px] text-slate-500 font-bold block uppercase">Chi tiết chứng từ & giao dịch</span>
-            <h4 className="text-sm font-black text-white mt-1">{selectedCase.title}</h4>
-            <div className="mt-2 text-xs font-black text-rose-300 bg-rose-500/10 border border-rose-500/20 px-3 py-1 rounded inline-block">
+            <span className="text-[9px] text-text-muted font-bold block uppercase">Chi tiết chứng từ & giao dịch</span>
+            <h4 className="text-sm font-bold text-text-primary mt-1">{selectedCase.title}</h4>
+            <div className="mt-2 text-xs font-bold text-error bg-error/10 border border-error/20 px-3 py-1 rounded inline-block">
               Giá trị: {selectedCase.amount}
             </div>
           </div>
 
           <div className="space-y-2">
-            <p className="text-xs font-semibold text-slate-300 leading-6 bg-slate-950/55 p-3 rounded-xl border border-slate-900">
+            <p className="text-xs font-semibold text-text-secondary leading-6 bg-bg-primary p-3 rounded-xl border border-border-primary">
               <strong>Tình huống:</strong> {selectedCase.description}
             </p>
-            <p className="text-xs font-semibold text-slate-400 leading-6 pl-1">
+            <p className="text-xs font-semibold text-text-secondary leading-6 pl-1">
               <strong>Bằng chứng kiểm toán:</strong> {selectedCase.evidence}
             </p>
           </div>
 
           {/* Red Flag Option selector */}
           <div className="space-y-2">
-            <span className="text-[9px] text-slate-500 font-bold block uppercase">Gắn cờ đỏ rủi ro (Red Flag)</span>
+            <span className="text-[9px] text-text-muted font-bold block uppercase">Gắn cờ đỏ rủi ro (Red Flag)</span>
             <div className="grid gap-2">
               {[
                 { id: 'depreciation_limit', label: 'Vượt hạn mức trích khấu hao ô tô 1,6 tỷ (Luật thuế TNDN)' },
@@ -192,8 +192,8 @@ export default function TaxAuditSimulator() {
                     onClick={() => setSelectedAnswer(opt.id)}
                     className={`w-full rounded-xl border p-3 text-left text-xs font-semibold leading-5 transition cursor-pointer ${
                       isSelected
-                        ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-300'
-                        : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:text-white'
+                        ? 'bg-success/10 border-success/40 text-success'
+                        : 'bg-bg-primary border-border-primary text-text-secondary hover:text-text-primary'
                     }`}
                   >
                     {opt.label}
@@ -207,7 +207,7 @@ export default function TaxAuditSimulator() {
             <button
               onClick={handleCheck}
               disabled={!selectedAnswer || checked}
-              className="flex-1 rounded-xl bg-emerald-400 hover:bg-emerald-500 text-slate-950 py-2.5 text-xs font-black transition cursor-pointer disabled:opacity-40"
+              className="flex-1 rounded-xl bg-emerald-400 hover:bg-success text-slate-950 py-2.5 text-xs font-bold transition cursor-pointer disabled:opacity-40"
             >
               Kiểm tra lỗi rủi ro
             </button>
@@ -215,59 +215,59 @@ export default function TaxAuditSimulator() {
         </div>
 
         {/* Audit feedback / Regulation Reference */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-4 flex flex-col justify-between">
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4 flex flex-col justify-between">
           <div>
-            <div className="border-b border-slate-850 pb-2">
-              <span className="text-[10px] font-black text-slate-500 uppercase">Cơ sở pháp lý & Phân tích chuyên sâu</span>
+            <div className="border-b border-border-secondary pb-2">
+              <span className="text-[10px] font-bold text-text-muted uppercase">Cơ sở pháp lý & Phân tích chuyên sâu</span>
             </div>
 
             {checked ? (
               <div className="mt-4 space-y-4 animate-fade-in text-xs font-semibold">
                 <div className={`p-3 rounded-xl flex items-center gap-2.5 border ${
                   selectedAnswer === selectedCase.correctAnswer
-                    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                    : 'bg-rose-500/10 border-rose-500/20 text-rose-300'
+                    ? 'bg-success/10 border-success/20 text-success'
+                    : 'bg-error/10 border-error/20 text-error'
                 }`}>
                   {selectedAnswer === selectedCase.correctAnswer ? (
                     <>
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                       <div>
                         <strong>Phát hiện chính xác!</strong>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Bạn đã tìm thấy lỗi Red Flag của giao dịch này.</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">Bạn đã tìm thấy lỗi Red Flag của giao dịch này.</p>
                       </div>
                     </>
                   ) : (
                     <>
-                      <AlertTriangle className="w-5 h-5 text-rose-400 shrink-0" />
+                      <AlertTriangle className="w-5 h-5 text-error shrink-0" />
                       <div>
                         <strong>Sai sót kiểm toán!</strong>
-                        <p className="text-[10px] text-slate-400 mt-0.5">Bạn chọn nhầm loại lỗi rủi ro. Hãy đọc phân tích bên dưới.</p>
+                        <p className="text-[10px] text-text-secondary mt-0.5">Bạn chọn nhầm loại lỗi rủi ro. Hãy đọc phân tích bên dưới.</p>
                       </div>
                     </>
                   )}
                 </div>
 
                 <div className="space-y-1.5 text-left">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Giải thích nghiệp vụ & Luật áp dụng</span>
-                  <p className="p-3 bg-slate-950/60 rounded-xl border border-slate-850 text-slate-300 leading-6">
+                  <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Giải thích nghiệp vụ & Luật áp dụng</span>
+                  <p className="p-3 bg-bg-primary rounded-xl border border-border-secondary text-text-secondary leading-6">
                     {selectedCase.correctReason}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="text-center py-20 space-y-3">
-                <ShieldAlert className="w-8 h-8 text-slate-500 mx-auto" />
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                <ShieldAlert className="w-8 h-8 text-text-muted mx-auto" />
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   Hãy phân tích chứng từ bên trái, gắn cờ lỗi Red Flag phù hợp nhất và nhấn **Kiểm tra** để xem phân tích chi tiết.
                 </p>
               </div>
             )}
           </div>
 
-          <div className="border-t border-slate-850 pt-3">
+          <div className="border-t border-border-secondary pt-3">
             <button
               onClick={handleCopyReport}
-              className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-slate-700 bg-slate-950 py-2.5 text-xs font-black text-slate-300 hover:border-emerald-300 hover:text-white transition cursor-pointer"
+              className="w-full flex items-center justify-center gap-1.5 rounded-xl border border-border-secondary bg-bg-primary py-2.5 text-xs font-bold text-text-secondary hover:border-emerald-300 hover:text-text-primary transition cursor-pointer"
             >
               <Download className="w-4 h-4" />
               {copied ? 'Đã sao chép báo cáo' : 'Xuất báo cáo kiểm toán thuế'}

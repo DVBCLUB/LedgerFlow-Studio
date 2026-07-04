@@ -33,28 +33,28 @@ function unwrap(value: any, ...keys: string[]) {
 function arr(value: any) { return Array.isArray(value) ? value : []; }
 function obj(value: any) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
 
-function Badge({ children, tone = 'slate' }: { children: string; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' | 'violet' }) {
-  const cls = tone === 'green' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : tone === 'violet' ? 'border-violet-500/30 bg-violet-500/10 text-violet-200' : 'border-slate-700 bg-slate-900 text-slate-300';
+function Badge({ children, tone = 'slate' }: { children: React.ReactNode; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' | 'violet' }) {
+  const cls = tone === 'green' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : tone === 'violet' ? 'border-violet-500/30 bg-violet-500/10 text-violet-200' : 'border-border-secondary bg-bg-primary text-text-secondary';
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${cls}`}>{children}</span>;
 }
 
 function Stat({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
-  return <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
-    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
-    <p className="mt-2 text-2xl font-black text-white">{value}</p>
-    {hint && <p className="mt-1 text-[11px] font-bold text-slate-500">{hint}</p>}
+  return <div className="rounded-3xl border border-border-primary bg-slate-950/70 p-4">
+    <p className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">{label}</p>
+    <p className="mt-2 text-2xl font-black text-text-primary">{value}</p>
+    {hint && <p className="mt-1 text-[11px] font-bold text-text-tertiary">{hint}</p>}
   </div>;
 }
 
 function Section({ title, icon, children }: { title: string; icon: any; children: any }) {
-  return <section className="rounded-3xl border border-slate-800 bg-slate-950/55 p-4">
-    <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">{icon}{title}</div>
+  return <section className="rounded-3xl border border-border-primary bg-slate-950/55 p-4">
+    <div className="mb-3 flex items-center gap-2 text-sm font-black text-text-primary">{icon}{title}</div>
     {children}
   </section>;
 }
 
 function MiniList({ items, emptyText, render }: { items: any[]; emptyText: string; render: (item: any, index: number) => any }) {
-  return <div className="space-y-2">{items.length === 0 ? <p className="text-xs font-bold text-slate-500">{emptyText}</p> : items.slice(0, 6).map(render)}</div>;
+  return <div className="space-y-2">{items.length === 0 ? <p className="text-xs font-bold text-text-tertiary">{emptyText}</p> : items.slice(0, 6).map(render)}</div>;
 }
 
 export default function DeveloperIntelligenceHubPanel() {
@@ -144,11 +144,11 @@ export default function DeveloperIntelligenceHubPanel() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-violet-200"><Code2 className="mr-2 inline h-4 w-4" />Developer Intelligence</p>
-          <h2 className="mt-2 text-xl font-black text-white">Architecture, tests, docs, review and refactor</h2>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Gom các công cụ developer còn rời rạc vào một bảng điều khiển hỗ trợ build/release. Các nút tạo chỉ tạo draft/report qua daemon.</p>
+          <h2 className="mt-2 text-xl font-black text-text-primary">Architecture, tests, docs, review and refactor</h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">Gom các công cụ developer còn rời rạc vào một bảng điều khiển hỗ trợ build/release. Các nút tạo chỉ tạo draft/report qua daemon.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-violet-300">{rawOpen ? 'Ẩn raw' : 'Raw JSON'}</button>
+          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-violet-300">{rawOpen ? 'Ẩn raw' : 'Raw JSON'}</button>
           <button onClick={() => void load()} disabled={loading} className="rounded-2xl bg-violet-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Refresh'}</button>
         </div>
       </div>
@@ -166,32 +166,32 @@ export default function DeveloperIntelligenceHubPanel() {
 
     <section className="grid gap-4 xl:grid-cols-2">
       <Section title="Generate architecture graph" icon={<Network className="h-4 w-4 text-cyan-300" />}>
-        <div className="grid gap-2 md:grid-cols-[1fr_auto]"><input value={targetDir} onChange={(e) => setTargetDir(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-bold text-white outline-none focus:border-cyan-400" /><button onClick={() => void generateArchitecture()} disabled={loading} className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 px-4 py-2 text-xs font-black text-cyan-100 disabled:opacity-50">Generate</button></div>
-        <MiniList items={data.architectureGraphs} emptyText="Chưa có architecture graph." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{item.name || item.id || 'Architecture graph'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{item.targetDir || item.format || item.createdAt || 'graph'}</p></div>} />
+        <div className="grid gap-2 md:grid-cols-[1fr_auto]"><input value={targetDir} onChange={(e) => setTargetDir(e.target.value)} className="rounded-2xl border border-border-primary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-cyan-400" /><button onClick={() => void generateArchitecture()} disabled={loading} className="rounded-2xl border border-cyan-500/30 bg-cyan-950/30 px-4 py-2 text-xs font-black text-cyan-100 disabled:opacity-50">Generate</button></div>
+        <MiniList items={data.architectureGraphs} emptyText="Chưa có architecture graph." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{item.name || item.id || 'Architecture graph'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.targetDir || item.format || item.createdAt || 'graph'}</p></div>} />
       </Section>
       <Section title="Generate API tests" icon={<Braces className="h-4 w-4 text-emerald-300" />}>
-        <div className="grid gap-2 md:grid-cols-[1fr_auto]"><input value={sourceFile} onChange={(e) => setSourceFile(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-bold text-white outline-none focus:border-emerald-400" /><button onClick={() => void generateTests()} disabled={loading} className="rounded-2xl border border-emerald-500/30 bg-emerald-950/30 px-4 py-2 text-xs font-black text-emerald-100 disabled:opacity-50">Generate</button></div>
-        <MiniList items={data.testSuites} emptyText="Chưa có test suite." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{item.name || item.id || 'Test suite'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{item.framework || item.sourceFile || item.createdAt || 'testgen'}</p></div>} />
+        <div className="grid gap-2 md:grid-cols-[1fr_auto]"><input value={sourceFile} onChange={(e) => setSourceFile(e.target.value)} className="rounded-2xl border border-border-primary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-emerald-400" /><button onClick={() => void generateTests()} disabled={loading} className="rounded-2xl border border-emerald-500/30 bg-emerald-950/30 px-4 py-2 text-xs font-black text-emerald-100 disabled:opacity-50">Generate</button></div>
+        <MiniList items={data.testSuites} emptyText="Chưa có test suite." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{item.name || item.id || 'Test suite'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.framework || item.sourceFile || item.createdAt || 'testgen'}</p></div>} />
       </Section>
     </section>
 
     <section className="grid gap-4 xl:grid-cols-3">
       <Section title="Docs generator" icon={<BookOpen className="h-4 w-4 text-amber-300" />}>
-        <div className="grid gap-2"><input value={docTarget} onChange={(e) => setDocTarget(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-bold text-white outline-none focus:border-amber-400" /><button onClick={() => void generateDocs()} disabled={loading} className="rounded-2xl border border-amber-500/30 bg-amber-950/30 px-4 py-2 text-xs font-black text-amber-100 disabled:opacity-50">Generate docs</button></div>
-        <div className="mt-3"><MiniList items={data.docs} emptyText="Chưa có generated doc." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{item.title || item.id || 'Doc'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{item.type || item.target || item.createdAt || 'documentation'}</p></div>} /></div>
+        <div className="grid gap-2"><input value={docTarget} onChange={(e) => setDocTarget(e.target.value)} className="rounded-2xl border border-border-primary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-amber-400" /><button onClick={() => void generateDocs()} disabled={loading} className="rounded-2xl border border-amber-500/30 bg-amber-950/30 px-4 py-2 text-xs font-black text-amber-100 disabled:opacity-50">Generate docs</button></div>
+        <div className="mt-3"><MiniList items={data.docs} emptyText="Chưa có generated doc." render={(item, index) => <div key={item.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{item.title || item.id || 'Doc'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.type || item.target || item.createdAt || 'documentation'}</p></div>} /></div>
       </Section>
       <Section title="Code review queue" icon={<GitPullRequest className="h-4 w-4 text-violet-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone="violet">{data.reviewers.length} reviewers</Badge><Badge>{data.reviews.length} reviews</Badge></div>
-        <MiniList items={data.reviews.length ? data.reviews : data.reviewers} emptyText="Chưa có review/reviewer." render={(item, index) => <div key={item.id || item.name || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{item.title || item.name || item.id || 'Review'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{item.status || item.role || item.createdAt || item.description || 'review'}</p></div>} />
+        <MiniList items={data.reviews.length ? data.reviews : data.reviewers} emptyText="Chưa có review/reviewer." render={(item, index) => <div key={item.id || item.name || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{item.title || item.name || item.id || 'Review'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.status || item.role || item.createdAt || item.description || 'review'}</p></div>} />
       </Section>
       <Section title="Refactor scan" icon={<SearchCheck className="h-4 w-4 text-rose-300" />}>
-        <div className="grid gap-2"><input value={refactorPattern} onChange={(e) => setRefactorPattern(e.target.value)} className="rounded-2xl border border-slate-800 bg-slate-950 px-3 py-2 text-sm font-bold text-white outline-none focus:border-rose-400" /><button onClick={() => void scanRefactor()} disabled={loading} className="rounded-2xl border border-rose-500/30 bg-rose-950/30 px-4 py-2 text-xs font-black text-rose-100 disabled:opacity-50">Scan</button></div>
-        <div className="mt-3"><MiniList items={data.refactorReports} emptyText="Chưa có refactor report." render={(item, index) => <div key={item.filePath || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{item.filePath || item.id || 'Refactor report'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{item.summary || item.score || item.createdAt || 'refactor'}</p></div>} /></div>
+        <div className="grid gap-2"><input value={refactorPattern} onChange={(e) => setRefactorPattern(e.target.value)} className="rounded-2xl border border-border-primary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-rose-400" /><button onClick={() => void scanRefactor()} disabled={loading} className="rounded-2xl border border-rose-500/30 bg-rose-950/30 px-4 py-2 text-xs font-black text-rose-100 disabled:opacity-50">Scan</button></div>
+        <div className="mt-3"><MiniList items={data.refactorReports} emptyText="Chưa có refactor report." render={(item, index) => <div key={item.filePath || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{item.filePath || item.id || 'Refactor report'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{item.summary || item.score || item.createdAt || 'refactor'}</p></div>} /></div>
       </Section>
     </section>
 
-    {rawOpen && <Section title="Raw Developer Intelligence payload" icon={<Database className="h-4 w-4 text-slate-300" />}>
-      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data, null, 2)}</pre>
+    {rawOpen && <Section title="Raw Developer Intelligence payload" icon={<Database className="h-4 w-4 text-text-secondary" />}>
+      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-2xl border border-border-primary bg-slate-950/70 p-3 text-xs leading-5 text-text-secondary">{JSON.stringify(data, null, 2)}</pre>
     </Section>}
   </div>;
 }

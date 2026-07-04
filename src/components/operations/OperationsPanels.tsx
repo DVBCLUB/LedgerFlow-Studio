@@ -43,7 +43,7 @@ export function ProjectPortfolioPanel() {
           aria-label="Chọn loại hình dự án"
         >
           <option value="software">Mẫu: Phát triển Phần mềm (SaaS)</option>
-          <option value="construction">Mẫu: Công trình / Dự án Xây dựng</option>
+          <option value="construction">Mẫu: Dự án Xây dựng</option>
           <option value="trading">Mẫu: Thương mại / Xuất Nhập Khẩu</option>
           <option value="service">Mẫu: Cung cấp Dịch vụ / Tư vấn</option>
         </select>
@@ -125,7 +125,7 @@ export function ProjectPortfolioPanel() {
 export function ProcurementLogisticsPanel() {
   const [requests, setRequests] = useState([
     { id: 'PR-101', item: 'Server Infrastructure (AWS Savings)', qty: 1, cost: 2400, status: 'pending' },
-    { id: 'PR-102', item: 'Thép Pomina Phi 14 (Công trình)', qty: 25, cost: 18500, status: 'approved' },
+    { id: 'PR-102', item: 'Thép Pomina Phi 14 (Dự án)', qty: 25, cost: 18500, status: 'approved' },
     { id: 'PR-103', item: 'Nhiên liệu Dầu DO 0.05S (Xe lu)', qty: 800, cost: 650, status: 'pending' }
   ]);
 

@@ -18,8 +18,8 @@ export default function AgenticStatusBar() {
         {pulse && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>}
         <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
       </div>
-      <div className="flex items-center gap-1.5 text-[10px] font-medium text-slate-300 uppercase tracking-widest">
-        <Cpu className="h-3 w-3 text-slate-400" />
+      <div className="flex items-center gap-1.5 text-[10px] font-medium text-text-secondary uppercase tracking-widest">
+        <Cpu className="h-3 w-3 text-text-muted" />
         AI Engine Active
       </div>
     </div>

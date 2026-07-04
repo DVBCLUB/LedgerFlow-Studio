@@ -35,11 +35,11 @@ export default function NeuralNotificationCenter() {
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="relative flex items-center justify-center w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shadow-inner" 
+        className="relative flex items-center justify-center w-8 h-8 rounded-full bg-bg-primary border border-border-secondary text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-colors shadow-inner" 
         title="Neural Comm Center (Logs)"
       >
         <Bell className="w-4 h-4" />
-        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-rose-500 animate-pulse border border-slate-900"></span>
+        <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-error animate-pulse border border-bg-primary"></span>
       </button>
 
       {/* Drawer */}
@@ -51,15 +51,15 @@ export default function NeuralNotificationCenter() {
         <div 
           className={`absolute top-0 right-0 h-full w-[400px] bg-[#0c0c0e] border-l border-white/10 shadow-2xl pointer-events-auto transition-transform duration-300 flex flex-col ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         >
-          <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-slate-900/50">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-border-primary bg-bg-primary/50">
             <div className="flex items-center gap-3">
-              <Terminal className="w-5 h-5 text-indigo-400" />
+              <Terminal className="w-5 h-5 text-brand-light" />
               <div>
-                <h3 className="text-sm font-bold text-white">Neural Comm Center</h3>
-                <div className="text-[10px] text-slate-500 uppercase tracking-widest mt-0.5">Live Agent Logs</div>
+                <h3 className="text-sm font-bold text-text-primary">Neural Comm Center</h3>
+                <div className="text-[10px] text-text-muted uppercase tracking-widest mt-0.5">Live Agent Logs</div>
               </div>
             </div>
-            <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white bg-white/5 p-1.5 rounded-lg">
+            <button onClick={() => setIsOpen(false)} className="text-text-muted hover:text-text-primary bg-white/5 p-1.5 rounded-lg">
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -67,8 +67,8 @@ export default function NeuralNotificationCenter() {
           <div className="flex-1 overflow-y-auto p-4 space-y-3 font-mono text-xs">
             {logs.map((log) => {
               const Icon = log.icon;
-              let colorClass = 'text-slate-400';
-              let bgClass = 'bg-slate-900 border-slate-800';
+              let colorClass = 'text-text-secondary';
+              let bgClass = 'bg-bg-primary border-border-secondary';
               
               if (log.type === 'system') { colorClass = 'text-indigo-400'; bgClass = 'bg-indigo-950/30 border-indigo-500/20'; }
               if (log.type === 'success') { colorClass = 'text-emerald-400'; bgClass = 'bg-emerald-950/30 border-emerald-500/20'; }
@@ -81,18 +81,18 @@ export default function NeuralNotificationCenter() {
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-1">
                       <span className={`font-bold ${colorClass}`}>[{log.model}]</span>
-                      <span className="text-slate-600 text-[10px]">{log.time}</span>
+                      <span className="text-text-muted text-[10px]">{log.time}</span>
                     </div>
-                    <div className="text-slate-300 leading-relaxed">{log.action}</div>
+                    <div className="text-text-secondary leading-relaxed">{log.action}</div>
                   </div>
                 </div>
               );
             })}
             {logs.length > 0 && logs.length < LOGS_MOCK.length && (
-              <div className="flex items-center gap-2 text-slate-500 p-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600 animate-bounce"></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600 animate-bounce" style={{animationDelay: '0.2s'}}></span>
-                <span className="w-1.5 h-1.5 rounded-full bg-slate-600 animate-bounce" style={{animationDelay: '0.4s'}}></span>
+              <div className="flex items-center gap-2 text-text-muted p-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style={{animationDelay: '0.2s'}}></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-text-muted animate-bounce" style={{animationDelay: '0.4s'}}></span>
                 <span className="ml-2">Đang lắng nghe...</span>
               </div>
             )}

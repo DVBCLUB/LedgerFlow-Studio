@@ -668,7 +668,7 @@ export default function GameAndMLWorkbench() {
     <div id="game_ml_workbench" className="space-y-6 text-slate-100 select-text pb-12">
       
       {/* SECTION HEADER CARD */}
-      <section className="bg-gradient-to-r from-purple-950/20 via-[#060a12] to-sky-950/20 border border-slate-800 rounded-3xl p-6 relative overflow-hidden">
+      <section className="bg-gradient-to-r from-purple-950/20 via-[#060a12] to-sky-950/20 border border-border-primary rounded-3xl p-6 relative overflow-hidden">
         <div className="absolute right-0 top-0 -mt-8 -mr-8 w-44 h-44 rounded-full bg-cyan-500/5 blur-3xl animate-pulse"></div>
         <div className="absolute left-1/4 bottom-0 w-32 h-32 rounded-full bg-purple-500/5 blur-3xl"></div>
         
@@ -678,11 +678,11 @@ export default function GameAndMLWorkbench() {
               <Gamepad2 className="w-6 h-6 animate-bounce" />
             </div>
             <div>
-              <h1 className="text-sm sm:text-base font-black text-white uppercase tracking-widest flex items-center gap-2">
+              <h1 className="text-sm sm:text-base font-black text-text-primary uppercase tracking-widest flex items-center gap-2">
                 🎮 GAME MOBILE & MACHINE LEARNING LABS
                 <span className="px-2 py-0.5 bg-sky-500/10 text-sky-400 border border-sky-500/25 text-[9px] font-black rounded font-mono">WORKSPACE EXTRAS</span>
               </h1>
-              <p className="text-xs text-slate-400 mt-1 leading-relaxed max-w-4xl font-semibold">
+              <p className="text-xs text-text-secondary mt-1 leading-relaxed max-w-4xl font-semibold">
                 Sân chơi tích hợp mới giúp lập kế hoạch dự toán dự án Game Mobile, dọn dẹp quy trình kỹ thuật lập trình và học tập trực quan cấu trúc mạng nơ-ron sâu (Neural Networks) hoàn chỉnh.
               </p>
             </div>
@@ -695,8 +695,8 @@ export default function GameAndMLWorkbench() {
             onClick={() => setActiveTab('game')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${
               activeTab === 'game'
-                ? 'bg-sky-600 border-sky-505 text-white shadow-lg shadow-sky-500/10'
-                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white'
+                ? 'bg-sky-600 border-sky-505 text-text-primary shadow-lg shadow-sky-500/10'
+                : 'bg-slate-950 border-slate-850 text-text-secondary hover:text-text-primary'
             }`}
           >
             <Gamepad2 className="w-4 h-4" />
@@ -707,8 +707,8 @@ export default function GameAndMLWorkbench() {
             onClick={() => setActiveTab('ml')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${
               activeTab === 'ml'
-                ? 'bg-purple-600 border-purple-505 text-white shadow-lg shadow-purple-500/10'
-                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white'
+                ? 'bg-purple-600 border-purple-505 text-text-primary shadow-lg shadow-purple-500/10'
+                : 'bg-slate-950 border-slate-850 text-text-secondary hover:text-text-primary'
             }`}
           >
             <Brain className="w-4 h-4" />
@@ -719,8 +719,8 @@ export default function GameAndMLWorkbench() {
             onClick={() => setActiveTab('monetization')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${
               activeTab === 'monetization'
-                ? 'bg-amber-600 border-amber-505 text-white shadow-lg shadow-amber-500/10'
-                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white'
+                ? 'bg-amber-600 border-amber-505 text-text-primary shadow-lg shadow-amber-500/10'
+                : 'bg-slate-950 border-slate-850 text-text-secondary hover:text-text-primary'
             }`}
           >
             <Coins className="w-4 h-4" />
@@ -731,8 +731,8 @@ export default function GameAndMLWorkbench() {
             onClick={() => setActiveTab('crossplatform')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${
               activeTab === 'crossplatform'
-                ? 'bg-emerald-600 border-emerald-505 text-white shadow-lg shadow-emerald-500/10'
-                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white'
+                ? 'bg-emerald-600 border-emerald-505 text-text-primary shadow-lg shadow-emerald-500/10'
+                : 'bg-slate-950 border-slate-850 text-text-secondary hover:text-text-primary'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -743,8 +743,8 @@ export default function GameAndMLWorkbench() {
             onClick={() => setActiveTab('analytics')}
             className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${
               activeTab === 'analytics'
-                ? 'bg-rose-600 border-rose-505 text-white shadow-lg shadow-rose-500/10'
-                : 'bg-slate-950 border-slate-850 text-slate-400 hover:text-white'
+                ? 'bg-rose-600 border-rose-505 text-text-primary shadow-lg shadow-rose-500/10'
+                : 'bg-slate-950 border-slate-850 text-text-secondary hover:text-text-primary'
             }`}
           >
             <LineChart className="w-4 h-4" />
@@ -767,10 +767,10 @@ export default function GameAndMLWorkbench() {
                   <Sliders className="w-3.5 h-3.5" />
                   Bục cấu hình chỉ số game & app mong muốn
                 </span>
-                <h3 className="text-sm font-black text-white uppercase tracking-tight mt-1.5">
+                <h3 className="text-sm font-black text-text-primary uppercase tracking-tight mt-1.5">
                   🕹️ Trình Giả Lập Ngân Sách Dự Án Mobile Game
                 </h3>
-                <p className="text-[11px] text-slate-400 leading-normal font-medium mt-1">
+                <p className="text-[11px] text-text-secondary leading-normal font-medium mt-1">
                   Nhấp tinh chỉnh thể loại, cách thức khai thác nguồn tài nguyên đồ họa và thủ tục pháp lý để đo lường công gieo mồ hôi của nhà sáng lập:
                 </p>
               </div>
@@ -779,7 +779,7 @@ export default function GameAndMLWorkbench() {
               <div className="space-y-3 pt-2">
                 {/* 1. Genre selection */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] font-bold text-slate-300 block">Thể loại trò chơi (Game Genre):</label>
+                  <label className="text-[10.5px] font-bold text-text-secondary block">Thể loại trò chơi (Game Genre):</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'hypercasual', label: 'Hyper-Casual', desc: 'Dễ chơi, nhẹ nhàng' },
@@ -791,12 +791,12 @@ export default function GameAndMLWorkbench() {
                         onClick={() => setGameGenre(g.id as any)}
                         className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
                           gameGenre === g.id
-                            ? 'bg-sky-500/10 border-sky-500 text-white shadow'
-                            : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                            ? 'bg-sky-500/10 border-sky-500 text-text-primary shadow'
+                            : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                         }`}
                       >
                         <span className="text-[11px] font-black block">{g.label}</span>
-                        <span className="text-[9px] text-slate-500 font-medium block mt-0.5 leading-none">{g.desc}</span>
+                        <span className="text-[9px] text-text-tertiary font-medium block mt-0.5 leading-none">{g.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -804,18 +804,18 @@ export default function GameAndMLWorkbench() {
 
                 {/* 2. Sourcing Graphic Assets */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] font-bold text-slate-300 block">Nguồn tài nguyên đồ hoạ & âm thanh:</label>
+                  <label className="text-[10.5px] font-bold text-text-secondary block">Nguồn tài nguyên đồ hoạ & âm thanh:</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       onClick={() => setAssetSource('free_ai')}
                       className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
                         assetSource === 'free_ai'
-                          ? 'bg-sky-500/10 border-sky-500 text-white shadow'
-                          : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                          ? 'bg-sky-500/10 border-sky-500 text-text-primary shadow'
+                          : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                       }`}
                     >
                       <span className="text-[11px] font-black block">🎨 AI Gen + Asset Stores 0đ</span>
-                      <span className="text-[9px] text-slate-500 font-medium block mt-1 leading-normal">
+                      <span className="text-[9px] text-text-tertiary font-medium block mt-1 leading-normal">
                         Khai thác ảnh bối cảnh từ Midjourney, SFX từ thư viện itch.io hoàn toàn miễn phí.
                       </span>
                     </button>
@@ -824,12 +824,12 @@ export default function GameAndMLWorkbench() {
                       onClick={() => setAssetSource('hire_freelancer')}
                       className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
                         assetSource === 'hire_freelancer'
-                          ? 'bg-sky-500/10 border-sky-500 text-white shadow'
-                          : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                          ? 'bg-sky-500/10 border-sky-500 text-text-primary shadow'
+                          : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                       }`}
                     >
                       <span className="text-[11px] font-black block">💼 Thuê ngoài Freelancer</span>
-                      <span className="text-[9px] text-slate-500 font-medium block mt-1 leading-normal">
+                      <span className="text-[9px] text-text-tertiary font-medium block mt-1 leading-normal">
                         Thuê vẽ 2D Spine Animation, tạo hình nhân vật độc quyền trên hù hụi Vietnam Behance.
                       </span>
                     </button>
@@ -838,7 +838,7 @@ export default function GameAndMLWorkbench() {
 
                 {/* 3. Monetization style */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] font-bold text-slate-300 block">Phương thức hái tiền chủ đạo:</label>
+                  <label className="text-[10.5px] font-bold text-text-secondary block">Phương thức hái tiền chủ đạo:</label>
                   <div className="grid grid-cols-3 gap-2">
                     {[
                       { id: 'ads_only', label: 'Ads (Chỉ Quảng Cáo)', desc: 'Hiện banner, Interstitial' },
@@ -850,12 +850,12 @@ export default function GameAndMLWorkbench() {
                         onClick={() => setMonetization(m.id as any)}
                         className={`text-left p-2.5 rounded-xl border transition-all flex flex-col justify-between ${
                           monetization === m.id
-                            ? 'bg-sky-500/10 border-sky-500 text-white shadow'
-                            : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                            ? 'bg-sky-500/10 border-sky-500 text-text-primary shadow'
+                            : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                         }`}
                       >
                         <span className="text-[11px] font-black block">{m.label}</span>
-                        <span className="text-[9px] text-slate-500 font-medium block mt-0.5 leading-none">{m.desc}</span>
+                        <span className="text-[9px] text-text-tertiary font-medium block mt-0.5 leading-none">{m.desc}</span>
                       </button>
                     ))}
                   </div>
@@ -869,7 +869,7 @@ export default function GameAndMLWorkbench() {
             </div>
 
             {/* Simulated Live Estimates & Financial Output */}
-            <div className="lg:col-span-6 bg-slate-900/40 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+            <div className="lg:col-span-6 bg-bg-primary/40 border border-border-primary rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
               <div className="space-y-4">
                 <div className="border-b border-slate-850 pb-3 flex justify-between items-center">
                   <span className="text-xs font-black uppercase tracking-wider text-slate-200 font-mono">
@@ -882,30 +882,30 @@ export default function GameAndMLWorkbench() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-[#050a12]/60 p-3.5 rounded-xl border border-slate-850">
-                    <span className="text-[9px] font-black text-slate-500 uppercase block font-mono">Tổng giá trị đầu tư thô:</span>
+                    <span className="text-[9px] font-black text-text-tertiary uppercase block font-mono">Tổng giá trị đầu tư thô:</span>
                     <p className="text-lg font-black text-emerald-400 mt-1 leading-none">
                       {projectEstimation.estimatedCost === 0.5 ? 'Gần như 0 VNĐ!' : `~ ${projectEstimation.estimatedCost} Triệu VND`}
                     </p>
-                    <span className="text-[9.5px] text-slate-400 font-semibold block mt-1">Host, Asset & Tools thô sơ</span>
+                    <span className="text-[9.5px] text-text-secondary font-semibold block mt-1">Host, Asset & Tools thô sơ</span>
                   </div>
 
                   <div className="bg-[#050a12]/60 p-3.5 rounded-xl border border-slate-850">
-                    <span className="text-[9px] font-black text-slate-500 uppercase block font-mono">Cột mốc bàn giao MVP:</span>
+                    <span className="text-[9px] font-black text-text-tertiary uppercase block font-mono">Cột mốc bàn giao MVP:</span>
                     <p className="text-lg font-black text-sky-305 mt-1 leading-none">
                       {projectEstimation.estimatedWeeks} Tuần lễ
                     </p>
-                    <span className="text-[9.5px] text-slate-400 font-semibold block mt-1">Lập trình phát triển thô</span>
+                    <span className="text-[9.5px] text-text-secondary font-semibold block mt-1">Lập trình phát triển thô</span>
                   </div>
                 </div>
 
                 {/* ARPU detail analysis */}
                 <div className="p-3 bg-slate-950/80 rounded-xl border border-slate-850 space-y-1">
-                  <span className="text-[9.5px] uppercase font-mono text-slate-400 font-bold block">Xác suất Doanh thu kỳ vọng lũy tiến (ARPU):</span>
+                  <span className="text-[9.5px] uppercase font-mono text-text-secondary font-bold block">Xác suất Doanh thu kỳ vọng lũy tiến (ARPU):</span>
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-200">ARPU ước lượng trên mỗi phiên xem quảng cáo:</span>
                     <span className="text-xs font-black text-orange-400 font-mono">~ {projectEstimation.estimatedArpu}đ / lượt</span>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-900 rounded-full overflow-hidden mt-2">
+                  <div className="h-1.5 w-full bg-bg-primary rounded-full overflow-hidden mt-2">
                     <div 
                       className="h-full bg-gradient-to-r from-sky-500 to-indigo-500 transition-all duration-350"
                       style={{ width: `${Math.min(100, (projectEstimation.estimatedArpu / 9000) * 100)}%` }}
@@ -919,10 +919,10 @@ export default function GameAndMLWorkbench() {
                     <Compass className="w-4 h-4 shrink-0" />
                     Bản đồ Pháp chế Việt Nam tương ứng:
                   </div>
-                  <p className="text-xs text-slate-300 leading-relaxed font-semibold">
+                  <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                     {projectEstimation.regulatoryComplexity}
                   </p>
-                  <p className="text-[10.5px] text-slate-400 leading-normal">
+                  <p className="text-[10.5px] text-text-secondary leading-normal">
                     * Solo Founder nên phát hành game hướng ra thị trường nước ngoài (Global) để khai phá dòng Ads RPM lớn gấp 3-7 lần thị trường Việt Nam dẹp bỏ gánh nặng giấy phép nạp thẻ rườm rà.
                   </p>
                 </div>
@@ -935,7 +935,7 @@ export default function GameAndMLWorkbench() {
                   const element = document.getElementById('interactive_gdd_map');
                   if (element) element.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="w-full bg-slate-950 hover:bg-slate-900 text-slate-100 border border-slate-800 rounded-xl py-2.5 text-xs font-black uppercase tracking-widest transition-all text-center"
+                className="w-full bg-slate-950 hover:bg-bg-primary text-slate-100 border border-border-primary rounded-xl py-2.5 text-xs font-black uppercase tracking-widest transition-all text-center"
               >
                 Khám phá Sơ Đồ Quy Trình Thực Hiện Từng Bước ➔
               </button>
@@ -944,13 +944,13 @@ export default function GameAndMLWorkbench() {
           </div>
 
           {/* B. INTERACTIVE TIMELINE ROADMAP MINDMAP (THE CLICKABLE MAP) */}
-          <div id="interactive_gdd_map" className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+          <div id="interactive_gdd_map" className="bg-bg-primary/60 border border-border-primary rounded-3xl p-6 shadow-xl space-y-6">
             <div>
               <span className="text-[10px] font-black text-sky-400 uppercase font-mono block tracking-widest">INTERACTIVE MINDMAP</span>
               <h2 className="text-sm font-black uppercase text-slate-100 mt-1 flex items-center gap-1.5 font-sans">
                 🗺️ Sơ Đồ Tư Duy 5 Bước Ra Lò Game Mobile Kiệt Tác
               </h2>
-              <p className="text-xs text-slate-400 mt-1 font-semibold leading-relaxed">
+              <p className="text-xs text-text-secondary mt-1 font-semibold leading-relaxed">
                 Nhấn chọn tuần tự từng mốc rạng ngời bên dưới để bóc cấu trúc lập trình, hướng dẫn pháp lý và bản mẫu code ròng thực tế:
               </p>
             </div>
@@ -969,22 +969,22 @@ export default function GameAndMLWorkbench() {
                     className={`text-left p-3 rounded-2xl border transition-all h-full flex flex-col justify-between relative overflow-hidden group ${
                       isSelected
                         ? 'bg-sky-500/10 border-sky-500 shadow-md shadow-sky-500/5'
-                        : 'bg-[#040810]/75 border-slate-850 hover:border-slate-800 hover:bg-slate-900/50'
+                        : 'bg-[#040810]/75 border-slate-850 hover:border-border-primary hover:bg-bg-primary/50'
                     }`}
                   >
                     <div>
                       {/* Top indicator */}
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded font-mono ${
-                          isSelected ? 'bg-sky-500/20 text-sky-400' : 'bg-slate-800 text-slate-400'
+                          isSelected ? 'bg-sky-500/20 text-sky-400' : 'bg-bg-surface text-text-secondary'
                         }`}>
                           {stage.phaseCode}
                         </span>
-                        <span className="text-[10px] text-slate-500 font-bold font-mono">~{stage.durationWeeks}w</span>
+                        <span className="text-[10px] text-text-tertiary font-bold font-mono">~{stage.durationWeeks}w</span>
                       </div>
                       
                       <h4 className={`text-[11.5px] font-extrabold line-clamp-1 leading-normal ${
-                        isSelected ? 'text-white' : 'text-slate-300'
+                        isSelected ? 'text-text-primary' : 'text-text-secondary'
                       }`}>
                         {stage.title}
                       </h4>
@@ -992,7 +992,7 @@ export default function GameAndMLWorkbench() {
 
                     <div className="flex items-center gap-1 mt-3">
                       <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      <span className="text-[8.5px] text-slate-500 font-extrabold truncate uppercase font-mono">
+                      <span className="text-[8.5px] text-text-tertiary font-extrabold truncate uppercase font-mono">
                         {stage.tools[0]}
                       </span>
                     </div>
@@ -1022,7 +1022,7 @@ export default function GameAndMLWorkbench() {
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="text-sm font-black text-white">{activeStage.title}</h3>
+                    <h3 className="text-sm font-black text-text-primary">{activeStage.title}</h3>
                     <p className="text-[11px] text-slate-350 leading-relaxed font-semibold">{activeStage.description}</p>
                   </div>
 
@@ -1032,17 +1032,17 @@ export default function GameAndMLWorkbench() {
                       <ShieldAlert className="w-3.5 h-3.5" />
                       Lưu ý Việt hóa & Thuế phí địa bàn:
                     </span>
-                    <p className="text-[10.5px] text-slate-300 leading-relaxed font-medium">
+                    <p className="text-[10.5px] text-text-secondary leading-relaxed font-medium">
                       {activeStage.vnAdvisory}
                     </p>
                   </div>
 
                   {/* Actions checklists */}
                   <div className="space-y-1.5">
-                    <span className="text-[9.5px] uppercase font-mono text-slate-400 font-bold block">Các tệp việc tự cần làm trong tuần (Checklist):</span>
+                    <span className="text-[9.5px] uppercase font-mono text-text-secondary font-bold block">Các tệp việc tự cần làm trong tuần (Checklist):</span>
                     <ul className="space-y-1.5">
                       {activeStage.tasks.map((task, tidx) => (
-                        <li key={tidx} className="flex items-start gap-2 text-[11px] font-medium text-slate-300 leading-normal">
+                        <li key={tidx} className="flex items-start gap-2 text-[11px] font-medium text-text-secondary leading-normal">
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                           <span>{task}</span>
                         </li>
@@ -1053,10 +1053,10 @@ export default function GameAndMLWorkbench() {
 
                 {/* Sourcing list of tools for this step */}
                 <div className="pt-4 border-t border-slate-900 space-y-1.5">
-                  <span className="text-[9.5px] uppercase font-mono text-slate-500 font-bold block">Công cụ được khuyên dùng (Recommended Stack):</span>
+                  <span className="text-[9.5px] uppercase font-mono text-text-tertiary font-bold block">Công cụ được khuyên dùng (Recommended Stack):</span>
                   <div className="flex flex-wrap gap-1.5">
                     {activeStage.tools.map((tl, index) => (
-                      <span key={index} className="bg-slate-900 text-slate-300 font-mono text-[10px] font-bold px-2.5 py-1 rounded border border-slate-800">
+                      <span key={index} className="bg-bg-primary text-text-secondary font-mono text-[10px] font-bold px-2.5 py-1 rounded border border-border-primary">
                         {tl}
                       </span>
                     ))}
@@ -1068,28 +1068,28 @@ export default function GameAndMLWorkbench() {
               <div className="lg:col-span-6 bg-slate-950 rounded-2xl border border-slate-850 p-5 flex flex-col justify-between space-y-3 relative overflow-hidden">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-slate-900 pb-2">
-                    <span className="text-[10px] uppercase font-mono text-slate-400 font-bold flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-mono text-text-secondary font-bold flex items-center gap-1.5">
                       <FileCode className="w-4 h-4 text-sky-400 animate-pulse" />
                       Bộ khung Code / Blueprint mẫu chuẩn
                     </span>
                     <button
                       onClick={() => handleCopyCode(activeStage.codeTemplate)}
-                      className="text-[9.5px] font-black text-sky-400 hover:text-white bg-slate-900 border border-slate-800 px-2.5 py-1 rounded transition-all flex items-center gap-1"
+                      className="text-[9.5px] font-black text-sky-400 hover:text-text-primary bg-bg-primary border border-border-primary px-2.5 py-1 rounded transition-all flex items-center gap-1"
                     >
                       {copiedCodeFlag ? 'Đã sao chép' : 'Copy Code'}
                     </button>
                   </div>
 
-                  <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                  <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                     * Đoạn code thô sơ này giúp định hình mô hình lập trình để Solo Founder tích hợp nhanh vào Engine phát triển game mobile:
                   </p>
 
-                  <pre className="text-[10px] font-mono text-slate-300 overflow-x-auto max-h-[295px] scrollbar-thin scrollbar-thumb-slate-800 p-3 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold">
+                  <pre className="text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[295px] scrollbar-thin scrollbar-thumb-slate-800 p-3 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold">
                     {activeStage.codeTemplate}
                   </pre>
                 </div>
 
-                <div className="bg-[#050b12] p-2.5 rounded-xl border border-slate-850 text-[9.5px] text-slate-400 leading-normal font-sans italic">
+                <div className="bg-[#050b12] p-2.5 rounded-xl border border-slate-850 text-[9.5px] text-text-secondary leading-normal font-sans italic">
                   * Chú ý: Toàn bộ code mẫu ở trên là code chuẩn sản xuất có thể dính kéo trực tiếp vào Editor để vận hành!
                 </div>
               </div>
@@ -1110,7 +1110,7 @@ export default function GameAndMLWorkbench() {
               <Brain className="w-5 h-5 text-purple-400 rotate-12 shrink-0" />
               <div>
                 <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest font-mono">LABORATORY MACHINE LEARNING</h3>
-                <p className="text-[10px] text-slate-400 font-semibold leading-none mt-0.5">Trải nghiệm rèn luyện, kiểm toán mô hình sâu rực rỡ và chu trình triển khai Edge AI</p>
+                <p className="text-[10px] text-text-secondary font-semibold leading-none mt-0.5">Trải nghiệm rèn luyện, kiểm toán mô hình sâu rực rỡ và chu trình triển khai Edge AI</p>
               </div>
             </div>
             <div className="flex flex-wrap sm:flex-nowrap gap-1.5 shrink-0">
@@ -1118,8 +1118,8 @@ export default function GameAndMLWorkbench() {
                 onClick={() => setMlSubTab('simulation')}
                 className={`px-3 py-2 rounded-xl text-[10.5px] font-black transition-all flex items-center gap-1 cursor-pointer ${
                   mlSubTab === 'simulation'
-                    ? 'bg-purple-600 text-white shadow shadow-purple-500/10'
-                    : 'text-slate-400 bg-slate-950 border border-slate-900 hover:text-slate-200'
+                    ? 'bg-purple-600 text-text-primary shadow shadow-purple-500/10'
+                    : 'text-text-secondary bg-slate-950 border border-slate-900 hover:text-slate-200'
                 }`}
               >
                 <Sliders className="w-3.5 h-3.5" />
@@ -1129,25 +1129,25 @@ export default function GameAndMLWorkbench() {
                 onClick={() => setMlSubTab('lifecycle')}
                 className={`px-3 py-2 rounded-xl text-[10.5px] font-black transition-all flex items-center gap-1 cursor-pointer border border-transparent relative ${
                   mlSubTab === 'lifecycle'
-                    ? 'bg-indigo-650 text-white shadow shadow-indigo-550/10'
-                    : 'text-slate-400 bg-slate-950 border border-slate-900 hover:text-slate-200'
+                    ? 'bg-indigo-650 text-text-primary shadow shadow-indigo-550/10'
+                    : 'text-text-secondary bg-slate-950 border border-slate-900 hover:text-slate-200'
                 }`}
               >
                 <Workflow className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />
                 <span>2. Chu Trình & Edge Deployment</span>
-                <span className="absolute -top-1.5 -right-1 py-0.5 px-1.5 bg-rose-600 text-[6.5px] text-white rounded-full font-black animate-bounce leading-none">Ưu Việt</span>
+                <span className="absolute -top-1.5 -right-1 py-0.5 px-1.5 bg-rose-600 text-[6.5px] text-text-primary rounded-full font-black animate-bounce leading-none">Ưu Việt</span>
               </button>
               <button
                 onClick={() => setMlSubTab('beginner')}
                 className={`px-3 py-2 rounded-xl text-[10.5px] font-black transition-all flex items-center gap-1 cursor-pointer border border-transparent relative [content-visibility:auto] ${
                   mlSubTab === 'beginner'
-                    ? 'bg-rose-650 text-white shadow shadow-rose-550/10'
-                    : 'text-slate-400 bg-slate-950 border border-slate-900 hover:text-slate-200'
+                    ? 'bg-rose-650 text-text-primary shadow shadow-rose-550/10'
+                    : 'text-text-secondary bg-slate-950 border border-slate-900 hover:text-slate-200'
                 }`}
               >
                 <Compass className="w-3.5 h-3.5 text-rose-450 animate-bounce" />
                 <span>3. Nhập Môn & Evaluation Lab</span>
-                <span className="absolute -top-1.5 -right-1 py-0.5 px-1.5 bg-emerald-600 text-[6.5px] text-white rounded-full font-black animate-pulse leading-none">LÍNH MỚI</span>
+                <span className="absolute -top-1.5 -right-1 py-0.5 px-1.5 bg-emerald-600 text-[6.5px] text-text-primary rounded-full font-black animate-pulse leading-none">LÍNH MỚI</span>
               </button>
             </div>
           </div>
@@ -1163,10 +1163,10 @@ export default function GameAndMLWorkbench() {
               <div className="space-y-4">
                 <div>
                   <span className="text-[10px] font-black uppercase tracking-wider text-purple-400 font-mono">HYPERPARAMETER TUNING</span>
-                  <h3 className="text-sm font-black text-white uppercase tracking-tight mt-1.5">
+                  <h3 className="text-sm font-black text-text-primary uppercase tracking-tight mt-1.5">
                     ⚙️ Tự Chế Bộ Tham Số Huấn Luyện AI
                   </h3>
-                  <p className="text-[11px] text-slate-400 leading-normal font-medium mt-1">
+                  <p className="text-[11px] text-text-secondary leading-normal font-medium mt-1">
                     Thiết lập các thông số cơ sở toán học để kích hoạt giải thuật lan truyền ngược (Backpropagation) giả lập ngay trực quan:
                   </p>
                 </div>
@@ -1205,9 +1205,9 @@ export default function GameAndMLWorkbench() {
                         setLearningRate(Number(e.target.value));
                         resetMLSimulation();
                       }}
-                      className="w-full accent-purple-500 bg-slate-900 h-1 rounded"
+                      className="w-full accent-purple-500 bg-bg-primary h-1 rounded"
                     />
-                    <div className="flex justify-between text-[8px] text-slate-500 font-bold font-mono">
+                    <div className="flex justify-between text-[8px] text-text-tertiary font-bold font-mono">
                       <span>0.001 (Chậm - Khớp ròng)</span>
                       <span>0.5 (Nhanh - Dễ phân kỳ)</span>
                     </div>
@@ -1227,7 +1227,7 @@ export default function GameAndMLWorkbench() {
                           className={`py-1.5 rounded-lg border text-xs font-mono font-bold transition-all ${
                             epochsCount === ep
                               ? 'bg-purple-500/15 border-purple-500 text-purple-400 shadow'
-                              : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                              : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                           }`}
                         >
                           {ep} Epochs
@@ -1254,11 +1254,11 @@ export default function GameAndMLWorkbench() {
                           className={`p-1.5 rounded-lg border text-left transition-all ${
                             activationFunc === act.id
                               ? 'bg-purple-500/15 border-purple-500 text-purple-400 shadow'
-                              : 'bg-[#040810] border-slate-850 text-slate-400 hover:text-slate-200'
+                              : 'bg-[#040810] border-slate-850 text-text-secondary hover:text-slate-200'
                           }`}
                         >
                           <span className="text-[10.5px] font-bold block">{act.label}</span>
-                          <span className="text-[8px] text-slate-500 font-medium block leading-none">{act.desc}</span>
+                          <span className="text-[8px] text-text-tertiary font-medium block leading-none">{act.desc}</span>
                         </button>
                       ))}
                     </div>
@@ -1272,7 +1272,7 @@ export default function GameAndMLWorkbench() {
                   <button
                     onClick={startSimulatedTraining}
                     disabled={isTraining}
-                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs uppercase tracking-widest py-2.5 rounded-xl transition-all shadow shadow-purple-550/10 flex items-center justify-center gap-2 disabled:opacity-50"
+                    className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-650 hover:from-purple-500 hover:to-indigo-500 text-text-primary font-black text-xs uppercase tracking-widest py-2.5 rounded-xl transition-all shadow shadow-purple-550/10 flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     <Play className="w-4 h-4" />
                     {isTraining ? 'Đang huấn luyện...' : 'Chạy Training'}
@@ -1280,7 +1280,7 @@ export default function GameAndMLWorkbench() {
                   
                   <button
                     onClick={resetMLSimulation}
-                    className="bg-slate-900 border border-slate-800 p-2.5 rounded-xl hover:text-white text-slate-400 transition-all"
+                    className="bg-bg-primary border border-border-primary p-2.5 rounded-xl hover:text-text-primary text-text-secondary transition-all"
                   >
                     <RotateCcw className="w-4 h-4" />
                   </button>
@@ -1295,7 +1295,7 @@ export default function GameAndMLWorkbench() {
             </div>
 
             {/* Neural SVG Node visualizer & Live Charting (7 cols) */}
-            <div className="lg:col-span-8 bg-slate-900/40 border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
+            <div className="lg:col-span-8 bg-bg-primary/40 border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col justify-between space-y-4">
               
               {/* Architecture diagram container */}
               <div className="space-y-3">
@@ -1317,8 +1317,8 @@ export default function GameAndMLWorkbench() {
                   <div className="flex flex-col gap-2 relative z-10">
                     {[1, 2, 3].map(n => (
                       <div key={n} className="flex items-center gap-1.5">
-                        <div className={`w-3 h-3 rounded-full border border-slate-700 bg-slate-800 ${isTraining ? 'animate-ping' : ''}`}></div>
-                        <span className="text-[8px] font-mono text-slate-400">X{n}</span>
+                        <div className={`w-3 h-3 rounded-full border border-border-secondary bg-bg-surface ${isTraining ? 'animate-ping' : ''}`}></div>
+                        <span className="text-[8px] font-mono text-text-secondary">X{n}</span>
                       </div>
                     ))}
                   </div>
@@ -1371,7 +1371,7 @@ export default function GameAndMLWorkbench() {
               {/* Training logs and loss statistics area - Recharts graph */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-[10.5px]">
-                  <span className="text-slate-400 font-semibold">Biểu đồ tiến độ huấn luyện sai số (Loss & Accuracy):</span>
+                  <span className="text-text-secondary font-semibold">Biểu đồ tiến độ huấn luyện sai số (Loss & Accuracy):</span>
                   {trainingLossData.length > 0 && (
                     <div className="flex items-center gap-3 font-mono font-bold text-[9.5px]">
                       <span className="text-purple-400">Train Loss: {trainingLossData[trainingLossData.length - 1].trainLoss}</span>
@@ -1407,7 +1407,7 @@ export default function GameAndMLWorkbench() {
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (
-                    <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-slate-500 font-bold">
+                    <div className="w-full h-full flex flex-col items-center justify-center text-[10px] text-text-tertiary font-bold">
                       <span>* Click "Chạy Training" rực rỡ để vẽ đồ thị hàm suy giảm sai số tự động *</span>
                     </div>
                   )}
@@ -1434,7 +1434,7 @@ export default function GameAndMLWorkbench() {
           </div>
 
           {/* C. INTUITIVE PYTHON CODE EXPORTER & DEEP MATH EXPLANATIONS */}
-          <div className="bg-slate-900/60 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-6">
+          <div className="bg-bg-primary/60 border border-border-primary rounded-3xl p-6 shadow-xl space-y-6">
             
             <div className="grid lg:grid-cols-12 gap-6 items-stretch">
               
@@ -1442,7 +1442,7 @@ export default function GameAndMLWorkbench() {
               <div className="lg:col-span-6 bg-slate-950/50 border border-slate-850 rounded-2xl p-5 flex flex-col justify-between space-y-4">
                 <div className="space-y-4">
                   <div className="border-b border-slate-900 pb-2 flex justify-between items-center bg-[#010408]/30 px-2 py-1 rounded">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase font-mono">
+                    <span className="text-[10px] font-bold text-text-secondary uppercase font-mono">
                       Kiến Thức Nền Tảng - Trực Quan Toán Học
                     </span>
                     <span className="bg-[#1f0b2f] text-purple-400 text-[9px] font-black px-2 py-0.5 rounded font-mono">
@@ -1451,11 +1451,11 @@ export default function GameAndMLWorkbench() {
                   </div>
 
                   <div className="space-y-1">
-                    <h3 className="text-sm font-black text-white">{activeMLModel.name}</h3>
-                    <p className="text-xs text-slate-400 font-bold italic">{activeMLModel.subtitle}</p>
+                    <h3 className="text-sm font-black text-text-primary">{activeMLModel.name}</h3>
+                    <p className="text-xs text-text-secondary font-bold italic">{activeMLModel.subtitle}</p>
                   </div>
 
-                  <p className="text-[11px] text-slate-300 leading-relaxed font-semibold">
+                  <p className="text-[11px] text-text-secondary leading-relaxed font-semibold">
                     {activeMLModel.archDescription}
                   </p>
 
@@ -1469,14 +1469,14 @@ export default function GameAndMLWorkbench() {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-[9.5px] uppercase font-mono text-slate-400 font-bold block">Ứng dụng thực tế vượt trội:</span>
+                    <span className="text-[9.5px] uppercase font-mono text-text-secondary font-bold block">Ứng dụng thực tế vượt trội:</span>
                     <div className="bg-[#050b12] p-3 rounded-lg border border-slate-850 text-xs text-emerald-400 font-bold">
                       💡 {activeMLModel.useCase}
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-[#050b12] p-2.5 rounded-xl border border-slate-850 text-[9.5px] text-slate-500 leading-normal font-sans italic">
+                <div className="bg-[#050b12] p-2.5 rounded-xl border border-slate-850 text-[9.5px] text-text-tertiary leading-normal font-sans italic">
                   * Chú ý: Học sâu về Machine Learning yêu cầu tích hợp giải toán Vector đại số tuyến tính ròng và Giải tích Gradient để tinh chỉnh tối đa mô hình!
                 </div>
               </div>
@@ -1485,29 +1485,29 @@ export default function GameAndMLWorkbench() {
               <div className="lg:col-span-6 bg-slate-950 rounded-2xl border border-slate-850 p-5 flex flex-col justify-between space-y-3">
                 <div className="space-y-3">
                   <div className="flex justify-between items-center border-b border-slate-900 pb-2">
-                    <span className="text-[10px] uppercase font-mono text-slate-400 font-bold flex items-center gap-1.5">
+                    <span className="text-[10px] uppercase font-mono text-text-secondary font-bold flex items-center gap-1.5">
                       <Code className="w-4 h-4 text-purple-400" />
                       Mã nguồn PyTorch Python tương thích
                     </span>
                     <button
                       onClick={() => handleCopyCode(activeMLModel.pythonSnippet)}
-                      className="text-[9.5px] font-black text-purple-400 hover:text-white bg-slate-900 border border-slate-800 px-2.5 py-1 rounded transition-all"
+                      className="text-[9.5px] font-black text-purple-400 hover:text-text-primary bg-bg-primary border border-border-primary px-2.5 py-1 rounded transition-all"
                     >
                       {copiedCodeFlag ? 'Đã sao chép' : 'Copy Python Code'}
                     </button>
                   </div>
 
-                  <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                  <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                     * Đoạn script Python sử dụng thư viện PyTorch để xây dựng cấu trúc lớp mạng nơ-ron sâu rực rỡ:
                   </p>
 
-                  <pre className="text-[10px] font-mono text-slate-300 overflow-x-auto max-h-[300px] scrollbar-thin scrollbar-thumb-slate-800 p-3 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold">
+                  <pre className="text-[10px] font-mono text-text-secondary overflow-x-auto max-h-[300px] scrollbar-thin scrollbar-thumb-slate-800 p-3 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold">
                     {activeMLModel.pythonSnippet}
                   </pre>
                 </div>
 
                 {/* Subtext info */}
-                <div className="flex items-center gap-2 text-[10px] text-slate-500 bg-[#050a12]/40 border border-slate-850 p-2.5 rounded-xl">
+                <div className="flex items-center gap-2 text-[10px] text-text-tertiary bg-[#050a12]/40 border border-slate-850 p-2.5 rounded-xl">
                   <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
                   <span>PyTorch giúp tự động hóa tính đạo hàm riêng (Autograd) phục vụ thuật toán lan truyền ngược 0đ cực đỉnh!</span>
                 </div>
@@ -1527,12 +1527,12 @@ export default function GameAndMLWorkbench() {
                   className={`p-3.5 rounded-2xl border transition-all text-left relative overflow-hidden group ${
                     selectedMLModelId === m.id
                       ? 'bg-purple-500/10 border-purple-500 shadow-md'
-                      : 'bg-[#040810]/75 border-slate-850 hover:bg-slate-900/50'
+                      : 'bg-[#040810]/75 border-slate-850 hover:bg-bg-primary/50'
                   }`}
                 >
                   <span className="text-[10px] font-bold text-purple-400 font-mono block">MODEL DESIGNATION</span>
                   <h4 className="text-xs font-black text-slate-100 mt-1">{m.name}</h4>
-                  <p className="text-[10px] text-slate-400 line-clamp-2 mt-1 leading-normal font-medium">{m.subtitle}</p>
+                  <p className="text-[10px] text-text-secondary line-clamp-2 mt-1 leading-normal font-medium">{m.subtitle}</p>
                 </button>
               ))}
             </div>
@@ -1548,10 +1548,10 @@ export default function GameAndMLWorkbench() {
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                   <div>
                     <span className="text-[9.5px] font-black text-indigo-400 font-mono block tracking-widest text-[#a5b4fc]">AI/ML PRODUCTION WORKFLOW</span>
-                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 font-sans text-white">
+                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 font-sans text-text-primary">
                       🔄 Chu trình rèn luyện & Triển khai thực dụng (Edge AI)
                     </h3>
-                    <p className="text-xs text-slate-400 font-semibold leading-normal mt-0.5">
+                    <p className="text-xs text-text-secondary font-semibold leading-normal mt-0.5">
                       Click chọn từng cột mốc sản xuất bên dưới để mở rộng kịch bản kỹ thuật lập trình và trực quan hoá giải pháp:
                     </p>
                   </div>
@@ -1571,24 +1571,24 @@ export default function GameAndMLWorkbench() {
                         className={`text-left p-3 rounded-2xl border transition-all h-full flex flex-col justify-between relative overflow-hidden group cursor-pointer ${
                           isSelStg
                             ? 'bg-indigo-500/10 border-indigo-500 shadow'
-                            : 'bg-[#03060c] border-slate-850 hover:border-slate-800 hover:bg-slate-900/40'
+                            : 'bg-[#03060c] border-slate-850 hover:border-border-primary hover:bg-bg-primary/40'
                         }`}
                       >
                         <div>
                           <div className="flex justify-between items-center mb-1">
                             <span className={`text-[8px] font-black px-1.5 py-0.5 rounded font-mono ${
-                              isSelStg ? 'bg-indigo-500/25 text-indigo-300' : 'bg-slate-900 text-slate-500'
+                              isSelStg ? 'bg-indigo-500/25 text-indigo-300' : 'bg-bg-primary text-text-tertiary'
                             }`}>
                               {stg.stepNumber}
                             </span>
                           </div>
                           <h4 className={`text-[11px] font-extrabold leading-tight line-clamp-2 ${
-                            isSelStg ? 'text-white' : 'text-slate-350 group-hover:text-slate-100'
+                            isSelStg ? 'text-text-primary' : 'text-slate-350 group-hover:text-slate-100'
                           }`}>
                             {stg.title}
                           </h4>
                         </div>
-                        <span className="text-[8.5px] font-bold text-slate-500 block truncate mt-2 font-mono">
+                        <span className="text-[8.5px] font-bold text-text-tertiary block truncate mt-2 font-mono">
                           {stg.subtitle}
                         </span>
                         {isSelStg && (
@@ -1613,12 +1613,12 @@ export default function GameAndMLWorkbench() {
                               <Cpu className="w-3.5 h-3.5 animate-pulse text-indigo-400" />
                               Laboratory Visualizer ({currentStg.stepNumber})
                             </span>
-                            <span className="text-[8.5px] text-slate-500 font-bold font-mono">INTERACTIVE</span>
+                            <span className="text-[8.5px] text-text-tertiary font-bold font-mono">INTERACTIVE</span>
                           </div>
 
                           <div>
-                            <h4 className="text-[12.5px] font-black text-white">{currentStg.title}</h4>
-                            <p className="text-[10.5px] text-slate-400 mt-1 font-semibold leading-relaxed">
+                            <h4 className="text-[12.5px] font-black text-text-primary">{currentStg.title}</h4>
+                            <p className="text-[10.5px] text-text-secondary mt-1 font-semibold leading-relaxed">
                               {currentStg.description}
                             </p>
                           </div>
@@ -1632,7 +1632,7 @@ export default function GameAndMLWorkbench() {
                               
                               <div className="space-y-2">
                                 <div className="flex justify-between text-[10px] items-center">
-                                  <span className="text-slate-300 font-medium">Giá trị nạp thẻ đột biến (Cá mập):</span>
+                                  <span className="text-text-secondary font-medium">Giá trị nạp thẻ đột biến (Cá mập):</span>
                                   <span className="text-indigo-400 font-mono font-bold">{outlierVal.toLocaleString()} VNĐ</span>
                                 </div>
                                 <input 
@@ -1642,11 +1642,11 @@ export default function GameAndMLWorkbench() {
                                   step="100"
                                   value={outlierVal}
                                   onChange={(e) => setOutlierVal(Number(e.target.value))}
-                                  className="w-full h-1 bg-slate-900 rounded accent-indigo-500 cursor-pointer"
+                                  className="w-full h-1 bg-bg-primary rounded accent-indigo-500 cursor-pointer"
                                 />
                               </div>
 
-                              <p className="text-[9.5px] text-slate-400 italic">
+                              <p className="text-[9.5px] text-text-secondary italic">
                                 * Tập dữ liệu gốc: [10, 12, 11, 15, {outlierVal}]. Hãy xem cách chuẩn hoá giá trị nạp bình thường (ví dụ: 12 VNĐ):
                               </p>
 
@@ -1663,7 +1663,7 @@ export default function GameAndMLWorkbench() {
                                     <div className="p-2.5 bg-red-950/15 border border-red-900/20 rounded-lg text-center">
                                       <span className="text-[8px] font-bold text-red-400 block uppercase">StandardScaler</span>
                                       <p className="text-xs font-black text-red-400 mt-1">{normStd.toFixed(4)}</p>
-                                      <span className="text-[8px] text-slate-500 font-medium block mt-1">Bị lệch ròng vì cá mập nạp kéo lệch Mean/Std!</span>
+                                      <span className="text-[8px] text-text-tertiary font-medium block mt-1">Bị lệch ròng vì cá mập nạp kéo lệch Mean/Std!</span>
                                     </div>
                                   );
                                 })()}
@@ -1681,7 +1681,7 @@ export default function GameAndMLWorkbench() {
                                     <div className="p-2.5 bg-emerald-950/15 border border-emerald-900/20 rounded-lg text-center">
                                       <span className="text-[8px] font-bold text-emerald-400 block uppercase">RobustScaler</span>
                                       <p className="text-xs font-black text-emerald-400 mt-1">+{normRobust.toFixed(4)}</p>
-                                      <span className="text-[8px] text-slate-500 font-medium block mt-1">Kiên cố tuyệt đối vì Median/IQR ổn định!</span>
+                                      <span className="text-[8px] text-text-tertiary font-medium block mt-1">Kiên cố tuyệt đối vì Median/IQR ổn định!</span>
                                     </div>
                                   );
                                 })()}
@@ -1705,7 +1705,7 @@ export default function GameAndMLWorkbench() {
                                       className={`py-1 rounded text-[10px] font-mono font-bold transition-all border cursor-pointer ${
                                         dropoutRate === dr
                                           ? 'bg-indigo-500/15 border-indigo-500 text-indigo-400'
-                                          : 'bg-[#03060b] border-slate-850 text-slate-500'
+                                          : 'bg-[#03060b] border-slate-850 text-text-tertiary'
                                       }`}
                                     >
                                       {dr}%
@@ -1753,7 +1753,7 @@ export default function GameAndMLWorkbench() {
                                     <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span> Train Loss
                                   </span>
                                   <span className={`flex items-center gap-1 ${
-                                    dropoutRate === 0 ? 'text-red-400' : dropoutRate === 15 ? 'text-amber-400' : dropoutRate === 30 ? 'text-emerald-400' : 'text-slate-400'
+                                    dropoutRate === 0 ? 'text-red-400' : dropoutRate === 15 ? 'text-amber-400' : dropoutRate === 30 ? 'text-emerald-400' : 'text-text-secondary'
                                   }`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${
                                       dropoutRate === 0 ? 'bg-red-500' : dropoutRate === 15 ? 'bg-amber-500' : dropoutRate === 30 ? 'bg-emerald-500' : 'bg-slate-500'
@@ -1774,7 +1774,7 @@ export default function GameAndMLWorkbench() {
                               <div className="space-y-4">
                                 {/* Precision Chooser */}
                                 <div className="space-y-1">
-                                  <span className="text-[9px] text-slate-400 font-bold block">Kiểu lưu trữ Trọng số (Weights Type):</span>
+                                  <span className="text-[9px] text-text-secondary font-bold block">Kiểu lưu trữ Trọng số (Weights Type):</span>
                                   <div className="grid grid-cols-3 gap-1.5">
                                     {(['fp32', 'fp16', 'int8'] as const).map(pr => (
                                       <button
@@ -1783,7 +1783,7 @@ export default function GameAndMLWorkbench() {
                                         className={`py-1 text-[10px] font-mono font-bold rounded border transition-all cursor-pointer ${
                                           quantLevel === pr
                                             ? 'bg-indigo-500/15 border-indigo-500 text-indigo-400'
-                                            : 'bg-[#03060b] border-slate-850 text-slate-500'
+                                            : 'bg-[#03060b] border-slate-850 text-text-tertiary'
                                         }`}
                                       >
                                         {pr.toUpperCase()} {pr === 'fp32' ? '(Gốc)' : pr === 'fp16' ? '(Semi)' : '(Lượng tử)'}
@@ -1795,7 +1795,7 @@ export default function GameAndMLWorkbench() {
                                 {/* Calibration Selector if INT8 */}
                                 {quantLevel === 'int8' && (
                                   <div className="space-y-1">
-                                    <span className="text-[9px] text-slate-400 font-bold block">Thuật toán Calibration dải động (INT8):</span>
+                                    <span className="text-[9px] text-text-secondary font-bold block">Thuật toán Calibration dải động (INT8):</span>
                                     <div className="grid grid-cols-3 gap-1.5">
                                       {(['minmax', 'entropy', 'percentile'] as const).map(c => (
                                         <button
@@ -1804,7 +1804,7 @@ export default function GameAndMLWorkbench() {
                                           className={`py-1 text-[9px] font-mono rounded border transition-all cursor-pointer ${
                                             quantCalib === c
                                               ? 'bg-purple-500/15 border-purple-500 text-purple-400'
-                                              : 'bg-[#03060b] border-[#1e293b] text-slate-500'
+                                              : 'bg-[#03060b] border-[#1e293b] text-text-tertiary'
                                           }`}
                                         >
                                           {c === 'minmax' ? 'MinMax' : c === 'entropy' ? 'Entropy (KL)' : 'Percentile'}
@@ -1841,22 +1841,22 @@ export default function GameAndMLWorkbench() {
                                 }
 
                                 return (
-                                  <div className="p-3 bg-slate-900 rounded-xl border border-slate-850 space-y-2">
+                                  <div className="p-3 bg-bg-primary rounded-xl border border-slate-850 space-y-2">
                                     <div className="grid grid-cols-2 gap-2 text-[9.5px]">
                                       <div>
-                                        <span className="text-slate-500 font-medium">Dung lượng tệp (.onnx):</span>
+                                        <span className="text-text-tertiary font-medium">Dung lượng tệp (.onnx):</span>
                                         <p className="font-mono text-xs font-black text-slate-200">{size.toFixed(1)} MB</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 font-semibold font-medium">Tốc độ suy luận Mobile:</span>
+                                        <span className="text-text-tertiary font-semibold font-medium">Tốc độ suy luận Mobile:</span>
                                         <p className="font-mono text-xs font-black text-slate-200">~ {latency.toFixed(1)} ms / lượt</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 font-medium">Độ chính xác kiểm định:</span>
+                                        <span className="text-text-tertiary font-medium">Độ chính xác kiểm định:</span>
                                         <p className="font-mono text-xs font-black text-indigo-400">{accuracy.toFixed(1)}%</p>
                                       </div>
                                       <div>
-                                        <span className="text-slate-500 font-medium">Tải nhiệt & Hao pin:</span>
+                                        <span className="text-text-tertiary font-medium">Tải nhiệt & Hao pin:</span>
                                         <p className={`font-mono text-[9px] font-black ${batteryCol}`}>{battery}</p>
                                       </div>
                                     </div>
@@ -1874,7 +1874,7 @@ export default function GameAndMLWorkbench() {
 
                               <div className="space-y-2">
                                 <div className="flex justify-between text-[10px] items-center">
-                                  <span className="text-slate-300 font-medium">Số Người Chơi hằng ngày (DAU):</span>
+                                  <span className="text-text-secondary font-medium">Số Người Chơi hằng ngày (DAU):</span>
                                   <span className="text-[#818cf8] font-mono font-bold">{dailyDau.toLocaleString()} DAU</span>
                                 </div>
                                 <input 
@@ -1884,7 +1884,7 @@ export default function GameAndMLWorkbench() {
                                   step="1000"
                                   value={dailyDau}
                                   onChange={(e) => setDailyDau(Number(e.target.value))}
-                                  className="w-full h-1 bg-slate-900 rounded accent-indigo-500 cursor-pointer"
+                                  className="w-full h-1 bg-bg-primary rounded accent-indigo-500 cursor-pointer"
                                 />
                               </div>
 
@@ -1899,11 +1899,11 @@ export default function GameAndMLWorkbench() {
                                     <div className="p-2.5 bg-red-950/10 border border-red-900/15 rounded-lg flex justify-between items-center bg-red-950/5">
                                       <div>
                                         <span className="text-[8px] uppercase font-bold text-red-400 block leading-none text-left">Cloud API Server Inference</span>
-                                        <span className="text-[8px] text-slate-500 font-semibold block mt-1 text-left">Gửi dữ liệu qua API lên Host Server</span>
+                                        <span className="text-[8px] text-text-tertiary font-semibold block mt-1 text-left">Gửi dữ liệu qua API lên Host Server</span>
                                       </div>
                                       <div className="text-right shrink-0">
                                         <p className="font-mono text-red-400 font-black">~ {cloudCostUsd.toLocaleString('en-US', {maximumFractionDigits: 0})} USD / Tháng</p>
-                                        <p className="text-[9px] text-slate-500 font-semibold font-mono">Đồ trễ lag ~250ms</p>
+                                        <p className="text-[9px] text-text-tertiary font-semibold font-mono">Đồ trễ lag ~250ms</p>
                                       </div>
                                     </div>
 
@@ -1911,7 +1911,7 @@ export default function GameAndMLWorkbench() {
                                     <div className="p-2.5 bg-emerald-950/20 border border-emerald-900/20 rounded-lg flex justify-between items-center">
                                       <div>
                                         <span className="text-[8px] uppercase font-bold text-emerald-400 block leading-none text-left">On-device local Edge (ONNX)</span>
-                                        <span className="text-[8px] text-slate-500 font-semibold block mt-1 text-left">Hệ tính trực tiếp trên cục bộ Web/Mobile GPU</span>
+                                        <span className="text-[8px] text-text-tertiary font-semibold block mt-1 text-left">Hệ tính trực tiếp trên cục bộ Web/Mobile GPU</span>
                                       </div>
                                       <div className="text-right shrink-0">
                                         <p className="font-mono text-emerald-400 font-black">0đ Vĩnh Viễn!</p>
@@ -1932,7 +1932,7 @@ export default function GameAndMLWorkbench() {
 
                               <div className="space-y-2">
                                 <div className="flex justify-between text-[10px] items-center">
-                                  <span className="text-slate-300 font-medium">Mức độ trượt dữ liệu (Drift Rate):</span>
+                                  <span className="text-text-secondary font-medium">Mức độ trượt dữ liệu (Drift Rate):</span>
                                   <span className={`${driftFactor > 35 ? 'text-red-400' : 'text-indigo-400'} font-mono font-bold`}>{driftFactor}%</span>
                                 </div>
                                 <input 
@@ -1942,7 +1942,7 @@ export default function GameAndMLWorkbench() {
                                   step="5"
                                   value={driftFactor}
                                   onChange={(e) => setDriftFactor(Number(e.target.value))}
-                                  className="w-full h-1 bg-slate-900 rounded accent-indigo-500 cursor-pointer"
+                                  className="w-full h-1 bg-bg-primary rounded accent-indigo-500 cursor-pointer"
                                 />
                               </div>
 
@@ -1952,8 +1952,8 @@ export default function GameAndMLWorkbench() {
 
                                 return (
                                   <div className="space-y-2">
-                                    <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-850 flex justify-between items-center font-mono">
-                                      <span className="text-[9px] text-slate-400">Độ chính xác hiện hành:</span>
+                                    <div className="p-2.5 bg-bg-primary rounded-xl border border-slate-850 flex justify-between items-center font-mono">
+                                      <span className="text-[9px] text-text-secondary">Độ chính xác hiện hành:</span>
                                       <span className={`text-xs font-black ${isAlert ? 'text-rose-450' : 'text-emerald-400'}`}>{currAcc.toFixed(1)}% {isAlert ? '⚠️ DRIFTED!' : '✅ OK'}</span>
                                     </div>
 
@@ -1962,13 +1962,13 @@ export default function GameAndMLWorkbench() {
                                         <p className="text-[9px] text-rose-300 font-black uppercase">🚨 Cảnh báo hệ thống: Mô hình bị suy giảm thông thái!</p>
                                         <button 
                                           onClick={() => setDriftFactor(0)}
-                                          className="bg-rose-600 hover:bg-rose-500 text-white font-black text-[9px] py-1 px-3 rounded uppercase tracking-wider transition-all cursor-pointer"
+                                          className="bg-rose-600 hover:bg-rose-500 text-text-primary font-black text-[9px] py-1 px-3 rounded uppercase tracking-wider transition-all cursor-pointer"
                                         >
                                           Dỡ bỏ & Kích Hoạt Re-Train 🔄
                                         </button>
                                       </div>
                                     ) : (
-                                      <p className="text-[9px] text-slate-500 italic text-center font-sans">
+                                      <p className="text-[9px] text-text-tertiary italic text-center font-sans">
                                         * Hãy kéo thanh Drift Rate lên trên 30% để xem cảnh báo của hệ thống A/B Testing!
                                       </p>
                                     )}
@@ -1983,15 +1983,15 @@ export default function GameAndMLWorkbench() {
                             <span className="text-[9.5px] uppercase font-mono text-[#a5b4fc] font-bold block">
                               🎯 Lợi điểm thực dụng mang lại:
                             </span>
-                            <p className="text-[10.5px] text-slate-300 leading-relaxed font-semibold">
+                            <p className="text-[10.5px] text-text-secondary leading-relaxed font-semibold">
                               {currentStg.advantages}
                             </p>
                           </div>
                         </div>
 
                         {/* Stack advice */}
-                        <div className="pt-3 border-t border-slate-900 text-[9.5px] text-slate-500 font-semibold leading-relaxed text-left">
-                          <span className="uppercase text-[8.5px] text-slate-400 font-bold block mb-1">CÔNG CỤ KHUYÊN DÙNG (STACK ADVICE):</span>
+                        <div className="pt-3 border-t border-slate-900 text-[9.5px] text-text-tertiary font-semibold leading-relaxed text-left">
+                          <span className="uppercase text-[8.5px] text-text-secondary font-bold block mb-1">CÔNG CỤ KHUYÊN DÙNG (STACK ADVICE):</span>
                           <span>{currentStg.recommends}</span>
                         </div>
                       </div>
@@ -2000,28 +2000,28 @@ export default function GameAndMLWorkbench() {
                       <div className="lg:col-span-7 bg-slate-950 rounded-2xl border border-slate-850 p-5 flex flex-col justify-between space-y-4">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center border-b border-slate-900 pb-2">
-                            <span className="text-[9.5px] uppercase font-mono text-slate-400 font-bold flex items-center gap-1.5">
+                            <span className="text-[9.5px] uppercase font-mono text-text-secondary font-bold flex items-center gap-1.5">
                               <FileCode className="w-4 h-4 text-indigo-400 animate-pulse" />
                               Mã lập trình sản xuất thực tiễn {currentStg.codeLanguage.toUpperCase()}
                             </span>
                             <button
                               onClick={() => handleCopyCode(currentStg.code)}
-                              className="text-[9px] font-black text-indigo-400 hover:text-white bg-slate-900 border border-slate-800 px-2 py-1 rounded transition-all flex items-center gap-1 cursor-pointer"
+                              className="text-[9px] font-black text-indigo-400 hover:text-text-primary bg-bg-primary border border-border-primary px-2 py-1 rounded transition-all flex items-center gap-1 cursor-pointer"
                             >
                               {copiedCodeFlag ? 'Đã sao chép' : 'Copy Code'}
                             </button>
                           </div>
 
-                          <p className="text-[10px] text-slate-400 leading-normal font-semibold text-left">
+                          <p className="text-[10px] text-text-secondary leading-normal font-semibold text-left">
                             * Bản mẫu code đặc tả đúng chuẩn công nghiệp, cho phép kéo nhập trực tiếp vào dự án thực để vận hành:
                           </p>
 
-                          <pre className="text-[9.5px] font-mono text-slate-300 overflow-x-auto max-h-[350px] scrollbar-thin scrollbar-thumb-slate-800 p-3.5 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold text-left">
+                          <pre className="text-[9.5px] font-mono text-text-secondary overflow-x-auto max-h-[350px] scrollbar-thin scrollbar-thumb-slate-800 p-3.5 bg-[#03060c] rounded-xl border border-slate-900 leading-relaxed font-semibold text-left">
                             {currentStg.code}
                           </pre>
                         </div>
 
-                        <div className="bg-[#050a12]/80 p-2.5 rounded-xl border border-slate-850 text-[9px] text-slate-500 leading-relaxed font-sans italic text-left">
+                        <div className="bg-[#050a12]/80 p-2.5 rounded-xl border border-slate-850 text-[9px] text-text-tertiary leading-relaxed font-sans italic text-left">
                           * Chú ý: Việc biên dịch mã nguồn {currentStg.codeLanguage.toUpperCase()} đòi hỏi cấu hình đúng thư viện môi trường để chạy mượt!
                         </div>
                       </div>
@@ -2041,10 +2041,10 @@ export default function GameAndMLWorkbench() {
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
                     <span className="text-[9.5px] font-black text-rose-450 font-mono block tracking-widest text-[#fb7185]">ML PERFORMANCE METRICS PLAYGROUND</span>
-                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-white">
+                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-text-primary">
                       🎯 Lab 1: Interactive Confusion Matrix (Ma Trận Nhầm Lẫn)
                     </h3>
-                    <p className="text-xs text-slate-400 font-semibold leading-relaxed mt-0.5">
+                    <p className="text-xs text-text-secondary font-semibold leading-relaxed mt-0.5">
                       Một lỗi phổ biến của người mới bắt đầu (Beginner) là dựa dẫm hoàn toàn vào <strong>Accuracy (Độ chính xác)</strong> khi tập dữ liệu bị lệch (imbalanced). Hãy đóng vai một kỹ sư chống hack trong game để ngộ ra sự đánh đổi đau đớn giữa <strong>Precision (Độ chuẩn xác)</strong> và <strong>Recall (Độ phủ)</strong>!
                     </p>
                   </div>
@@ -2054,22 +2054,22 @@ export default function GameAndMLWorkbench() {
                 </div>
 
                 {/* Scenario details */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-900/40 p-4 rounded-2xl border border-slate-850/60">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-bg-primary/40 p-4 rounded-2xl border border-slate-850/60">
                   <div className="text-center md:text-left">
-                    <span className="text-[10px] text-slate-500 font-mono block uppercase">TỔNG SỐ NGƯỜI CHƠI (TOTAL)</span>
-                    <span className="text-xl font-black text-white font-mono">100</span>
+                    <span className="text-[10px] text-text-tertiary font-mono block uppercase">TỔNG SỐ NGƯỜI CHƠI (TOTAL)</span>
+                    <span className="text-xl font-black text-text-primary font-mono">100</span>
                   </div>
                   <div className="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-850/80 md:pl-4">
-                    <span className="text-[10px] text-slate-500 font-mono block uppercase">SỐ HACKER THỰC SỰ (ACTUAL POSITIVE)</span>
+                    <span className="text-[10px] text-text-tertiary font-mono block uppercase">SỐ HACKER THỰC SỰ (ACTUAL POSITIVE)</span>
                     <span className="text-xl font-black text-rose-450 font-mono">30</span>
                   </div>
                   <div className="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-850/80 md:pl-4">
-                    <span className="text-[10px] text-slate-500 font-mono block uppercase">NGƯỜI CHƠI TỐT THỰC SỰ (ACTUAL NEGATIVE)</span>
+                    <span className="text-[10px] text-text-tertiary font-mono block uppercase">NGƯỜI CHƠI TỐT THỰC SỰ (ACTUAL NEGATIVE)</span>
                     <span className="text-xl font-black text-indigo-400 font-mono">70</span>
                   </div>
                   <div className="text-center md:text-left border-t md:border-t-0 md:border-l border-slate-850/80 md:pl-4">
-                    <span className="text-[10px] text-slate-500 font-mono block uppercase">YÊU CẦU THỰC CHIẾN</span>
-                    <span className="text-xs font-bold text-slate-300 block mt-1 leading-tight text-left">Phân loại & khóa tài khoản Hacker, không khóa nhầm người vô tội!</span>
+                    <span className="text-[10px] text-text-tertiary font-mono block uppercase">YÊU CẦU THỰC CHIẾN</span>
+                    <span className="text-xs font-bold text-text-secondary block mt-1 leading-tight text-left">Phân loại & khóa tài khoản Hacker, không khóa nhầm người vô tội!</span>
                   </div>
                 </div>
 
@@ -2080,12 +2080,12 @@ export default function GameAndMLWorkbench() {
                       <h4 className="text-xs font-black text-slate-200 uppercase tracking-wide">
                         🎛️ Thay đổi Ngưỡng Tin Cậy Phân Loại (Confidence Decision Threshold)
                       </h4>
-                      <p className="text-[10.5px] text-slate-400 font-semibold mt-0.5">
+                      <p className="text-[10.5px] text-text-secondary font-semibold mt-0.5">
                         Kéo thanh trượt để chỉnh độ nhạy bén của hệ thống chống hack AI:
                       </p>
                     </div>
                     <div className="text-left sm:text-right">
-                      <span className="text-[9.5px] text-slate-500 font-mono block uppercase leading-none">AI THRESHOLD</span>
+                      <span className="text-[9.5px] text-text-tertiary font-mono block uppercase leading-none">AI THRESHOLD</span>
                       <span className="text-xl font-mono font-black text-rose-400">&gt;= {(metricsThreshold * 100).toFixed(0)}%</span>
                     </div>
                   </div>
@@ -2097,10 +2097,10 @@ export default function GameAndMLWorkbench() {
                     step="0.01"
                     value={metricsThreshold}
                     onChange={(e) => setMetricsThreshold(Number(e.target.value))}
-                    className="w-full h-1.5 bg-slate-900 rounded-lg accent-rose-500 cursor-pointer"
+                    className="w-full h-1.5 bg-bg-primary rounded-lg accent-rose-500 cursor-pointer"
                   />
 
-                  <div className="flex justify-between text-[9px] font-mono text-slate-500">
+                  <div className="flex justify-between text-[9px] font-mono text-text-tertiary">
                     <span className="text-left font-bold text-[#fecdd3]">1% (Quá Đa Nghi - Nghi ai là ban người đó!)</span>
                     <span className="text-right font-bold text-[#fecdd3]">99% (Quá Thần Trọng - Chỉ ban khi chắc chắn 100%!)</span>
                   </div>
@@ -2112,7 +2112,7 @@ export default function GameAndMLWorkbench() {
                   {/* Confusion Matrix Display (5 cols) */}
                   <div className="lg:col-span-6 bg-[#03060c]/60 border border-slate-850 rounded-2xl p-5 flex flex-col justify-between">
                     <div>
-                      <h4 className="text-[11.5px] font-black text-slate-300 uppercase tracking-widest font-mono mb-4 text-center">
+                      <h4 className="text-[11.5px] font-black text-text-secondary uppercase tracking-widest font-mono mb-4 text-center">
                         📊 MA TRẬN NHẦM LẪN THỰC TẾ (CONFUSION MATRIX GRID)
                       </h4>
                       
@@ -2120,50 +2120,50 @@ export default function GameAndMLWorkbench() {
                       <div className="grid grid-cols-12 gap-2 text-center text-[10px]">
                         {/* Headers */}
                         <div className="col-span-3"></div>
-                        <div className="col-span-9 grid grid-cols-2 bg-slate-900/30 py-1.5 rounded-lg border border-slate-900 font-mono font-bold text-slate-400">
+                        <div className="col-span-9 grid grid-cols-2 bg-bg-primary/30 py-1.5 rounded-lg border border-slate-900 font-mono font-bold text-text-secondary">
                           <div>Đoán là HACKER (Pred +)</div>
                           <div>Thả TỰ DO (Pred -)</div>
                         </div>
 
                         {/* Row 1: Actual Hacker */}
                         <div className="col-span-3 bg-red-950/20 border border-red-900/10 p-2.5 rounded-lg font-mono font-black text-red-400 flex flex-col justify-center text-left leading-tight">
-                          <span className="text-[8px] text-slate-500 block">Thực tế</span>
+                          <span className="text-[8px] text-text-tertiary block">Thực tế</span>
                           HACKER
                         </div>
                         {/* Cell 1: TP */}
                         <div className="col-span-4 bg-emerald-950/20 border border-emerald-500/30 p-3 rounded-xl flex flex-col justify-center items-center shadow shadow-emerald-950/5 relative group transition-all hover:bg-emerald-950/30">
                           <span className="text-[8.5px] text-emerald-400 font-black uppercase font-mono">True Positive (TP)</span>
                           <span className="text-2xl font-mono font-black text-emerald-400 mt-1">{tp}</span>
-                          <span className="text-[8px] text-slate-400 font-semibold leading-tight mt-1">Bắt đúng Hacker</span>
+                          <span className="text-[8px] text-text-secondary font-semibold leading-tight mt-1">Bắt đúng Hacker</span>
                         </div>
                         {/* Cell 2: FN */}
                         <div className="col-span-5 bg-amber-950/15 border border-amber-500/20 p-3 rounded-xl flex flex-col justify-center items-center relative group transition-all hover:bg-amber-950/20">
                           <span className="text-[8.5px] text-amber-400 font-black uppercase font-mono">False Negative (FN)</span>
                           <span className="text-2xl font-mono font-black text-amber-450 mt-1">{fn}</span>
-                          <span className="text-[8px] text-slate-400 font-semibold leading-tight mt-1 text-center">Bỏ sót Hacker (Lọt lưới)</span>
+                          <span className="text-[8px] text-text-secondary font-semibold leading-tight mt-1 text-center">Bỏ sót Hacker (Lọt lưới)</span>
                         </div>
 
                         {/* Row 2: Actual Clean */}
                         <div className="col-span-3 bg-indigo-950/10 border border-indigo-900/10 p-2.5 rounded-lg font-mono font-black text-indigo-400 flex flex-col justify-center text-left leading-tight">
-                          <span className="text-[8px] text-slate-500 block">Thực tế</span>
+                          <span className="text-[8px] text-text-tertiary block">Thực tế</span>
                           BÌNH THƯỜNG
                         </div>
                         {/* Cell 3: FP */}
                         <div className="col-span-4 bg-rose-950/20 border border-rose-500/30 p-3 rounded-xl flex flex-col justify-center items-center shadow shadow-rose-950/5 relative group transition-all hover:bg-rose-950/30">
                           <span className="text-[8.5px] text-rose-450 font-black uppercase font-mono">False Positive (FP)</span>
                           <span className="text-2xl font-mono font-black text-rose-400 mt-1">{fp}</span>
-                          <span className="text-[8px] text-slate-400 font-semibold leading-tight mt-1 text-center font-bold">Oan sai! (Phạt nhầm tốt)</span>
+                          <span className="text-[8px] text-text-secondary font-semibold leading-tight mt-1 text-center font-bold">Oan sai! (Phạt nhầm tốt)</span>
                         </div>
                         {/* Cell 4: TN */}
-                        <div className="col-span-5 bg-slate-900/50 border border-slate-800 p-3 rounded-xl flex flex-col justify-center items-center transition-all hover:bg-slate-900">
+                        <div className="col-span-5 bg-bg-primary/50 border border-border-primary p-3 rounded-xl flex flex-col justify-center items-center transition-all hover:bg-bg-primary">
                           <span className="text-[8.5px] text-slate-550 font-black uppercase font-mono">True Negative (TN)</span>
                           <span className="text-2xl font-mono font-black text-slate-350 mt-1">{tn}</span>
-                          <span className="text-[8px] text-slate-400 font-semibold leading-tight mt-1">Thả đúng người vô tội</span>
+                          <span className="text-[8px] text-text-secondary font-semibold leading-tight mt-1">Thả đúng người vô tội</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 p-3 bg-slate-900/40 rounded-xl border border-slate-900 text-[10px] text-slate-400 leading-normal text-left shadow">
+                    <div className="mt-4 p-3 bg-bg-primary/40 rounded-xl border border-slate-900 text-[10px] text-text-secondary leading-normal text-left shadow">
                       💡 <strong>Ý nghĩa của 4 ô:</strong> 100 người chơi được nạp vào. Hàng hiển thị hành vi thực của người chơi, Cột hiển thị AI của bạn phán quyết. Hãy để ý tổng của 4 ô luôn luôn bằng 100!
                     </div>
                   </div>
@@ -2171,20 +2171,20 @@ export default function GameAndMLWorkbench() {
                   {/* Calculations & Interpretations (7 cols) */}
                   <div className="lg:col-span-6 bg-[#03060c] border border-slate-850 rounded-2xl p-5 flex flex-col justify-between space-y-4">
                     <div>
-                      <h4 className="text-[11.5px] font-black text-slate-300 uppercase tracking-widest font-mono mb-3 text-left">
+                      <h4 className="text-[11.5px] font-black text-text-secondary uppercase tracking-widest font-mono mb-3 text-left">
                         📉 CHỈ SỐ THÔNG THỦY (ML PERFORMANCE METRICS)
                       </h4>
 
                       {/* 4 Metric grid */}
                       <div className="grid grid-cols-2 gap-3">
                         {/* ACCURACY */}
-                        <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-850 text-left">
+                        <div className="p-3 bg-bg-primary/60 rounded-xl border border-slate-850 text-left">
                           <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold text-slate-400">1. Accuracy (Chính xác tổng)</span>
-                            <span className="text-[8px] text-slate-500 font-mono">TP+TN/Total</span>
+                            <span className="text-[10px] font-bold text-text-secondary">1. Accuracy (Chính xác tổng)</span>
+                            <span className="text-[8px] text-text-tertiary font-mono">TP+TN/Total</span>
                           </div>
                           <p className="text-lg font-mono font-black text-slate-100 mt-1">{(accVal * 100).toFixed(1)}%</p>
-                          <span className="text-[9px] text-slate-450 block leading-tight mt-1 font-semibold text-slate-400">Tỷ số đoán trúng trên toàn bộ 100 người.</span>
+                          <span className="text-[9px] text-slate-450 block leading-tight mt-1 font-semibold text-text-secondary">Tỷ số đoán trúng trên toàn bộ 100 người.</span>
                         </div>
 
                         {/* F1 SCORE */}
@@ -2204,7 +2204,7 @@ export default function GameAndMLWorkbench() {
                             <span className="text-[8px] text-emerald-500 font-mono">TP / (TP+FP)</span>
                           </div>
                           <p className="text-lg font-mono font-black text-emerald-400 mt-1">{(precVal * 100).toFixed(1)}%</p>
-                          <span className="text-[9px] text-emerald-450 block leading-tight mt-1 font-semibold text-slate-400">Khi AI bảo ai đó là hacker, xác xuất đúng là bấy nhiêu %.</span>
+                          <span className="text-[9px] text-emerald-450 block leading-tight mt-1 font-semibold text-text-secondary">Khi AI bảo ai đó là hacker, xác xuất đúng là bấy nhiêu %.</span>
                         </div>
 
                         {/* RECALL */}
@@ -2214,7 +2214,7 @@ export default function GameAndMLWorkbench() {
                             <span className="text-[8px] text-amber-500 font-mono">TP / (TP+FN)</span>
                           </div>
                           <p className="text-lg font-mono font-black text-amber-400 mt-1">{(recVal * 100).toFixed(1)}%</p>
-                          <span className="text-[9px] text-amber-450 block leading-tight mt-1 font-semibold text-slate-400">Hệ thống tóm gọn được bao nhiêu % trong số 30 hacker.</span>
+                          <span className="text-[9px] text-amber-450 block leading-tight mt-1 font-semibold text-text-secondary">Hệ thống tóm gọn được bao nhiêu % trong số 30 hacker.</span>
                         </div>
                       </div>
                     </div>
@@ -2255,10 +2255,10 @@ export default function GameAndMLWorkbench() {
               <div className="bg-[#040812]/80 border border-slate-850 rounded-3xl p-6 shadow-xl space-y-4">
                 <div className="text-left">
                   <span className="text-[9.5px] font-black text-indigo-400 font-mono block tracking-widest text-[#a5b4fc]">CORE ML TAXONOMY MAP</span>
-                  <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-white">
+                  <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-text-primary">
                     🧩 Lab 2: Bản đồ các trường phái học máy cốt lõi (ML Paradigms)
                   </h3>
-                  <p className="text-xs text-slate-400 font-semibold leading-normal mt-0.5">
+                  <p className="text-xs text-text-secondary font-semibold leading-normal mt-0.5">
                     Click từng thẻ bên dưới để phân biệt rõ 3 tư duy thuật toán lớn trong giới trí tuệ nhân tạo:
                   </p>
                 </div>
@@ -2271,12 +2271,12 @@ export default function GameAndMLWorkbench() {
                     className={`p-4 rounded-2xl border text-left cursor-pointer transition-all ${
                       selectedTaxonomy === 'supervised'
                         ? 'bg-purple-500/10 border-purple-500 shadow-md ring-1 ring-purple-500/25'
-                        : 'bg-[#03060c] border-slate-850 hover:bg-slate-900/40'
+                        : 'bg-[#03060c] border-slate-850 hover:bg-bg-primary/40'
                     }`}
                   >
                     <span className="text-[8px] font-bold text-purple-400 font-mono block uppercase">PARADIGM A</span>
-                    <h4 className="text-xs font-black text-white mt-1">1. Học Có Giám Sát (Supervised)</h4>
-                    <span className="text-[10px] text-slate-400 font-semibold block leading-tight mt-1.5">
+                    <h4 className="text-xs font-black text-text-primary mt-1">1. Học Có Giám Sát (Supervised)</h4>
+                    <span className="text-[10px] text-text-secondary font-semibold block leading-tight mt-1.5">
                       Dạy AI bằng cặp dữ liệu mẫu (Input - Label). AI so khớp tìm đường nối quy luật.
                     </span>
                   </button>
@@ -2287,12 +2287,12 @@ export default function GameAndMLWorkbench() {
                     className={`p-4 rounded-2xl border text-left cursor-pointer transition-all ${
                       selectedTaxonomy === 'unsupervised'
                         ? 'bg-indigo-500/10 border-indigo-500 shadow-md ring-1 ring-indigo-500/25'
-                        : 'bg-[#03060c] border-slate-850 hover:bg-slate-900/40'
+                        : 'bg-[#03060c] border-slate-850 hover:bg-bg-primary/40'
                     }`}
                   >
                     <span className="text-[8px] font-bold text-indigo-400 font-mono block uppercase">PARADIGM B</span>
-                    <h4 className="text-xs font-black text-white mt-1">2. Học Không Giám Sát (Unsupervised)</h4>
-                    <span className="text-[10px] text-slate-400 font-semibold block leading-tight mt-1.5">
+                    <h4 className="text-xs font-black text-text-primary mt-1">2. Học Không Giám Sát (Unsupervised)</h4>
+                    <span className="text-[10px] text-text-secondary font-semibold block leading-tight mt-1.5">
                       Chỉ nạp dữ liệu thô không có nhãn. AI tự tìm xu thế, cấu trúc & quy luật ẩn của dữ liệu.
                     </span>
                   </button>
@@ -2303,12 +2303,12 @@ export default function GameAndMLWorkbench() {
                     className={`p-4 rounded-2xl border text-left cursor-pointer transition-all ${
                       selectedTaxonomy === 'reinforcement'
                         ? 'bg-rose-500/10 border-rose-500 shadow-md ring-1 ring-rose-500/25'
-                        : 'bg-[#03060c] border-slate-850 hover:bg-slate-900/40'
+                        : 'bg-[#03060c] border-slate-850 hover:bg-bg-primary/40'
                     }`}
                   >
                     <span className="text-[8px] font-bold text-rose-400 font-mono block uppercase">PARADIGM C</span>
-                    <h4 className="text-xs font-black text-white mt-1">3. Học Tăng Cường (Reinforcement)</h4>
-                    <span className="text-[10px] text-slate-400 font-semibold block leading-tight mt-1.5">
+                    <h4 className="text-xs font-black text-text-primary mt-1">3. Học Tăng Cường (Reinforcement)</h4>
+                    <span className="text-[10px] text-text-secondary font-semibold block leading-tight mt-1.5">
                       AI hoạt động như sinh vật sinh học: Đốt thử, sai, hành động nhận thưởng/phạt từ môi trường ảo.
                     </span>
                   </button>
@@ -2382,10 +2382,10 @@ export default function GameAndMLWorkbench() {
                 <div className="flex justify-between items-center">
                   <div className="text-left">
                     <span className="text-[9.5px] font-black text-emerald-450 font-mono block tracking-widest text-emerald-450 text-emerald-400">GOLDEN REAL-WORLD RULES</span>
-                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-white">
+                    <h3 className="text-sm font-black uppercase text-slate-100 mt-0.5 flex items-center gap-1.5 text-text-primary">
                       💡 5 Nguyên tắc vàng thấu xương của giới kỹ sư AI lão luyện
                     </h3>
-                    <p className="text-xs text-slate-400 font-semibold leading-none mt-0.5">
+                    <p className="text-xs text-text-secondary font-semibold leading-none mt-0.5">
                       Dưới đây là 5 kinh nghiệm thực chiến giúp bạn đỡ trả giá bằng hàng trăm giờ tìm lỗi vô vô ích:
                     </p>
                   </div>
@@ -2393,55 +2393,55 @@ export default function GameAndMLWorkbench() {
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 text-left">
                   {/* Rule 1 */}
-                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-slate-800 transition-all flex flex-col justify-between">
+                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-border-primary transition-all flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <span className="text-[9px] font-extrabold text-purple-400 font-mono block uppercase">RULE 1: ĐỪNG HỌC TỦ (NO GENERAL)</span>
                       <h4 className="text-xs font-black text-slate-200">Không bao giờ Test trên tập huấn luyện!</h4>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                         Nếu dùng đề thi học kỳ (Test Set) trùng khớp với tài liệu ôn tập (Train Set), mô hình sẽ chỉ nhớ máy móc (Overfitting) mà không học được khả năng tư duy tổng quat. Luôn phân chia tỷ lệ <strong>Train-Test rõ ràng</strong>!
                       </p>
                     </div>
                   </div>
 
                   {/* Rule 2 */}
-                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-slate-800 transition-all flex flex-col justify-between">
+                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-border-primary transition-all flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <span className="text-[9px] font-extrabold text-[#f59e0b] font-mono block uppercase text-amber-500">RULE 2: JUNK IN, JUNK OUT (QUY TẮC RÁC)</span>
                       <h4 className="text-xs font-black text-slate-200">Dữ liệu chất lượng là mạch máu của mô hình</h4>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                         Một mô hình học sâu 50 lớp phức tạp mà nạp dữ liệu rác, nhãn sai lệch vô lý, cũng chỉ cho ra dự tính rác rưởi. Dành 80% thời gian để làm sạch, xử lý dữ liệu luôn luôn là cách kỹ sư tài năng phân bổ công sức!
                       </p>
                     </div>
                   </div>
 
                   {/* Rule 3 */}
-                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-slate-800 transition-all flex flex-col justify-between">
+                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-border-primary transition-all flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <span className="text-[9px] font-extrabold text-emerald-400 font-mono block uppercase">RULE 3: BASELINE FIRST (LUÔN BẮT ĐẦU ĐƠN GIẢN)</span>
                       <h4 className="text-xs font-black text-slate-200">Đừng dùng đại bác bắn chim sẻ</h4>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                         Trước khi lạm dụng mạng thần kinh chồng chéo, hãy thử giải bằng lệnh <strong>if/else cơ bản</strong>, hay Hồi Quy Tuyến Tính đơn giản. Những giải pháp tối giản này dễ giải thích cho sếp và cực kỳ tiết kiệm chi phí chạy server Cloud!
                       </p>
                     </div>
                   </div>
 
                   {/* Rule 4 */}
-                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-slate-800 transition-all flex flex-col justify-between">
+                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-border-primary transition-all flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <span className="text-[9px] font-extrabold text-blue-400 font-mono block uppercase">RULE 4: FEATURE ENGINEERING IS KING</span>
                       <h4 className="text-xs font-black text-slate-200">Biểu diễn thuộc tính là chìa khóa đổi đời</h4>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                         Chọn và chuyển đổi thuộc tính thô thông minh giúp mô hình tăng mạnh trí tuệ. Ví dụ thay vì đoán giá nhà theo ngày xây dựng, hãy đổi thành số năm sử dụng, hoặc khoảng cách cột cây số tới trạm tàu điện gần nhất!
                       </p>
                     </div>
                   </div>
 
                   {/* Rule 5 */}
-                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-slate-800 transition-all flex flex-col justify-between">
+                  <div className="p-4 bg-slate-950/40 border border-slate-850 rounded-2xl space-y-1.5 hover:border-border-primary transition-all flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <span className="text-[9px] font-extrabold text-rose-400 font-mono block uppercase">RULE 5: TƯƠNG QUAN KHÔNG PHẢI NHÂN QUẢ</span>
                       <h4 className="text-xs font-black text-slate-200">Đừng bị sập bẫy trước biểu đồ biến thiên song hành</h4>
-                      <p className="text-[10px] text-slate-400 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary leading-relaxed font-semibold">
                         Số lượng bán kem và số vụ cháy rừng cùng tăng phi mã vào mùa hè. Tuy nhiên kem không phải nguyên nhân gây cháy rừng! Cả hai biến đều do tác nhân thời tiết nóng bức dội vào. Hãy luôn cẩn thận tìm nguyên do gốc rễ!
                       </p>
                     </div>
@@ -2452,7 +2452,7 @@ export default function GameAndMLWorkbench() {
                     <div>
                       <span className="text-[9.5px] font-black uppercase font-mono text-indigo-300">Lời chúc từ Hệ thống:</span>
                       <h4 className="text-xs font-bold text-slate-200 mt-1">Hành trình ngàn dặm bắt đầu từ một bước chân</h4>
-                      <p className="text-[10px] text-slate-400 mt-1 leading-relaxed font-semibold">
+                      <p className="text-[10px] text-text-secondary mt-1 leading-relaxed font-semibold">
                         Chào mừng bạn gia nhập thế giới Máy Học. Chúc bạn sẽ sớm chế tạo được những mô hình AI xuất sắc rực rỡ nhất!
                       </p>
                     </div>
@@ -2478,8 +2478,8 @@ export default function GameAndMLWorkbench() {
                 <span className="text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
                   Chiến lược tối ưu hóa doanh thu
                 </span>
-                <h3 className="text-lg font-black text-white">Mô hình Doanh thu & Tích hợp Ads</h3>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                <h3 className="text-lg font-black text-text-primary">Mô hình Doanh thu & Tích hợp Ads</h3>
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   Tại Việt Nam và các thị trường Đông Nam Á phổ biến, người tiêu dùng cực kỳ hạn chế việc chi tiền mua game trả tiền một lần (Premium) hay nạp vật phẩm trong app (IAP/Freemium). Do đó, mô hình <strong>Free-to-Play tích hợp Quảng cáo thưởng (Rewarded Ads)</strong> mang lại doanh thu bền bỉ và ổn định nhất cho solo founder.
                 </p>
               </div>
@@ -2488,19 +2488,19 @@ export default function GameAndMLWorkbench() {
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
                   <span className="text-xs font-bold text-slate-200">Free-to-Play + Ads</span>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal">
+                  <p className="text-[11px] text-text-secondary font-medium leading-normal">
                     Doanh thu từ Ads (Banner, Interstitial, Rewarded). Phù hợp nhất cho thị trường VN, dễ kéo DAU tăng vọt nhanh chóng.
                   </p>
                 </div>
                 <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
                   <span className="text-xs font-bold text-slate-200">Freemium (IAP Hybrid)</span>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal">
+                  <p className="text-[11px] text-text-secondary font-medium leading-normal">
                     Tải game miễn phí, đóng phí để gỡ quảng cáo hoặc mua vàng ròng. Chuyển đổi khá chậm nhưng ổn định dài hạn.
                   </p>
                 </div>
                 <div className="p-4 bg-slate-950 border border-slate-850 rounded-xl space-y-2">
                   <span className="text-xs font-bold text-slate-200">Premium (Trả 1 lần)</span>
-                  <p className="text-[11px] text-slate-400 font-medium leading-normal">
+                  <p className="text-[11px] text-text-secondary font-medium leading-normal">
                     Trả trước $0.99 - $4.99 để tải game. Chỉ hoạt động tốt tại các nước có tỷ lệ thẻ visa cao (Mỹ, Châu Âu, Nhật Bản).
                   </p>
                 </div>
@@ -2512,7 +2512,7 @@ export default function GameAndMLWorkbench() {
                   <Zap className="w-4 h-4 text-amber-400" />
                   Mẫu vị trí đặt SDK quảng cáo tối ưu
                 </h4>
-                <ul className="space-y-2.5 text-xs text-slate-300 font-semibold pl-1">
+                <ul className="space-y-2.5 text-xs text-text-secondary font-semibold pl-1">
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mt-1.5 shrink-0"></span>
                     <span><strong>Banner Ads:</strong> Luôn neo cứng ở đáy hoặc đỉnh màn hình chính của game, tránh nằm đè lên nút điều khiển cảm ứng.</span>
@@ -2532,13 +2532,13 @@ export default function GameAndMLWorkbench() {
             {/* Dynamic Revenue Calculator & Chart */}
             <div className="lg:col-span-5 bg-slate-950/40 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-5 flex flex-col justify-between">
               <div className="space-y-4">
-                <h4 className="text-xs font-black text-white uppercase tracking-wider">Bộ Công Cụ Ước Tính Doanh Thu Điện Thoại</h4>
+                <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Bộ Công Cụ Ước Tính Doanh Thu Điện Thoại</h4>
                 
                 {/* Inputs */}
                 <div className="space-y-3.5 bg-slate-950 p-4 border border-slate-850 rounded-xl">
                   {/* Slider 1: DAU */}
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold text-slate-300">
+                    <div className="flex justify-between text-xs font-bold text-text-secondary">
                       <span>Daily Active Users (DAU):</span>
                       <span className="text-amber-400 font-mono">{monetDAU.toLocaleString()}</span>
                     </div>
@@ -2549,13 +2549,13 @@ export default function GameAndMLWorkbench() {
                       step={500}
                       value={monetDAU}
                       onChange={e => setMonetDAU(parseInt(e.target.value))}
-                      className="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                      className="w-full accent-amber-500 h-1.5 bg-bg-surface rounded-lg cursor-pointer"
                     />
                   </div>
 
                   {/* Slider 2: CTR */}
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold text-slate-300">
+                    <div className="flex justify-between text-xs font-bold text-text-secondary">
                       <span>Tỷ lệ click quảng cáo (CTR):</span>
                       <span className="text-amber-400 font-mono">{monetCTR}%</span>
                     </div>
@@ -2566,13 +2566,13 @@ export default function GameAndMLWorkbench() {
                       step={0.1}
                       value={monetCTR}
                       onChange={e => setMonetCTR(parseFloat(e.target.value))}
-                      className="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                      className="w-full accent-amber-500 h-1.5 bg-bg-surface rounded-lg cursor-pointer"
                     />
                   </div>
 
                   {/* Slider 3: eCPM */}
                   <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold text-slate-300">
+                    <div className="flex justify-between text-xs font-bold text-text-secondary">
                       <span>Mức giá eCPM trung bình ($):</span>
                       <span className="text-amber-400 font-mono">${monetECPM.toFixed(1)}</span>
                     </div>
@@ -2583,7 +2583,7 @@ export default function GameAndMLWorkbench() {
                       step={0.1}
                       value={monetECPM}
                       onChange={e => setMonetECPM(parseFloat(e.target.value))}
-                      className="w-full accent-amber-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+                      className="w-full accent-amber-500 h-1.5 bg-bg-surface rounded-lg cursor-pointer"
                     />
                   </div>
                 </div>
@@ -2597,8 +2597,8 @@ export default function GameAndMLWorkbench() {
                     </strong>
                   </div>
                   <div className="text-right">
-                    <span className="text-[10px] uppercase font-mono tracking-widest font-black block text-slate-400">Ước tính VND (VCB)</span>
-                    <strong className="text-sm font-bold text-slate-300 font-mono">
+                    <span className="text-[10px] uppercase font-mono tracking-widest font-black block text-text-secondary">Ước tính VND (VCB)</span>
+                    <strong className="text-sm font-bold text-text-secondary font-mono">
                       ~{Math.round((monetDAU * (monetCTR / 100) * monetECPM) * 25400).toLocaleString()}đ
                     </strong>
                   </div>
@@ -2606,37 +2606,37 @@ export default function GameAndMLWorkbench() {
 
                 {/* Vertical CSS Bar Chart */}
                 <div className="space-y-2">
-                  <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">
+                  <span className="text-[10px] text-text-tertiary uppercase tracking-widest font-bold font-mono">
                     So sánh eCPM trung bình hệ thống ($ per 1,000 views)
                   </span>
                   <div className="bg-slate-950/60 border border-slate-850 p-4 rounded-xl space-y-3.5">
                     {/* VN */}
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] font-bold text-slate-300">
+                      <div className="flex justify-between text-[11px] font-bold text-text-secondary">
                         <span>Thị trường Việt Nam (VN) - Thấp:</span>
                         <span className="font-mono text-amber-500">$0.80</span>
                       </div>
-                      <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                      <div className="h-2 w-full bg-bg-primary rounded-full overflow-hidden">
                         <div className="h-full bg-amber-500/80 rounded-full" style={{ width: '8%' }}></div>
                       </div>
                     </div>
                     {/* JP */}
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] font-bold text-slate-300">
+                      <div className="flex justify-between text-[11px] font-bold text-text-secondary">
                         <span>Thị trường Nhật Bản (JP) - Cao:</span>
                         <span className="font-mono text-amber-500">$9.50</span>
                       </div>
-                      <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                      <div className="h-2 w-full bg-bg-primary rounded-full overflow-hidden">
                         <div className="h-full bg-sky-500/80 rounded-full" style={{ width: '75%' }}></div>
                       </div>
                     </div>
                     {/* US */}
                     <div className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] font-bold text-slate-300">
+                      <div className="flex justify-between text-[11px] font-bold text-text-secondary">
                         <span>Thị trường Hoa Kỳ (US) - Cực Cao:</span>
                         <span className="font-mono text-amber-500">$12.00</span>
                       </div>
-                      <div className="h-2 w-full bg-slate-900 rounded-full overflow-hidden">
+                      <div className="h-2 w-full bg-bg-primary rounded-full overflow-hidden">
                         <div className="h-full bg-emerald-500/80 rounded-full" style={{ width: '95%' }}></div>
                       </div>
                     </div>
@@ -2644,7 +2644,7 @@ export default function GameAndMLWorkbench() {
                 </div>
               </div>
 
-              <div className="text-[10px] text-slate-500 font-semibold border-t border-slate-900/60 pt-3">
+              <div className="text-[10px] text-text-tertiary font-semibold border-t border-slate-900/60 pt-3">
                 * Note: eCPM dao động mạnh phụ thuộc vào chất lượng, tỷ lệ giữ chân người dùng (Retention) và số lượt hiển thị được tối ưu qua thuật toán AdMob.
               </div>
             </div>
@@ -2686,7 +2686,7 @@ public class BannerAdHandler : MonoBehaviour
                 {copiedCodeFlag ? "Đã sao chép!" : "Sao chép template"}
               </button>
             </div>
-            <pre className="p-4 bg-slate-950 border-t border-slate-900 overflow-x-auto text-[11px] font-mono text-slate-300 rounded-xl leading-relaxed select-text">
+            <pre className="p-4 bg-slate-950 border-t border-slate-900 overflow-x-auto text-[11px] font-mono text-text-secondary rounded-xl leading-relaxed select-text">
 {`using UnityEngine;
 using GoogleMobileAds.Api;
 
@@ -2733,34 +2733,34 @@ public class BannerAdHandler : MonoBehaviour
           <div className="space-y-6 select-text">
             
             {/* INFORMATIVE UPPER CHASSIS */}
-            <div className="bg-[#0a0f1d] border border-slate-800 rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4">
+            <div className="bg-[#0a0f1d] border border-border-primary rounded-3xl p-6 shadow-xl relative overflow-hidden space-y-4">
               <div className="absolute right-0 top-0 -mt-10 -mr-10 w-40 h-40 rounded-full bg-purple-500/5 blur-3xl animate-pulse"></div>
               <div>
                 <span className="text-[10px] font-black text-emerald-450 uppercase font-mono block tracking-widest text-emerald-450">Trang 5, 6 &amp; 7: Sức Mạnh Công Nghệ Tiết Kiệm</span>
-                <h3 className="text-sm font-black uppercase text-white mt-1 flex items-center gap-1.5 font-sans">
+                <h3 className="text-sm font-black uppercase text-text-primary mt-1 flex items-center gap-1.5 font-sans">
                   🚀 Hệ Sinh Thái Đa Nền Tảng &amp; Trọng Tâm Godot 4.6 (Core Game Engines Hub)
                 </h3>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold max-w-4xl">
-                  Để tối đa hóa tỷ suất lợi nhuận ròng rã và giải phóng đôi tay Solo Founder, ta phân loại rõ rệt giữa <strong className="text-white">Core Stacks ứng dụng thương mại</strong> và <strong className="text-white">Game Engines tính năng cao</strong>. Khám phá các công nghệ giúp bảo biên lợi nhuận tuyệt đối 0% chiết khấu.
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold max-w-4xl">
+                  Để tối đa hóa tỷ suất lợi nhuận ròng rã và giải phóng đôi tay Solo Founder, ta phân loại rõ rệt giữa <strong className="text-text-primary">Core Stacks ứng dụng thương mại</strong> và <strong className="text-text-primary">Game Engines tính năng cao</strong>. Khám phá các công nghệ giúp bảo biên lợi nhuận tuyệt đối 0% chiết khấu.
                 </p>
               </div>
 
               {/* STAGE SELECTION PILLS */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-850">
-                <div className="text-center py-2 bg-slate-900/60 rounded-lg border border-slate-850/50">
-                  <span className="text-[9px] font-black text-slate-500 font-mono block leading-none">RENDER ENGINE</span>
-                  <span className="text-[11px] text-white font-extrabold mt-1 inline-block">Vulkan Mobile</span>
+                <div className="text-center py-2 bg-bg-primary/60 rounded-lg border border-slate-850/50">
+                  <span className="text-[9px] font-black text-text-tertiary font-mono block leading-none">RENDER ENGINE</span>
+                  <span className="text-[11px] text-text-primary font-extrabold mt-1 inline-block">Vulkan Mobile</span>
                 </div>
-                <div className="text-center py-2 bg-slate-900/60 rounded-lg border border-slate-850/50">
-                  <span className="text-[9px] font-black text-slate-500 font-mono block leading-none">ARCHITECTURE</span>
-                  <span className="text-[11px] text-white font-extrabold mt-1 inline-block">Node Composition</span>
+                <div className="text-center py-2 bg-bg-primary/60 rounded-lg border border-slate-850/50">
+                  <span className="text-[9px] font-black text-text-tertiary font-mono block leading-none">ARCHITECTURE</span>
+                  <span className="text-[11px] text-text-primary font-extrabold mt-1 inline-block">Node Composition</span>
                 </div>
-                <div className="text-center py-2 bg-slate-900/60 rounded-lg border border-slate-850/50">
-                  <span className="text-[9px] font-black text-slate-500 font-mono block leading-none">ROYALTY RATE</span>
+                <div className="text-center py-2 bg-bg-primary/60 rounded-lg border border-slate-850/50">
+                  <span className="text-[9px] font-black text-text-tertiary font-mono block leading-none">ROYALTY RATE</span>
                   <span className="text-[11px] text-emerald-400 font-extrabold mt-1 inline-block">0% GPLv3 / MIT</span>
                 </div>
-                <div className="text-center py-2 bg-slate-900/60 rounded-lg border border-slate-850/50">
-                  <span className="text-[9px] font-black text-slate-500 font-mono block leading-none">PORTING ENGINE</span>
+                <div className="text-center py-2 bg-bg-primary/60 rounded-lg border border-slate-850/50">
+                  <span className="text-[9px] font-black text-text-tertiary font-mono block leading-none">PORTING ENGINE</span>
                   <span className="text-[11px] text-sky-400 font-extrabold mt-1 inline-block">GABE &amp; Xogot iOS</span>
                 </div>
               </div>
@@ -2770,10 +2770,10 @@ public class BannerAdHandler : MonoBehaviour
             <div className="bg-slate-950 border border-slate-850 rounded-3xl p-6 shadow-xl space-y-6">
               <div>
                 <span className="text-[10px] font-black text-amber-500 uppercase font-mono block">GODOT ZERO-ROYALTY FINANCIAL CALCULATOR (Trang 6 &amp; 7)</span>
-                <h4 className="text-sm font-black text-white uppercase mt-0.5">
+                <h4 className="text-sm font-black text-text-primary uppercase mt-0.5">
                   🛡️ Trình Giả Lập Bảo Toàn Doanh Thu Số - Godot vs Unity vs Unreal
                 </h4>
-                <p className="text-xs text-slate-400 font-semibold leading-relaxed mt-1">
+                <p className="text-xs text-text-secondary font-semibold leading-relaxed mt-1">
                   Kéo thanh trượt để giả lập mục tiêu doanh thu vòng đời sản phẩm game của bạn hằng năm. Khám phá cách Godot giữ an toàn tài chính 100% dòng tiền của Solo Founder so với mức phí biến đổi phức tạp của đối thủ.
                 </p>
               </div>
@@ -2781,12 +2781,12 @@ public class BannerAdHandler : MonoBehaviour
               <div className="grid lg:grid-cols-12 gap-6 items-stretch">
                 
                 {/* Sliders Configuration Column */}
-                <div className="lg:col-span-6 bg-slate-900 border border-slate-850 p-5 rounded-2xl flex flex-col justify-between space-y-4">
+                <div className="lg:col-span-6 bg-bg-primary border border-slate-850 p-5 rounded-2xl flex flex-col justify-between space-y-4">
                   <div className="space-y-4">
                     {/* Expected Lifetime Revenue */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-xs font-black">
-                        <span className="text-slate-300">Dự kiến doanh thu trọn đời (Vòng 24 tháng):</span>
+                        <span className="text-text-secondary">Dự kiến doanh thu trọn đời (Vòng 24 tháng):</span>
                         <span className="text-emerald-400 font-mono text-sm">${godotRevenue.toLocaleString()} USD</span>
                       </div>
                       <input
@@ -2808,7 +2808,7 @@ public class BannerAdHandler : MonoBehaviour
                     {/* Expected Lifetime Downloads */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center text-xs font-black">
-                        <span className="text-slate-300">Dự kiến số lượt cài đặt di động (Downloads):</span>
+                        <span className="text-text-secondary">Dự kiến số lượt cài đặt di động (Downloads):</span>
                         <span className="text-purple-400 font-mono text-sm">{godotDownloads.toLocaleString()} lượt tải</span>
                       </div>
                       <input
@@ -2829,12 +2829,12 @@ public class BannerAdHandler : MonoBehaviour
                   </div>
 
                   <div className="p-3.5 bg-slate-950 border border-slate-850 rounded-xl space-y-1 text-[11px] leading-relaxed font-semibold">
-                    <span className="text-white">💡 Giải Thích Cơ Chế Thẩm Định:</span>
-                    <p className="text-slate-400">
-                      * <strong className="text-white">Unity Cost:</strong> Yêu cầu nâng cấp lên gói Pro ($2,040/năm/ghế) khi doanh thu cán mốc $200k. Doanh thu &gt; $1M kèm lượt tải vượt 200k sẽ chịu phí Runtime fee trung bình $0.15/download.
+                    <span className="text-text-primary">💡 Giải Thích Cơ Chế Thẩm Định:</span>
+                    <p className="text-text-secondary">
+                      * <strong className="text-text-primary">Unity Cost:</strong> Yêu cầu nâng cấp lên gói Pro ($2,040/năm/ghế) khi doanh thu cán mốc $200k. Doanh thu &gt; $1M kèm lượt tải vượt 200k sẽ chịu phí Runtime fee trung bình $0.15/download.
                     </p>
-                    <p className="text-slate-400 mt-1">
-                      * <strong className="text-white">Unreal Engine Cost:</strong> Thu phí đúng <strong className="text-rose-455">5% gross revenue</strong> cho bất kể đồng đô la nào thu được sau khi đạt mốc doanh thu $1,000,000 USD.
+                    <p className="text-text-secondary mt-1">
+                      * <strong className="text-text-primary">Unreal Engine Cost:</strong> Thu phí đúng <strong className="text-rose-455">5% gross revenue</strong> cho bất kể đồng đô la nào thu được sau khi đạt mốc doanh thu $1,000,000 USD.
                     </p>
                   </div>
                 </div>
@@ -2842,11 +2842,11 @@ public class BannerAdHandler : MonoBehaviour
                 {/* Live Benchmark Financial Dashboard Card */}
                 <div className="lg:col-span-6 bg-[#040811] border border-slate-850 p-5 rounded-2xl flex flex-col justify-between space-y-4">
                   <div className="space-y-3.5">
-                    <span className="text-[10px] font-mono text-slate-500 font-bold uppercase tracking-wider block">COMPETITIVE FEES OUTFLOW MATRIX</span>
+                    <span className="text-[10px] font-mono text-text-tertiary font-bold uppercase tracking-wider block">COMPETITIVE FEES OUTFLOW MATRIX</span>
                     
                     <div className="space-y-2 text-xs font-bold">
                       {/* Unreal Fee */}
-                      <div className="flex justify-between items-center p-2.5 bg-slate-900 border border-slate-850/60 rounded-xl">
+                      <div className="flex justify-between items-center p-2.5 bg-bg-primary border border-slate-850/60 rounded-xl">
                         <span className="text-slate-350 flex items-center gap-1.5 font-sans">
                           <span className="w-2 h-2 rounded-full bg-rose-500"></span>
                           Ước tính phí Unreal (5% sau $1M):
@@ -2855,7 +2855,7 @@ public class BannerAdHandler : MonoBehaviour
                       </div>
 
                       {/* Unity Fee */}
-                      <div className="flex justify-between items-center p-2.5 bg-slate-900 border border-slate-850/60 rounded-xl">
+                      <div className="flex justify-between items-center p-2.5 bg-bg-primary border border-slate-850/60 rounded-xl">
                         <span className="text-slate-350 flex items-center gap-1.5 font-sans">
                           <span className="w-2 h-2 rounded-full bg-orange-500"></span>
                           Ước tính phí Unity (Pro + Runtime):
@@ -2875,9 +2875,9 @@ public class BannerAdHandler : MonoBehaviour
                   </div>
 
                   {/* Highlights section inside block */}
-                  <div className="p-4 bg-slate-900 border border-slate-850 rounded-xl space-y-2">
+                  <div className="p-4 bg-bg-primary border border-slate-850 rounded-xl space-y-2">
                     <div className="flex justify-between items-center font-bold">
-                      <span className="text-xs text-slate-300">Biên bảo vệ dòng tiền (Saved Money):</span>
+                      <span className="text-xs text-text-secondary">Biên bảo vệ dòng tiền (Saved Money):</span>
                       <span className="text-emerald-400 font-mono text-base font-black">
                         +${Math.round(maxCompetitorFee).toLocaleString()} USD
                       </span>
@@ -2891,7 +2891,7 @@ public class BannerAdHandler : MonoBehaviour
                     </div>
 
                     <div className="text-[10px] text-slate-450 leading-relaxed font-bold">
-                      🔥 <strong>Nhận định:</strong> Chọn Godot giúp bảo vệ gần <strong className="text-white">{revenueProtectionRate.toFixed(1)}%</strong> doanh số khỏi bị cắt phăng vô lý. Số tiền tiết kiệm đủ để thuê ngoài 2 nghệ sĩ vẽ graphic 2D rực rỡ cho phần tiếp theo!
+                      🔥 <strong>Nhận định:</strong> Chọn Godot giúp bảo vệ gần <strong className="text-text-primary">{revenueProtectionRate.toFixed(1)}%</strong> doanh số khỏi bị cắt phăng vô lý. Số tiền tiết kiệm đủ để thuê ngoài 2 nghệ sĩ vẽ graphic 2D rực rỡ cho phần tiếp theo!
                     </div>
                   </div>
                 </div>
@@ -2903,10 +2903,10 @@ public class BannerAdHandler : MonoBehaviour
             <div className="bg-slate-950/40 border border-slate-850 rounded-3xl p-6 shadow-xl space-y-4">
               <div>
                 <span className="text-[10px] font-black text-sky-400 uppercase font-mono block">Trang 5: Bảng đối chiếu core app stacks</span>
-                <h4 className="text-sm font-black text-white uppercase mt-0.5">
+                <h4 className="text-sm font-black text-text-primary uppercase mt-0.5">
                   📱 So Sánh Công Nghệ Framework Ứng Dụng Hướng Thương Mại (Cross-Platform Stacks)
                 </h4>
-                <p className="text-xs text-slate-400 font-semibold leading-relaxed mt-1">
+                <p className="text-xs text-text-secondary font-semibold leading-relaxed mt-1">
                   Nếu bạn không làm game mà đang kiến tạo các sản phẩm di động thương mại, phần mềm quản hạch toán (Ví dụ: LedgerFlow, CRM, ASO tools), dưới đây là khung chỉ số đối chiếu chính xác từ trang 5 của báo cáo:
                 </p>
               </div>
@@ -2914,7 +2914,7 @@ public class BannerAdHandler : MonoBehaviour
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-850 text-slate-500 text-[10px] uppercase font-bold">
+                    <tr className="border-b border-slate-850 text-text-tertiary text-[10px] uppercase font-bold">
                       <th className="py-2.5 px-3">Framework</th>
                       <th className="py-2.5 px-3">Ngôn ngữ</th>
                       <th className="py-2.5 px-3 text-center">Bundle tối thiểu</th>
@@ -2923,9 +2923,9 @@ public class BannerAdHandler : MonoBehaviour
                       <th className="py-2.5 px-3">Ứng dụng tiêu biểu</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-900 text-slate-300 font-semibold font-sans">
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white flex items-center gap-1.5">
+                  <tbody className="divide-y divide-slate-900 text-text-secondary font-semibold font-sans">
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-sky-400 rounded-full"></span>
                         Flutter
                       </td>
@@ -2933,11 +2933,11 @@ public class BannerAdHandler : MonoBehaviour
                       <td className="py-3 px-3 text-center font-mono">~7MB - 9MB</td>
                       <td className="py-3 px-3 text-center text-emerald-400">Độc lập (Impeller Engine)</td>
                       <td className="py-3 px-3">Rực rỡ, ít lỗi lệch giao diện giữa máy Android/iOS. Chạy mượt sướng.</td>
-                      <td className="py-3 px-3 text-slate-400 italic">Ví điện tử, app giao hàng</td>
+                      <td className="py-3 px-3 text-text-secondary italic">Ví điện tử, app giao hàng</td>
                     </tr>
 
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white flex items-center gap-1.5">
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-blue-400 rounded-full"></span>
                         React Native
                       </td>
@@ -2945,11 +2945,11 @@ public class BannerAdHandler : MonoBehaviour
                       <td className="py-3 px-3 text-center font-mono">~15MB - 20MB</td>
                       <td className="py-3 px-3 text-center text-amber-500">Native Bridge / Hermes</td>
                       <td className="py-3 px-3">Ecosystem đồ sộ nhất, tái sử dụng 80% logic web-app sang mobile.</td>
-                      <td className="py-3 px-3 text-slate-400 italic">Facebook, Shopify UI, Discord</td>
+                      <td className="py-3 px-3 text-text-secondary italic">Facebook, Shopify UI, Discord</td>
                     </tr>
 
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white flex items-center gap-1.5">
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-orange-400 rounded-full"></span>
                         Tauri
                       </td>
@@ -2957,11 +2957,11 @@ public class BannerAdHandler : MonoBehaviour
                       <td className="py-3 px-3 text-center font-mono text-emerald-400">~2MB - 4MB</td>
                       <td className="py-3 px-3 text-center text-emerald-400">Native OS WebView</td>
                       <td className="py-3 px-3">Siêu gọn nhẹ, bảo mật Rust, chuyển hóa Web-App sang Desktop cực nhạy.</td>
-                      <td className="py-3 px-3 text-slate-400 italic">Công cụ xuất báo cáo hạch toán</td>
+                      <td className="py-3 px-3 text-text-secondary italic">Công cụ xuất báo cáo hạch toán</td>
                     </tr>
 
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white flex items-center gap-1.5">
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary flex items-center gap-1.5">
                         <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
                         Kotlin Multiplatform (KMP)
                       </td>
@@ -2969,7 +2969,7 @@ public class BannerAdHandler : MonoBehaviour
                       <td className="py-3 px-3 text-center font-mono">~3MB - 5MB</td>
                       <td className="py-3 px-3 text-center text-emerald-400">Bản địa (Native UI)</td>
                       <td className="py-3 px-3">Chỉ chia sẻ logic nghiệp vụ, UI biên dịch riêng biệt tối ưu xuất sắc.</td>
-                      <td className="py-3 px-3 text-slate-400 italic">App ngân hàng, Netflix Mobile</td>
+                      <td className="py-3 px-3 text-text-secondary italic">App ngân hàng, Netflix Mobile</td>
                     </tr>
                   </tbody>
                 </table>
@@ -2980,14 +2980,14 @@ public class BannerAdHandler : MonoBehaviour
             <div className="bg-slate-950/40 border border-slate-850 rounded-3xl p-6 shadow-xl space-y-4">
               <div>
                 <span className="text-[10px] font-black text-purple-400 uppercase font-mono block">Trang 6: So sánh tính năng game engine</span>
-                <h4 className="text-sm font-black text-white uppercase mt-0.5">
+                <h4 className="text-sm font-black text-text-primary uppercase mt-0.5">
                   👾 So Sánh Độc Lập Các Công Cụ Lập Trình Game Cho Solo Founder
                 </h4>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs border-collapse">
                   <thead>
-                    <tr className="border-b border-slate-850 text-slate-500 text-[10px] uppercase font-bold">
+                    <tr className="border-b border-slate-850 text-text-tertiary text-[10px] uppercase font-bold">
                       <th className="py-2.5 px-3">Engine / Công cụ</th>
                       <th className="py-2.5 px-3">Ngôn ngữ</th>
                       <th className="py-2.5 px-3">Phí bản quyền</th>
@@ -2995,30 +2995,30 @@ public class BannerAdHandler : MonoBehaviour
                       <th className="py-2.5 px-3">Nhược điểm gốc</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-900 text-slate-300 font-semibold font-sans">
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white">Godot Engine 4.6</td>
+                  <tbody className="divide-y divide-slate-900 text-text-secondary font-semibold font-sans">
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary">Godot Engine 4.6</td>
                       <td className="py-3 px-3 font-mono text-emerald-405 text-emerald-400">GDScript / C#</td>
                       <td className="py-3 px-3 text-emerald-400 font-bold">Free hoàn toàn (MIT)</td>
                       <td className="py-3 px-3">Cực kỳ nhẹ (&lt;100MB), khởi động 1 giây, Vulkan mượt bốc, modular node.</td>
                       <td className="py-3 px-3">Thị phần 3D yếu hơn Unity, ít video tut nâng cao Việt hóa.</td>
                     </tr>
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white">Phaser.js / Web</td>
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary">Phaser.js / Web</td>
                       <td className="py-3 px-3 font-mono text-yellow-400">JavaScript / TS</td>
                       <td className="py-3 px-3 text-emerald-400">Free hoàn toàn (MIT)</td>
                       <td className="py-3 px-3">Tuyệt đối mượt mà nhất khi làm game Web 2D, đẩy lên mini-app.</td>
                       <td className="py-3 px-3">Khó biên dịch ra file gốc di động (phải dùng Capacitor).</td>
                     </tr>
-                    <tr className="hover:bg-slate-900/40 transition-all text-slate-400">
-                      <td className="py-3 px-3 font-bold text-slate-300">Unity 2D/3D</td>
+                    <tr className="hover:bg-bg-primary/40 transition-all text-text-secondary">
+                      <td className="py-3 px-3 font-bold text-text-secondary">Unity 2D/3D</td>
                       <td className="py-3 px-3 font-mono">C#</td>
                       <td className="py-3 px-3">Free nếu doanh thu &lt;$100K</td>
                       <td className="py-3 px-3">Ecosystem dồi dào, ngập tràn tài liệu học tập, tối ưu hóa về Ads.</td>
                       <td className="py-3 px-3">Mô hình thu phí cài đặt gây tranh cãi, nặng nề, load lâu.</td>
                     </tr>
-                    <tr className="hover:bg-slate-900/40 transition-all">
-                      <td className="py-3 px-3 font-bold text-white">Cocos Creator</td>
+                    <tr className="hover:bg-bg-primary/40 transition-all">
+                      <td className="py-3 px-3 font-bold text-text-primary">Cocos Creator</td>
                       <td className="py-3 px-3 font-mono text-purple-400">TypeScript</td>
                       <td className="py-3 px-3 text-emerald-400">Miễn phí</td>
                       <td className="py-3 px-3">Hàng đầu Châu Á cho Game HTML5, tối ưu hóa cho di động phổ thông rẻ.</td>
@@ -3038,11 +3038,11 @@ public class BannerAdHandler : MonoBehaviour
                   <span className="text-[9.5px] font-mono text-purple-400 font-extrabold bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded leading-none">
                     ENGINE COMPOSITION ENGINE
                   </span>
-                  <h4 className="text-xs font-black text-white uppercase flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-text-primary uppercase flex items-center gap-1.5">
                     🌳 Bản Đồ Ghép Nối Nốt Sông (Godot Node Composition vs Class Inheritance)
                   </h4>
-                  <p className="text-[11.5px] text-slate-400 leading-normal font-semibold">
-                    Thay vì kế thừa rườm rà (Inheritance) của lập trình truyền thống dễ gây thắt nút cổ chai, Godot dùng cơ chế <strong className="text-white">Gom nhóm nốt độc lập (Node Composition)</strong>. Nhấp chọn các thực thể để soi cấu trúc cây lắp ráp:
+                  <p className="text-[11.5px] text-text-secondary leading-normal font-semibold">
+                    Thay vì kế thừa rườm rà (Inheritance) của lập trình truyền thống dễ gây thắt nút cổ chai, Godot dùng cơ chế <strong className="text-text-primary">Gom nhóm nốt độc lập (Node Composition)</strong>. Nhấp chọn các thực thể để soi cấu trúc cây lắp ráp:
                   </p>
                 </div>
 
@@ -3058,8 +3058,8 @@ public class BannerAdHandler : MonoBehaviour
                       onClick={() => setGodotSelectedNode(tab.id as any)}
                       className={`flex-1 py-1.5 rounded-lg border text-center transition-all ${
                         godotSelectedNode === tab.id
-                          ? 'bg-purple-550 bg-purple-600 border-purple-500 text-white shadow'
-                          : 'border-transparent text-slate-500 hover:text-slate-350'
+                          ? 'bg-purple-550 bg-purple-600 border-purple-500 text-text-primary shadow'
+                          : 'border-transparent text-text-tertiary hover:text-slate-350'
                       }`}
                     >
                       {tab.label}
@@ -3068,14 +3068,14 @@ public class BannerAdHandler : MonoBehaviour
                 </div>
 
                 {/* Simulated File Nodes Display Panel */}
-                <div className="bg-slate-900 border border-slate-850 p-4 rounded-xl space-y-3 font-mono text-[11px] leading-relaxed select-none">
+                <div className="bg-bg-primary border border-slate-850 p-4 rounded-xl space-y-3 font-mono text-[11px] leading-relaxed select-none">
                   {godotSelectedNode === 'player' && (
                     <div className="space-y-1 text-purple-300">
-                      <div className="text-white font-extrabold flex items-center gap-1.5">
+                      <div className="text-text-primary font-extrabold flex items-center gap-1.5">
                         <span>📦 Player (CharacterBody2D)</span>
                         <span className="text-[9px] bg-purple-500/10 border border-purple-500/20 px-1.5 py-0.5 text-purple-400 rounded">Gốc Vật Lý 2D</span>
                       </div>
-                      <div className="pl-6 border-l border-slate-800">
+                      <div className="pl-6 border-l border-border-primary">
                         <div>├── 👤 Sprite (AnimatedSprite2D) &lt;-- Quản lý khung hình hoạt họa chạy, nhảy</div>
                         <div>├── 📐 Collision (CollisionShape2D) &lt;-- Định hình khối va chạm hộp</div>
                         <div>├── 🧭 FeetDetector (RayCast2D) &lt;-- Kỹ thuật quét chạm mặt đất siêu tốc</div>
@@ -3087,11 +3087,11 @@ public class BannerAdHandler : MonoBehaviour
 
                   {godotSelectedNode === 'enemy' && (
                     <div className="space-y-1 text-rose-300">
-                      <div className="text-white font-extrabold flex items-center gap-1.5">
+                      <div className="text-text-primary font-extrabold flex items-center gap-1.5">
                         <span>📦 PatrolBat (CharacterBody2D)</span>
                         <span className="text-[9px] bg-rose-500/10 border border-rose-500/20 px-1.5 py-0.5 text-rose-420 rounded">Quái Bay AI</span>
                       </div>
-                      <div className="pl-6 border-l border-slate-800">
+                      <div className="pl-6 border-l border-border-primary">
                         <div>├── 👤 Sprite (AnimatedSprite2D) &lt;-- Chớp cánh dơi bay đêm</div>
                         <div>├── 📐 Collision (CollisionShape2D) &lt;-- Hình tròn đo va đâm</div>
                         <div>├── 🚨 DetectionRange (Area2D) &lt;-- Bán kính vùng phát hiện ra Player</div>
@@ -3103,11 +3103,11 @@ public class BannerAdHandler : MonoBehaviour
 
                   {godotSelectedNode === 'ui' && (
                     <div className="space-y-1 text-sky-300">
-                      <div className="text-white font-extrabold flex items-center gap-1.5">
+                      <div className="text-text-primary font-extrabold flex items-center gap-1.5">
                         <span>📦 CanvasLayer (HUD)</span>
                         <span className="text-[9px] bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 text-sky-400 rounded">Trình Chiếu Giao Diện</span>
                       </div>
-                      <div className="pl-6 border-l border-slate-800">
+                      <div className="pl-6 border-l border-border-primary">
                         <div>├── 🏷️ MarginContainer (Căn lề chuẩn dòng di động)</div>
                         <div className="pl-6 border-l border-slate-850">
                           <div>├── 📊 ScoreText (Label) &lt;-- Hiển thị số lượng vàng tích hũ ròng rã</div>
@@ -3121,7 +3121,7 @@ public class BannerAdHandler : MonoBehaviour
                 </div>
 
                 <div className="text-[10px] text-slate-450 leading-normal font-bold">
-                  🧩 <strong>Lợi thế của Composition:</strong> Muốn dơi tuần tiễu biết phát nổ âm thanh khi chết? Chỉ cần kéo thả nốt <code className="text-slate-300">AudioStreamPlayer2D</code> vào rã nốt dơi. Không hề cần viết lại lớp con kế thừa lớp cha vô cùng nan giải!
+                  🧩 <strong>Lợi thế của Composition:</strong> Muốn dơi tuần tiễu biết phát nổ âm thanh khi chết? Chỉ cần kéo thả nốt <code className="text-text-secondary">AudioStreamPlayer2D</code> vào rã nốt dơi. Không hề cần viết lại lớp con kế thừa lớp cha vô cùng nan giải!
                 </div>
               </div>
 
@@ -3129,21 +3129,21 @@ public class BannerAdHandler : MonoBehaviour
               <div className="lg:col-span-5 bg-slate-950 border border-slate-850 p-6 rounded-3xl flex flex-col justify-between space-y-4">
                 <div className="space-y-1.5">
                   <span className="text-[9.5px] font-mono text-emerald-400 font-extrabold uppercase">GDScript vs C# Comparison (Trang 6)</span>
-                  <h4 className="text-xs font-black text-white uppercase flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-text-primary uppercase flex items-center gap-1.5">
                     📜 Lập Trình Nhân Vật Vật Lý Siêu Tốc
                   </h4>
-                  <p className="text-[11px] text-slate-400 leading-normal font-semibold">
+                  <p className="text-[11px] text-text-secondary leading-normal font-semibold">
                     Godot 4.6 hỗ trợ tuyệt vời GDScript (ngôn ngữ tựa Python, dễ học, tích hợp sâu vào engine, cực nhanh) và C# (cho các hệ thống tính toán lớn).
                   </p>
                 </div>
 
                 <div className="space-y-2 border-t border-slate-900 pt-3">
                   <div className="flex justify-between items-center bg-[#070b13] p-1.5 border border-slate-850 rounded-xl text-[9px] font-mono">
-                    <span className="text-slate-500 font-bold px-2">Vật Lý Di Chuyển (Movement Physics):</span>
+                    <span className="text-text-tertiary font-bold px-2">Vật Lý Di Chuyển (Movement Physics):</span>
                     <span className="text-emerald-400 font-extrabold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">GDScript Đề Nghị</span>
                   </div>
 
-                  <pre className="p-3.5 bg-slate-900 border border-slate-850 rounded-xl overflow-x-auto text-[10px] font-mono text-emerald-300 block leading-relaxed">
+                  <pre className="p-3.5 bg-bg-primary border border-slate-850 rounded-xl overflow-x-auto text-[10px] font-mono text-emerald-300 block leading-relaxed">
 {`extends CharacterBody2D
 
 const SPEED = 250.0
@@ -3171,13 +3171,13 @@ func _physics_process(delta):
             </div>
 
             {/* 5. GABE GRADLE & XOGOT PORTABILITY CORNER (Trang 7) */}
-            <div className="bg-gradient-to-r from-slate-950 via-[#0c051a] to-[#040813] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="bg-gradient-to-r from-slate-950 via-[#0c051a] to-[#040813] border border-border-primary rounded-3xl p-6 shadow-xl space-y-4">
               <div>
                 <span className="text-[10px] font-black text-purple-400 uppercase font-mono block">CÔNG CỤ PHÂN PHỐI GỐC DI ĐỘNG (DI ĐỘNG HÓA TRANG 7)</span>
-                <h4 className="text-sm font-black text-rose-455 text-white uppercase mt-0.5">
+                <h4 className="text-sm font-black text-rose-455 text-text-primary uppercase mt-0.5">
                   🛠️ GABE Automation Builder &amp; Xogot Editor Directly On Mobile iOS/iPad
                 </h4>
-                <p className="text-xs text-slate-400 font-semibold leading-relaxed mt-1">
+                <p className="text-xs text-text-secondary font-semibold leading-relaxed mt-1">
                   Khám phá hai công cụ bẻ gãy rào cản phần cứng khắt khe của Apple/Google, hỗ trợ Solo Founder đóng gói sản phẩm mọi lúc mọi nơi:
                 </p>
               </div>
@@ -3189,9 +3189,9 @@ func _physics_process(delta):
                   <div className="absolute right-0 bottom-0 opacity-5 w-24 h-24 bg-purple-500 rounded-full blur-xl"></div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg">🤖</span>
-                    <h5 className="text-xs font-black text-white uppercase">GABE (Gradle Automated Build Engine)</h5>
+                    <h5 className="text-xs font-black text-text-primary uppercase">GABE (Gradle Automated Build Engine)</h5>
                   </div>
-                  <p className="text-[11.2px] text-slate-400 leading-relaxed font-semibold">
+                  <p className="text-[11.2px] text-text-secondary leading-relaxed font-semibold">
                     Hệ thống tự động hóa liên kết cấu hình Gradle, tự động kí mã số bảo mật Keystore và xuất thẳng bản build <strong className="text-purple-400">.AAB (Android App Bundle)</strong> lên thẳng nhánh thử nghiệm của Google Play Console bằng một dòng lệnh duy nhất, rút ngắn 90% thao tác thủ công lỗi.
                   </p>
                 </div>
@@ -3201,9 +3201,9 @@ func _physics_process(delta):
                   <div className="absolute right-0 bottom-0 opacity-5 w-24 h-24 bg-rose-500 rounded-full blur-xl"></div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg">📱</span>
-                    <h5 className="text-xs font-black text-white uppercase">Xogot iPad/iPhone Native Porting Editor</h5>
+                    <h5 className="text-xs font-black text-text-primary uppercase">Xogot iPad/iPhone Native Porting Editor</h5>
                   </div>
-                  <p className="text-[11.2px] text-slate-400 leading-relaxed font-semibold">
+                  <p className="text-[11.2px] text-text-secondary leading-relaxed font-semibold">
                     Giải pháp độc đáo cho phép chạy trực tiếp bộ biên tập Godot Editor mộc mạc ngay trên thiết bị iPad hoặc điện thoại iPhone cũ mà không cần ngồi máy tính PC cồng kềnh. Solo Founder có thể lập trình cơ chế va chạm, test touch controls bằng ngón tay và compile thử nghiệm mượt mà ngay trên xe bus!
                   </p>
                 </div>
@@ -3221,19 +3221,19 @@ func _physics_process(delta):
                 <ul className="space-y-2.5 text-xs text-slate-450 leading-relaxed font-semibold pl-1">
                   <li className="flex gap-2">
                     <span className="text-emerald-400 font-mono">1.</span>
-                    <span className="text-slate-300">Tạo chứng chỉ Keystore .jks bảo mật cấu hình chặt chẽ.</span>
+                    <span className="text-text-secondary">Tạo chứng chỉ Keystore .jks bảo mật cấu hình chặt chẽ.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-emerald-400 font-mono">2.</span>
-                    <span className="text-slate-300">Sử dụng tệp định dạng <strong>.AAB (Android App Bundle)</strong> để Google tự chia gói CPU phù hợp.</span>
+                    <span className="text-text-secondary">Sử dụng tệp định dạng <strong>.AAB (Android App Bundle)</strong> để Google tự chia gói CPU phù hợp.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-emerald-400 font-mono">3.</span>
-                    <span className="text-slate-300">Khai báo câu hỏi độ tuổi người chơi (IARC) chuẩn chỉ không bạo lực.</span>
+                    <span className="text-text-secondary">Khai báo câu hỏi độ tuổi người chơi (IARC) chuẩn chỉ không bạo lực.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-emerald-400 font-mono">4.</span>
-                    <span className="text-slate-300">Tích hợp AdMob Data Safety, chứng thực thu thập tệp quảng cáo trẻ em nếu tự chỉ định.</span>
+                    <span className="text-text-secondary">Tích hợp AdMob Data Safety, chứng thực thu thập tệp quảng cáo trẻ em nếu tự chỉ định.</span>
                   </li>
                 </ul>
               </div>
@@ -3246,15 +3246,15 @@ func _physics_process(delta):
                 <ul className="space-y-2.5 text-xs text-slate-450 leading-relaxed font-semibold pl-1">
                   <li className="flex gap-2">
                     <span className="text-rose-455 font-mono">1.</span>
-                    <span className="text-slate-300">Đăng ký thành viên Apple Developer Program cá nhân ($99/năm bắt buộc).</span>
+                    <span className="text-text-secondary">Đăng ký thành viên Apple Developer Program cá nhân ($99/năm bắt buộc).</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-rose-455 font-mono">2.</span>
-                    <span className="text-slate-300">Khai báo biểu mẫu Thuế Hoa Kỳ W-8BEN trực tuyến trên App Store Connect hòng giảm thuế kép.</span>
+                    <span className="text-text-secondary">Khai báo biểu mẫu Thuế Hoa Kỳ W-8BEN trực tuyến trên App Store Connect hòng giảm thuế kép.</span>
                   </li>
                   <li className="flex gap-2">
                     <span className="text-rose-455 font-mono">3.</span>
-                    <span className="text-slate-300">Thiết lập nốt chặn hiển thị App Tracking Transparency (ATT) bắt buộc từ iOS 14.5.</span>
+                    <span className="text-text-secondary">Thiết lập nốt chặn hiển thị App Tracking Transparency (ATT) bắt buộc từ iOS 14.5.</span>
                   </li>
                 </ul>
               </div>
@@ -3274,15 +3274,15 @@ func _physics_process(delta):
                 <span className="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2.5 py-1 rounded-full font-bold uppercase tracking-wider">
                   Chìa khóa sống còn của game indie
                 </span>
-                <h3 className="text-lg font-black text-white">Chỉ số Giữ Chân Người Chơi (Retention rate)</h3>
-                <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+                <h3 className="text-lg font-black text-text-primary">Chỉ số Giữ Chân Người Chơi (Retention rate)</h3>
+                <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                   Đối với game di động F2P, chất lượng gameplay được đánh giá chính xác dựa trên ba thước đo cốt tủy: <strong>Day 1, Day 7 và Day 30 Retention</strong>. Nếu người chơi cài đặt rồi gỡ ngay trong vòng 24 giờ đầu, tỷ lệ eCPM của bạn sẽ giảm sâu về đáy và không thể thu hồi vốn chạy Marketing.
                 </p>
               </div>
 
               {/* Conversion Funnel Representation */}
               <div className="space-y-3.5">
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold font-mono">Phễu Chuyển Đổi Điển Hình của Game Hyper-casual (VN)</span>
+                <span className="text-[10px] text-text-tertiary uppercase tracking-widest font-bold font-mono">Phễu Chuyển Đổi Điển Hình của Game Hyper-casual (VN)</span>
                 <div className="space-y-2 font-mono">
                   {/* Step 1 */}
                   <div className="relative">
@@ -3330,8 +3330,8 @@ func _physics_process(delta):
 
             {/* Metrics & Analytics Dashboard Setup */}
             <div className="lg:col-span-6 bg-slate-950/40 border border-slate-850 rounded-2xl p-6 shadow-xl space-y-5">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider">Thiết lập Firebase Analytics cho Game 0đ</h4>
-              <p className="text-xs text-slate-400 leading-relaxed font-semibold">
+              <h4 className="text-xs font-black text-text-primary uppercase tracking-wider">Thiết lập Firebase Analytics cho Game 0đ</h4>
+              <p className="text-xs text-text-secondary leading-relaxed font-semibold">
                 Firebase Analytics là công cụ hoàn toàn miễn phí của Google hỗ trợ đo lường hành vi người chơi cực kỳ chuyên nghiệp. Dưới đây là các sự kiện tùy chỉnh (Custom Events) quan trọng bạn bắt buộc phải ghi lại trong code để tối ưu hóa thiết kế màn chơi:
               </p>
 
@@ -3341,7 +3341,7 @@ func _physics_process(delta):
                     <span>level_start &amp; level_complete</span>
                     <span className="font-mono text-purple-400 text-[10.5px]">Độ khó màn</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                  <p className="text-[11px] text-text-secondary font-semibold mt-1">
                     Đặt mốc ghi lại số lần người chơi chịu thua quá nhiều để giảm bớt độ nhảy hoặc bớt chướng ngại vật ngay tức thời.
                   </p>
                 </div>
@@ -3351,7 +3351,7 @@ func _physics_process(delta):
                     <span>ad_impression_reward</span>
                     <span className="font-mono text-emerald-400 text-[10.5px]">Doanh thu</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                  <p className="text-[11px] text-text-secondary font-semibold mt-1">
                     Ghi lại số lượt người chơi sẵn lòng click vào tab xem Ads để nhận quà. Đây là cơ sở để liên thông định hình chỉ số LTV (Life Time Value).
                   </p>
                 </div>
@@ -3361,7 +3361,7 @@ func _physics_process(delta):
                     <span>tutorial_step_complete</span>
                     <span className="font-mono text-sky-400 text-[10.5px]">UX Core Feel</span>
                   </div>
-                  <p className="text-[11px] text-slate-400 font-semibold mt-1">
+                  <p className="text-[11px] text-text-secondary font-semibold mt-1">
                     Theo dõi người chơi bỏ cuộc ở bước nào trong bài hướng dẫn đầu tiên để cắt giảm sự rườm rà không đáng có.
                   </p>
                 </div>
@@ -3395,7 +3395,7 @@ ORDER BY first_active_date DESC;`)}
                 {copiedCodeFlag ? "Đã sao chép!" : "Sao chép mã SQL"}
               </button>
             </div>
-            <pre className="p-4 bg-slate-950 border-t border-slate-900 overflow-x-auto text-[11px] font-mono text-slate-300 rounded-xl leading-relaxed select-text">
+            <pre className="p-4 bg-slate-950 border-t border-slate-900 overflow-x-auto text-[11px] font-mono text-text-secondary rounded-xl leading-relaxed select-text">
 {`WITH user_activities AS (
   SELECT 
     user_id,

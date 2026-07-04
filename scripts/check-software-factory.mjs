@@ -16,14 +16,14 @@ const requiredFiles = [
   'server/services/softwareFactoryCommandRunner.ts',
   'server/services/softwareFactoryAuditLogService.ts',
   'server/services/softwareFactoryHealthService.ts',
-  'src/modules/ai-hr/FactoryBackendRuntimePanel.tsx',
-  'src/modules/ai-hr/FactoryExecutionDecisionPanel.tsx',
-  'src/modules/ai-hr/FactoryCommandRunnerPanel.tsx',
-  'src/modules/ai-hr/FactoryAuditLogPanel.tsx',
-  'src/modules/ai-hr/FactoryHealthSummaryPanel.tsx',
-  'src/modules/ai-hr/FactoryConnectorMatrixPanel.tsx',
-  'src/modules/ai-hr/FactoryOperatorGuidePanel.tsx',
-  'src/modules/ai-hr/AutomationRulesPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryBackendRuntimePanel.tsx',
+  'src/modules/ai-nhan-su/FactoryExecutionDecisionPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryCommandRunnerPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryAuditLogPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryHealthSummaryPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryConnectorMatrixPanel.tsx',
+  'src/modules/ai-nhan-su/FactoryOperatorGuidePanel.tsx',
+  'src/modules/ai-nhan-su/AutomationRulesPanel.tsx',
 ];
 
 const requiredRouteMarkers = [
@@ -99,7 +99,7 @@ const routes = read('server/services/softwareFactoryRoutes.ts');
 const missingRoutes = requiredRouteMarkers.filter((marker) => !routes.includes(marker));
 if (missingRoutes.length > 0) fail('Missing Software Factory route markers:', missingRoutes);
 
-const automationPanel = read('src/modules/ai-hr/AutomationRulesPanel.tsx');
+const automationPanel = read('src/modules/ai-nhan-su/AutomationRulesPanel.tsx');
 const requiredPanels = [
   '<FactoryHealthSummaryPanel />',
   '<FactoryConnectorMatrixPanel />',

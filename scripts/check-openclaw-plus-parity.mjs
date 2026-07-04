@@ -41,7 +41,7 @@ const targets = [
   },
   {
     label: 'AI Workforce UI',
-    file: 'src/modules/ai-hr/AIOperationsCenter.tsx',
+    file: 'src/modules/ai-nhan-su/AIOperationsCenter.tsx',
     tokens: ['AIWorkforceMissionControl', 'AIWorkforcePatchReviewSessions', 'AIWorkforcePluginSecurityGuard'],
     warningOnly: true,
   },

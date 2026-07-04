@@ -77,56 +77,56 @@ export default function ToolBudgetLedger() {
   };
 
   return (
-    <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
-        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Tool Budget Ledger</p>
-        <h2 className="mt-2 text-xl font-black text-white">Sổ ngân sách công cụ</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+    <section className="space-y-4 text-text-primary">
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-6">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-success">Tool Budget Ledger</p>
+        <h2 className="mt-2 text-xl font-bold text-text-primary">Sổ ngân sách công cụ</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
           Theo dõi tiền AI, hosting, thiết kế, marketing và dev tool theo tháng. Mục tiêu là biết tool nào nên giữ, cần review hoặc nên hủy trước khi burn rate phình ra.
         </p>
       </div>
 
       <div className="grid gap-3 md:grid-cols-5">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Monthly burn</p><p className="mt-2 text-lg font-black text-white">{money(stats.monthlyBurn)}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">AI spend</p><p className="mt-2 text-lg font-black text-cyan-200">{money(stats.aiSpend)}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Keep</p><p className="mt-2 text-lg font-black text-emerald-200">{stats.keep}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Review</p><p className="mt-2 text-lg font-black text-amber-200">{stats.review}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Cancel</p><p className="mt-2 text-lg font-black text-rose-200">{stats.cancel}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4"><p className="text-[10px] font-bold uppercase text-text-muted">Monthly burn</p><p className="mt-2 text-lg font-bold text-text-primary">{money(stats.monthlyBurn)}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4"><p className="text-[10px] font-bold uppercase text-text-muted">AI spend</p><p className="mt-2 text-lg font-bold text-info">{money(stats.aiSpend)}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4"><p className="text-[10px] font-bold uppercase text-text-muted">Keep</p><p className="mt-2 text-lg font-bold text-success">{stats.keep}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4"><p className="text-[10px] font-bold uppercase text-text-muted">Review</p><p className="mt-2 text-lg font-bold text-warning">{stats.review}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-4"><p className="text-[10px] font-bold uppercase text-text-muted">Cancel</p><p className="mt-2 text-lg font-bold text-error">{stats.cancel}</p></div>
       </div>
 
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-5">
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-5">
         <div className="grid gap-3 md:grid-cols-3">
-          <input value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} type="month" className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none" />
-          <input value={form.tool} onChange={(e) => setForm({ ...form, tool: e.target.value })} placeholder="Tên tool" className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none" />
-          <input value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} type="number" placeholder="Chi phí" className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none" />
-          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ToolCost['category'] })} className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none">
+          <input value={form.month} onChange={(e) => setForm({ ...form, month: e.target.value })} type="month" className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none" />
+          <input value={form.tool} onChange={(e) => setForm({ ...form, tool: e.target.value })} placeholder="Tên tool" className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none" />
+          <input value={form.amount} onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })} type="number" placeholder="Chi phí" className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none" />
+          <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value as ToolCost['category'] })} className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none">
             {['AI', 'Hosting', 'Design', 'Marketing', 'Dev', 'Other'].map((item) => <option key={item}>{item}</option>)}
           </select>
-          <select value={form.keepDecision} onChange={(e) => setForm({ ...form, keepDecision: e.target.value as ToolCost['keepDecision'] })} className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none">
+          <select value={form.keepDecision} onChange={(e) => setForm({ ...form, keepDecision: e.target.value as ToolCost['keepDecision'] })} className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none">
             {['Keep', 'Review', 'Cancel'].map((item) => <option key={item}>{item}</option>)}
           </select>
-          <input value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} placeholder="Mục đích dùng" className="rounded-xl border border-slate-800 bg-slate-900 p-3 text-sm font-bold text-white outline-none" />
+          <input value={form.purpose} onChange={(e) => setForm({ ...form, purpose: e.target.value })} placeholder="Mục đích dùng" className="rounded-xl border border-border-primary bg-bg-surface p-3 text-sm font-bold text-text-primary outline-none" />
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <button onClick={addCost} className="rounded-xl bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950">Thêm chi phí</button>
-          <button onClick={resetDemo} className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300">Reset demo</button>
+          <button onClick={addCost} className="rounded-xl bg-emerald-400 px-4 py-2 text-xs font-bold text-slate-950">Thêm chi phí</button>
+          <button onClick={resetDemo} className="rounded-xl border border-border-secondary px-4 py-2 text-xs font-bold text-text-secondary">Reset demo</button>
         </div>
       </div>
 
       <div className="space-y-3">
         {costs.map((item) => (
-          <div key={item.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+          <div key={item.id} className="rounded-2xl border border-border-primary bg-bg-surface p-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-sm font-black text-white">{item.tool}</p>
-                <p className="mt-1 text-xs font-semibold text-slate-400">{item.month} • {item.category} • {money(item.amount)}</p>
-                <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{item.purpose}</p>
+                <p className="text-sm font-bold text-text-primary">{item.tool}</p>
+                <p className="mt-1 text-xs font-semibold text-text-secondary">{item.month} • {item.category} • {money(item.amount)}</p>
+                <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">{item.purpose}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {(['Keep', 'Review', 'Cancel'] as ToolCost['keepDecision'][]).map((decision) => (
-                  <button key={decision} onClick={() => updateDecision(item.id, decision)} className={`rounded-lg border px-3 py-1 text-[10px] font-black ${item.keepDecision === decision ? 'border-emerald-400 bg-emerald-500/10 text-emerald-100' : 'border-slate-700 text-slate-400'}`}>{decision}</button>
+                  <button key={decision} onClick={() => updateDecision(item.id, decision)} className={`rounded-lg border px-3 py-1 text-[10px] font-bold ${item.keepDecision === decision ? 'border-emerald-400 bg-success/10 text-emerald-100' : 'border-border-secondary text-text-secondary'}`}>{decision}</button>
                 ))}
-                <button onClick={() => removeCost(item.id)} className="rounded-lg border border-rose-800 px-3 py-1 text-[10px] font-black text-rose-300">Xóa</button>
+                <button onClick={() => removeCost(item.id)} className="rounded-lg border border-rose-800 px-3 py-1 text-[10px] font-bold text-error">Xóa</button>
               </div>
             </div>
           </div>

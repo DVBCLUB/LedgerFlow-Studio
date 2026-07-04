@@ -5,6 +5,7 @@
 
 export type CoreTabType =
   | 'ceo_command'
+  | 'knowledge_library'
   | 'product_studio'
   | 'marketing_growth'
   | 'sales_crm'
@@ -59,6 +60,7 @@ export type TabType = CoreTabType | LegacyTabType;
 
 export const CORE_TABS: readonly CoreTabType[] = [
   'ceo_command',
+  'knowledge_library',
   'product_studio',
   'marketing_growth',
   'sales_crm',
@@ -161,6 +163,7 @@ export interface ModuleEntry {
 
 export const MODULES: ModuleEntry[] = [
   { tab: 'ceo_command', dept: 'operate', label: 'Trung tâm Điều hành', badge: 'Hôm nay', badgeColor: 'bg-cyan-500/15 text-cyan-300', desc: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.' },
+  { tab: 'knowledge_library', dept: 'operate', label: 'Thư viện Tri thức', badge: 'Tri thức', badgeColor: 'bg-indigo-500/15 text-indigo-300', desc: 'Nhập, duyệt, tìm kiếm và xuất context tri thức cho founder và đội ngũ AI.' },
   { tab: 'product_studio', dept: 'operate', label: 'Xưởng Sản phẩm', badge: 'Sản phẩm', badgeColor: 'bg-sky-500/15 text-sky-300', desc: 'Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành.' },
   { tab: 'marketing_growth', dept: 'operate', label: 'Tăng trưởng', badge: 'Tăng trưởng', badgeColor: 'bg-rose-500/15 text-rose-300', desc: 'Điều phối marketing, nội dung, thử nghiệm tăng trưởng và hiệu quả kênh.' },
   { tab: 'sales_crm', dept: 'operate', label: 'Bán hàng & Khách hàng', badge: 'Khách hàng', badgeColor: 'bg-amber-500/15 text-amber-300', desc: 'Theo dõi lead, cơ hội bán hàng, báo giá, chăm sóc và quan hệ khách hàng.' },
@@ -171,7 +174,7 @@ export const MODULES: ModuleEntry[] = [
 ];
 
 export interface WorkspaceNavigationItem {
-  tab: CoreTabType;
+  tab: TabType;
   laneId: CompanyOSLaneId;
   label: string;
   shortLabel: string;
@@ -184,12 +187,13 @@ export interface WorkspaceNavigationItem {
 
 export type CompanyOSLaneId =
   | 'command-center'
+  | 'knowledge-library'
   | 'product-studio'
   | 'marketing-growth'
   | 'sales-crm'
   | 'finance-accounting'
   | 'ai-workforce'
-  | 'analytics-sandbox'
+  | 'analytics-models-sandbox'
   | 'system-settings'
   | 'industry-templates';
 
@@ -207,12 +211,13 @@ export type CompanyOSLane = {
 
 export const COMPANY_WORKSPACES: WorkspaceNavigationItem[] = [
   { tab: 'ceo_command', laneId: 'command-center', label: 'Trung tâm Điều hành', shortLabel: 'Điều hành', description: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.', iconName: 'Building2', group: 'Operate', status: 'core', owner: 'Founder' },
+  { tab: 'knowledge_library', laneId: 'knowledge-library', label: 'Thư viện Tri thức', shortLabel: 'Tri thức', description: 'Nhập, duyệt, tìm kiếm và xuất context tri thức cho founder và đội ngũ AI.', iconName: 'BookOpen', group: 'Build', status: 'core', owner: 'Founder' },
   { tab: 'product_studio', laneId: 'product-studio', label: 'Xưởng Sản phẩm', shortLabel: 'Sản phẩm', description: 'Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành.', iconName: 'FolderKanban', group: 'Build', status: 'core', owner: 'Product' },
   { tab: 'marketing_growth', laneId: 'marketing-growth', label: 'Tăng trưởng', shortLabel: 'Tăng trưởng', description: 'Điều phối marketing, nội dung, thử nghiệm tăng trưởng và hiệu quả kênh.', iconName: 'Rocket', group: 'Sell', status: 'core', owner: 'Marketing' },
   { tab: 'sales_crm', laneId: 'sales-crm', label: 'Bán hàng & Khách hàng', shortLabel: 'Khách hàng', description: 'Theo dõi lead, cơ hội bán hàng, báo giá, chăm sóc và quan hệ khách hàng.', iconName: 'UsersRound', group: 'Sell', status: 'core', owner: 'Sales' },
   { tab: 'finance_accounting', laneId: 'finance-accounting', label: 'Tài chính - Kế toán', shortLabel: 'Tài chính', description: 'Quản lý sổ sách, dòng tiền, công nợ, báo cáo và kiểm soát chứng từ.', iconName: 'CircleDollarSign', group: 'Control', status: 'core', owner: 'Finance' },
   { tab: 'ai_factory', laneId: 'ai-workforce', label: 'Đội ngũ AI', shortLabel: 'Đội ngũ AI', description: 'Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp.', iconName: 'Bot', group: 'Build', status: 'core', owner: 'Founder' },
-  { tab: 'analytics', laneId: 'analytics-sandbox', label: 'Phân tích & Tri thức', shortLabel: 'Tri thức', description: 'Gom dữ liệu, phân tích, báo cáo và bộ nhớ vận hành của doanh nghiệp.', iconName: 'BarChart3', group: 'Extend', status: 'core', owner: 'Founder' },
+  { tab: 'analytics', laneId: 'analytics-models-sandbox', label: 'Phân tích & Tri thức', shortLabel: 'Tri thức', description: 'Gom dữ liệu, phân tích, báo cáo và bộ nhớ vận hành của doanh nghiệp.', iconName: 'BarChart3', group: 'Extend', status: 'core', owner: 'Founder' },
   { tab: 'system_settings', laneId: 'system-settings', label: 'Quản trị hệ thống', shortLabel: 'Quản trị', description: 'Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành.', iconName: 'Settings', group: 'Control', status: 'core', owner: 'Admin' },
   { tab: 'operations', laneId: 'industry-templates', label: 'Mẫu ngành & Vận hành', shortLabel: 'Mẫu ngành', description: 'Các mẫu thiết lập kế toán và vận hành theo ngành nghề.', iconName: 'Layers', group: 'Extend', status: 'template', owner: 'Operations' },
 ];

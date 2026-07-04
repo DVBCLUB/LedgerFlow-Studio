@@ -3,10 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const panelFile = path.join(root, 'src/modules/ai-hr/AIWorkforceSkillDirectory.tsx');
+const panelFile = path.join(root, 'src/modules/ai-nhan-su/AIWorkforceSkillDirectory.tsx');
 const patcherFile = path.join(root, 'scripts/patch-ai-ops-skill-directory-panel.mjs');
 const doctorFile = path.join(root, 'scripts/openclaw-plus-doctor.mjs');
-const opsFile = path.join(root, 'src/modules/ai-hr/AIOperationsCenter.tsx');
+const opsFile = path.join(root, 'src/modules/ai-nhan-su/AIOperationsCenter.tsx');
 let failed = false;
 
 for (const file of [panelFile, patcherFile, doctorFile, opsFile]) {

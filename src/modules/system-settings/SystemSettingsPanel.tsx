@@ -35,18 +35,18 @@ const settingGroups = [
 export default function SystemSettingsPanel() {
   return (
     <div className="space-y-5 text-left">
-      <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 shadow-xl shadow-black/20">
+      <section className="rounded-3xl border border-border-primary bg-bg-surface/70 p-6 shadow-xl shadow-black/20">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">Quản trị hệ thống</p>
-            <h1 className="mt-2 text-2xl font-black text-white">Quản trị hệ thống</h1>
-            <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-400">
+            <h1 className="mt-2 text-2xl font-black text-text-primary">Quản trị hệ thống</h1>
+            <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">
               Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành được gom vào một khu vực quản trị.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3 lg:w-[360px]">
             {['An toàn', 'Đang theo dõi', 'Cần cấu hình'].map((label) => (
-              <div key={label} className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-3 text-center text-[11px] font-black uppercase tracking-wide text-slate-300">
+              <div key={label} className="rounded-2xl border border-border-primary bg-slate-950/60 px-4 py-3 text-center text-[11px] font-black uppercase tracking-wide text-text-secondary">
                 {label}
               </div>
             ))}

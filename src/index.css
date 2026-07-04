@@ -34,12 +34,55 @@
 
 /* Font definitions */
 @theme {
-  --font-sans: "Be Vietnam Pro", "Inter", "Segoe UI", "Arial", sans-serif;
-  --font-mono: "JetBrains Mono", "Consolas", "Courier New", monospace;
-  --color-erp-bg: #030712;
-  --color-erp-surface: rgba(17, 24, 39, 0.72);
-  --color-erp-border: rgba(31, 41, 55, 0.85);
-  --color-erp-accent: #6366f1;
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-elevated: var(--bg-elevated);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-text-muted: var(--text-muted);
+  --color-text-disabled: var(--text-disabled);
+
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+  --color-border-muted: var(--border-muted);
+
+  --color-accent-primary: var(--accent);
+  --color-accent-secondary: var(--accent-hover);
+  --color-accent-tertiary: var(--accent-light);
+
+  --color-success: var(--success);
+  --color-success-bg: var(--color-success-bg);
+  --color-warning: var(--warning);
+  --color-warning-bg: var(--color-warning-bg);
+  --color-error: var(--error);
+  --color-error-bg: var(--color-error-bg);
+  --color-info: var(--info);
+  --color-info-bg: var(--color-info-bg);
+  
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-light: var(--color-brand-light);
+
+  --shadow-sm: var(--shadow-erp-sm);
+  --shadow-md: var(--shadow-erp-md);
+  --shadow-lg: var(--shadow-erp-lg);
+
+  --shadow-erp-sm: var(--shadow-erp-sm);
+  --shadow-erp-md: var(--shadow-erp-md);
+  --shadow-erp-lg: var(--shadow-erp-lg);
+
+  /* Legacy aliases for backward compatibility */
+  --color-erp-bg: var(--bg-primary);
+  --color-erp-surface: var(--bg-surface);
+  --color-erp-border: var(--border-primary);
+  --color-erp-accent: var(--accent);
 }
 
 /* Base styles */

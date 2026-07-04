@@ -16,10 +16,10 @@ const files = [
   'scripts/patch-ai-workforce-snapshot-release-evidence.mjs',
   'scripts/patch-ai-workforce-snapshot-export-ui.mjs',
   'src/services/aiWorkforceRuntimeClient.ts',
-  'src/modules/ai-hr/MissionReleaseGatePanel.tsx',
-  'src/modules/ai-hr/ReleaseGateDashboardCard.tsx',
-  'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx',
-  'src/modules/ai-hr/AIOperationsCenter.tsx',
+  'src/modules/ai-nhan-su/MissionReleaseGatePanel.tsx',
+  'src/modules/ai-nhan-su/ReleaseGateDashboardCard.tsx',
+  'src/modules/ai-nhan-su/AIWorkforceRuntimePanel.tsx',
+  'src/modules/ai-nhan-su/AIOperationsCenter.tsx',
   'dist/assistant-daemon.cjs',
 ];
 

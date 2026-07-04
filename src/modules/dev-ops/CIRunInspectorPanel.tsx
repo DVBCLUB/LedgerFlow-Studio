@@ -190,69 +190,69 @@ export default function CIRunInspectorPanel() {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-orange-200">CI run inspector</p>
-          <h3 className="mt-1 text-xl font-black text-white">Đọc trạng thái GitHub Actions</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Fast Secure: đọc runs/jobs/failed steps qua backend, tạo gói CI fix; không thêm cửa approve mới.</p>
+          <h3 className="mt-1 text-xl font-black text-text-primary">Đọc trạng thái GitHub Actions</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-text-secondary">Fast Secure: đọc runs/jobs/failed steps qua backend, tạo gói CI fix; không thêm cửa approve mới.</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button onClick={loadSummary} disabled={loading} className="rounded-2xl bg-orange-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-50">{loading ? 'Đang đọc...' : 'Refresh CI'}</button>
-          <button onClick={() => exportJson('ledgerflow-ci-run-inspector.json', { repo, summary, jobInspection })} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-orange-300">Xuất JSON</button>
+          <button onClick={() => exportJson('ledgerflow-ci-run-inspector.json', { repo, summary, jobInspection })} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-orange-300">Xuất JSON</button>
         </div>
       </div>
 
       <div className="mb-4 grid gap-2 md:grid-cols-[1fr_auto]">
-        <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={repo} onChange={(event) => setRepo(event.target.value)} />
+        <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={repo} onChange={(event) => setRepo(event.target.value)} />
         <a href={summary?.actionsUrl || `https://github.com/${repo}/actions`} target="_blank" rel="noreferrer" className="rounded-2xl border border-orange-400/40 px-4 py-2 text-xs font-black text-orange-200 hover:bg-orange-400/10">Mở Actions</a>
       </div>
 
       {error && <p className="mb-4 rounded-2xl border border-rose-400/35 bg-rose-400/10 p-3 text-xs font-bold text-rose-200">{error}</p>}
 
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-3">
+        <div className="rounded-3xl border border-border-primary bg-slate-950/60 p-3">
           <div className="mb-3 grid grid-cols-3 gap-2 text-center text-xs font-black">
             <div className="rounded-2xl border border-rose-400/30 bg-rose-400/10 p-2 text-rose-200">Fail {grouped.failed.length}</div>
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-400/10 p-2 text-cyan-200">Run {grouped.running.length}</div>
             <div className="rounded-2xl border border-emerald-400/30 bg-emerald-400/10 p-2 text-emerald-200">OK {grouped.success.length}</div>
           </div>
           <div className="space-y-2">
-            {runs.map((run) => <button key={run.id} onClick={() => setSelectedRunId(run.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selectedRun?.id === run.id ? 'border-orange-300 bg-orange-400/10' : 'border-slate-800 bg-slate-950/50 hover:border-orange-400/40'}`}>
+            {runs.map((run) => <button key={run.id} onClick={() => setSelectedRunId(run.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selectedRun?.id === run.id ? 'border-orange-300 bg-orange-400/10' : 'border-border-primary bg-slate-950/50 hover:border-orange-400/40'}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-black text-white">{run.name}</p>
-                <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300">{runState(run)}</span>
+                <p className="text-sm font-black text-text-primary">{run.name}</p>
+                <span className="rounded-full border border-border-secondary px-2 py-0.5 text-[10px] font-black text-text-secondary">{runState(run)}</span>
               </div>
-              <p className="mt-1 text-[11px] font-bold text-slate-500">{run.branch || 'branch?'} · {run.status} · {run.conclusion || 'none'}</p>
+              <p className="mt-1 text-[11px] font-bold text-text-tertiary">{run.branch || 'branch?'} · {run.status} · {run.conclusion || 'none'}</p>
             </button>)}
-            {runs.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950/50 p-4 text-sm font-semibold text-slate-400">Chưa có workflow run trong summary.</p>}
+            {runs.length === 0 && <p className="rounded-2xl border border-border-primary bg-slate-950/50 p-4 text-sm font-semibold text-text-secondary">Chưa có workflow run trong summary.</p>}
           </div>
         </div>
 
-        {selectedRun && <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-4">
-          <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected run</p>
-          <h4 className="mt-1 text-lg font-black text-white">{selectedRun.name}</h4>
-          <p className="mt-1 text-xs font-bold text-slate-400">{selectedRun.branch} · {selectedRun.event} · {selectedRun.updatedAt}</p>
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3 text-xs font-semibold leading-6 text-slate-300">
+        {selectedRun && <div className="rounded-3xl border border-border-primary bg-slate-950/60 p-4">
+          <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Selected run</p>
+          <h4 className="mt-1 text-lg font-black text-text-primary">{selectedRun.name}</h4>
+          <p className="mt-1 text-xs font-bold text-text-secondary">{selectedRun.branch} · {selectedRun.event} · {selectedRun.updatedAt}</p>
+          <div className="mt-4 rounded-2xl border border-border-primary bg-slate-950 p-3 text-xs font-semibold leading-6 text-text-secondary">
             <p>Status: {selectedRun.status}</p>
             <p>Conclusion: {selectedRun.conclusion || 'none'}</p>
             <p>Created: {selectedRun.createdAt}</p>
             <p>Updated: {selectedRun.updatedAt}</p>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="mt-4 rounded-2xl border border-border-primary bg-slate-950/70 p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs font-black text-white">Jobs / failed steps</p>
+              <p className="text-xs font-black text-text-primary">Jobs / failed steps</p>
               <button onClick={inspectJobs} disabled={loadingJobs} className="rounded-xl border border-orange-400/40 px-3 py-1.5 text-[11px] font-black text-orange-200 hover:bg-orange-400/10 disabled:opacity-50">{loadingJobs ? 'Đang inspect...' : 'Inspect Jobs'}</button>
             </div>
             <div className="mt-3 space-y-2">
-              {jobInspection?.jobs.map((job) => <div key={job.id} className="rounded-xl border border-slate-800 bg-slate-950 p-2">
+              {jobInspection?.jobs.map((job) => <div key={job.id} className="rounded-xl border border-border-primary bg-slate-950 p-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-xs font-black text-white">{job.name}</p>
-                  <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300">{job.conclusion || job.status}</span>
+                  <p className="text-xs font-black text-text-primary">{job.name}</p>
+                  <span className="rounded-full border border-border-secondary px-2 py-0.5 text-[10px] font-black text-text-secondary">{job.conclusion || job.status}</span>
                 </div>
                 {job.failedSteps.length > 0 && <ul className="mt-2 space-y-1 text-[11px] font-semibold text-rose-200">
                   {job.failedSteps.map((step) => <li key={`${job.id}-${step.number}`}>• {step.name}: {step.conclusion || step.status}</li>)}
                 </ul>}
               </div>)}
-              {jobInspection && jobInspection.jobs.length === 0 && <p className="text-xs font-semibold text-slate-500">Không đọc được job nào cho run này.</p>}
-              {!jobInspection && <p className="text-xs font-semibold text-slate-500">Bấm Inspect Jobs để đọc job/failed step qua backend.</p>}
+              {jobInspection && jobInspection.jobs.length === 0 && <p className="text-xs font-semibold text-text-tertiary">Không đọc được job nào cho run này.</p>}
+              {!jobInspection && <p className="text-xs font-semibold text-text-tertiary">Bấm Inspect Jobs để đọc job/failed step qua backend.</p>}
             </div>
           </div>
 

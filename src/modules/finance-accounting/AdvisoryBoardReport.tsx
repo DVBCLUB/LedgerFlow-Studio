@@ -143,8 +143,8 @@ export default function AdvisoryBoardReport() {
         verdict: activeIdea 
           ? `⚙️ Đối với "${defaultTitle}", chúng ta có thể dựng hạ tầng hoàn chỉnh 0đ tận dụng SQLite WASM offline và Cloudflare Pages!`
           : '⚙️ Stack tốt, nhưng đang build một "bảo tàng" thay vì một "vũ khí" tác chiến thực sự.',
-        themeColor: 'border-purple-500/35 bg-purple-500/5 text-purple-400',
-        avatarColor: 'bg-purple-500/15 border-purple-500/30 text-purple-400',
+        themeColor: 'border-brand/35 bg-brand/5 text-brand',
+        avatarColor: 'bg-brand/15 border-brand/30 text-brand',
         strengths: [
           `Thiết kế sản phẩm "${defaultTitle}" tương thích hoàn hảo cho định dạng gọn nhẹ (micro-architecture).`,
           'React.lazy() + Suspense triển khai đúng quy chuẩn - split bundle tốt, UX chuyển nhạy.',
@@ -176,8 +176,8 @@ export default function AdvisoryBoardReport() {
         verdict: activeIdea
           ? `💰 Mức giá ${activePricing} nhắm tới tệp "${activeIdea.nicheAudience}" có biên lợi nhuận ròng lý tưởng!`
           : '💰 Mô hình tài chính tốt về lý thuyết - nhưng thiếu "người trả tiền thật" để chứng thực sản phẩm.',
-        themeColor: 'border-emerald-500/35 bg-emerald-500/5 text-emerald-400',
-        avatarColor: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400',
+        themeColor: 'border-success/35 bg-success/5 text-success',
+        avatarColor: 'bg-success/15 border-success/30 text-success',
         strengths: [
           isGame
             ? `Cách tiếp cận kinh doanh một lần/IAP với giá ${activePricing} tạo lực đẩy mua sắm bốc đồng (impulse buy) rất hiệu quả.`
@@ -236,8 +236,8 @@ export default function AdvisoryBoardReport() {
         verdict: activeIdea
           ? `🚀 Công thức thành công cho "${defaultTitle}" nằm ở việc chiếm lĩnh tệp ngách khách hàng "${activeIdea.nicheAudience}"!`
           : '🚀 Tư duy phát tán du kích rất sắc bám sát môi trường Việt Nam - nhưng cần thu gom tệp khách hàng hẹp.',
-        themeColor: 'border-amber-500/35 bg-amber-500/5 text-amber-400',
-        avatarColor: 'bg-amber-500/15 border-amber-500/30 text-amber-400',
+        themeColor: 'border-warning/35 bg-warning/5 text-warning',
+        avatarColor: 'bg-warning/15 border-warning/30 text-warning',
         strengths: [
           isGame
             ? 'Game di động có khả năng lây lan lan truyền (viral potential) cao thông qua bảng xếp hạng xã hội.'
@@ -266,36 +266,36 @@ export default function AdvisoryBoardReport() {
       
       {/* ADVISORY TOAST */}
       {adviceToast && (
-        <div className="fixed top-24 right-6 bg-purple-600 border border-purple-500 text-white font-black px-4.5 py-3 rounded-2xl shadow-2xl z-50 animate-bounce flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-amber-300 animate-pulse animate-spin" />
+        <div className="fixed top-24 right-6 bg-purple-600 border border-brand text-text-primary font-bold px-4.5 py-3 rounded-2xl shadow-2xl z-50 animate-bounce flex items-center gap-2">
+          <Sparkles className="w-4 h-4 text-warning animate-pulse animate-spin" />
           <span className="text-sm font-mono">{adviceToast}</span>
         </div>
       )}
 
       {/* HEADER BANNER OF THE COUNCIL REPORT */}
-      <div className="bg-gradient-to-r from-slate-950 via-[#0d1526] to-[#12203a] border border-slate-800 rounded-3xl p-6 relative overflow-hidden shadow-2xl">
-        <div className="absolute right-0 top-0 -mt-10 -mr-10 w-44 h-44 rounded-full bg-purple-500/10 blur-3xl animate-pulse"></div>
-        <div className="absolute left-1/3 bottom-0 w-32 h-32 rounded-full bg-indigo-500/5 blur-2xl"></div>
+      <div className="bg-gradient-to-r from-slate-950 via-[#0d1526] to-[#12203a] border border-border-primary rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+        <div className="absolute right-0 top-0 -mt-10 -mr-10 w-44 h-44 rounded-full bg-brand/10 blur-3xl animate-pulse"></div>
+        <div className="absolute left-1/3 bottom-0 w-32 h-32 rounded-full bg-accent-tertiary/5 blur-2xl"></div>
 
         <div className="space-y-3 relative z-10 select-text">
           <div className="flex flex-wrap gap-2">
-            <span className="px-2.5 py-0.5 bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[9px] font-black rounded-lg uppercase tracking-wider font-mono">
+            <span className="px-2.5 py-0.5 bg-brand/10 text-brand border border-brand/20 text-[9px] font-bold rounded-lg uppercase tracking-wider font-mono">
               ⚖️ HỘI ĐỒNG CỐ VẤN KHỞI NGHIỆP TRỰC TUYẾN
             </span>
-            <span className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black rounded-lg uppercase tracking-wider font-mono">
+            <span className="px-2.5 py-0.5 bg-success/10 text-success border border-success/20 text-[9px] font-bold rounded-lg uppercase tracking-wider font-mono">
               LedgerFlow Studio v4_V26
             </span>
-            <span className="px-2.5 py-0.5 bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-black rounded-lg uppercase tracking-wider font-mono">
+            <span className="px-2.5 py-0.5 bg-warning/10 text-warning border border-warning/20 text-[9px] font-bold rounded-lg uppercase tracking-wider font-mono">
               Độc Lập · 4 Chuyên Gia
             </span>
           </div>
 
-          <h2 className="text-xl font-black text-white uppercase tracking-tight">
+          <h2 className="text-xl font-bold text-text-primary uppercase tracking-tight">
             📈 Báo Cáo Thẩm Định Toàn Diện &amp; Trình Mô Phỏng Đổi Khung Chiến Lược
           </h2>
           
-          <p className="text-slate-400 text-xs font-semibold leading-relaxed max-w-4xl">
-            Phân tích chuyên sâu từ 4 cố vấn hàng đầu trong ngành công nghiệp khởi nghiệp tại Việt Nam áp dụng lên <strong className="text-white">1.3MB mã nguồn</strong>. Thắt chặt nợ kỹ thuật, bóp nghẹt phễu hạch toán và bóc trần chiến thuật kinh doanh B2B thông minh có tương tác phản hồi động!
+          <p className="text-text-secondary text-xs font-semibold leading-relaxed max-w-4xl">
+            Phân tích chuyên sâu từ 4 cố vấn hàng đầu trong ngành công nghiệp khởi nghiệp tại Việt Nam áp dụng lên <strong className="text-text-primary">1.3MB mã nguồn</strong>. Thắt chặt nợ kỹ thuật, bóp nghẹt phễu hạch toán và bóc trần chiến thuật kinh doanh B2B thông minh có tương tác phản hồi động!
           </p>
         </div>
       </div>
@@ -304,62 +304,62 @@ export default function AdvisoryBoardReport() {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3.5 select-text">
         
         {/* Tech architecture score */}
-        <div className="bg-[#040811] border border-slate-900 rounded-2xl p-4 text-center space-y-1">
-          <span className="text-[9.5px] font-black uppercase text-slate-500 font-mono block">Kiến trúc công nghệ</span>
-          <p className="text-3xl font-black text-purple-400 font-mono">{scores.tech}</p>
-          <span className="text-[10px] text-slate-500 font-bold block">
+        <div className="bg-[#040811] border border-border-primary rounded-2xl p-4 text-center space-y-1">
+          <span className="text-[9.5px] font-bold uppercase text-text-muted font-mono block">Kiến trúc công nghệ</span>
+          <p className="text-3xl font-bold text-brand font-mono">{scores.tech}</p>
+          <span className="text-[10px] text-text-muted font-bold block">
             {scores.tech >= 8.5 ? '💎 Vững như bàn thạch' : '⚠️ Potential khá, nợ lớn'}
           </span>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mt-2 p-0.5 border border-slate-900">
-            <div className="bg-purple-500 h-full rounded-full transition-all duration-300" style={{ width: `${scores.tech * 10}%` }}></div>
+          <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden mt-2 p-0.5 border border-border-primary">
+            <div className="bg-brand h-full rounded-full transition-all duration-300" style={{ width: `${scores.tech * 10}%` }}></div>
           </div>
         </div>
 
         {/* Product strategy score */}
-        <div className="bg-[#040811] border border-slate-900 rounded-2xl p-4 text-center space-y-1">
-          <span className="text-[9.5px] font-black uppercase text-slate-500 font-mono block">Sản phẩm (UX-IA)</span>
-          <p className="text-3xl font-black text-sky-400 font-mono">{scores.prod}</p>
-          <span className="text-[10px] text-slate-500 font-bold block">
+        <div className="bg-[#040811] border border-border-primary rounded-2xl p-4 text-center space-y-1">
+          <span className="text-[9.5px] font-bold uppercase text-text-muted font-mono block">Sản phẩm (UX-IA)</span>
+          <p className="text-3xl font-bold text-sky-400 font-mono">{scores.prod}</p>
+          <span className="text-[10px] text-text-muted font-bold block">
             {scores.prod >= 8.0 ? '⚡ Sắc bén hội tụ' : '⚠️ Đang quá mỏng & rộng'}
           </span>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mt-2 p-0.5 border border-slate-900">
+          <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden mt-2 p-0.5 border border-border-primary">
             <div className="bg-sky-500 h-full rounded-full transition-all duration-300" style={{ width: `${scores.prod * 10}%` }}></div>
           </div>
         </div>
 
         {/* Financial feasibility */}
-        <div className="bg-[#040811] border border-slate-900 rounded-2xl p-4 text-center space-y-1">
-          <span className="text-[9.5px] font-black uppercase text-slate-500 font-mono block">Khả thi tài chính</span>
-          <p className="text-3xl font-black text-emerald-400 font-mono">{scores.fin}</p>
-          <span className="text-[10px] text-slate-500 font-bold block">
+        <div className="bg-[#040811] border border-border-primary rounded-2xl p-4 text-center space-y-1">
+          <span className="text-[9.5px] font-bold uppercase text-text-muted font-mono block">Khả thi tài chính</span>
+          <p className="text-3xl font-bold text-success font-mono">{scores.fin}</p>
+          <span className="text-[10px] text-text-muted font-bold block">
             {scores.fin >= 8.5 ? '👑 Cỗ máy in tiền ròng' : '⚠️ Thực tế cần validate'}
           </span>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mt-2 p-0.5 border border-slate-900">
-            <div className="bg-emerald-500 h-full rounded-full transition-all duration-300" style={{ width: `${scores.fin * 10}%` }}></div>
+          <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden mt-2 p-0.5 border border-border-primary">
+            <div className="bg-success h-full rounded-full transition-all duration-300" style={{ width: `${scores.fin * 10}%` }}></div>
           </div>
         </div>
 
         {/* Market readiness */}
-        <div className="bg-[#040811] border border-slate-900 rounded-2xl p-4 text-center space-y-1">
-          <span className="text-[9.5px] font-black uppercase text-slate-500 font-mono block">Độ chín thị trường</span>
-          <p className="text-3xl font-black text-rose-400 font-mono">{scores.mkt}</p>
-          <span className="text-[10px] text-slate-500 font-bold block">
+        <div className="bg-[#040811] border border-border-primary rounded-2xl p-4 text-center space-y-1">
+          <span className="text-[9.5px] font-bold uppercase text-text-muted font-mono block">Độ chín thị trường</span>
+          <p className="text-3xl font-bold text-error font-mono">{scores.mkt}</p>
+          <span className="text-[10px] text-text-muted font-bold block">
             {scores.mkt >= 8.5 ? '🚀 Sẵn sàng độc chiếm' : '⚠️ Chưa có launch page'}
           </span>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mt-2 p-0.5 border border-slate-900">
-            <div className="bg-rose-500 h-full rounded-full transition-all duration-300" style={{ width: `${scores.mkt * 10}%` }}></div>
+          <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden mt-2 p-0.5 border border-border-primary">
+            <div className="bg-error h-full rounded-full transition-all duration-300" style={{ width: `${scores.mkt * 10}%` }}></div>
           </div>
         </div>
 
         {/* Dynamic consensus score calculated live! */}
-        <div className="bg-slate-900/65 border border-purple-900/25 rounded-2xl p-4 text-center space-y-1 col-span-2 lg:col-span-1 shadow-lg">
-          <span className="text-[9.5px] font-black uppercase text-purple-400 font-mono block">Điểm chung Hội Đồng</span>
-          <p className="text-3xl font-black text-white font-mono bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-purple-400 to-indigo-300">{scores.consensus}</p>
-          <span className="text-[10px] text-purple-300 font-black block">
+        <div className="bg-bg-surface border border-purple-900/25 rounded-2xl p-4 text-center space-y-1 col-span-2 lg:col-span-1 shadow-lg">
+          <span className="text-[9.5px] font-bold uppercase text-brand font-mono block">Điểm chung Hội Đồng</span>
+          <p className="text-3xl font-bold text-text-primary font-mono bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-purple-400 to-indigo-300">{scores.consensus}</p>
+          <span className="text-[10px] text-purple-300 font-bold block">
             {scores.consensus >= 8.5 ? '✨ PMF EXCELLENCE' : '🛠️ ĐỀ NGHỊ REFOCUS'}
           </span>
-          <div className="h-1.5 bg-slate-950 rounded-full overflow-hidden mt-2 p-0.5 border border-slate-800">
-            <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full transition-all duration-300" style={{ width: `${scores.consensus * 10}%` }}></div>
+          <div className="h-1.5 bg-bg-primary rounded-full overflow-hidden mt-2 p-0.5 border border-border-primary">
+            <div className="bg-gradient-to-r from-brand to-accent-tertiary h-full rounded-full transition-all duration-300" style={{ width: `${scores.consensus * 10}%` }}></div>
           </div>
         </div>
 
@@ -369,16 +369,16 @@ export default function AdvisoryBoardReport() {
       <div className="grid lg:grid-cols-12 gap-6 items-stretch">
         
         {/* Left tabs selector for experts */}
-        <div className="lg:col-span-4 bg-slate-950/80 border border-slate-900 p-4 rounded-3xl flex flex-col justify-between space-y-4">
+        <div className="lg:col-span-4 bg-bg-primary border border-border-primary p-4 rounded-3xl flex flex-col justify-between space-y-4">
           <div className="space-y-2">
-            <span className="text-[9px] font-black text-slate-500 font-mono uppercase tracking-widest block px-2">CHỌN NGƯỜI THẨM ĐỊNH NỘI BỘ</span>
+            <span className="text-[9px] font-bold text-text-muted font-mono uppercase tracking-widest block px-2">CHỌN NGƯỜI THẨM ĐỊNH NỘI BỘ</span>
             
             <div className="space-y-1.5 font-sans">
               {[
-                { id: 'khoa', name: 'Dr. Alistair K. Vance', role: 'Tech Lead / AI Architect', emoji: '💻', activeColor: 'bg-purple-950/50 border-purple-500/30 text-purple-300' },
-                { id: 'ha', name: 'Madame Helena Sterling, CFA', role: 'CFO / Global Finance', emoji: '📊', activeColor: 'bg-emerald-950/50 border-emerald-500/30 text-emerald-300' },
+                { id: 'khoa', name: 'Dr. Alistair K. Vance', role: 'Tech Lead / AI Architect', emoji: '💻', activeColor: 'bg-brand/50 border-brand/30 text-purple-300' },
+                { id: 'ha', name: 'Madame Helena Sterling, CFA', role: 'CFO / Global Finance', emoji: '📊', activeColor: 'bg-success/50 border-success/30 text-success' },
                 { id: 'viet', name: 'Julian Mercer', role: 'Product Director / UX Lead', emoji: '🧩', activeColor: 'bg-sky-950/50 border-sky-500/30 text-sky-400' },
-                { id: 'dan', name: 'Seraphina Kross', role: 'Growth Lead / Viral Architect', emoji: '🚀', activeColor: 'bg-amber-950/50 border-amber-500/30 text-amber-300' }
+                { id: 'dan', name: 'Seraphina Kross', role: 'Growth Lead / Viral Architect', emoji: '🚀', activeColor: 'bg-warning/50 border-warning/30 text-warning' }
               ].map(exp => (
                 <button
                   key={exp.id}
@@ -386,36 +386,36 @@ export default function AdvisoryBoardReport() {
                   className={`w-full text-left p-3 rounded-xl border flex items-center gap-3 transition-all cursor-pointer ${
                     activeExpert === exp.id
                       ? exp.activeColor + ' shadow shadow-purple-500/5'
-                      : 'border-transparent text-slate-400 bg-slate-900/10 hover:bg-slate-900/40 hover:text-slate-200'
+                      : 'border-transparent text-text-secondary bg-bg-surface hover:bg-bg-surface hover:text-text-primary'
                   }`}
                 >
                   <span className="text-xl shrink-0">{exp.emoji}</span>
                   <div className="min-w-0 flex-1">
-                    <span className="text-[12.5px] font-black block">{exp.name}</span>
-                    <span className="text-[10px] text-slate-500 font-semibold block truncate">{exp.role}</span>
+                    <span className="text-[12.5px] font-bold block">{exp.name}</span>
+                    <span className="text-[10px] text-text-muted font-semibold block truncate">{exp.role}</span>
                   </div>
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="p-3 bg-slate-900/40 border border-slate-900 rounded-2xl text-[10.5px] leading-relaxed font-semibold text-slate-500 text-center">
+          <div className="p-3 bg-bg-surface border border-border-primary rounded-2xl text-[10.5px] leading-relaxed font-semibold text-text-muted text-center">
             💡 <em>Nhận định tổng quan:</em> Hãy bổ sung tính năng lưu khóa an toàn (DB storage), tinh giản tệp giao diện mỏng và định vị sản phẩm giá trị gốc Việt Nam!
           </div>
         </div>
 
         {/* Right content display for the selected expert */}
-        <div className="lg:col-span-8 bg-slate-950 border border-slate-900 p-6 rounded-3xl flex flex-col justify-between space-y-5">
+        <div className="lg:col-span-8 bg-bg-primary border border-border-primary p-6 rounded-3xl flex flex-col justify-between space-y-5">
           
           {/* Expert Title Block */}
-          <div className="flex items-start gap-4 pb-4 border-b border-slate-900">
+          <div className="flex items-start gap-4 pb-4 border-b border-border-primary">
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl border ${experts[activeExpert].avatarColor} shrink-0`}>
               {experts[activeExpert].avatar}
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-black text-white">{experts[activeExpert].name}</h3>
-              <p className="text-xs text-slate-400 font-bold leading-tight">{experts[activeExpert].role}</p>
-              <div className={`text-[11px] font-black py-1 px-3 rounded-lg border inline-block select-text mt-1.5 ${experts[activeExpert].themeColor}`}>
+              <h3 className="text-sm font-bold text-text-primary">{experts[activeExpert].name}</h3>
+              <p className="text-xs text-text-secondary font-bold leading-tight">{experts[activeExpert].role}</p>
+              <div className={`text-[11px] font-bold py-1 px-3 rounded-lg border inline-block select-text mt-1.5 ${experts[activeExpert].themeColor}`}>
                 {experts[activeExpert].verdict}
               </div>
             </div>
@@ -425,14 +425,14 @@ export default function AdvisoryBoardReport() {
           <div className="grid sm:grid-cols-2 gap-4 text-xs">
             
             {/* Strengths */}
-            <div className="p-4 bg-emerald-950/5 border border-emerald-900/20 rounded-2xl space-y-2">
-              <span className="text-[9.5px] font-mono text-emerald-400 font-black tracking-widest block uppercase">
+            <div className="p-4 bg-success/5 border border-emerald-900/20 rounded-2xl space-y-2">
+              <span className="text-[9.5px] font-mono text-success font-bold tracking-widest block uppercase">
                 ✓ ĐIỂM SÁNG / THẾ MẠNH (STRENGTHS)
               </span>
-              <ul className="space-y-2 text-[11px] text-slate-400 font-semibold select-text">
+              <ul className="space-y-2 text-[11px] text-text-secondary font-semibold select-text">
                 {experts[activeExpert].strengths.map((st, index) => (
                   <li key={index} className="flex gap-1.5 items-start">
-                    <span className="text-emerald-400 font-bold shrink-0">✓</span>
+                    <span className="text-success font-bold shrink-0">✓</span>
                     <span>{st}</span>
                   </li>
                 ))}
@@ -440,14 +440,14 @@ export default function AdvisoryBoardReport() {
             </div>
 
             {/* Technical Debts or Pitfalls */}
-            <div className="p-4 bg-rose-950/5 border border-rose-900/20 rounded-2xl space-y-2">
-              <span className="text-[9.5px] font-mono text-rose-400 font-black tracking-widest block uppercase">
+            <div className="p-4 bg-error/5 border border-rose-900/20 rounded-2xl space-y-2">
+              <span className="text-[9.5px] font-mono text-error font-bold tracking-widest block uppercase">
                 🚨 NỢ KỸ THUẬT / LỖ HỔNG (DEBTS &amp; PITFALLS)
               </span>
-              <ul className="space-y-2 text-[11px] text-slate-400 font-semibold select-text">
+              <ul className="space-y-2 text-[11px] text-text-secondary font-semibold select-text">
                 {experts[activeExpert].debts.map((st, index) => (
                   <li key={index} className="flex gap-1.5 items-start">
-                    <span className="text-rose-400 font-bold shrink-0">▸</span>
+                    <span className="text-error font-bold shrink-0">▸</span>
                     <span>{st}</span>
                   </li>
                 ))}
@@ -455,14 +455,14 @@ export default function AdvisoryBoardReport() {
             </div>
 
             {/* Core risks */}
-            <div className="p-4 bg-amber-950/5 border border-amber-900/20 rounded-2xl space-y-2">
-              <span className="text-[9.5px] font-mono text-amber-400 font-black tracking-widest block uppercase">
+            <div className="p-4 bg-warning/5 border border-amber-900/20 rounded-2xl space-y-2">
+              <span className="text-[9.5px] font-mono text-warning font-bold tracking-widest block uppercase">
                 ⚠️ RỦI RO CHI TRẠNG (SYS RISKS)
               </span>
-              <ul className="space-y-2 text-[11px] text-slate-400 font-semibold select-text">
+              <ul className="space-y-2 text-[11px] text-text-secondary font-semibold select-text">
                 {experts[activeExpert].risks.map((st, index) => (
                   <li key={index} className="flex gap-1.5 items-start">
-                    <span className="text-amber-400 font-bold shrink-0">!</span>
+                    <span className="text-warning font-bold shrink-0">!</span>
                     <span>{st}</span>
                   </li>
                 ))}
@@ -471,10 +471,10 @@ export default function AdvisoryBoardReport() {
 
             {/* Opportunities */}
             <div className="p-4 bg-sky-950/5 border border-sky-900/20 rounded-2xl space-y-2">
-              <span className="text-[9.5px] font-mono text-sky-400 font-black tracking-widest block uppercase">
+              <span className="text-[9.5px] font-mono text-sky-400 font-bold tracking-widest block uppercase">
                 ⚡ CƠ HỘI ĐỘC CHUYỂN AI-NATIVE (OPPORTUNITIES)
               </span>
-              <ul className="space-y-2 text-[11px] text-slate-400 font-semibold select-text">
+              <ul className="space-y-2 text-[11px] text-text-secondary font-semibold select-text">
                 {experts[activeExpert].opportunities.map((st, index) => (
                   <li key={index} className="flex gap-1.5 items-start">
                     <span className="text-sky-400 font-bold shrink-0">⚡</span>
@@ -488,12 +488,12 @@ export default function AdvisoryBoardReport() {
 
           {/* CFO INTERACTIVE MARGIN CALCULATOR - INSIDE CFO PANEL */}
           {activeExpert === 'ha' && (
-            <div className="p-4 bg-slate-900 border border-slate-850 rounded-2xl space-y-3">
-              <div className="flex justify-between items-center border-b border-slate-850 pb-2">
-                <span className="text-[10px] font-mono font-extrabold text-emerald-400 flex items-center gap-1">
+            <div className="p-4 bg-bg-surface border border-border-secondary rounded-2xl space-y-3">
+              <div className="flex justify-between items-center border-b border-border-secondary pb-2">
+                <span className="text-[10px] font-mono font-extrabold text-success flex items-center gap-1">
                   📊 Trình Giả Lập Biên Lợi Nhuận Thực Tế (CFO Gross Margin Live Calculator)
                 </span>
-                <span className="text-[8px] bg-slate-950 px-2 py-0.5 rounded text-slate-550 border border-slate-850">
+                <span className="text-[8px] bg-bg-primary px-2 py-0.5 rounded text-slate-550 border border-border-secondary">
                   Trang 6: P&amp;L Analysis
                 </span>
               </div>
@@ -501,7 +501,7 @@ export default function AdvisoryBoardReport() {
               <div className="grid sm:grid-cols-3 gap-3 text-xs leading-relaxed">
                 {/* Revenue slider */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] text-slate-400 font-bold block">MRR Doanh thu:</span>
+                  <span className="text-[11px] text-text-secondary font-bold block">MRR Doanh thu:</span>
                   <input
                     type="range"
                     min="5000000"
@@ -509,14 +509,14 @@ export default function AdvisoryBoardReport() {
                     step="5000000"
                     value={marginSimulatorRevenue}
                     onChange={(e) => setMarginSimulatorRevenue(parseInt(e.target.value))}
-                    className="w-full accent-emerald-500 h-1 bg-slate-800 rounded-lg"
+                    className="w-full accent-emerald-500 h-1 bg-bg-elevated rounded-lg"
                   />
-                  <span className="text-[10px] font-mono text-emerald-400 font-black">{marginSimulatorRevenue.toLocaleString('vi-VN')} đ/tháng</span>
+                  <span className="text-[10px] font-mono text-success font-bold">{marginSimulatorRevenue.toLocaleString('vi-VN')} đ/tháng</span>
                 </div>
 
                 {/* Hours Slider */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] text-slate-400 font-bold block">Thời gian tự code/tư vấn:</span>
+                  <span className="text-[11px] text-text-secondary font-bold block">Thời gian tự code/tư vấn:</span>
                   <input
                     type="range"
                     min="10"
@@ -524,14 +524,14 @@ export default function AdvisoryBoardReport() {
                     step="10"
                     value={marginSimulatorHours}
                     onChange={(e) => setMarginSimulatorHours(parseInt(e.target.value))}
-                    className="w-full accent-purple-500 h-1 bg-slate-800 rounded-lg"
+                    className="w-full accent-purple-500 h-1 bg-bg-elevated rounded-lg"
                   />
-                  <span className="text-[10px] font-mono text-purple-400 font-black">{marginSimulatorHours} giờ/tháng</span>
+                  <span className="text-[10px] font-mono text-brand font-bold">{marginSimulatorHours} giờ/tháng</span>
                 </div>
 
                 {/* Self rate slider */}
                 <div className="space-y-1.5">
-                  <span className="text-[11px] text-slate-400 font-bold block">Định giá giờ bản thân:</span>
+                  <span className="text-[11px] text-text-secondary font-bold block">Định giá giờ bản thân:</span>
                   <input
                     type="range"
                     min="100000"
@@ -539,21 +539,21 @@ export default function AdvisoryBoardReport() {
                     step="50000"
                     value={marginRatePerHour}
                     onChange={(e) => setMarginRatePerHour(parseInt(e.target.value))}
-                    className="w-full accent-sky-500 h-1 bg-slate-800 rounded-lg"
+                    className="w-full accent-sky-500 h-1 bg-bg-elevated rounded-lg"
                   />
-                  <span className="text-[10px] font-mono text-sky-400 font-black">{marginRatePerHour.toLocaleString('vi-VN')}đ/giờ</span>
+                  <span className="text-[10px] font-mono text-sky-400 font-bold">{marginRatePerHour.toLocaleString('vi-VN')}đ/giờ</span>
                 </div>
               </div>
 
               {/* Simulation Result Block */}
-              <div className="grid sm:grid-cols-2 gap-3 bg-slate-950 p-3 rounded-xl border border-slate-850 text-[11px] font-bold">
+              <div className="grid sm:grid-cols-2 gap-3 bg-bg-primary p-3 rounded-xl border border-border-secondary text-[11px] font-bold">
                 <div className="space-y-1">
-                  <span className="text-slate-500">CP cơ hội thời gian của bạn:</span>
-                  <p className="text-white font-mono font-black">{totalCostOfTime.toLocaleString('vi-VN')} đ</p>
+                  <span className="text-text-muted">CP cơ hội thời gian của bạn:</span>
+                  <p className="text-text-primary font-mono font-bold">{totalCostOfTime.toLocaleString('vi-VN')} đ</p>
                 </div>
                 <div className="space-y-1 text-right">
-                  <span className="text-slate-500">Biên lợi nhuận ròng thật sự (Real Gross Margin):</span>
-                  <p className={`font-mono font-black text-xs ${grossMarginPercentage >= 60 ? 'text-emerald-400' : grossMarginPercentage >= 30 ? 'text-amber-400' : 'text-rose-455'}`}>
+                  <span className="text-text-muted">Biên lợi nhuận ròng thật sự (Real Gross Margin):</span>
+                  <p className={`font-mono font-bold text-xs ${grossMarginPercentage >= 60 ? 'text-success' : grossMarginPercentage >= 30 ? 'text-warning' : 'text-rose-455'}`}>
                     {netProfit > 0 ? `${grossMarginPercentage}%` : `LỖ -${Math.abs(grossMarginPercentage)}%`}
                   </p>
                 </div>
@@ -566,15 +566,15 @@ export default function AdvisoryBoardReport() {
       </div>
 
       {/* ⚖️ ACTIONS FOR PERSISTENCE / CO-CONSENSUS (8 HÀNH ĐỘNG ƯU TIÊN) */}
-      <div className="bg-slate-950 border border-slate-900 rounded-3xl p-6 shadow-xl space-y-5">
-        <div className="border-b border-slate-900 pb-3 flex justify-between items-end">
+      <div className="bg-bg-primary border border-border-primary rounded-3xl p-6 shadow-xl space-y-5">
+        <div className="border-b border-border-primary pb-3 flex justify-between items-end">
           <div className="space-y-0.5">
-            <span className="text-[9px] font-mono text-purple-400 font-black uppercase tracking-wider block">CONSENSUS ACTION INDEX (Hội đồng đồng thuận)</span>
-            <h3 className="text-sm font-black text-white uppercase flex items-center gap-1.5 font-sans">
+            <span className="text-[9px] font-mono text-brand font-bold uppercase tracking-wider block">CONSENSUS ACTION INDEX (Hội đồng đồng thuận)</span>
+            <h3 className="text-sm font-bold text-text-primary uppercase flex items-center gap-1.5 font-sans">
               ⚖️ Sổ Tay Hành Động Chinh Phục PMF (8 Priority Actions Checklist)
             </h3>
           </div>
-          <p className="text-[11px] text-slate-500 font-bold text-right hidden sm:block">
+          <p className="text-[11px] text-text-muted font-bold text-right hidden sm:block">
             Tình trạng: {Object.values(checkedActions).filter(Boolean).length} / {Object.keys(checkedActions).length} đã hoàn tất
           </p>
         </div>
@@ -586,14 +586,14 @@ export default function AdvisoryBoardReport() {
               num: 1, 
               title: 'Pivot 1 Module Trọng Tâm', 
               desc: 'Khoan thủng "Đối soát sao kê VietQR cho Shop Online" thay vì build 13 tab rộng mênh mông.',
-              color: 'text-purple-400 border-purple-500/10'
+              color: 'text-brand border-brand/10'
             },
             { 
               key: 'action_2', 
               num: 2, 
               title: 'Thêm database luồng thật', 
               desc: 'Tích hợp đĩa cứng máy chủ tự động để đồng bộ sao lưu và phục hồi dữ liệu từ xa thay vì chỉ lưu LocalStorage cục bộ đơn sơ.',
-              color: 'text-emerald-400 border-emerald-500/10'
+              color: 'text-success border-success/10'
             },
             { 
               key: 'action_3', 
@@ -607,7 +607,7 @@ export default function AdvisoryBoardReport() {
               num: 4, 
               title: 'Kiếm dòng tiền thủ công', 
               desc: 'Lấy dòng tiền dịch vụ Controller (8-20M/tháng) nuôi công nghệ làm SaaS 2.0.',
-              color: 'text-amber-400 border-amber-500/10'
+              color: 'text-warning border-warning/10'
             },
             { 
               key: 'action_5', 
@@ -628,14 +628,14 @@ export default function AdvisoryBoardReport() {
               num: 7, 
               title: 'Chạy Build in Public VN', 
               desc: 'Công khai hành trình gọi vốn, số liệu doanh sớ thật hàng tuần gầy dựng uy tín độc lập.',
-              color: 'text-rose-455 text-rose-400 border-rose-500/10'
+              color: 'text-rose-455 text-error border-error/10'
             },
             { 
               key: 'action_8', 
               num: 8, 
               title: 'Tinh khiết 3 bộ metrics', 
               desc: 'Bỏ qua pageviews rác, duy nhất đo lường: Active users, real Doanh sớ và Retention T+30.',
-              color: 'text-cyan-400 border-cyan-500/10'
+              color: 'text-info border-info/10'
             },
           ].map(action => {
             const isChecked = !!checkedActions[action.key];
@@ -645,40 +645,40 @@ export default function AdvisoryBoardReport() {
                 onClick={() => toggleAction(action.key, action.title)}
                 className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between space-y-3.5 select-none relative overflow-hidden ${
                   isChecked 
-                    ? 'bg-purple-950/10 border-purple-500/35 shadow-lg' 
-                    : 'bg-slate-900/35 border-slate-900/80 hover:bg-slate-900 hover:border-slate-800'
+                    ? 'bg-brand/10 border-brand/35 shadow-lg' 
+                    : 'bg-bg-surface border-border-primary/80 hover:bg-bg-surface hover:border-border-primary'
                 }`}
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2">
-                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black font-mono text-xs ${isChecked ? 'bg-purple-500 text-white shadow-md' : 'bg-slate-950 border border-slate-850 text-slate-400'}`}>
+                    <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-bold font-mono text-xs ${isChecked ? 'bg-brand text-text-primary shadow-md' : 'bg-bg-primary border border-border-secondary text-text-secondary'}`}>
                       {action.num}
                     </span>
-                    <span className="text-[12.5px] font-black text-white leading-none">
+                    <span className="text-[12.5px] font-bold text-text-primary leading-none">
                       {action.title}
                     </span>
                   </div>
                   <div>
                     {isChecked ? (
-                      <CheckCircle2 className="w-5 h-5 text-purple-400 shrink-0" />
+                      <CheckCircle2 className="w-5 h-5 text-brand shrink-0" />
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-950 border border-slate-850 hover:border-purple-500"></div>
+                      <div className="w-5 h-5 rounded-full bg-bg-primary border border-border-secondary hover:border-brand"></div>
                     )}
                   </div>
                 </div>
 
-                <p className="text-[10.5px] text-slate-500 font-semibold leading-relaxed">
+                <p className="text-[10.5px] text-text-muted font-semibold leading-relaxed">
                   {action.desc}
                 </p>
 
                 {action.key === 'action_2' && (
-                  <span className="absolute bottom-2 right-2 text-[8px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-1.5 py-0.5 rounded font-black font-mono">
+                  <span className="absolute bottom-2 right-2 text-[8px] bg-success/10 text-success border border-success/20 px-1.5 py-0.5 rounded font-bold font-mono">
                     ĐỒNG BỘ ĐÁM MÂY
                   </span>
                 )}
 
                 {action.key === 'action_3' && (
-                  <span className="absolute bottom-2 right-2 text-[8px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.5 rounded font-black font-mono">
+                  <span className="absolute bottom-2 right-2 text-[8px] bg-sky-500/10 text-sky-400 border border-sky-500/20 px-1.5 py-0.5 rounded font-bold font-mono">
                     ĐÃ CÀI ĐẶT
                   </span>
                 )}

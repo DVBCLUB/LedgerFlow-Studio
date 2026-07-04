@@ -27,14 +27,14 @@ export default function FrictionalCostCalculator() {
   const money = (val: number) => new Intl.NumberFormat('vi-VN').format(val) + 'đ';
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-        <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-xl">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
+        <div className="p-2 bg-success/10 text-success border border-success/25 rounded-xl">
           <Calculator className="w-5 h-5 animate-spin-slow" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">Financial Frictional Cost Calculator</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Đo lường và tối ưu hóa các loại chi phí ma sát vận hành ẩn (thuế nhà thầu, phí thanh toán, phí chứng từ).</p>
+          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Financial Frictional Cost Calculator</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Đo lường và tối ưu hóa các loại chi phí ma sát vận hành ẩn (thuế nhà thầu, phí thanh toán, phí chứng từ).</p>
         </div>
       </div>
 
@@ -47,14 +47,14 @@ export default function FrictionalCostCalculator() {
               type="number"
               value={revenue}
               onChange={(e) => setRevenue(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+              className="w-full bg-bg-primary border border-border-secondary px-3 py-2 rounded-lg text-xs text-text-primary focus:outline-none focus:border-success font-semibold"
             />
           </div>
 
           <div>
             <div className="flex justify-between text-xs font-bold mb-1">
               <span className="text-slate-350">2. Phí cổng thanh toán / chuyển khoản:</span>
-              <span className="text-emerald-400 font-mono">{gatewayRate}%</span>
+              <span className="text-success font-mono">{gatewayRate}%</span>
             </div>
             <input
               type="range"
@@ -63,9 +63,9 @@ export default function FrictionalCostCalculator() {
               step="0.1"
               value={gatewayRate}
               onChange={(e) => setGatewayRate(Number(e.target.value))}
-              className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer"
+              className="w-full accent-emerald-500 h-1.5 bg-bg-elevated rounded-lg cursor-pointer"
             />
-            <div className="flex justify-between text-[9px] text-slate-500 mt-1 font-semibold">
+            <div className="flex justify-between text-[9px] text-text-muted mt-1 font-semibold">
               <span>Chuyển khoản tay (0%)</span>
               <span>Cổng thẻ Visa/Master (2.5% - 3.5%)</span>
             </div>
@@ -77,7 +77,7 @@ export default function FrictionalCostCalculator() {
               type="number"
               value={adsSpent}
               onChange={(e) => setAdsSpent(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+              className="w-full bg-bg-primary border border-border-secondary px-3 py-2 rounded-lg text-xs text-text-primary focus:outline-none focus:border-success font-semibold"
             />
           </div>
 
@@ -89,7 +89,7 @@ export default function FrictionalCostCalculator() {
               onChange={(e) => setHasFctTax(e.target.checked)}
               className="accent-emerald-500 cursor-pointer"
             />
-            <label htmlFor="hasFctTax" className="text-slate-300 cursor-pointer">
+            <label htmlFor="hasFctTax" className="text-text-secondary cursor-pointer">
               Tính rủi ro Thuế nhà thầu nước ngoài (FCT) (+10% chi phí ads nếu không tự khai thuế)
             </label>
           </div>
@@ -100,30 +100,30 @@ export default function FrictionalCostCalculator() {
               type="number"
               value={invoiceCost}
               onChange={(e) => setInvoiceCost(Math.max(0, Number(e.target.value) || 0))}
-              className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+              className="w-full bg-bg-primary border border-border-secondary px-3 py-2 rounded-lg text-xs text-text-primary focus:outline-none focus:border-success font-semibold"
             />
           </div>
         </div>
 
         {/* Right Column: Calculated Results */}
-        <div className="lg:col-span-2 flex flex-col justify-between bg-slate-950/60 rounded-xl p-5 border border-slate-850/80">
+        <div className="lg:col-span-2 flex flex-col justify-between bg-bg-primary rounded-xl p-5 border border-border-secondary/80">
           <div className="space-y-4">
             <div>
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Phí ma sát hàng tháng</span>
-              <p className="text-2xl font-black text-rose-350 font-mono mt-1">{money(calculation.totalMonthly)}</p>
-              <div className="text-[9.5px] text-slate-400 mt-1 font-semibold space-y-0.5 leading-relaxed">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Phí ma sát hàng tháng</span>
+              <p className="text-2xl font-bold text-rose-350 font-mono mt-1">{money(calculation.totalMonthly)}</p>
+              <div className="text-[9.5px] text-text-secondary mt-1 font-semibold space-y-0.5 leading-relaxed">
                 <p>• Phí cổng nhận tiền: {money(calculation.gatewayCost)}</p>
                 <p>• Thuế nhà thầu ads: {money(calculation.fctTaxMonthly)}</p>
               </div>
             </div>
 
-            <div className="border-t border-slate-900 pt-3">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Tổng chi ma sát ước tính / năm</span>
-              <p className="text-3xl font-black text-white font-mono mt-1">{money(calculation.totalAnnual)}</p>
+            <div className="border-t border-border-primary pt-3">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Tổng chi ma sát ước tính / năm</span>
+              <p className="text-3xl font-bold text-text-primary font-mono mt-1">{money(calculation.totalAnnual)}</p>
             </div>
 
-            <div className="border-t border-slate-900 pt-3 text-left">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">💡 Cách giảm thiểu ma sát:</span>
+            <div className="border-t border-border-primary pt-3 text-left">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">💡 Cách giảm thiểu ma sát:</span>
               <ul className="text-[10px] text-slate-350 mt-1.5 space-y-1 font-bold">
                 <li>• Khuyến khích KH thanh toán bằng quét mã VietQR chuyển khoản (0% phí).</li>
                 <li>• Liên kết MST cá nhân/doanh nghiệp Việt Nam vào tài khoản Facebook Ads để họ tự thu và nộp 5% VAT nhà thầu hộ bạn.</li>
@@ -131,7 +131,7 @@ export default function FrictionalCostCalculator() {
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-1.5 text-[9px] font-black text-rose-300/90 border border-rose-500/10 bg-rose-500/5 p-2 rounded-lg">
+          <div className="mt-4 flex items-center gap-1.5 text-[9px] font-bold text-error/90 border border-error/10 bg-error/5 p-2 rounded-lg">
             <ShieldAlert className="w-3.5 h-3.5 shrink-0" />
             <span>Mô phỏng tối ưu thuế & ma sát tài chính doanh nghiệp.</span>
           </div>

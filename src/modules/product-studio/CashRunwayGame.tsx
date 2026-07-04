@@ -103,24 +103,24 @@ export default function CashRunwayGame() {
 
   return (
     <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-6">
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Cash Runway Game</p>
-        <h2 className="mt-2 text-xl font-black text-white">Game quyết định sống còn của solo founder</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+        <h2 className="mt-2 text-xl font-black text-text-primary">Game quyết định sống còn của solo founder</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
           Nhập cash, burn, MRR, churn và tool cost. Sau đó chọn quyết định tháng này. Game sẽ chấm runway, rủi ro burn và cảnh báo nếu đang build quá đà khi chưa có paid signal.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Runway</p><p className="mt-2 text-3xl font-black text-white">{game.runway >= 99 ? '∞' : game.runway.toFixed(1)} tháng</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Net burn</p><p className="mt-2 text-2xl font-black text-amber-300">{money(game.netBurn)}đ</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Tool burn</p><p className="mt-2 text-3xl font-black text-cyan-300">{Math.round(game.toolBurnRatio * 100)}%</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Survival score</p><p className="mt-2 text-3xl font-black text-emerald-300">{game.survivalScore}/100</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Runway</p><p className="mt-2 text-3xl font-black text-text-primary">{game.runway >= 99 ? '∞' : game.runway.toFixed(1)} tháng</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Net burn</p><p className="mt-2 text-2xl font-black text-amber-300">{money(game.netBurn)}đ</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Tool burn</p><p className="mt-2 text-3xl font-black text-cyan-300">{Math.round(game.toolBurnRatio * 100)}%</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Survival score</p><p className="mt-2 text-3xl font-black text-emerald-300">{game.survivalScore}/100</p></div>
       </div>
 
       <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5">
         <p className="text-[10px] font-black uppercase text-emerald-300">Verdict</p>
-        <h3 className="mt-2 text-lg font-black text-white">{game.verdict}</h3>
+        <h3 className="mt-2 text-lg font-black text-text-primary">{game.verdict}</h3>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button onClick={recordSession} className="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Lưu lượt chơi</button>
           {sessionMessage && <span className="text-xs font-bold text-emerald-100">{sessionMessage}</span>}
@@ -128,33 +128,33 @@ export default function CashRunwayGame() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[18rem_1fr]">
-        <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/70 p-4">
+        <div className="space-y-3 rounded-2xl border border-border-primary bg-bg-surface/70 p-4">
           <div className="flex gap-2">
             <button onClick={addScenario} className="flex-1 rounded-xl bg-emerald-400 px-3 py-2 text-xs font-black text-slate-950">Thêm</button>
-            <button onClick={reset} className="rounded-xl border border-slate-700 px-3 py-2 text-xs font-black text-slate-300">Reset</button>
+            <button onClick={reset} className="rounded-xl border border-border-secondary px-3 py-2 text-xs font-black text-text-secondary">Reset</button>
           </div>
           {scenarios.map((scenario) => (
-            <button key={scenario.id} onClick={() => setActiveId(scenario.id)} className={`w-full rounded-2xl border p-3 text-left text-xs font-bold ${active.id === scenario.id ? 'border-emerald-400 bg-emerald-500/10 text-white' : 'border-slate-800 bg-slate-950/60 text-slate-300'}`}>
+            <button key={scenario.id} onClick={() => setActiveId(scenario.id)} className={`w-full rounded-2xl border p-3 text-left text-xs font-bold ${active.id === scenario.id ? 'border-emerald-400 bg-emerald-500/10 text-text-primary' : 'border-border-primary bg-slate-950/60 text-text-secondary'}`}>
               {scenario.name}
             </button>
           ))}
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
           <div className="grid gap-3 md:grid-cols-2">
-            <label className="text-[10px] font-black uppercase text-slate-500">Tên kịch bản<input value={active.name} onChange={(event) => updateActive({ name: event.target.value })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">Quyết định<select value={active.decision} onChange={(event) => updateActive({ decision: event.target.value as Decision })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200"><option>Cut tools</option><option>Raise price</option><option>Find paid pilot</option><option>Build more features</option><option>Pause launch</option></select></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">Cash hiện có<input type="number" value={active.cash} onChange={(event) => updateActive({ cash: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">Monthly burn<input type="number" value={active.monthlyBurn} onChange={(event) => updateActive({ monthlyBurn: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">MRR<input type="number" value={active.mrr} onChange={(event) => updateActive({ mrr: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">Tool cost/tháng<input type="number" value={active.toolCost} onChange={(event) => updateActive({ toolCost: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
-            <label className="text-[10px] font-black uppercase text-slate-500">Churn %<input type="number" value={active.churnRate} onChange={(event) => updateActive({ churnRate: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Tên kịch bản<input value={active.name} onChange={(event) => updateActive({ name: event.target.value })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Quyết định<select value={active.decision} onChange={(event) => updateActive({ decision: event.target.value as Decision })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200"><option>Cut tools</option><option>Raise price</option><option>Find paid pilot</option><option>Build more features</option><option>Pause launch</option></select></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Cash hiện có<input type="number" value={active.cash} onChange={(event) => updateActive({ cash: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Monthly burn<input type="number" value={active.monthlyBurn} onChange={(event) => updateActive({ monthlyBurn: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">MRR<input type="number" value={active.mrr} onChange={(event) => updateActive({ mrr: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Tool cost/tháng<input type="number" value={active.toolCost} onChange={(event) => updateActive({ toolCost: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
+            <label className="text-[10px] font-black uppercase text-text-tertiary">Churn %<input type="number" value={active.churnRate} onChange={(event) => updateActive({ churnRate: Number(event.target.value) })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" /></label>
           </div>
 
           <div className="mt-5 grid gap-3 md:grid-cols-3">
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-slate-300">Burn risk: {game.burnRisk}/35<br />Runway dưới 3 tháng là vùng nguy hiểm.</div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-slate-300">Tool risk: {game.toolRisk}/25<br />Tool cost cao hơn 25–35% burn cần cắt ngay.</div>
-            <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-slate-300">Churn risk: {game.churnRisk}/40<br />Churn cao thì đừng scale marketing vội.</div>
+            <div className="rounded-xl border border-border-primary bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-text-secondary">Burn risk: {game.burnRisk}/35<br />Runway dưới 3 tháng là vùng nguy hiểm.</div>
+            <div className="rounded-xl border border-border-primary bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-text-secondary">Tool risk: {game.toolRisk}/25<br />Tool cost cao hơn 25–35% burn cần cắt ngay.</div>
+            <div className="rounded-xl border border-border-primary bg-slate-950/70 p-4 text-xs font-semibold leading-6 text-text-secondary">Churn risk: {game.churnRisk}/40<br />Churn cao thì đừng scale marketing vội.</div>
           </div>
         </div>
       </div>

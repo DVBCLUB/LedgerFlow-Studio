@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   BarChart3,
+  BookOpen,
   Bot,
   Building2,
   ChevronLeft,
@@ -22,11 +23,14 @@ import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
 import { COMPANY_WORKSPACES, type TabType, type RoleType } from './companyNavigation';
 import AgenticStatusBar from '../components/shared/AgenticStatusBar';
-import GlobalCommandSpotlight from '../components/shared/GlobalCommandSpotlight';
-import NeuralNotificationCenter from '../components/shared/NeuralNotificationCenter';
+import { Suspense, lazy } from 'react';
+
+const GlobalCommandSpotlight = lazy(() => import('../components/shared/GlobalCommandSpotlight'));
+const NeuralNotificationCenter = lazy(() => import('../components/shared/NeuralNotificationCenter'));
 
 const IconMap: Record<string, typeof Building2> = {
   Building2,
+  BookOpen,
   Database,
   BarChart3,
   UsersRound,
@@ -39,9 +43,8 @@ const IconMap: Record<string, typeof Building2> = {
 
 const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
   dashboard: { tab: 'ceo_command', subTab: 'overview' },
-  knowledge: { tab: 'ceo_command', subTab: 'today' },
+  knowledge: { tab: 'knowledge_library', subTab: 'library' },
   advisory: { tab: 'finance_accounting', subTab: 'reports' },
-  operations: { tab: 'product_studio', subTab: 'portfolio' },
   market_survey: { tab: 'marketing_growth', subTab: 'campaigns' },
   founder: { tab: 'product_studio', subTab: 'portfolio' },
   roadmap: { tab: 'product_studio', subTab: 'release' },
@@ -181,7 +184,9 @@ export default function ErpApp() {
 
   return (
     <div className="min-h-screen bg-[#09090b] text-slate-300 font-sans selection:bg-indigo-500/30 flex">
-      <GlobalCommandSpotlight />
+      <Suspense fallback={null}>
+        <GlobalCommandSpotlight />
+      </Suspense>
       
       {/* Mobile Backdrop */}
       {sidebarOpen && (
@@ -295,7 +300,9 @@ export default function ErpApp() {
           <div className="flex items-center gap-4">
             <AgenticStatusBar />
             <div className="flex items-center gap-2">
-              <NeuralNotificationCenter />
+              <Suspense fallback={<div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 animate-pulse" />}>
+                <NeuralNotificationCenter />
+              </Suspense>
               <button className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shadow-inner" title="Giao tiếp Giọng nói với AI (Hold to speak)" onClick={() => alert('Đang lắng nghe: "Agent Marketing, báo cáo chiến dịch hôm nay"...')}>
                 <Mic className="w-4 h-4" />
               </button>

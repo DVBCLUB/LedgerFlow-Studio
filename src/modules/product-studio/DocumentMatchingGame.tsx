@@ -142,50 +142,50 @@ export default function DocumentMatchingGame() {
 
   return (
     <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-6">
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Document Matching Game</p>
-        <h2 className="mt-2 text-xl font-black text-white">Ghép chứng từ với nghiệp vụ/rủi ro</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+        <h2 className="mt-2 text-xl font-black text-text-primary">Ghép chứng từ với nghiệp vụ/rủi ro</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
           Chọn chứng từ cần kiểm tra cho từng nghiệp vụ. Game giúp học tư duy kiểm toán: không nhìn một chứng từ đơn lẻ, mà phải nối đủ chuỗi chứng từ để chứng minh nghiệp vụ.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Lượt chơi</p><p className="mt-2 text-3xl font-black text-white">{runs.length}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Điểm TB</p><p className="mt-2 text-3xl font-black text-emerald-300">{avgScore}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Best score</p><p className="mt-2 text-3xl font-black text-cyan-300">{bestScore}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Current</p><p className="mt-2 text-3xl font-black text-amber-300">{result.score}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Lượt chơi</p><p className="mt-2 text-3xl font-black text-text-primary">{runs.length}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Điểm TB</p><p className="mt-2 text-3xl font-black text-emerald-300">{avgScore}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Best score</p><p className="mt-2 text-3xl font-black text-cyan-300">{bestScore}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Current</p><p className="mt-2 text-3xl font-black text-amber-300">{result.score}</p></div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <label className="text-[10px] font-black uppercase text-slate-500">Chọn case</label>
-        <select value={scenarioId} onChange={(event) => { setScenarioId(event.target.value); setSelectedDocs([]); setSubmitted(false); setMessage(''); }} className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-3 text-sm font-bold text-white">
+      <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+        <label className="text-[10px] font-black uppercase text-text-tertiary">Chọn case</label>
+        <select value={scenarioId} onChange={(event) => { setScenarioId(event.target.value); setSelectedDocs([]); setSubmitted(false); setMessage(''); }} className="mt-2 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-3 text-sm font-bold text-text-primary">
           {scenarios.map((item) => <option key={item.id} value={item.id}>{item.industry} - {item.transaction}</option>)}
         </select>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_1.15fr]">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
           <p className="text-[10px] font-black uppercase text-emerald-300">{scenario.industry}</p>
-          <h3 className="mt-2 text-lg font-black text-white">{scenario.transaction}</h3>
+          <h3 className="mt-2 text-lg font-black text-text-primary">{scenario.transaction}</h3>
           <p className="mt-3 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold leading-6 text-rose-100">Rủi ro: {scenario.risk}</p>
           <div className="mt-4 rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-xs font-semibold leading-6 text-cyan-100">
             Mục tiêu: chọn đủ chứng từ đúng, tránh chọn chứng từ nhiễu. Sau khi nộp bài, game sẽ hiện chứng từ bị bỏ sót và giải thích.
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <h3 className="text-sm font-black text-white">Chọn chứng từ cần kiểm tra</h3>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+          <h3 className="text-sm font-black text-text-primary">Chọn chứng từ cần kiểm tra</h3>
           <div className="mt-4 grid gap-2 md:grid-cols-2">
             {allDocs.map((doc) => (
-              <button key={doc} onClick={() => toggleDoc(doc)} className={`rounded-xl border p-3 text-left text-xs font-bold leading-5 transition ${selectedDocs.includes(doc) ? 'border-emerald-400 bg-emerald-500/15 text-white' : 'border-slate-800 bg-slate-950 text-slate-300 hover:border-emerald-500/40'}`}>
+              <button key={doc} onClick={() => toggleDoc(doc)} className={`rounded-xl border p-3 text-left text-xs font-bold leading-5 transition ${selectedDocs.includes(doc) ? 'border-emerald-400 bg-emerald-500/15 text-text-primary' : 'border-border-primary bg-slate-950 text-text-secondary hover:border-emerald-500/40'}`}>
                 {doc}
               </button>
             ))}
           </div>
           <div className="mt-4 flex flex-wrap gap-3">
             <button onClick={submit} className="rounded-xl bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài & lưu lịch sử</button>
-            <button onClick={reset} className="rounded-xl border border-slate-700 px-4 py-3 text-xs font-black text-slate-300 hover:border-cyan-400">Làm lại</button>
+            <button onClick={reset} className="rounded-xl border border-border-secondary px-4 py-3 text-xs font-black text-text-secondary hover:border-cyan-400">Làm lại</button>
           </div>
           {message && <p className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs font-bold text-emerald-100">{message}</p>}
         </div>
@@ -194,22 +194,22 @@ export default function DocumentMatchingGame() {
       {submitted && (
         <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/10 p-6">
           <p className="text-[10px] font-black uppercase text-emerald-300">Kết quả</p>
-          <h3 className="mt-2 text-2xl font-black text-white">{result.score}/100 - {result.verdict}</h3>
+          <h3 className="mt-2 text-2xl font-black text-text-primary">{result.score}/100 - {result.verdict}</h3>
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Đúng</p><p className="mt-2 text-3xl font-black text-emerald-300">{result.correctSelected}</p></div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Bỏ sót</p><p className="mt-2 text-3xl font-black text-amber-300">{result.missed}</p></div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-slate-500">Chọn sai</p><p className="mt-2 text-3xl font-black text-rose-300">{result.wrongSelected}</p></div>
+            <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-text-tertiary">Đúng</p><p className="mt-2 text-3xl font-black text-emerald-300">{result.correctSelected}</p></div>
+            <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-text-tertiary">Bỏ sót</p><p className="mt-2 text-3xl font-black text-amber-300">{result.missed}</p></div>
+            <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4"><p className="text-[10px] font-black uppercase text-text-tertiary">Chọn sai</p><p className="mt-2 text-3xl font-black text-rose-300">{result.wrongSelected}</p></div>
           </div>
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4">
               <h4 className="text-xs font-black uppercase text-emerald-300">Chứng từ đúng phải kiểm tra</h4>
-              <ul className="mt-3 space-y-2 text-xs font-semibold text-slate-300">
+              <ul className="mt-3 space-y-2 text-xs font-semibold text-text-secondary">
                 {scenario.correctDocs.map((doc) => <li key={doc}>• {doc}</li>)}
               </ul>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4">
+            <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-4">
               <h4 className="text-xs font-black uppercase text-cyan-300">Giải thích</h4>
-              <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{scenario.explanation}</p>
+              <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">{scenario.explanation}</p>
             </div>
           </div>
         </div>

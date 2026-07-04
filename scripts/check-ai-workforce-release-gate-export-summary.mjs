@@ -6,7 +6,7 @@ const files = [
   'server/services/aiWorkforceReleaseGateExport.test.ts',
   'scripts/patch-ai-workforce-release-gate-export-route.mjs',
   'scripts/patch-ai-workforce-snapshot-export-ui.mjs',
-  'src/modules/ai-hr/ReleaseGateDashboardCard.tsx',
+  'src/modules/ai-nhan-su/ReleaseGateDashboardCard.tsx',
   'dist/assistant-daemon.cjs',
 ];
 

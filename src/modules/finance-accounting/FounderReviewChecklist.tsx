@@ -105,10 +105,10 @@ function exportJson(filename: string, payload: unknown) {
 }
 
 function statusClass(status: ChecklistStatus) {
-  if (status === 'Approved') return 'border-emerald-400/35 bg-emerald-400/10 text-emerald-200';
-  if (status === 'Rejected') return 'border-rose-400/35 bg-rose-400/10 text-rose-200';
-  if (status === 'Ready') return 'border-amber-400/35 bg-amber-400/10 text-amber-200';
-  return 'border-slate-700 bg-slate-950 text-slate-300';
+  if (status === 'Approved') return 'border-emerald-400/35 bg-emerald-400/10 text-success';
+  if (status === 'Rejected') return 'border-rose-400/35 bg-rose-400/10 text-error';
+  if (status === 'Ready') return 'border-amber-400/35 bg-amber-400/10 text-warning';
+  return 'border-border-secondary bg-bg-primary text-text-secondary';
 }
 
 export default function FounderReviewChecklist() {
@@ -168,76 +168,76 @@ export default function FounderReviewChecklist() {
   };
 
   return (
-    <section className="rounded-3xl border border-emerald-400/35 bg-emerald-400/10 p-4 text-slate-100">
+    <section className="rounded-3xl border border-emerald-400/35 bg-emerald-400/10 p-4 text-text-primary">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-200">Founder review checklist</p>
-          <h3 className="mt-1 text-xl font-black text-white">Checklist trước khi AI tạo PR</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Kiểm soát mục tiêu, file, secret, rollback và test trước khi patch đi sang Review Desk.</p>
+          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-success">Founder review checklist</p>
+          <h3 className="mt-1 text-xl font-bold text-text-primary">Checklist trước khi AI tạo PR</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-text-secondary">Kiểm soát mục tiêu, file, secret, rollback và test trước khi patch đi sang Review Desk.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={createChecklist} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950">Tạo checklist</button>
-          <button onClick={() => exportJson('ledgerflow-founder-review.json', { items, events })} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-emerald-300">Xuất log</button>
+          <button onClick={createChecklist} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-bold text-slate-950">Tạo checklist</button>
+          <button onClick={() => exportJson('ledgerflow-founder-review.json', { items, events })} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-bold text-text-secondary hover:border-emerald-300">Xuất log</button>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-        <div className="space-y-2 rounded-3xl border border-slate-800 bg-slate-950/60 p-3">
-          {items.map((item) => <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === item.id ? 'border-emerald-300 bg-emerald-400/10' : 'border-slate-800 bg-slate-950/50 hover:border-emerald-400/40'}`}>
+        <div className="space-y-2 rounded-3xl border border-border-primary bg-bg-primary p-3">
+          {items.map((item) => <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === item.id ? 'border-emerald-300 bg-emerald-400/10' : 'border-border-primary bg-bg-primary hover:border-emerald-400/40'}`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-black text-white">{item.title}</p>
-              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${statusClass(item.status)}`}>{item.status}</span>
+              <p className="text-sm font-bold text-text-primary">{item.title}</p>
+              <span className={`rounded-full border px-2 py-0.5 text-[10px] font-bold ${statusClass(item.status)}`}>{item.status}</span>
             </div>
-            <p className="mt-1 text-[11px] font-bold text-slate-500">{item.source} · {item.risk} · {item.at}</p>
+            <p className="mt-1 text-[11px] font-bold text-text-muted">{item.source} · {item.risk} · {item.at}</p>
           </button>)}
         </div>
 
-        {selected && <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-4">
+        {selected && <div className="rounded-3xl border border-border-primary bg-bg-primary p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected checklist</p>
-              <input className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-lg font-black text-white" value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} />
-              <p className="mt-2 text-xs font-bold text-slate-500">{selected.repo} · {selected.branch}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Selected checklist</p>
+              <input className="mt-1 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-lg font-bold text-text-primary" value={selected.title} onChange={(event) => updateSelected({ title: event.target.value })} />
+              <p className="mt-2 text-xs font-bold text-text-muted">{selected.repo} · {selected.branch}</p>
             </div>
-            <span className={`rounded-full border px-3 py-1 text-xs font-black ${statusClass(selected.status)}`}>{completion}%</span>
+            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${statusClass(selected.status)}`}>{completion}%</span>
           </div>
 
           <div className="mt-4 grid gap-2 md:grid-cols-2">
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={selected.repo} onChange={(event) => updateSelected({ repo: event.target.value })} />
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={selected.branch} onChange={(event) => updateSelected({ branch: event.target.value })} />
-            <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={selected.source} onChange={(event) => updateSelected({ source: event.target.value as ReviewChecklist['source'] })}>
+            <input className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary" value={selected.repo} onChange={(event) => updateSelected({ repo: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary" value={selected.branch} onChange={(event) => updateSelected({ branch: event.target.value })} />
+            <select className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary" value={selected.source} onChange={(event) => updateSelected({ source: event.target.value as ReviewChecklist['source'] })}>
               {(['Manual', 'Sandbox', 'Diff Review', 'Review Desk', 'Session'] as ReviewChecklist['source'][]).map((source) => <option key={source}>{source}</option>)}
             </select>
-            <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={selected.risk} onChange={(event) => updateSelected({ risk: event.target.value as ChecklistRisk })}>
+            <select className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm text-text-primary" value={selected.risk} onChange={(event) => updateSelected({ risk: event.target.value as ChecklistRisk })}>
               {(['LOW', 'MEDIUM', 'HIGH'] as ChecklistRisk[]).map((risk) => <option key={risk}>{risk}</option>)}
             </select>
           </div>
 
           <div className="mt-4 space-y-2">
-            {keys.map((key) => <label key={key} className="flex items-start gap-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+            {keys.map((key) => <label key={key} className="flex items-start gap-3 rounded-2xl border border-border-primary bg-bg-primary p-3">
               <input type="checkbox" checked={selected[key]} onChange={(event) => updateSelected({ [key]: event.target.checked } as Partial<ReviewChecklist>, 'CHECK_TOGGLED')} className="mt-1" />
-              <span className="text-sm font-semibold leading-6 text-slate-300">{labels[key]}</span>
+              <span className="text-sm font-semibold leading-6 text-text-secondary">{labels[key]}</span>
             </label>)}
           </div>
 
-          <textarea className="mt-4 min-h-[100px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" value={selected.notes} onChange={(event) => updateSelected({ notes: event.target.value })} />
+          <textarea className="mt-4 min-h-[100px] w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm leading-6 text-text-primary" value={selected.notes} onChange={(event) => updateSelected({ notes: event.target.value })} />
 
           <div className="mt-4 flex flex-wrap gap-2">
-            <button onClick={() => updateSelected({ status: 'Ready' }, 'CHECKLIST_READY')} className="rounded-2xl border border-amber-400/40 px-4 py-2 text-xs font-black text-amber-200 hover:bg-amber-400/10">Đánh dấu Ready</button>
-            <button disabled={!canApprove} onClick={approve} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">Founder Approve</button>
-            <button onClick={() => updateSelected({ status: 'Rejected' }, 'CHECKLIST_REJECTED')} className="rounded-2xl border border-rose-400/40 px-4 py-2 text-xs font-black text-rose-200 hover:bg-rose-400/10">Reject</button>
-            <button onClick={sendToReviewDesk} className="rounded-2xl border border-cyan-400/40 px-4 py-2 text-xs font-black text-cyan-200 hover:bg-cyan-400/10">Gửi context sang Review Desk</button>
+            <button onClick={() => updateSelected({ status: 'Ready' }, 'CHECKLIST_READY')} className="rounded-2xl border border-amber-400/40 px-4 py-2 text-xs font-bold text-warning hover:bg-amber-400/10">Đánh dấu Ready</button>
+            <button disabled={!canApprove} onClick={approve} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-bold text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">Founder Approve</button>
+            <button onClick={() => updateSelected({ status: 'Rejected' }, 'CHECKLIST_REJECTED')} className="rounded-2xl border border-rose-400/40 px-4 py-2 text-xs font-bold text-error hover:bg-rose-400/10">Reject</button>
+            <button onClick={sendToReviewDesk} className="rounded-2xl border border-cyan-400/40 px-4 py-2 text-xs font-bold text-info hover:bg-cyan-400/10">Gửi context sang Review Desk</button>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Checklist events</p>
+          <div className="mt-4 rounded-2xl border border-border-primary bg-bg-primary p-3">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-text-muted">Checklist events</p>
             <div className="mt-2 max-h-36 space-y-2 overflow-y-auto">
-              {selectedEvents.map((event) => <div key={event.id} className="rounded-xl border border-slate-800 bg-slate-950 p-2">
-                <p className="text-[10px] font-black text-emerald-200">{event.action}</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-400">{event.detail}</p>
-                <p className="mt-1 text-[10px] font-bold text-slate-600">{event.at}</p>
+              {selectedEvents.map((event) => <div key={event.id} className="rounded-xl border border-border-primary bg-bg-primary p-2">
+                <p className="text-[10px] font-bold text-success">{event.action}</p>
+                <p className="mt-1 text-[11px] font-semibold text-text-secondary">{event.detail}</p>
+                <p className="mt-1 text-[10px] font-bold text-text-muted">{event.at}</p>
               </div>)}
-              {selectedEvents.length === 0 && <p className="text-xs font-semibold text-slate-500">Chưa có event.</p>}
+              {selectedEvents.length === 0 && <p className="text-xs font-semibold text-text-muted">Chưa có event.</p>}
             </div>
           </div>
         </div>}

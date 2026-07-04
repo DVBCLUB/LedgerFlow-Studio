@@ -5,7 +5,7 @@ const files = [
   'server/services/aiWorkforceReleaseGateExportRuntime.ts',
   'server/services/aiWorkforceReleaseGateDashboard.ts',
   'server/services/aiWorkforceRuntimeRecordRetention.test.ts',
-  'src/modules/ai-hr/ReleaseGateDashboardCard.tsx',
+  'src/modules/ai-nhan-su/ReleaseGateDashboardCard.tsx',
 ];
 
 for (const file of files) {

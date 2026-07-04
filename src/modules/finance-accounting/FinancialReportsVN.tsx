@@ -105,22 +105,22 @@ function B01Report({ balances }: { balances: AccountBalance[] }) {
   const Section = ({ title, color, items, total }: { title: string; color: string; items: {label:string;value:number;sub?:boolean;highlight?:boolean}[]; total: number }) => {
     const [open, setOpen] = useState(true);
     return (
-      <div className="border border-slate-800/50 rounded-xl overflow-hidden">
-        <button onClick={() => setOpen(o => !o)} className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-black uppercase tracking-wide cursor-pointer ${color} bg-slate-900/60`}>
+      <div className="border border-border-primary/50 rounded-xl overflow-hidden">
+        <button onClick={() => setOpen(o => !o)} className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold uppercase tracking-wide cursor-pointer ${color} bg-bg-surface`}>
           <span>{title}</span>
           {open ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
         </button>
         {open && (
-          <div className="bg-slate-950/30">
+          <div className="bg-bg-primary">
             {items.map((item, i) => (
-              <div key={i} className={`flex items-center justify-between px-4 py-1.5 border-b border-slate-900/40 last:border-0 ${item.sub ? 'pl-8 text-slate-500' : item.highlight ? 'bg-slate-900/40 font-bold text-slate-200' : 'text-slate-400'}`}>
+              <div key={i} className={`flex items-center justify-between px-4 py-1.5 border-b border-border-primary/40 last:border-0 ${item.sub ? 'pl-8 text-text-muted' : item.highlight ? 'bg-bg-surface font-bold text-text-primary' : 'text-text-secondary'}`}>
                 <span className={`text-xs ${item.sub ? 'text-[11px]' : ''}`}>{item.label}</span>
-                <span className={`text-xs font-mono ${item.value < 0 ? 'text-rose-400' : item.highlight ? 'text-white font-black' : ''}`}>{fmtVND(item.value)}</span>
+                <span className={`text-xs font-mono ${item.value < 0 ? 'text-error' : item.highlight ? 'text-text-primary font-bold' : ''}`}>{fmtVND(item.value)}</span>
               </div>
             ))}
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-900/60 border-t border-slate-800/50">
-              <span className={`text-xs font-black uppercase ${color}`}>TỔNG {title}</span>
-              <span className={`text-sm font-black font-mono ${color}`}>{fmtVND(total)}</span>
+            <div className="flex items-center justify-between px-4 py-2 bg-bg-surface border-t border-border-primary/50">
+              <span className={`text-xs font-bold uppercase ${color}`}>TỔNG {title}</span>
+              <span className={`text-sm font-bold font-mono ${color}`}>{fmtVND(total)}</span>
             </div>
           </div>
         )}
@@ -130,7 +130,7 @@ function B01Report({ balances }: { balances: AccountBalance[] }) {
 
   return (
     <div className="space-y-4">
-      <div className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${balanced ? 'bg-emerald-950/20 border-emerald-900/30 text-emerald-400' : 'bg-rose-950/20 border-rose-900/30 text-rose-400'}`}>
+      <div className={`flex items-center gap-2 p-3 rounded-xl border text-xs font-bold ${balanced ? 'bg-success/20 border-emerald-900/30 text-success' : 'bg-error/20 border-rose-900/30 text-error'}`}>
         {balanced ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
         {balanced ? 'Bảng cân đối tự cân (Tổng TS = Tổng NV)' : `Lệch cân: ${fmtVND(Math.abs(totalAssets - totalLiabEquity))}`}
       </div>
@@ -138,7 +138,7 @@ function B01Report({ balances }: { balances: AccountBalance[] }) {
       <div className="grid lg:grid-cols-2 gap-4">
         {/* Assets side */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">A. TÀI SẢN</h4>
+          <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-widest font-mono">A. TÀI SẢN</h4>
           <Section title="Tài sản ngắn hạn" color="text-blue-400" total={currentAssets} items={[
             { label: 'Tiền và tương đương tiền (TK 111, 112)', value: cash },
             { label: 'Phải thu khách hàng (TK 131)', value: receivables },
@@ -146,21 +146,21 @@ function B01Report({ balances }: { balances: AccountBalance[] }) {
             { label: 'Tạm ứng (TK 141)', value: advances, sub: true },
             { label: 'Hàng tồn kho (TK 154, 156)', value: inventory },
           ]} />
-          <Section title="Tài sản dài hạn" color="text-indigo-400" total={fixedNet} items={[
+          <Section title="Tài sản dài hạn" color="text-accent-tertiary" total={fixedNet} items={[
             { label: 'Nguyên giá TSCĐ (TK 211)', value: fixedGross },
             { label: 'Hao mòn lũy kế (TK 214)', value: -depreciation, sub: true },
             { label: 'Giá trị còn lại', value: fixedNet, highlight: true },
           ]} />
           <div className="bg-blue-950/20 border border-blue-900/30 rounded-xl p-3 flex items-center justify-between">
-            <span className="text-xs font-black text-blue-400 uppercase">TỔNG TÀI SẢN</span>
-            <span className="text-lg font-black text-blue-300 font-mono">{fmtVND(totalAssets)}</span>
+            <span className="text-xs font-bold text-blue-400 uppercase">TỔNG TÀI SẢN</span>
+            <span className="text-lg font-bold text-blue-300 font-mono">{fmtVND(totalAssets)}</span>
           </div>
         </div>
 
         {/* Liabilities + Equity side */}
         <div className="space-y-3">
-          <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest font-mono">B. NGUỒN VỐN</h4>
-          <Section title="Nợ ngắn hạn" color="text-amber-400" total={curLiab} items={[
+          <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-widest font-mono">B. NGUỒN VỐN</h4>
+          <Section title="Nợ ngắn hạn" color="text-warning" total={curLiab} items={[
             { label: 'Phải trả nhà cung cấp (TK 331, 338)', value: payables },
             { label: 'Thuế & khoản nộp nhà nước (TK 333)', value: taxPayable, sub: true },
             { label: 'Phải trả người lao động (TK 334)', value: salaryPayable, sub: true },
@@ -168,13 +168,13 @@ function B01Report({ balances }: { balances: AccountBalance[] }) {
           <Section title="Nợ dài hạn" color="text-orange-400" total={ltLiab} items={[
             { label: 'Vay và nợ thuê TC dài hạn (TK 341)', value: ltLiab },
           ]} />
-          <Section title="Vốn chủ sở hữu" color="text-emerald-400" total={equity} items={[
+          <Section title="Vốn chủ sở hữu" color="text-success" total={equity} items={[
             { label: 'Vốn điều lệ (TK 411)', value: capital, highlight: true },
             { label: 'LNST chưa phân phối (TK 421)', value: retained },
           ]} />
-          <div className="bg-emerald-950/20 border border-emerald-900/30 rounded-xl p-3 flex items-center justify-between">
-            <span className="text-xs font-black text-emerald-400 uppercase">TỔNG NGUỒN VỐN</span>
-            <span className="text-lg font-black text-emerald-300 font-mono">{fmtVND(totalLiabEquity)}</span>
+          <div className="bg-success/20 border border-emerald-900/30 rounded-xl p-3 flex items-center justify-between">
+            <span className="text-xs font-bold text-success uppercase">TỔNG NGUỒN VỐN</span>
+            <span className="text-lg font-bold text-success font-mono">{fmtVND(totalLiabEquity)}</span>
           </div>
         </div>
       </div>
@@ -200,9 +200,9 @@ function B02Report({ balances }: { balances: AccountBalance[] }) {
   const netMargin    = pct(netProfit, revenue);
 
   const Row = ({ label, value, indent=false, bold=false, positive=true }: { label:string;value:number;indent?:boolean;bold?:boolean;positive?:boolean }) => (
-    <div className={`flex items-center justify-between py-1.5 px-3 border-b border-slate-900/30 last:border-0 ${bold ? 'bg-slate-900/40' : ''}`}>
-      <span className={`text-xs ${indent ? 'pl-4 text-slate-500' : bold ? 'font-black text-slate-200' : 'text-slate-400'}`}>{label}</span>
-      <span className={`text-xs font-mono font-bold ${value < 0 || (!positive && value > 0) ? 'text-rose-400' : bold ? 'text-white font-black' : ''}`}>{fmtVND(value)}</span>
+    <div className={`flex items-center justify-between py-1.5 px-3 border-b border-border-primary/30 last:border-0 ${bold ? 'bg-bg-surface' : ''}`}>
+      <span className={`text-xs ${indent ? 'pl-4 text-text-muted' : bold ? 'font-bold text-text-primary' : 'text-text-secondary'}`}>{label}</span>
+      <span className={`text-xs font-mono font-bold ${value < 0 || (!positive && value > 0) ? 'text-error' : bold ? 'text-text-primary font-bold' : ''}`}>{fmtVND(value)}</span>
     </div>
   );
 
@@ -210,21 +210,21 @@ function B02Report({ balances }: { balances: AccountBalance[] }) {
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Doanh thu thuần', value: revenue, color: 'text-emerald-400', icon: TrendingUp },
+          { label: 'Doanh thu thuần', value: revenue, color: 'text-success', icon: TrendingUp },
           { label: 'Lợi nhuận gộp', value: grossProfit, color: 'text-blue-400', icon: BarChart2, sub: `Biên: ${grossMargin.toFixed(1)}%` },
-          { label: 'Lợi nhuận sau thuế', value: netProfit, color: netProfit >= 0 ? 'text-violet-400' : 'text-rose-400', icon: netProfit >= 0 ? TrendingUp : TrendingDown, sub: `Biên: ${netMargin.toFixed(1)}%` },
+          { label: 'Lợi nhuận sau thuế', value: netProfit, color: netProfit >= 0 ? 'text-accent-secondary' : 'text-error', icon: netProfit >= 0 ? TrendingUp : TrendingDown, sub: `Biên: ${netMargin.toFixed(1)}%` },
         ].map(({label, value, color, icon: Icon, sub}) => (
-          <div key={label} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3.5">
+          <div key={label} className="bg-bg-surface border border-border-primary/50 rounded-xl p-3.5">
             <Icon className={`w-5 h-5 ${color} mb-2`} />
-            <p className={`text-base font-black font-mono ${color}`}>{fmtVND(value)}</p>
-            <p className="text-[10px] text-slate-500 font-bold mt-1">{label}</p>
-            {sub && <p className="text-[9px] text-slate-600">{sub}</p>}
+            <p className={`text-base font-bold font-mono ${color}`}>{fmtVND(value)}</p>
+            <p className="text-[10px] text-text-muted font-bold mt-1">{label}</p>
+            {sub && <p className="text-[9px] text-text-muted">{sub}</p>}
           </div>
         ))}
       </div>
 
-      <div className="border border-slate-800/50 rounded-xl overflow-hidden">
-        <div className="px-3 py-2 bg-slate-900/60 text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">
+      <div className="border border-border-primary/50 rounded-xl overflow-hidden">
+        <div className="px-3 py-2 bg-bg-surface text-[10px] font-bold text-text-secondary uppercase tracking-widest font-mono">
           BÁO CÁO KẾT QUẢ KINH DOANH (B02-DN) — Theo Thông tư 200/2014/TT-BTC
         </div>
         <Row label="1. Doanh thu bán hàng và cung cấp DV (TK 511)" value={revenue} bold />
@@ -262,28 +262,28 @@ function B03Report({ balances }: { balances: AccountBalance[] }) {
   const closeCash    = openCash + netCF;
 
   const CashSection = ({ title, color, items, total }: { title:string;color:string;items:{label:string;value:number;sub?:boolean}[];total:number }) => (
-    <div className="border border-slate-800/50 rounded-xl overflow-hidden">
-      <div className={`px-4 py-2.5 bg-slate-900/60 text-xs font-black uppercase tracking-wide ${color}`}>{title}</div>
+    <div className="border border-border-primary/50 rounded-xl overflow-hidden">
+      <div className={`px-4 py-2.5 bg-bg-surface text-xs font-bold uppercase tracking-wide ${color}`}>{title}</div>
       {items.map((item,i) => (
-        <div key={i} className={`flex justify-between px-4 py-1.5 border-b border-slate-900/30 ${item.sub ? 'pl-8 text-slate-500 text-[11px]' : 'text-slate-400 text-xs'}`}>
+        <div key={i} className={`flex justify-between px-4 py-1.5 border-b border-border-primary/30 ${item.sub ? 'pl-8 text-text-muted text-[11px]' : 'text-text-secondary text-xs'}`}>
           <span>{item.label}</span>
-          <span className={`font-mono text-xs ${item.value < 0 ? 'text-rose-400' : ''}`}>{fmtVND(item.value)}</span>
+          <span className={`font-mono text-xs ${item.value < 0 ? 'text-error' : ''}`}>{fmtVND(item.value)}</span>
         </div>
       ))}
-      <div className={`flex justify-between px-4 py-2 bg-slate-900/60 border-t border-slate-800/50`}>
-        <span className={`text-xs font-black ${color}`}>Lưu chuyển {title.toLowerCase()}</span>
-        <span className={`text-sm font-black font-mono ${total >= 0 ? color : 'text-rose-400'}`}>{fmtVND(total)}</span>
+      <div className={`flex justify-between px-4 py-2 bg-bg-surface border-t border-border-primary/50`}>
+        <span className={`text-xs font-bold ${color}`}>Lưu chuyển {title.toLowerCase()}</span>
+        <span className={`text-sm font-bold font-mono ${total >= 0 ? color : 'text-error'}`}>{fmtVND(total)}</span>
       </div>
     </div>
   );
 
   return (
     <div className="space-y-4">
-      <div className="bg-slate-900/30 border border-slate-800/50 rounded-xl p-3 text-[10px] text-slate-500 font-mono">
+      <div className="bg-bg-surface border border-border-primary/50 rounded-xl p-3 text-[10px] text-text-muted font-mono">
         ⚠️ Phương pháp gián tiếp (Indirect Method) — Ước tính từ dữ liệu tài khoản hiện có. Để báo cáo chính xác, nhập đầy đủ giao dịch tiền mặt vào Nhật Ký.
       </div>
 
-      <CashSection title="Hoạt Động Kinh Doanh (SXKD)" color="text-emerald-400" total={operCF} items={[
+      <CashSection title="Hoạt Động Kinh Doanh (SXKD)" color="text-success" total={operCF} items={[
         { label: 'Lợi nhuận trước thuế' , value: netProfit + tax },
         { label: 'Khấu hao TSCĐ (cộng lại)', value: depr, sub: true },
         { label: 'Thuế TNDN đã nộp', value: -tax, sub: true },
@@ -293,19 +293,19 @@ function B03Report({ balances }: { balances: AccountBalance[] }) {
         { label: 'Mua sắm TSCĐ (ước tính)', value: investCF },
       ]} />
 
-      <CashSection title="Hoạt Động Tài Chính" color="text-violet-400" total={financingCF} items={[
+      <CashSection title="Hoạt Động Tài Chính" color="text-accent-secondary" total={financingCF} items={[
         { label: 'Vay mới trong kỳ (ước tính)', value: financingCF },
       ]} />
 
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Tiền đầu kỳ', value: openCash, color: 'text-slate-400' },
-          { label: 'Lưu chuyển thuần', value: netCF, color: netCF >= 0 ? 'text-emerald-400' : 'text-rose-400' },
-          { label: 'Tiền cuối kỳ', value: closeCash, color: 'text-white' },
+          { label: 'Tiền đầu kỳ', value: openCash, color: 'text-text-secondary' },
+          { label: 'Lưu chuyển thuần', value: netCF, color: netCF >= 0 ? 'text-success' : 'text-error' },
+          { label: 'Tiền cuối kỳ', value: closeCash, color: 'text-text-primary' },
         ].map(({label, value, color}) => (
-          <div key={label} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3.5 text-center">
-            <p className={`text-base font-black font-mono ${color}`}>{fmtVND(value)}</p>
-            <p className="text-[10px] text-slate-500 font-bold mt-1">{label}</p>
+          <div key={label} className="bg-bg-surface border border-border-primary/50 rounded-xl p-3.5 text-center">
+            <p className={`text-base font-bold font-mono ${color}`}>{fmtVND(value)}</p>
+            <p className="text-[10px] text-text-muted font-bold mt-1">{label}</p>
           </div>
         ))}
       </div>
@@ -339,16 +339,16 @@ function AnalysisTab({ balances }: { balances: AccountBalance[] }) {
 
   return (
     <div className="space-y-4">
-      <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest font-mono">Chỉ Số Tài Chính Cốt Lõi</h4>
+      <h4 className="text-xs font-bold text-text-secondary uppercase tracking-widest font-mono">Chỉ Số Tài Chính Cốt Lõi</h4>
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {ratios.map(r => (
-          <div key={r.label} className="bg-slate-900/40 border border-slate-800/50 rounded-xl p-3.5 space-y-1.5">
+          <div key={r.label} className="bg-bg-surface border border-border-primary/50 rounded-xl p-3.5 space-y-1.5">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] text-slate-500 font-bold uppercase">{r.label}</p>
-              {r.good ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />}
+              <p className="text-[10px] text-text-muted font-bold uppercase">{r.label}</p>
+              {r.good ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <AlertTriangle className="w-3.5 h-3.5 text-warning" />}
             </div>
-            <p className={`text-xl font-black font-mono ${r.good ? 'text-emerald-400' : 'text-amber-400'}`}>{r.value}</p>
-            <p className="text-[10px] text-slate-600 leading-relaxed">{r.desc}</p>
+            <p className={`text-xl font-bold font-mono ${r.good ? 'text-success' : 'text-warning'}`}>{r.value}</p>
+            <p className="text-[10px] text-text-muted leading-relaxed">{r.desc}</p>
           </div>
         ))}
       </div>
@@ -387,17 +387,17 @@ export default function FinancialReportsVN() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest font-mono">Theo Thông tư 200/2014/TT-BTC & TT 133/2016/TT-BTC</span>
+              <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+              <span className="text-[10px] font-bold text-success uppercase tracking-widest font-mono">Theo Thông tư 200/2014/TT-BTC & TT 133/2016/TT-BTC</span>
             </div>
-            <h2 className="text-xl font-black text-white">Báo Cáo Tài Chính Doanh Nghiệp</h2>
-            <p className="text-slate-400 text-xs mt-1">{period}</p>
+            <h2 className="text-xl font-bold text-text-primary">Báo Cáo Tài Chính Doanh Nghiệp</h2>
+            <p className="text-text-secondary text-xs mt-1">{period}</p>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={handleRefresh} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 cursor-pointer transition-all">
+            <button onClick={handleRefresh} className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-elevated hover:bg-bg-surface-hover border border-border-secondary rounded-xl text-xs font-bold text-text-secondary cursor-pointer transition-all">
               <RefreshCw className="w-3.5 h-3.5" /> Làm mới
             </button>
-            <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl text-xs font-bold text-slate-300 cursor-pointer transition-all">
+            <button onClick={handleExportPDF} className="flex items-center gap-1.5 px-3 py-1.5 bg-bg-elevated hover:bg-bg-surface-hover border border-border-secondary rounded-xl text-xs font-bold text-text-secondary cursor-pointer transition-all">
               <Download className="w-3.5 h-3.5" /> Xuất PDF
             </button>
           </div>
@@ -411,12 +411,12 @@ export default function FinancialReportsVN() {
               <button
                 key={t.key}
                 onClick={() => setTab(t.key as ReportTab)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer border ${tab === t.key ? 'bg-emerald-700 border-emerald-600 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-900/40 border-slate-800 text-slate-400 hover:border-slate-700'}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${tab === t.key ? 'bg-emerald-700 border-emerald-600 text-text-primary shadow-lg shadow-emerald-500/20' : 'bg-bg-surface border-border-primary text-text-secondary hover:border-border-secondary'}`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 <div className="text-left">
                   <div>{t.label}</div>
-                  <div className={`text-[9px] font-bold ${tab === t.key ? 'text-emerald-200' : 'text-slate-500'}`}>{t.sublabel}</div>
+                  <div className={`text-[9px] font-bold ${tab === t.key ? 'text-success' : 'text-text-muted'}`}>{t.sublabel}</div>
                 </div>
               </button>
             );

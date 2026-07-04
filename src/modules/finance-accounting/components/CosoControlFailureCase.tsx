@@ -9,21 +9,21 @@ export default function CosoControlFailureCase() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-        <div className="p-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 rounded-xl">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
+        <div className="p-2 bg-success/10 text-success border border-success/25 rounded-xl">
           <ShieldCheck className="w-5 h-5 animate-pulse" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">COSO Internal Control Simulator</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Mô phỏng tình huống sự cố kiểm soát và phương án gỡ lỗi quản trị nội bộ.</p>
+          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">COSO Internal Control Simulator</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Mô phỏng tình huống sự cố kiểm soát và phương án gỡ lỗi quản trị nội bộ.</p>
         </div>
       </div>
 
       <div className="space-y-4">
         {/* Scenario description */}
-        <div className="rounded-xl border border-rose-500/25 bg-rose-500/5 p-4 text-left">
-          <span className="text-[10px] text-rose-350 font-black uppercase tracking-wider flex items-center gap-1">
+        <div className="rounded-xl border border-error/25 bg-error/5 p-4 text-left">
+          <span className="text-[10px] text-rose-350 font-bold uppercase tracking-wider flex items-center gap-1">
             <AlertTriangle className="w-4 h-4 text-rose-450" /> Tình huống sự cố:
           </span>
           <p className="text-xs font-semibold leading-relaxed text-slate-250 mt-2">
@@ -35,7 +35,7 @@ export default function CosoControlFailureCase() {
 
         {/* Options */}
         <div className="space-y-2">
-          <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Hãy chọn phương án xử lý (kiểm soát nội bộ):</span>
+          <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Hãy chọn phương án xử lý (kiểm soát nội bộ):</span>
           
           {[
             {
@@ -68,18 +68,18 @@ export default function CosoControlFailureCase() {
                 className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
                   isSelected
                     ? opt.verdict === 'success'
-                      ? 'bg-emerald-950/20 border-emerald-500/80 text-emerald-300'
+                      ? 'bg-success/20 border-success/80 text-success'
                       : opt.verdict === 'warn'
-                      ? 'bg-amber-950/20 border-amber-500/80 text-amber-300'
-                      : 'bg-rose-950/20 border-rose-500/80 text-rose-300'
-                    : 'bg-slate-950/60 border-slate-900 hover:bg-slate-900/40 text-slate-400 hover:text-white'
+                      ? 'bg-warning/20 border-warning/80 text-warning'
+                      : 'bg-error/20 border-error/80 text-error'
+                    : 'bg-bg-primary border-border-primary hover:bg-bg-surface text-text-secondary hover:text-text-primary'
                 }`}
               >
-                <span className="text-xs font-black block">{opt.label}</span>
+                <span className="text-xs font-bold block">{opt.label}</span>
                 <span className="text-[10px] block mt-1 leading-relaxed font-semibold">{opt.desc}</span>
                 
                 {isSelected && (
-                  <div className="mt-3 border-t border-slate-850 pt-3 text-[11px] leading-relaxed font-bold">
+                  <div className="mt-3 border-t border-border-secondary pt-3 text-[11px] leading-relaxed font-bold">
                     <span className="uppercase text-[9px] block mb-1">Kết quả kiểm tra:</span>
                     {opt.result}
                   </div>
@@ -90,14 +90,14 @@ export default function CosoControlFailureCase() {
         </div>
 
         {selectedOption && (
-          <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-900">
-            <span className="text-[10px] text-slate-500 font-bold flex items-center gap-1">
-              <Info className="w-3.5 h-3.5 text-slate-400" />
+          <div className="flex justify-between items-center mt-3 pt-3 border-t border-border-primary">
+            <span className="text-[10px] text-text-muted font-bold flex items-center gap-1">
+              <Info className="w-3.5 h-3.5 text-text-secondary" />
               Chuẩn COSO: Kiểm soát phòng ngừa (Preventive) tốt hơn Kiểm soát phát hiện (Detective).
             </span>
             <button
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-800 text-[10px] font-black text-slate-300 hover:text-white hover:bg-slate-900 transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border-primary text-[10px] font-bold text-text-secondary hover:text-text-primary hover:bg-bg-surface transition-all cursor-pointer"
             >
               <RefreshCw className="w-3 h-3" /> Chạy lại simulator
             </button>

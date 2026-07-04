@@ -36,28 +36,28 @@ function arr(value: any) { return Array.isArray(value) ? value : []; }
 function obj(value: any) { return value && typeof value === 'object' && !Array.isArray(value) ? value : {}; }
 
 function Stat({ label, value, hint, tone = 'slate' }: { label: string; value: string | number; hint?: string; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' }) {
-  const valueClass = tone === 'green' ? 'text-emerald-300' : tone === 'amber' ? 'text-amber-300' : tone === 'rose' ? 'text-rose-300' : tone === 'cyan' ? 'text-cyan-300' : 'text-white';
-  return <div className="rounded-3xl border border-slate-800 bg-slate-950/70 p-4">
-    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
+  const valueClass = tone === 'green' ? 'text-emerald-300' : tone === 'amber' ? 'text-amber-300' : tone === 'rose' ? 'text-rose-300' : tone === 'cyan' ? 'text-cyan-300' : 'text-text-primary';
+  return <div className="rounded-3xl border border-border-primary bg-slate-950/70 p-4">
+    <p className="text-[10px] font-black uppercase tracking-widest text-text-tertiary">{label}</p>
     <p className={`mt-2 text-2xl font-black ${valueClass}`}>{value}</p>
-    {hint && <p className="mt-1 text-[11px] font-bold text-slate-500">{hint}</p>}
+    {hint && <p className="mt-1 text-[11px] font-bold text-text-tertiary">{hint}</p>}
   </div>;
 }
 
-function Badge({ children, tone = 'slate' }: { children: string; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' }) {
-  const cls = tone === 'green' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : 'border-slate-700 bg-slate-900 text-slate-300';
+function Badge({ children, tone = 'slate' }: { children: React.ReactNode; tone?: 'slate' | 'green' | 'amber' | 'rose' | 'cyan' }) {
+  const cls = tone === 'green' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200' : tone === 'amber' ? 'border-amber-500/30 bg-amber-500/10 text-amber-200' : tone === 'rose' ? 'border-rose-500/30 bg-rose-500/10 text-rose-200' : tone === 'cyan' ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-200' : 'border-border-secondary bg-bg-primary text-text-secondary';
   return <span className={`rounded-full border px-2.5 py-1 text-[10px] font-black uppercase ${cls}`}>{children}</span>;
 }
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
-  return <section className="rounded-3xl border border-slate-800 bg-slate-950/55 p-4">
-    <div className="mb-3 flex items-center gap-2 text-sm font-black text-white">{icon}{title}</div>
+  return <section className="rounded-3xl border border-border-primary bg-slate-950/55 p-4">
+    <div className="mb-3 flex items-center gap-2 text-sm font-black text-text-primary">{icon}{title}</div>
     {children}
   </section>;
 }
 
 function MiniList({ items, emptyText, render }: { items: any[]; emptyText: string; render: (item: any, index: number) => React.ReactNode }) {
-  return <div className="space-y-2">{items.length === 0 ? <p className="text-xs font-bold text-slate-500">{emptyText}</p> : items.slice(0, 6).map(render)}</div>;
+  return <div className="space-y-2">{items.length === 0 ? <p className="text-xs font-bold text-text-tertiary">{emptyText}</p> : items.slice(0, 6).map(render)}</div>;
 }
 
 export default function SecuritySystemHubPanel() {
@@ -115,11 +115,11 @@ export default function SecuritySystemHubPanel() {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.28em] text-rose-200"><ShieldAlert className="mr-2 inline h-4 w-4" />Security & System Health</p>
-          <h2 className="mt-2 text-2xl font-black text-white">Risk queue, plugins, scans and runtime health</h2>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-slate-400">Một màn gọn để xem plugin, drift, dependency, SAST, log analysis và performance profile. Chỉ đọc trạng thái; scan/fix nguy hiểm không tự chạy.</p>
+          <h2 className="mt-2 text-2xl font-black text-text-primary">Risk queue, plugins, scans and runtime health</h2>
+          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">Một màn gọn để xem plugin, drift, dependency, SAST, log analysis và performance profile. Chỉ đọc trạng thái; scan/fix nguy hiểm không tự chạy.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-rose-300">{rawOpen ? 'Ẩn raw' : 'Raw JSON'}</button>
+          <button onClick={() => setRawOpen((v) => !v)} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-rose-300">{rawOpen ? 'Ẩn raw' : 'Raw JSON'}</button>
           <button onClick={() => void load()} disabled={loading} className="rounded-2xl bg-rose-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Refresh'}</button>
         </div>
       </div>
@@ -138,39 +138,39 @@ export default function SecuritySystemHubPanel() {
     <section className="grid gap-4 xl:grid-cols-3">
       <Section title="Plugin registry" icon={<Plug className="h-4 w-4 text-cyan-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone="cyan">{data.plugins.length} plugins</Badge><Badge>{JSON.stringify(data.pluginStats).slice(0, 40) || 'stats'}</Badge></div>
-        <MiniList items={data.plugins} emptyText="Chưa có plugin registered." render={(plugin, index) => <div key={plugin.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-white">{plugin.name || plugin.id || 'Plugin'}</p><Badge tone={plugin.status === 'active' || plugin.enabled ? 'green' : 'slate'}>{plugin.status || plugin.type || 'plugin'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{plugin.type || plugin.description || 'extension'}</p></div>} />
+        <MiniList items={data.plugins} emptyText="Chưa có plugin registered." render={(plugin, index) => <div key={plugin.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-text-primary">{plugin.name || plugin.id || 'Plugin'}</p><Badge tone={plugin.status === 'active' || plugin.enabled ? 'green' : 'slate'}>{plugin.status || plugin.type || 'plugin'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{plugin.type || plugin.description || 'extension'}</p></div>} />
       </Section>
       <Section title="Config drift" icon={<Database className="h-4 w-4 text-amber-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.driftReports.length ? 'amber' : 'green'}>{data.driftReports.length} reports</Badge></div>
-        <MiniList items={data.driftReports} emptyText="Chưa có drift report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{report.name || report.id || 'Drift report'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{report.status || report.createdAt || report.summary || 'config drift'}</p></div>} />
+        <MiniList items={data.driftReports} emptyText="Chưa có drift report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{report.name || report.id || 'Drift report'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{report.status || report.createdAt || report.summary || 'config drift'}</p></div>} />
       </Section>
       <Section title="Dependency health" icon={<Bug className="h-4 w-4 text-violet-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.depReports.length ? 'amber' : 'green'}>{data.depReports.length} reports</Badge></div>
-        <MiniList items={data.depReports} emptyText="Chưa có dependency report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{report.packageName || report.name || report.id || 'Dependency report'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{report.status || report.severity || report.createdAt || 'dependency health'}</p></div>} />
+        <MiniList items={data.depReports} emptyText="Chưa có dependency report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{report.packageName || report.name || report.id || 'Dependency report'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{report.status || report.severity || report.createdAt || 'dependency health'}</p></div>} />
       </Section>
     </section>
 
     <section className="grid gap-4 xl:grid-cols-3">
       <Section title="SAST security" icon={<ShieldCheck className="h-4 w-4 text-emerald-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.sastReports.length ? 'amber' : 'green'}>{data.sastReports.length} reports</Badge></div>
-        <MiniList items={data.sastReports} emptyText="Chưa có SAST report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-white">{report.name || report.id || 'SAST report'}</p><Badge tone={String(report.severity || report.status || '').toLowerCase().includes('high') ? 'rose' : 'slate'}>{report.severity || report.status || 'scan'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-slate-500">{report.createdAt || report.summary || 'security scan'}</p></div>} />
+        <MiniList items={data.sastReports} emptyText="Chưa có SAST report." render={(report, index) => <div key={report.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><div className="flex items-center justify-between gap-2"><p className="text-xs font-black text-text-primary">{report.name || report.id || 'SAST report'}</p><Badge tone={String(report.severity || report.status || '').toLowerCase().includes('high') ? 'rose' : 'slate'}>{report.severity || report.status || 'scan'}</Badge></div><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{report.createdAt || report.summary || 'security scan'}</p></div>} />
       </Section>
       <Section title="Log analyzer" icon={<Terminal className="h-4 w-4 text-cyan-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone={data.logAnalyses.length ? 'cyan' : 'green'}>{data.logAnalyses.length} analyses</Badge></div>
-        <MiniList items={data.logAnalyses} emptyText="Chưa có log analysis." render={(analysis, index) => <div key={analysis.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{analysis.filePath || analysis.name || analysis.id || 'Log analysis'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{analysis.summary || analysis.createdAt || analysis.status || 'runtime logs'}</p></div>} />
+        <MiniList items={data.logAnalyses} emptyText="Chưa có log analysis." render={(analysis, index) => <div key={analysis.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{analysis.filePath || analysis.name || analysis.id || 'Log analysis'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{analysis.summary || analysis.createdAt || analysis.status || 'runtime logs'}</p></div>} />
       </Section>
       <Section title="Performance profiles" icon={<Gauge className="h-4 w-4 text-amber-300" />}>
         <div className="mb-3 flex flex-wrap gap-2"><Badge tone="amber">{data.perfProfiles.length} profiles</Badge></div>
-        <MiniList items={data.perfProfiles} emptyText="Chưa có performance profile." render={(profile, index) => <div key={profile.id || index} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3"><p className="text-xs font-black text-white">{profile.name || profile.pattern || profile.id || 'Performance profile'}</p><p className="mt-1 text-[11px] font-semibold text-slate-500">{profile.createdAt || profile.durationMs || profile.summary || 'performance'}</p></div>} />
+        <MiniList items={data.perfProfiles} emptyText="Chưa có performance profile." render={(profile, index) => <div key={profile.id || index} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3"><p className="text-xs font-black text-text-primary">{profile.name || profile.pattern || profile.id || 'Performance profile'}</p><p className="mt-1 text-[11px] font-semibold text-text-tertiary">{profile.createdAt || profile.durationMs || profile.summary || 'performance'}</p></div>} />
       </Section>
     </section>
 
-    <Section title="System overview snapshot" icon={<Database className="h-4 w-4 text-slate-300" />}>
-      <div className="flex flex-wrap gap-2">{data.overview ? Object.keys(data.overview).map((key) => <Badge key={key} tone="cyan">{key}</Badge>) : <p className="text-xs font-bold text-slate-500">Chưa tải được system overview.</p>}</div>
+    <Section title="System overview snapshot" icon={<Database className="h-4 w-4 text-text-secondary" />}>
+      <div className="flex flex-wrap gap-2">{data.overview ? Object.keys(data.overview).map((key) => <Badge key={key} tone="cyan">{key}</Badge>) : <p className="text-xs font-bold text-text-tertiary">Chưa tải được system overview.</p>}</div>
     </Section>
 
-    {rawOpen && <Section title="Raw security/system payload" icon={<Database className="h-4 w-4 text-slate-300" />}>
-      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-2xl border border-slate-800 bg-slate-950/70 p-3 text-xs leading-5 text-slate-400">{JSON.stringify(data, null, 2)}</pre>
+    {rawOpen && <Section title="Raw security/system payload" icon={<Database className="h-4 w-4 text-text-secondary" />}>
+      <pre className="max-h-[32rem] overflow-auto whitespace-pre-wrap rounded-2xl border border-border-primary bg-slate-950/70 p-3 text-xs leading-5 text-text-secondary">{JSON.stringify(data, null, 2)}</pre>
     </Section>}
   </div>;
 }

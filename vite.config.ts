@@ -16,7 +16,29 @@ export default defineConfig(() => {
       },
       dedupe: ['react', 'react-dom'],
     },
-    build: {},
+    optimizeDeps: {
+      include: [
+        'react',
+        'react-dom',
+        'react-router-dom',
+        'lucide-react',
+        'recharts',
+        'framer-motion',
+        'clsx',
+        'tailwind-merge'
+      ]
+    },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-ui': ['lucide-react', 'framer-motion', 'clsx', 'tailwind-merge'],
+            'vendor-charts': ['recharts']
+          }
+        }
+      }
+    },
     server: {
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {

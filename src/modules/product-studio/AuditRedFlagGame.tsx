@@ -125,33 +125,33 @@ export default function AuditRedFlagGame() {
 
   return (
     <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-6">
         <p className="text-[10px] font-black uppercase tracking-wider text-rose-300">Audit Red Flag Game</p>
-        <h2 className="mt-2 text-xl font-black text-white">Game nhận diện rủi ro chứng từ</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+        <h2 className="mt-2 text-xl font-black text-text-primary">Game nhận diện rủi ro chứng từ</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
           Chọn red flags và chứng từ cần kiểm tra trong từng case đa ngành. Điểm cao khi chọn đúng rủi ro trọng yếu, không chọn nhiễu và không bỏ sót chứng từ quan trọng.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1fr_18rem]">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6">
+        <div className="rounded-3xl border border-border-primary bg-bg-surface/70 p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-[10px] font-black uppercase text-cyan-300">{activeCase.industry} • {activeCase.riskLevel} risk</p>
-              <h3 className="mt-2 text-lg font-black text-white">{activeCase.title}</h3>
+              <h3 className="mt-2 text-lg font-black text-text-primary">{activeCase.title}</h3>
             </div>
-            <select value={caseIndex} onChange={(event) => { setCaseIndex(Number(event.target.value)); resetCase(); }} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white">
+            <select value={caseIndex} onChange={(event) => { setCaseIndex(Number(event.target.value)); resetCase(); }} className="rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs font-bold text-text-primary">
               {MULTI_INDUSTRY_CASE_BANK.map((item, index) => <option key={item.id} value={index}>{index + 1}. {item.industry}</option>)}
             </select>
           </div>
-          <p className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-sm font-semibold leading-7 text-slate-300">{activeCase.scenario}</p>
+          <p className="mt-4 rounded-2xl border border-border-primary bg-slate-950/70 p-4 text-sm font-semibold leading-7 text-text-secondary">{activeCase.scenario}</p>
         </div>
 
         <div className="rounded-3xl border border-emerald-500/20 bg-emerald-500/5 p-6">
           <p className="text-[10px] font-black uppercase text-emerald-300">Score</p>
-          <p className="mt-2 text-5xl font-black text-white">{submitted ? result.score : '--'}</p>
+          <p className="mt-2 text-5xl font-black text-text-primary">{submitted ? result.score : '--'}</p>
           <p className="mt-2 text-sm font-black text-emerald-200">{submitted ? result.verdict : 'Chưa nộp bài'}</p>
-          <div className="mt-4 grid gap-2 text-xs font-semibold text-slate-300">
+          <div className="mt-4 grid gap-2 text-xs font-semibold text-text-secondary">
             <p>Đúng red flag: {submitted ? result.correctFlags : 0}/{activeCase.redFlags.length}</p>
             <p>Đúng chứng từ: {submitted ? result.documentHits : 0}/{activeCase.documents.length}</p>
           </div>
@@ -159,22 +159,22 @@ export default function AuditRedFlagGame() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
-          <h3 className="text-sm font-black text-white">1. Chọn red flags</h3>
+        <div className="rounded-3xl border border-border-primary bg-bg-surface/70 p-5">
+          <h3 className="text-sm font-black text-text-primary">1. Chọn red flags</h3>
           <div className="mt-4 grid gap-2">
             {flagOptions.map((flag) => (
-              <button key={flag} onClick={() => toggle(flag, selectedFlags, setSelectedFlags)} className={`rounded-2xl border p-3 text-left text-xs font-semibold leading-6 transition ${selectedFlags.includes(flag) ? 'border-rose-400 bg-rose-500/10 text-white' : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-rose-500/50'}`}>
+              <button key={flag} onClick={() => toggle(flag, selectedFlags, setSelectedFlags)} className={`rounded-2xl border p-3 text-left text-xs font-semibold leading-6 transition ${selectedFlags.includes(flag) ? 'border-rose-400 bg-rose-500/10 text-text-primary' : 'border-border-primary bg-slate-950/70 text-text-secondary hover:border-rose-500/50'}`}>
                 {flag}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
-          <h3 className="text-sm font-black text-white">2. Chọn chứng từ cần kiểm tra</h3>
+        <div className="rounded-3xl border border-border-primary bg-bg-surface/70 p-5">
+          <h3 className="text-sm font-black text-text-primary">2. Chọn chứng từ cần kiểm tra</h3>
           <div className="mt-4 grid gap-2">
             {docOptions.map((doc) => (
-              <button key={doc} onClick={() => toggle(doc, selectedDocs, setSelectedDocs)} className={`rounded-2xl border p-3 text-left text-xs font-semibold leading-6 transition ${selectedDocs.includes(doc) ? 'border-cyan-400 bg-cyan-500/10 text-white' : 'border-slate-800 bg-slate-950/70 text-slate-300 hover:border-cyan-500/50'}`}>
+              <button key={doc} onClick={() => toggle(doc, selectedDocs, setSelectedDocs)} className={`rounded-2xl border p-3 text-left text-xs font-semibold leading-6 transition ${selectedDocs.includes(doc) ? 'border-cyan-400 bg-cyan-500/10 text-text-primary' : 'border-border-primary bg-slate-950/70 text-text-secondary hover:border-cyan-500/50'}`}>
                 {doc}
               </button>
             ))}
@@ -182,9 +182,9 @@ export default function AuditRedFlagGame() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+      <div className="flex flex-wrap gap-3 rounded-3xl border border-border-primary bg-bg-surface/70 p-5">
         <button onClick={submit} className="rounded-2xl bg-emerald-400 px-5 py-3 text-xs font-black text-slate-950 hover:bg-emerald-300">Nộp bài & lưu lịch sử</button>
-        <button onClick={resetCase} className="rounded-2xl border border-slate-700 px-5 py-3 text-xs font-black text-slate-300 hover:border-cyan-400">Làm lại case</button>
+        <button onClick={resetCase} className="rounded-2xl border border-border-secondary px-5 py-3 text-xs font-black text-text-secondary hover:border-cyan-400">Làm lại case</button>
         <button onClick={nextCase} className="rounded-2xl border border-rose-500/30 bg-rose-500/10 px-5 py-3 text-xs font-black text-rose-100 hover:bg-rose-500/20">Case tiếp theo</button>
       </div>
 
@@ -193,17 +193,17 @@ export default function AuditRedFlagGame() {
       {submitted && (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-5">
-            <h3 className="text-sm font-black text-white">Red flags đúng</h3>
+            <h3 className="text-sm font-black text-text-primary">Red flags đúng</h3>
             <ul className="mt-3 space-y-2 text-xs font-semibold leading-6 text-rose-100">{activeCase.redFlags.map((flag) => <li key={flag}>• {flag}</li>)}</ul>
           </div>
           <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
-            <h3 className="text-sm font-black text-white">Câu hỏi kiểm toán</h3>
+            <h3 className="text-sm font-black text-text-primary">Câu hỏi kiểm toán</h3>
             <ul className="mt-3 space-y-2 text-xs font-semibold leading-6 text-cyan-100">{activeCase.auditQuestions.map((question) => <li key={question}>• {question}</li>)}</ul>
           </div>
           <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-            <h3 className="text-sm font-black text-white">Bài học & next action</h3>
+            <h3 className="text-sm font-black text-text-primary">Bài học & next action</h3>
             <p className="mt-3 text-xs font-semibold leading-6 text-emerald-100">{activeCase.learningOutcome}</p>
-            <p className="mt-3 rounded-xl border border-emerald-500/20 bg-slate-950/60 p-3 text-xs font-semibold leading-6 text-slate-300">{activeCase.nextAction}</p>
+            <p className="mt-3 rounded-xl border border-emerald-500/20 bg-slate-950/60 p-3 text-xs font-semibold leading-6 text-text-secondary">{activeCase.nextAction}</p>
           </div>
         </div>
       )}

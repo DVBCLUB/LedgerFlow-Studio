@@ -1,0 +1,35 @@
+import React, { useState } from 'react';
+import { Copy, Check } from 'lucide-react';
+
+interface CodeBlockProps {
+  code: string;
+  language: string;
+}
+
+export default function CodeBlock({ code, language }: CodeBlockProps) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <div className="relative group rounded-xl overflow-hidden border border-border-primary bg-slate-950 my-2">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-border-primary bg-bg-primary">
+        <span className="text-[10px] font-bold text-text-secondary uppercase tracking-widest">{language}</span>
+        <button onClick={copy} className="flex items-center gap-1 text-[10px] text-text-tertiary hover:text-slate-200 transition-colors">
+          {copied ? (
+            <>
+              <Check className="h-3 w-3 text-emerald-400" /> Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="h-3 w-3" /> Copy
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="p-3 overflow-x-auto text-[11px] leading-5 text-text-secondary font-mono">{code}</pre>
+    </div>
+  );
+}

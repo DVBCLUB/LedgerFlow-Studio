@@ -69,45 +69,45 @@ export default function MonthlyFounderReview() {
   }, []);
 
   return (
-    <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
-        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Monthly Review</p>
-        <h2 className="mt-2 text-xl font-black text-white">Founder review tháng</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+    <section className="space-y-4 text-text-primary">
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-6">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-success">Monthly Review</p>
+        <h2 className="mt-2 text-xl font-bold text-text-primary">Founder review tháng</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
           Tổng hợp interview, lead, decision và tool budget để quyết định tháng này nên BUILD, HOLD hay KILL. Đây là dashboard quản trị thử nghiệm, không thay thế kế toán chính thức.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Validation score</p><p className="mt-2 text-3xl font-black text-white">{snapshot.validationScore}/100</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Tool burn</p><p className="mt-2 text-3xl font-black text-white">{money(snapshot.monthlyBurn)}đ</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Paid signals</p><p className="mt-2 text-3xl font-black text-white">{snapshot.paidSignalLeads}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Recommendation</p><p className="mt-2 text-lg font-black text-emerald-300">{snapshot.recommendation}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Validation score</p><p className="mt-2 text-3xl font-bold text-text-primary">{snapshot.validationScore}/100</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Tool burn</p><p className="mt-2 text-3xl font-bold text-text-primary">{money(snapshot.monthlyBurn)}đ</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Paid signals</p><p className="mt-2 text-3xl font-bold text-text-primary">{snapshot.paidSignalLeads}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Recommendation</p><p className="mt-2 text-lg font-bold text-success">{snapshot.recommendation}</p></div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/5 p-5">
-          <h3 className="text-sm font-black text-white">Research health</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Interview: {snapshot.interviews.length} • Strong: {snapshot.strongInterviews}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300">Pain {snapshot.painAvg.toFixed(1)} / Pay {snapshot.payAvg.toFixed(1)} / Evidence {snapshot.evidenceAvg.toFixed(1)}</p>
+        <div className="rounded-2xl border border-info/20 bg-info/5 p-5">
+          <h3 className="text-sm font-bold text-text-primary">Research health</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">Interview: {snapshot.interviews.length} • Strong: {snapshot.strongInterviews}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary">Pain {snapshot.painAvg.toFixed(1)} / Pay {snapshot.payAvg.toFixed(1)} / Evidence {snapshot.evidenceAvg.toFixed(1)}</p>
         </div>
-        <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
-          <h3 className="text-sm font-black text-white">Commercial health</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">Lead: {snapshot.leads.length} • Demo: {snapshot.demoLeads} • Paid signal: {snapshot.paidSignalLeads}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300">Rejected: {snapshot.rejectedLeads}</p>
+        <div className="rounded-2xl border border-success/20 bg-success/5 p-5">
+          <h3 className="text-sm font-bold text-text-primary">Commercial health</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">Lead: {snapshot.leads.length} • Demo: {snapshot.demoLeads} • Paid signal: {snapshot.paidSignalLeads}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary">Rejected: {snapshot.rejectedLeads}</p>
         </div>
-        <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
-          <h3 className="text-sm font-black text-white">Decision & burn health</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">BUILD {snapshot.buildCount} • HOLD {snapshot.holdCount} • KILL {snapshot.killCount}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300">Risky burn: {money(snapshot.riskyBurn)}đ ({snapshot.burnRisk}%) • Cancel: {money(snapshot.cancelBurn)}đ</p>
+        <div className="rounded-2xl border border-warning/20 bg-warning/5 p-5">
+          <h3 className="text-sm font-bold text-text-primary">Decision & burn health</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">BUILD {snapshot.buildCount} • HOLD {snapshot.holdCount} • KILL {snapshot.killCount}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary">Risky burn: {money(snapshot.riskyBurn)}đ ({snapshot.burnRisk}%) • Cancel: {money(snapshot.cancelBurn)}đ</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-        <h3 className="text-sm font-black text-white">Checklist hành động tháng này</h3>
+      <div className="rounded-2xl border border-border-primary bg-bg-surface p-5">
+        <h3 className="text-sm font-bold text-text-primary">Checklist hành động tháng này</h3>
         <div className="mt-3 grid gap-2">
           {snapshot.actions.map((action) => (
-            <div key={action} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-300">{action}</div>
+            <div key={action} className="rounded-xl border border-border-primary bg-bg-primary p-3 text-xs font-semibold leading-6 text-text-secondary">{action}</div>
           ))}
         </div>
       </div>

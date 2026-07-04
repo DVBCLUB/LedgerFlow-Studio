@@ -56,6 +56,7 @@ src/
 ├── context/                 # Cross-app React providers such as local auth
 ├── modules/                 # Domain-driven company OS modules
 │   ├── command-center/      # CommandCenter dashboard and top-level entry workspaces
+│   ├── knowledge-library/   # Founder knowledge notes, trust review, and RAG simulator
 │   ├── product-studio/      # Game libraries, ML workbench, learning roadmaps, strategy games
 │   ├── marketing-growth/    # SEO tools, synthetic surveys, landing copy labs, email sequences
 │   ├── sales-crm/           # Pricing labs, NPS, affiliate hubs, outbound sales leads
@@ -72,6 +73,7 @@ Important frontend patterns:
 
 - `src/app/ErpApp.tsx` owns the shell; `WorkspaceRenderer.tsx` owns lazy workspace loading.
 - Add navigation metadata in `src/app/companyNavigation.ts` instead of duplicating sidebar definitions.
+- Keep Knowledge Library visible as the founder/AI context source; deep RAG experiments belong under `src/modules/knowledge-library/`.
 - Product Studio, Marketing & Growth, and Sales & CRM are separate first-level sidebar workspaces; keep the old `operations` route as legacy compatibility only.
 - Large feature overlays use `*Launcher.tsx` when they must be mounted outside the workspace renderer.
 - API calls should be wrapped in `src/utils/*Api.ts` instead of being scattered across components.

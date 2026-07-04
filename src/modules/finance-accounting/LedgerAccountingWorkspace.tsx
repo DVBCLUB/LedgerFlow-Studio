@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import AccountingVietnam from './AccountingVietnam';
 import AccountingVietnamDeepDivePanel from './AccountingVietnamDeepDivePanel';
-import CustomDataWorkbench from '../analytics-sandbox/CustomDataWorkbench';
+import CustomDataWorkbench from '../analytics-models-sandbox/CustomDataWorkbench';
 import { Beaker, BookOpen, Database } from 'lucide-react';
 
 export default function LedgerAccountingWorkspace() {
@@ -14,9 +14,9 @@ export default function LedgerAccountingWorkspace() {
   ];
 
   return (
-    <div className="space-y-6 select-none animate-fade-in text-slate-100">
+    <div className="space-y-6 select-none animate-fade-in text-text-primary">
       {/* Premium Tab Selector */}
-      <div className="bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 flex text-center">
+      <div className="bg-bg-surface p-1.5 rounded-2xl border border-border-primary flex text-center">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -24,10 +24,10 @@ export default function LedgerAccountingWorkspace() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3.5 rounded-xl text-xs font-black transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer border ${
+              className={`flex-1 py-3.5 rounded-xl text-xs font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer border ${
                 isActive 
-                  ? 'bg-cyan-500/15 border-cyan-500/30 text-cyan-300 shadow-md shadow-cyan-500/5' 
-                  : 'bg-transparent border-transparent text-slate-400 hover:text-white'
+                  ? 'bg-info/15 border-info/30 text-info shadow-md shadow-cyan-500/5' 
+                  : 'bg-transparent border-transparent text-text-secondary hover:text-text-primary'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />

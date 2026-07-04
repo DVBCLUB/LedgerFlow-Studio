@@ -44,14 +44,14 @@ export default function ZaloNotificationSimulator() {
   }, [content, hasNameTag, hasButton, btnText]);
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
         <div className="p-2 bg-sky-500/10 text-sky-400 border border-sky-500/25 rounded-xl">
           <MessageSquare className="w-5 h-5 animate-pulse" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">Zalo Notification Simulator</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Bộ thử nghiệm soạn thảo và chấm điểm hiệu năng tin nhắn chăm sóc khách hàng qua Zalo.</p>
+          <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Zalo Notification Simulator</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Bộ thử nghiệm soạn thảo và chấm điểm hiệu năng tin nhắn chăm sóc khách hàng qua Zalo.</p>
         </div>
       </div>
 
@@ -61,7 +61,7 @@ export default function ZaloNotificationSimulator() {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="text-xs font-bold text-slate-350">Nội dung tin nhắn:</label>
-              <span className={`text-[10px] font-bold ${content.length > 150 ? 'text-amber-400' : 'text-slate-500'}`}>
+              <span className={`text-[10px] font-bold ${content.length > 150 ? 'text-amber-400' : 'text-text-tertiary'}`}>
                 {content.length} ký tự (Nên &lt; 150)
               </span>
             </div>
@@ -70,12 +70,12 @@ export default function ZaloNotificationSimulator() {
               value={content}
               onChange={(e) => setContent(e.target.value)}
               placeholder="Nhập nội dung tin nhắn. Dùng [Tên] để cá nhân hóa..."
-              className="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl text-xs text-white focus:outline-none focus:border-sky-500 font-semibold leading-relaxed"
+              className="w-full bg-slate-950 border border-slate-850 p-3 rounded-xl text-xs text-text-primary focus:outline-none focus:border-sky-500 font-semibold leading-relaxed"
             />
           </div>
 
           <div className="flex flex-wrap gap-4 text-xs font-bold">
-            <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-text-secondary cursor-pointer">
               <input
                 type="checkbox"
                 checked={hasNameTag}
@@ -90,7 +90,7 @@ export default function ZaloNotificationSimulator() {
               Cá nhân hóa bằng tag [Tên] (+20 điểm)
             </label>
 
-            <label className="flex items-center gap-2 text-slate-300 cursor-pointer">
+            <label className="flex items-center gap-2 text-text-secondary cursor-pointer">
               <input
                 type="checkbox"
                 checked={hasButton}
@@ -108,7 +108,7 @@ export default function ZaloNotificationSimulator() {
                 type="text"
                 value={btnText}
                 onChange={(e) => setBtnText(e.target.value)}
-                className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-xs text-white focus:outline-none focus:border-sky-500 font-semibold"
+                className="w-full bg-slate-950 border border-slate-850 px-3 py-2 rounded-lg text-xs text-text-primary focus:outline-none focus:border-sky-500 font-semibold"
               />
             </div>
           )}
@@ -118,9 +118,9 @@ export default function ZaloNotificationSimulator() {
         <div className="lg:col-span-2 flex flex-col justify-between bg-slate-950/60 rounded-xl p-5 border border-slate-850/80">
           <div className="space-y-4">
             <div>
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Điểm tối ưu (Zalo Copy Score)</span>
+              <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Điểm tối ưu (Zalo Copy Score)</span>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-3xl font-black text-white font-mono">{stats.score}/100</span>
+                <span className="text-3xl font-black text-text-primary font-mono">{stats.score}/100</span>
                 <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${stats.qualityColor}`}>
                   {stats.quality}
                 </span>
@@ -129,23 +129,23 @@ export default function ZaloNotificationSimulator() {
 
             <div className="grid grid-cols-2 gap-4 border-t border-slate-900 pt-3">
               <div>
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Tỷ lệ mở dự kiến</span>
-                <p className="text-xl font-black text-white font-mono mt-1">{stats.openRate}%</p>
+                <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Tỷ lệ mở dự kiến</span>
+                <p className="text-xl font-black text-text-primary font-mono mt-1">{stats.openRate}%</p>
               </div>
               <div>
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Tỷ lệ Click (CTR)</span>
+                <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Tỷ lệ Click (CTR)</span>
                 <p className="text-xl font-black text-sky-400 font-mono mt-1">{stats.ctr}%</p>
               </div>
             </div>
 
             <div className="border-t border-slate-900 pt-3">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Mock-up Tin Nhắn Zalo</span>
+              <span className="text-[10px] text-text-tertiary font-black uppercase tracking-wider block">Mock-up Tin Nhắn Zalo</span>
               <div className="mt-2 rounded-xl bg-[#e5efff] text-slate-900 p-4 border border-blue-200/50 shadow-inner">
                 <p className="text-xs font-semibold leading-relaxed text-left text-slate-800">
                   {content}
                 </p>
                 {hasButton && btnText.trim().length > 0 && (
-                  <button className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-xs font-black text-center shadow-md">
+                  <button className="w-full mt-3 bg-blue-600 hover:bg-blue-700 text-text-primary py-2 rounded-lg text-xs font-black text-center shadow-md">
                     {btnText}
                   </button>
                 )}

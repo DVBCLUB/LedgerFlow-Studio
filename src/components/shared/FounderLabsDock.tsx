@@ -1,25 +1,25 @@
 import React, { Suspense, useState } from 'react';
 import { FlaskConical, X } from 'lucide-react';
 
-const StartHereLab = React.lazy(() => import('../../modules/analytics-sandbox/StartHereLab'));
-const CompanyOS = React.lazy(() => import('../../modules/command-center/CompanyOS'));
+const StartHereLab = React.lazy(() => import('../../modules/analytics-models-sandbox/StartHereLab'));
+const CompanyOS = React.lazy(() => import('../../modules/command-center/CEOOverviewPanel'));
 const FinanceLabMini = React.lazy(() => import('../../modules/finance-accounting/FinanceLabMini'));
-const DistributionLeadBoard = React.lazy(() => import('../../modules/sales-crm/DistributionLeadBoard'));
-const PersonaInterviewLab = React.lazy(() => import('../../modules/sales-crm/PersonaInterviewLab'));
-const ExperimentDecisionLog = React.lazy(() => import('../../modules/analytics-sandbox/ExperimentDecisionLog'));
-const ExperimentDashboard = React.lazy(() => import('../../modules/analytics-sandbox/ExperimentDashboard'));
-const AIStaffAssignmentBoard = React.lazy(() => import('../../modules/ai-hr/PeopleTab'));
-const AIOutputQualityReview = React.lazy(() => import('../../modules/ai-hr/AIOutputQualityReview'));
-const ContentRepurposeBoard = React.lazy(() => import('../../modules/marketing-growth/ContentRepurposeBoard'));
-const SyntheticSurveyBuilder = React.lazy(() => import('../../modules/marketing-growth/SyntheticSurveyBuilder'));
-const ABSimulationLab = React.lazy(() => import('../../modules/analytics-sandbox/ABSimulationLab'));
-const MoRReadinessChecklist = React.lazy(() => import('../../modules/analytics-sandbox/MoRReadinessChecklist'));
-const PricingOfferBuilder = React.lazy(() => import('../../modules/sales-crm/PricingOfferBuilder'));
-const ProductLaunchChecklist = React.lazy(() => import('../../modules/marketing-growth/ProductLaunchChecklist'));
-const LearningPathBuilder = React.lazy(() => import('../../modules/product-studio/LearningPathBuilder'));
-const N8nAutomationBlueprint = React.lazy(() => import('../../modules/analytics-sandbox/N8nAutomationBlueprint'));
-const MoatDefensibilityTracker = React.lazy(() => import('../../modules/analytics-sandbox/MoatDefensibilityTracker'));
-const MultiIndustryCaseBank = React.lazy(() => import('../../modules/analytics-sandbox/MultiIndustryCaseBank'));
+const DistributionLeadBoard = React.lazy(() => import('../../modules/sales-crm/components/DistributionLeadBoard'));
+const PersonaInterviewLab = React.lazy(() => import('../../modules/sales-crm/components/PersonaInterviewLab'));
+const ExperimentDecisionLog = React.lazy(() => import('../../modules/analytics-models-sandbox/ExperimentDecisionLog'));
+const ExperimentDashboard = React.lazy(() => import('../../modules/analytics-models-sandbox/ExperimentDashboard'));
+const AIStaffAssignmentBoard = React.lazy(() => import('../../modules/ai-nhan-su/PeopleTab'));
+const AIOutputQualityReview = React.lazy(() => import('../../modules/ai-nhan-su/AIOutputQualityReview'));
+const ContentRepurposeBoard = React.lazy(() => import('../../modules/marketing-growth/components/ContentRepurposeBoard'));
+const SyntheticSurveyBuilder = React.lazy(() => import('../../modules/marketing-growth/components/SyntheticSurveyBuilder'));
+const ABSimulationLab = React.lazy(() => import('../../modules/analytics-models-sandbox/ABSimulationLab'));
+const MoRReadinessChecklist = React.lazy(() => import('../../modules/analytics-models-sandbox/MoRReadinessChecklist'));
+const PricingOfferBuilder = React.lazy(() => import('../../modules/sales-crm/components/PricingOfferBuilder'));
+const ProductLaunchChecklist = React.lazy(() => import('../../modules/marketing-growth/components/ProductLaunchChecklist'));
+const LearningPathBuilder = React.lazy(() => import('../../modules/product-studio/GameAndMLWorkbench'));
+const N8nAutomationBlueprint = React.lazy(() => import('../../modules/analytics-models-sandbox/N8nAutomationBlueprint'));
+const MoatDefensibilityTracker = React.lazy(() => import('../../modules/analytics-models-sandbox/MoatDefensibilityTracker'));
+const MultiIndustryCaseBank = React.lazy(() => import('../../modules/analytics-models-sandbox/MultiIndustryCaseBank'));
 const AuditRedFlagGame = React.lazy(() => import('../../modules/product-studio/AuditRedFlagGame'));
 const CashRunwayGame = React.lazy(() => import('../../modules/product-studio/CashRunwayGame'));
 const PMFDecisionGame = React.lazy(() => import('../../modules/product-studio/PMFDecisionGame'));
@@ -32,7 +32,7 @@ const MonthlyFounderReview = React.lazy(() => import('../../modules/finance-acco
 const OnePageFounderReport = React.lazy(() => import('../../modules/finance-accounting/OnePageFounderReport'));
 const WeeklyActionPlanner = React.lazy(() => import('../../modules/finance-accounting/WeeklyActionPlanner'));
 const DailyFounderStandup = React.lazy(() => import('../../modules/finance-accounting/DailyFounderStandup'));
-const StrategicLabsMini = React.lazy(() => import('../../modules/analytics-sandbox/StrategicLabsMini'));
+const StrategicLabsMini = React.lazy(() => import('../../modules/analytics-models-sandbox/StrategicLabsMini'));
 const LabsBackupRestore = React.lazy(() => import('../LabsBackupRestore'));
 const ToolBudgetLedger = React.lazy(() => import('../../modules/finance-accounting/ToolBudgetLedger'));
 const ToolCancelPlan = React.lazy(() => import('../../modules/finance-accounting/ToolCancelPlan'));
@@ -139,39 +139,39 @@ export default function FounderLabsDock({ embedded = false }: FounderLabsDockPro
   return (
     <div className={embedded ? 'print:hidden' : 'fixed bottom-4 left-4 z-50 print:hidden'}>
       {(open || embedded) && (
-        <div className={embedded ? 'flex min-h-[680px] w-full flex-col overflow-hidden rounded-lg border border-slate-800 bg-slate-950 text-slate-100' : 'mb-3 flex max-h-[84vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-3xl border border-emerald-500/25 bg-slate-950/95 text-slate-100 shadow-2xl backdrop-blur'}>
-          <div className="flex items-start justify-between gap-4 border-b border-slate-800 p-4">
+        <div className={embedded ? 'flex min-h-[680px] w-full flex-col overflow-hidden rounded-lg border border-border-primary bg-bg-surface text-text-primary' : 'mb-3 flex max-h-[84vh] w-[min(92vw,72rem)] flex-col overflow-hidden rounded-3xl border border-success/25 bg-bg-surface/95 text-text-primary shadow-2xl backdrop-blur'}>
+          <div className="flex items-start justify-between gap-4 border-b border-border-primary p-4">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Phòng thử nghiệm</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-success">Phòng thử nghiệm</p>
               <h2 className="mt-1 text-lg font-black text-white">Bảng thử nghiệm thương mại hóa</h2>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Mở nhanh các khu thử nghiệm mà không cần sửa điều hướng chính.</p>
+              <p className="mt-1 text-xs font-semibold text-text-secondary">Mở nhanh các khu thử nghiệm mà không cần sửa điều hướng chính.</p>
             </div>
             {!embedded && (
-              <button onClick={() => setOpen(false)} className="rounded-xl border border-slate-800 p-2 text-slate-400 hover:text-white" aria-label="Đóng Founder Labs">
+              <button onClick={() => setOpen(false)} className="rounded-xl border border-border-primary p-2 text-text-secondary hover:text-white" aria-label="Đóng Founder Labs">
                 <X className="h-4 w-4" />
               </button>
             )}
           </div>
 
           <div className="grid min-h-0 flex-1 md:grid-cols-[16rem_1fr]">
-            <div className="space-y-4 overflow-y-auto border-b border-slate-800 p-3 md:border-b-0 md:border-r">
+            <div className="space-y-4 overflow-y-auto border-b border-border-primary p-3 md:border-b-0 md:border-r">
               {labLanes.map((lane) => {
                 const laneLabs = labs.filter((lab) => lab.lane === lane.id);
                 if (laneLabs.length === 0) return null;
 
                 return (
                   <div key={lane.id} className="space-y-2">
-                    <p className="px-1 text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">{lane.label}</p>
+                    <p className="px-1 text-[10px] font-black uppercase tracking-[0.18em] text-success">{lane.label}</p>
                     {laneLabs.map((lab) => (
                       <button
                         key={lab.id}
                         onClick={() => setActive(lab.id)}
                         className={`w-full rounded-2xl border p-3 text-left transition ${
-                          active === lab.id ? 'border-emerald-400 bg-emerald-500/10 text-white' : 'border-slate-800 bg-slate-900/60 text-slate-300 hover:border-emerald-500/50'
+                          active === lab.id ? 'border-success bg-success/10 text-text-primary' : 'border-border-primary bg-bg-primary/60 text-text-secondary hover:border-success/50'
                         }`}
                       >
                         <p className="text-xs font-black">{lab.label}</p>
-                        <p className="mt-1 text-[11px] font-semibold leading-5 text-slate-400">{lab.note}</p>
+                        <p className="mt-1 text-[11px] font-semibold leading-5 text-text-secondary">{lab.note}</p>
                       </button>
                     ))}
                   </div>
@@ -180,7 +180,7 @@ export default function FounderLabsDock({ embedded = false }: FounderLabsDockPro
             </div>
 
             <div className="max-h-[64vh] overflow-y-auto p-4">
-              <Suspense fallback={<div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-6 text-sm font-bold text-slate-400">Đang mở lab...</div>}>
+              <Suspense fallback={<div className="rounded-2xl border border-border-primary bg-bg-primary/70 p-6 text-sm font-bold text-text-secondary">Đang mở lab...</div>}>
                 {renderLab(active)}
               </Suspense>
             </div>
@@ -189,7 +189,7 @@ export default function FounderLabsDock({ embedded = false }: FounderLabsDockPro
       )}
 
       {!embedded && (
-        <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 shadow-2xl hover:bg-emerald-300">
+        <button onClick={() => setOpen((value) => !value)} className="inline-flex items-center gap-2 rounded-full border border-success/30 bg-success px-4 py-3 text-xs font-black text-black shadow-2xl hover:bg-success/80">
           <FlaskConical className="h-4 w-4" /> Labs
         </button>
       )}

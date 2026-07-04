@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Target, Sparkles, Check, HelpCircle, ArrowRight } from 'lucide-react';
+import { Card } from '../../../components/ui/Card';
 
 type ProductType = 'saas' | 'game' | 'academy';
 
@@ -71,27 +72,27 @@ export default function NorthStarMetricBuilder() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
-        <div className="p-2 bg-indigo-500/10 text-indigo-400 border border-indigo-500/25 rounded-xl">
+    <Card className="text-left">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
+        <div className="p-2 bg-accent-tertiary/10 text-accent-tertiary border border-accent-tertiary/25 rounded-xl">
           <Target className="w-5 h-5 animate-spin-slow" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">North Star Metric Builder</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Định vị và thiết lập chỉ số tối quan trọng để giữ tập trung, tránh phình tính năng vô nghĩa.</p>
+          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">North Star Metric Builder</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Định vị và thiết lập chỉ số tối quan trọng để giữ tập trung, tránh phình tính năng vô nghĩa.</p>
         </div>
       </div>
 
       {/* Product Type Selector */}
-      <div className="grid grid-cols-3 gap-2 p-1 bg-slate-950 rounded-xl border border-slate-850 mb-5">
+      <div className="grid grid-cols-3 gap-2 p-1 bg-bg-primary rounded-xl border border-border-secondary mb-5">
         {(Object.keys(TEMPLATES) as ProductType[]).map((type) => (
           <button
             key={type}
             onClick={() => handleTypeChange(type)}
-            className={`py-2 text-xs font-black rounded-lg transition-all cursor-pointer border ${
+            className={`py-2 text-xs font-bold rounded-lg transition-all cursor-pointer border ${
               productType === type
-                ? 'bg-indigo-600 border-indigo-500 text-white shadow-md shadow-indigo-600/10'
-                : 'bg-transparent border-transparent text-slate-400 hover:text-white'
+                ? 'bg-indigo-600 border-accent-tertiary text-text-primary shadow-md shadow-indigo-600/10'
+                : 'bg-transparent border-transparent text-text-secondary hover:text-text-primary'
             }`}
           >
             {type === 'saas' ? 'SaaS / Tool' : type === 'game' ? 'Game / Web App' : 'Academy / Hub'}
@@ -102,9 +103,9 @@ export default function NorthStarMetricBuilder() {
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Left Column: Metric Options */}
         <div className="lg:col-span-3 space-y-4">
-          <div className="rounded-xl bg-slate-900/50 p-4 border border-slate-850/60 mb-2">
-            <h4 className="text-xs font-black text-white">{activeTemplate.title}</h4>
-            <p className="text-[11px] text-slate-400 mt-1 font-semibold">{activeTemplate.desc}</p>
+          <div className="rounded-xl bg-bg-surface p-4 border border-border-secondary/60 mb-2">
+            <h4 className="text-xs font-bold text-text-primary">{activeTemplate.title}</h4>
+            <p className="text-[11px] text-text-secondary mt-1 font-semibold">{activeTemplate.desc}</p>
           </div>
 
           <div className="space-y-3">
@@ -119,23 +120,23 @@ export default function NorthStarMetricBuilder() {
                   }}
                   className={`w-full text-left p-3.5 rounded-xl border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-indigo-950/20 border-indigo-500/80'
-                      : 'bg-slate-950/60 border-slate-850 hover:bg-slate-900/50 text-slate-400 hover:text-white'
+                      ? 'bg-indigo-950/20 border-accent-tertiary/80'
+                      : 'bg-bg-primary border-border-secondary hover:bg-bg-surface text-text-secondary hover:text-text-primary'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <span className="text-xs font-black text-white">{metric.label}</span>
+                    <span className="text-xs font-bold text-text-primary">{metric.label}</span>
                     {isSelected && (
-                      <span className="p-0.5 rounded-full bg-indigo-500/20 border border-indigo-500/40 text-indigo-400">
+                      <span className="p-0.5 rounded-full bg-accent-tertiary/20 border border-accent-tertiary/40 text-accent-tertiary">
                         <Check className="w-3.5 h-3.5" />
                       </span>
                     )}
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-2 font-semibold leading-relaxed">
-                    <strong className="text-slate-350">Lợi ích:</strong> {metric.why}
+                  <p className="text-[10px] text-text-secondary mt-2 font-semibold leading-relaxed">
+                    <strong className="text-text-primary">Lợi ích:</strong> {metric.why}
                   </p>
-                  <p className="text-[10px] text-rose-300 mt-1 font-semibold leading-relaxed">
-                    <strong className="text-rose-400">Cạm bẫy:</strong> {metric.danger}
+                  <p className="text-[10px] text-error mt-1 font-semibold leading-relaxed">
+                    <strong className="text-error">Cạm bẫy:</strong> {metric.danger}
                   </p>
                 </button>
               );
@@ -144,46 +145,46 @@ export default function NorthStarMetricBuilder() {
         </div>
 
         {/* Right Column: Custom target input & Output preview */}
-        <div className="lg:col-span-2 flex flex-col justify-between bg-slate-950/60 rounded-xl p-5 border border-slate-850/80">
+        <div className="lg:col-span-2 flex flex-col justify-between bg-bg-primary rounded-xl p-5 border border-border-secondary/80">
           <div className="space-y-4 text-left">
             <div>
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Chỉ số ngôi sao đang chọn</span>
-              <h4 className="text-xs font-black text-white mt-1.5 leading-relaxed">{activeMetric.label}</h4>
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Chỉ số ngôi sao đang chọn</span>
+              <h4 className="text-xs font-bold text-text-primary mt-1.5 leading-relaxed">{activeMetric.label}</h4>
             </div>
 
             <div>
               <label className="block">
-                <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block mb-1">Mục tiêu kỳ vọng (Target)</span>
+                <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-1">Mục tiêu kỳ vọng (Target)</span>
                 <input
                   type="number"
                   value={customTarget}
                   onChange={(e) => setCustomTarget(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-slate-800 bg-slate-900 px-3 py-2 text-sm font-bold text-white outline-none focus:border-indigo-400"
+                  className="w-full rounded-xl border border-border-primary bg-bg-surface px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-indigo-400"
                 />
               </label>
             </div>
 
-            <div className="border-t border-slate-900 pt-3">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Định nghĩa công thức tính</span>
+            <div className="border-t border-border-primary pt-3">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Định nghĩa công thức tính</span>
               <code className="mt-1.5 block rounded-lg bg-black/40 p-3 text-[10px] font-bold text-indigo-300 leading-relaxed">
                 {activeMetric.formula}
               </code>
             </div>
 
-            <div className="rounded-xl border border-slate-900 bg-slate-950 p-3 text-center">
-              <span className="text-[10px] text-slate-500 font-black uppercase tracking-wider block">Mục tiêu của bạn</span>
-              <p className="text-xl font-black text-indigo-400 font-mono mt-1.5">
+            <div className="rounded-xl border border-border-primary bg-bg-primary p-3 text-center">
+              <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Mục tiêu của bạn</span>
+              <p className="text-xl font-bold text-accent-tertiary font-mono mt-1.5">
                 {formattedVal(customTarget, activeMetric.unit)}
               </p>
             </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-1.5 text-[9px] font-black text-indigo-400/90 border border-indigo-500/10 bg-indigo-500/5 p-2 rounded-lg">
+          <div className="mt-4 flex items-center gap-1.5 text-[9px] font-bold text-accent-tertiary/90 border border-accent-tertiary/10 bg-accent-tertiary/5 p-2 rounded-lg">
             <Sparkles className="w-3.5 h-3.5 shrink-0 animate-bounce" />
             <span>Mỗi sản phẩm chỉ nên có duy nhất 1 North Star.</span>
           </div>
         </div>
       </div>
-    </div>
+    </Card>
   );
 }

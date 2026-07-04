@@ -7,7 +7,7 @@ import './patch-ai-workforce-release-gate-export-persistence.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const targetPath = path.resolve('src/modules/ai-hr/AIOperationsCenter.tsx');
+const targetPath = path.resolve('src/modules/ai-nhan-su/AIOperationsCenter.tsx');
 
 if (!fs.existsSync(targetPath)) {
   throw new Error(`AIOperationsCenter source not found: ${targetPath}`);

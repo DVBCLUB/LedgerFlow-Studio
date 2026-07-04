@@ -65,14 +65,14 @@ export default function GlobalCommandSpotlight() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Chuyển trang, hoặc Ra lệnh cho AI..."
-            className="flex-1 bg-transparent text-white placeholder-slate-500 text-lg outline-none"
+            className="flex-1 bg-transparent text-white placeholder-text-muted text-lg outline-none"
             onKeyDown={(e) => {
               if (e.key === 'Enter' && query) handleSimulateAiAction();
             }}
           />
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-mono bg-white/10 text-slate-400 px-1.5 py-0.5 rounded">ESC</span>
-            <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-white">
+            <span className="text-[10px] font-mono bg-white/10 text-text-secondary px-1.5 py-0.5 rounded">ESC</span>
+            <button onClick={() => setIsOpen(false)} className="text-text-secondary hover:text-white">
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -81,7 +81,7 @@ export default function GlobalCommandSpotlight() {
         <div className="max-h-[60vh] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10">
           {query.length > 2 && (
             <div className="mb-4">
-              <div className="px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-widest">Hành động AI</div>
+              <div className="px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-widest">Hành động AI</div>
               <button 
                 onClick={handleSimulateAiAction}
                 className="w-full text-left px-3 py-3 rounded-lg hover:bg-indigo-500/10 flex items-center gap-3 group"
@@ -90,14 +90,14 @@ export default function GlobalCommandSpotlight() {
                   <Sparkles className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-sm font-medium text-white">Yêu cầu AI thực hiện: <span className="text-indigo-400">"{query}"</span></div>
-                  <div className="text-xs text-slate-400 mt-0.5">Lệnh sẽ được gửi tới Agentic Router</div>
+                  <div className="text-sm font-medium text-white">Yêu cầu AI thực hiện: <span className="text-brand-light">"{query}"</span></div>
+                  <div className="text-xs text-text-secondary mt-0.5">Lệnh sẽ được gửi tới Agentic Router</div>
                 </div>
               </button>
             </div>
           )}
 
-          <div className="px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-widest">Không gian làm việc</div>
+          <div className="px-3 py-1.5 text-xs font-semibold text-text-muted uppercase tracking-widest">Không gian làm việc</div>
           {matchedWorkspaces.length > 0 ? (
             matchedWorkspaces.map(w => (
               <button 
@@ -106,25 +106,25 @@ export default function GlobalCommandSpotlight() {
                 className="w-full text-left px-3 py-3 rounded-lg hover:bg-white/5 flex items-center justify-between group transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-1.5 bg-white/5 text-slate-400 rounded-md group-hover:text-white group-hover:bg-white/10 transition-colors">
+                  <div className="p-1.5 bg-white/5 text-text-secondary rounded-md group-hover:text-white group-hover:bg-white/10 transition-colors">
                     <Building2 className="w-4 h-4" />
                   </div>
                   <div>
                     <div className="text-sm font-medium text-white">{w.label}</div>
-                    <div className="text-xs text-slate-500 mt-0.5 truncate max-w-sm">{w.description}</div>
+                    <div className="text-xs text-text-muted mt-0.5 truncate max-w-sm">{w.description}</div>
                   </div>
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
+                <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-light opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0" />
               </button>
             ))
           ) : (
-            <div className="px-4 py-8 text-center text-slate-500 text-sm">
+            <div className="px-4 py-8 text-center text-text-muted text-sm">
               Không tìm thấy module nào. Nhấn Enter để gửi truy vấn này cho AI.
             </div>
           )}
         </div>
         
-        <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-4 text-xs text-slate-500">
+        <div className="px-4 py-2 bg-white/[0.02] border-t border-white/5 flex items-center gap-4 text-xs text-text-muted">
           <div className="flex items-center gap-1.5">
             <span className="font-mono bg-white/10 px-1 rounded text-[10px]">↑↓</span> Di chuyển
           </div>

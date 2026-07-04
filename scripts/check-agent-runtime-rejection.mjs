@@ -4,7 +4,7 @@ import path from 'node:path';
 
 const root = process.cwd();
 const runtimeFile = path.join(root, 'server/services/agentRuntime.ts');
-const missionControlFile = path.join(root, 'src/modules/ai-hr/AIWorkforceMissionControl.tsx');
+const missionControlFile = path.join(root, 'src/modules/ai-nhan-su/AIWorkforceMissionControl.tsx');
 const telegramFile = path.join(root, 'server/services/telegramMissionCommands.ts');
 
 let failed = false;

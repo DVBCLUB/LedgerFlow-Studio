@@ -104,7 +104,7 @@ function statusClass(status: RollbackStatus) {
   if (status === 'Ready') return 'border-cyan-400/35 bg-cyan-400/10 text-cyan-200';
   if (status === 'Needs Review') return 'border-amber-400/35 bg-amber-400/10 text-amber-200';
   if (status === 'Blocked') return 'border-rose-400/35 bg-rose-400/10 text-rose-200';
-  return 'border-slate-700 bg-slate-950 text-slate-300';
+  return 'border-border-secondary bg-slate-950 text-text-secondary';
 }
 
 export default function RollbackCenter() {
@@ -220,90 +220,90 @@ export default function RollbackCenter() {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.22em] text-rose-200">Rollback center</p>
-          <h3 className="mt-1 text-xl font-black text-white">Trung tâm rollback / restore</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Mỗi thay đổi do AI tạo phải có đường lui: PR nguồn, branch, file bị ảnh hưởng, kế hoạch revert và test lại.</p>
+          <h3 className="mt-1 text-xl font-black text-text-primary">Trung tâm rollback / restore</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-text-secondary">Mỗi thay đổi do AI tạo phải có đường lui: PR nguồn, branch, file bị ảnh hưởng, kế hoạch revert và test lại.</p>
         </div>
-        <button onClick={() => exportJson('ledgerflow-rollback-center.json', { records, events })} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-rose-300">Xuất rollback log</button>
+        <button onClick={() => exportJson('ledgerflow-rollback-center.json', { records, events })} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-rose-300">Xuất rollback log</button>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-3">
+        <div className="rounded-3xl border border-border-primary bg-slate-950/60 p-3">
           <div className="mb-3 flex items-center justify-between gap-2">
-            <p className="text-sm font-black text-white">Tạo rollback record</p>
+            <p className="text-sm font-black text-text-primary">Tạo rollback record</p>
             <button onClick={importLatestReviewDesk} className="rounded-xl border border-rose-400/40 px-3 py-1.5 text-[11px] font-black text-rose-100 hover:bg-rose-400/10">Nhập PR mới nhất</button>
           </div>
           <div className="grid gap-2">
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Tên rollback plan" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Repo" value={draft.repo} onChange={(event) => setDraft({ ...draft, repo: event.target.value })} />
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Source branch ai/..." value={draft.sourceBranch} onChange={(event) => setDraft({ ...draft, sourceBranch: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="Tên rollback plan" value={draft.title} onChange={(event) => setDraft({ ...draft, title: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="Repo" value={draft.repo} onChange={(event) => setDraft({ ...draft, repo: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="Source branch ai/..." value={draft.sourceBranch} onChange={(event) => setDraft({ ...draft, sourceBranch: event.target.value })} />
             <div className="grid gap-2 md:grid-cols-2">
-              <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Source PR number" value={draft.sourcePrNumber} onChange={(event) => setDraft({ ...draft, sourcePrNumber: event.target.value })} />
-              <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" value={draft.risk} onChange={(event) => setDraft({ ...draft, risk: event.target.value as RollbackRisk })}>
+              <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="Source PR number" value={draft.sourcePrNumber} onChange={(event) => setDraft({ ...draft, sourcePrNumber: event.target.value })} />
+              <select className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" value={draft.risk} onChange={(event) => setDraft({ ...draft, risk: event.target.value as RollbackRisk })}>
                 <option>LOW</option><option>MEDIUM</option><option>HIGH</option>
               </select>
             </div>
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="PR URL" value={draft.sourcePrUrl} onChange={(event) => setDraft({ ...draft, sourcePrUrl: event.target.value })} />
-            <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-white" placeholder="Commit SHA" value={draft.sourceCommitSha} onChange={(event) => setDraft({ ...draft, sourceCommitSha: event.target.value })} />
-            <textarea className="min-h-[70px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Lý do cần rollback plan" value={draft.reason} onChange={(event) => setDraft({ ...draft, reason: event.target.value })} />
-            <textarea className="min-h-[90px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Rollback plan" value={draft.rollbackPlan} onChange={(event) => setDraft({ ...draft, rollbackPlan: event.target.value })} />
-            <textarea className="min-h-[90px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Files, mỗi dòng một file" value={draft.filesText} onChange={(event) => setDraft({ ...draft, filesText: event.target.value })} />
-            <textarea className="min-h-[70px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" placeholder="Test plan" value={draft.testPlan} onChange={(event) => setDraft({ ...draft, testPlan: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="PR URL" value={draft.sourcePrUrl} onChange={(event) => setDraft({ ...draft, sourcePrUrl: event.target.value })} />
+            <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm text-text-primary" placeholder="Commit SHA" value={draft.sourceCommitSha} onChange={(event) => setDraft({ ...draft, sourceCommitSha: event.target.value })} />
+            <textarea className="min-h-[70px] rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm leading-6 text-text-primary" placeholder="Lý do cần rollback plan" value={draft.reason} onChange={(event) => setDraft({ ...draft, reason: event.target.value })} />
+            <textarea className="min-h-[90px] rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm leading-6 text-text-primary" placeholder="Rollback plan" value={draft.rollbackPlan} onChange={(event) => setDraft({ ...draft, rollbackPlan: event.target.value })} />
+            <textarea className="min-h-[90px] rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm leading-6 text-text-primary" placeholder="Files, mỗi dòng một file" value={draft.filesText} onChange={(event) => setDraft({ ...draft, filesText: event.target.value })} />
+            <textarea className="min-h-[70px] rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm leading-6 text-text-primary" placeholder="Test plan" value={draft.testPlan} onChange={(event) => setDraft({ ...draft, testPlan: event.target.value })} />
             <button onClick={createRecord} className="rounded-2xl bg-rose-300 px-4 py-2 text-xs font-black text-slate-950">Tạo rollback record</button>
           </div>
 
           <div className="mt-4 space-y-2">
-            {records.map((record) => <button key={record.id} onClick={() => setSelectedId(record.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === record.id ? 'border-rose-300 bg-rose-400/10' : 'border-slate-800 bg-slate-950/50 hover:border-rose-400/40'}`}>
+            {records.map((record) => <button key={record.id} onClick={() => setSelectedId(record.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === record.id ? 'border-rose-300 bg-rose-400/10' : 'border-border-primary bg-slate-950/50 hover:border-rose-400/40'}`}>
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-sm font-black text-white">{record.title}</p>
+                <p className="text-sm font-black text-text-primary">{record.title}</p>
                 <span className={`rounded-full border px-2 py-0.5 text-[10px] font-black ${statusClass(record.status)}`}>{record.status}</span>
               </div>
-              <p className="mt-1 text-[11px] font-bold text-slate-400">{record.sourceBranch} · PR #{record.sourcePrNumber ?? '?'} · {record.risk}</p>
+              <p className="mt-1 text-[11px] font-bold text-text-secondary">{record.sourceBranch} · PR #{record.sourcePrNumber ?? '?'} · {record.risk}</p>
             </button>)}
           </div>
         </div>
 
-        {selected && <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-4">
+        {selected && <div className="rounded-3xl border border-border-primary bg-slate-950/60 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected rollback</p>
-              <h4 className="mt-1 text-lg font-black text-white">{selected.title}</h4>
-              <p className="mt-1 text-xs font-bold text-slate-400">{selected.repo} · {selected.sourceBranch} · Risk {selected.risk}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Selected rollback</p>
+              <h4 className="mt-1 text-lg font-black text-text-primary">{selected.title}</h4>
+              <p className="mt-1 text-xs font-bold text-text-secondary">{selected.repo} · {selected.sourceBranch} · Risk {selected.risk}</p>
             </div>
             <span className={`rounded-full border px-3 py-1 text-xs font-black ${statusClass(selected.status)}`}>{selected.status}</span>
           </div>
 
           <div className="mt-4 grid gap-3 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Reason</p>
-              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{selected.reason}</p>
+            <div className="rounded-2xl border border-border-primary bg-slate-950 p-3">
+              <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Reason</p>
+              <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">{selected.reason}</p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-3">
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Source</p>
-              <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">PR #{selected.sourcePrNumber ?? 'N/A'}<br />Commit: {selected.sourceCommitSha || 'N/A'}</p>
+            <div className="rounded-2xl border border-border-primary bg-slate-950 p-3">
+              <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Source</p>
+              <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">PR #{selected.sourcePrNumber ?? 'N/A'}<br />Commit: {selected.sourceCommitSha || 'N/A'}</p>
               {selected.sourcePrUrl && <a className="mt-2 inline-flex text-xs font-black text-emerald-200 underline" href={selected.sourcePrUrl} target="_blank" rel="noreferrer">Mở source PR</a>}
             </div>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Rollback plan</p>
-            <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-slate-300">{selected.rollbackPlan}</p>
+          <div className="mt-3 rounded-2xl border border-border-primary bg-slate-950 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Rollback plan</p>
+            <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-text-secondary">{selected.rollbackPlan}</p>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Files</p>
+          <div className="mt-3 rounded-2xl border border-border-primary bg-slate-950 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Files</p>
             <div className="mt-2 flex flex-wrap gap-2">
-              {selected.files.map((file) => <span key={file} className="rounded-full border border-slate-700 px-3 py-1 text-[11px] font-bold text-slate-300">{file}</span>)}
-              {selected.files.length === 0 && <span className="text-xs font-semibold text-slate-500">Chưa ghi file.</span>}
+              {selected.files.map((file) => <span key={file} className="rounded-full border border-border-secondary px-3 py-1 text-[11px] font-bold text-text-secondary">{file}</span>)}
+              {selected.files.length === 0 && <span className="text-xs font-semibold text-text-tertiary">Chưa ghi file.</span>}
             </div>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Test plan</p>
-            <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-slate-300">{selected.testPlan}</p>
+          <div className="mt-3 rounded-2xl border border-border-primary bg-slate-950 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Test plan</p>
+            <p className="mt-2 whitespace-pre-wrap text-xs font-semibold leading-6 text-text-secondary">{selected.testPlan}</p>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {(['Draft', 'Needs Review', 'Ready', 'Blocked', 'Completed'] as RollbackStatus[]).map((status) => <button key={status} onClick={() => updateSelected({ status }, 'ROLLBACK_STATUS_CHANGED', `Đổi rollback status sang ${status}.`)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${selected.status === status ? 'border-rose-300 bg-rose-300 text-slate-950' : 'border-slate-700 text-slate-300 hover:border-rose-300'}`}>{status}</button>)}
+            {(['Draft', 'Needs Review', 'Ready', 'Blocked', 'Completed'] as RollbackStatus[]).map((status) => <button key={status} onClick={() => updateSelected({ status }, 'ROLLBACK_STATUS_CHANGED', `Đổi rollback status sang ${status}.`)} className={`rounded-full border px-3 py-2 text-[11px] font-black ${selected.status === status ? 'border-rose-300 bg-rose-300 text-slate-950' : 'border-border-secondary text-text-secondary hover:border-rose-300'}`}>{status}</button>)}
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
@@ -311,15 +311,15 @@ export default function RollbackCenter() {
             <button onClick={sendToReviewDesk} className="rounded-2xl border border-emerald-400/40 px-4 py-2 text-xs font-black text-emerald-200 hover:bg-emerald-400/10">Đưa sang Review Desk</button>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Rollback events</p>
+          <div className="mt-4 rounded-2xl border border-border-primary bg-slate-950/70 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Rollback events</p>
             <div className="mt-2 max-h-44 space-y-2 overflow-y-auto">
-              {selectedEvents.map((event) => <div key={event.id} className="rounded-xl border border-slate-800 bg-slate-950 p-2">
+              {selectedEvents.map((event) => <div key={event.id} className="rounded-xl border border-border-primary bg-slate-950 p-2">
                 <p className="text-[10px] font-black text-rose-200">{event.action}</p>
-                <p className="mt-1 text-[11px] font-semibold text-slate-400">{event.detail}</p>
+                <p className="mt-1 text-[11px] font-semibold text-text-secondary">{event.detail}</p>
                 <p className="mt-1 text-[10px] font-bold text-slate-600">{event.at}</p>
               </div>)}
-              {selectedEvents.length === 0 && <p className="text-xs font-semibold text-slate-500">Chưa có event.</p>}
+              {selectedEvents.length === 0 && <p className="text-xs font-semibold text-text-tertiary">Chưa có event.</p>}
             </div>
           </div>
         </div>}

@@ -138,30 +138,30 @@ export default function GameLibrary() {
 
   return (
     <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-6">
         <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Game Library</p>
-        <h2 className="mt-2 text-xl font-black text-white">Thư viện mini-game học kế toán, kiểm toán và founder finance</h2>
-        <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">Biến Case Bank, Finance Lab, Lead Board và Simulation thành game học 2D đơn giản trước khi nghĩ tới game engine phức tạp.</p>
+        <h2 className="mt-2 text-xl font-black text-text-primary">Thư viện mini-game học kế toán, kiểm toán và founder finance</h2>
+        <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">Biến Case Bank, Finance Lab, Lead Board và Simulation thành game học 2D đơn giản trước khi nghĩ tới game engine phức tạp.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Games</p><p className="mt-2 text-3xl font-black text-white">{games.length}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Ready</p><p className="mt-2 text-3xl font-black text-emerald-300">{summary.ready}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Prototype/Playtest</p><p className="mt-2 text-3xl font-black text-cyan-300">{summary.prototype}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Avg game score</p><p className="mt-2 text-3xl font-black text-amber-300">{summary.avgScore}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Games</p><p className="mt-2 text-3xl font-black text-text-primary">{games.length}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Ready</p><p className="mt-2 text-3xl font-black text-emerald-300">{summary.ready}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Prototype/Playtest</p><p className="mt-2 text-3xl font-black text-cyan-300">{summary.prototype}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5"><p className="text-[10px] font-black uppercase text-text-tertiary">Avg game score</p><p className="mt-2 text-3xl font-black text-amber-300">{summary.avgScore}</p></div>
       </div>
 
       <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/5 p-5">
         <div className="grid gap-3 md:grid-cols-[1fr_auto_auto] md:items-end">
           <div>
             <p className="text-[10px] font-black uppercase text-emerald-300">Next best game</p>
-            <h3 className="mt-2 text-lg font-black text-white">{summary.nextGame?.title}</h3>
-            <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">{summary.nextGame?.nextBuildStep}</p>
+            <h3 className="mt-2 text-lg font-black text-text-primary">{summary.nextGame?.title}</h3>
+            <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">{summary.nextGame?.nextBuildStep}</p>
           </div>
-          <select value={type} onChange={(event) => setType(event.target.value as 'All' | GameType)} className="rounded-xl border border-slate-800 bg-slate-950 px-3 py-3 text-xs font-bold text-white">
+          <select value={type} onChange={(event) => setType(event.target.value as 'All' | GameType)} className="rounded-xl border border-border-primary bg-slate-950 px-3 py-3 text-xs font-bold text-text-primary">
             <option>All</option><option>Audit</option><option>Finance</option><option>Product</option><option>Document</option><option>Accounting</option>
           </select>
-          <button onClick={reset} className="rounded-xl border border-slate-700 px-4 py-3 text-xs font-black text-slate-300 hover:border-emerald-400">Reset demo</button>
+          <button onClick={reset} className="rounded-xl border border-border-secondary px-4 py-3 text-xs font-black text-text-secondary hover:border-emerald-400">Reset demo</button>
         </div>
       </div>
 
@@ -170,37 +170,37 @@ export default function GameLibrary() {
           const score = scoreGame(game);
           const verdict = score >= 75 ? 'BUILD THIS GAME' : score >= 55 ? 'PROTOTYPE / TEST' : 'HOLD / REDUCE SCOPE';
           return (
-            <div key={game.id} className="rounded-3xl border border-slate-800 bg-slate-900/70 p-5">
+            <div key={game.id} className="rounded-3xl border border-border-primary bg-bg-surface/70 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <p className="text-[10px] font-black uppercase text-cyan-300">{game.type}</p>
-                  <h3 className="mt-1 text-lg font-black text-white">{game.title}</h3>
+                  <h3 className="mt-1 text-lg font-black text-text-primary">{game.title}</h3>
                 </div>
-                <div className="rounded-2xl border border-slate-800 bg-slate-950 px-4 py-3 text-right">
-                  <p className="text-[10px] font-black uppercase text-slate-500">Game score</p>
+                <div className="rounded-2xl border border-border-primary bg-slate-950 px-4 py-3 text-right">
+                  <p className="text-[10px] font-black uppercase text-text-tertiary">Game score</p>
                   <p className="text-2xl font-black text-emerald-300">{score}</p>
                 </div>
               </div>
 
               <div className="mt-4 grid gap-3 md:grid-cols-2">
-                <label className="text-[10px] font-black uppercase text-slate-500">Status
-                  <select value={game.status} onChange={(event) => updateGame(game.id, { status: event.target.value as GameStatus })} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs font-bold text-white">
+                <label className="text-[10px] font-black uppercase text-text-tertiary">Status
+                  <select value={game.status} onChange={(event) => updateGame(game.id, { status: event.target.value as GameStatus })} className="mt-1 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs font-bold text-text-primary">
                     <option>Idea</option><option>Prototype</option><option>Playtest</option><option>Ready</option><option>Paused</option>
                   </select>
                 </label>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-3"><p className="text-[10px] font-black uppercase text-slate-500">Verdict</p><p className="mt-1 text-xs font-black text-amber-300">{verdict}</p></div>
+                <div className="rounded-xl border border-border-primary bg-slate-950 p-3"><p className="text-[10px] font-black uppercase text-text-tertiary">Verdict</p><p className="mt-1 text-xs font-black text-amber-300">{verdict}</p></div>
               </div>
 
-              <div className="mt-4 space-y-3 text-xs font-semibold leading-6 text-slate-300">
-                <p><span className="font-black text-white">Learner:</span> {game.learner}</p>
-                <p><span className="font-black text-white">Objective:</span> {game.objective}</p>
-                <p><span className="font-black text-white">Mechanic:</span> {game.mechanic}</p>
-                <p><span className="font-black text-white">Win condition:</span> {game.winCondition}</p>
-                <p><span className="font-black text-white">Dataset:</span> {game.dataset}</p>
+              <div className="mt-4 space-y-3 text-xs font-semibold leading-6 text-text-secondary">
+                <p><span className="font-black text-text-primary">Learner:</span> {game.learner}</p>
+                <p><span className="font-black text-text-primary">Objective:</span> {game.objective}</p>
+                <p><span className="font-black text-text-primary">Mechanic:</span> {game.mechanic}</p>
+                <p><span className="font-black text-text-primary">Win condition:</span> {game.winCondition}</p>
+                <p><span className="font-black text-text-primary">Dataset:</span> {game.dataset}</p>
               </div>
 
-              <label className="mt-4 block text-[10px] font-black uppercase text-slate-500">Next build step
-                <textarea value={game.nextBuildStep} onChange={(event) => updateGame(game.id, { nextBuildStep: event.target.value })} className="mt-1 min-h-20 w-full rounded-xl border border-slate-800 bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" />
+              <label className="mt-4 block text-[10px] font-black uppercase text-text-tertiary">Next build step
+                <textarea value={game.nextBuildStep} onChange={(event) => updateGame(game.id, { nextBuildStep: event.target.value })} className="mt-1 min-h-20 w-full rounded-xl border border-border-primary bg-slate-950 px-3 py-2 text-xs normal-case text-slate-200" />
               </label>
             </div>
           );

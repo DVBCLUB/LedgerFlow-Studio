@@ -63,61 +63,61 @@ export default function OnePageFounderReport() {
   const printReport = () => window.print();
 
   return (
-    <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6 print:border-slate-300 print:bg-white print:text-slate-950">
+    <section className="space-y-4 text-text-primary">
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-6 print:border-slate-300 print:bg-white print:text-slate-950">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300 print:text-slate-600">One-Page Founder Report</p>
-            <h2 className="mt-2 text-2xl font-black text-white print:text-slate-950">Báo cáo founder một trang</h2>
-            <p className="mt-2 text-sm font-semibold leading-7 text-slate-400 print:text-slate-700">Tổng hợp nhanh để quyết định tháng này nên build gì, hold gì, kill gì và đang đốt bao nhiêu tiền tool.</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-success print:text-text-muted">One-Page Founder Report</p>
+            <h2 className="mt-2 text-2xl font-bold text-text-primary print:text-slate-950">Báo cáo founder một trang</h2>
+            <p className="mt-2 text-sm font-semibold leading-7 text-text-secondary print:text-slate-700">Tổng hợp nhanh để quyết định tháng này nên build gì, hold gì, kill gì và đang đốt bao nhiêu tiền tool.</p>
           </div>
-          <button onClick={printReport} className="rounded-2xl border border-emerald-500/30 bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950 print:hidden">In / Save PDF</button>
+          <button onClick={printReport} className="rounded-2xl border border-success/30 bg-emerald-400 px-4 py-3 text-xs font-bold text-slate-950 print:hidden">In / Save PDF</button>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-6 print:border-slate-300 print:bg-white print:text-slate-950">
-        <p className="text-[10px] font-black uppercase text-emerald-300 print:text-slate-600">Quyết định tháng</p>
-        <h3 className="mt-2 text-2xl font-black text-white print:text-slate-950">{report.monthlyDecision}</h3>
+      <div className="rounded-3xl border border-success/30 bg-success/10 p-6 print:border-slate-300 print:bg-white print:text-slate-950">
+        <p className="text-[10px] font-bold uppercase text-success print:text-text-muted">Quyết định tháng</p>
+        <h3 className="mt-2 text-2xl font-bold text-text-primary print:text-slate-950">{report.monthlyDecision}</h3>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-black uppercase text-slate-500">Validation score</p><p className="mt-2 text-3xl font-black">{report.validationScore}/100</p></div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-black uppercase text-slate-500">Monthly tool burn</p><p className="mt-2 text-3xl font-black">{money(report.monthlyBurn)}đ</p></div>
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-black uppercase text-slate-500">Burn risk</p><p className="mt-2 text-3xl font-black">{report.burnRisk}%</p></div>
+          <div className="rounded-2xl border border-border-primary bg-bg-primary p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-bold uppercase text-text-muted">Validation score</p><p className="mt-2 text-3xl font-bold">{report.validationScore}/100</p></div>
+          <div className="rounded-2xl border border-border-primary bg-bg-primary p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-bold uppercase text-text-muted">Monthly tool burn</p><p className="mt-2 text-3xl font-bold">{money(report.monthlyBurn)}đ</p></div>
+          <div className="rounded-2xl border border-border-primary bg-bg-primary p-4 print:border-slate-300 print:bg-white"><p className="text-[10px] font-bold uppercase text-text-muted">Burn risk</p><p className="mt-2 text-3xl font-bold">{report.burnRisk}%</p></div>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 print:border-slate-300 print:bg-white print:text-slate-950">
-          <h3 className="text-sm font-black text-white print:text-slate-950">1. Tín hiệu thị trường</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Interview: {report.interviews.length} • Strong signal: {report.strongInterviews}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Lead: {report.leads.length} • Demo: {report.demoLeads.length} • Paid signal: {report.paidLeads.length}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Pain {report.painAvg.toFixed(1)} / Pay {report.payAvg.toFixed(1)} / Evidence {report.evidenceAvg.toFixed(1)}</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5 print:border-slate-300 print:bg-white print:text-slate-950">
+          <h3 className="text-sm font-bold text-text-primary print:text-slate-950">1. Tín hiệu thị trường</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Interview: {report.interviews.length} • Strong signal: {report.strongInterviews}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Lead: {report.leads.length} • Demo: {report.demoLeads.length} • Paid signal: {report.paidLeads.length}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Pain {report.painAvg.toFixed(1)} / Pay {report.payAvg.toFixed(1)} / Evidence {report.evidenceAvg.toFixed(1)}</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 print:border-slate-300 print:bg-white print:text-slate-950">
-          <h3 className="text-sm font-black text-white print:text-slate-950">2. Quyết định thí nghiệm</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">BUILD: {report.buildDecisions.length} • HOLD: {report.holdDecisions.length} • KILL: {report.killDecisions.length}</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Confidence trung bình: {report.confidenceAvg.toFixed(0)}%</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Focus: {report.focus}</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5 print:border-slate-300 print:bg-white print:text-slate-950">
+          <h3 className="text-sm font-bold text-text-primary print:text-slate-950">2. Quyết định thí nghiệm</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">BUILD: {report.buildDecisions.length} • HOLD: {report.holdDecisions.length} • KILL: {report.killDecisions.length}</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Confidence trung bình: {report.confidenceAvg.toFixed(0)}%</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Focus: {report.focus}</p>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 print:border-slate-300 print:bg-white print:text-slate-950">
-          <h3 className="text-sm font-black text-white print:text-slate-950">3. Tool budget</h3>
-          <p className="mt-3 text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Tổng burn: {money(report.monthlyBurn)}đ/tháng</p>
-          <p className="text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">Cần review: {money(report.reviewBurn)}đ • Nên hủy: {money(report.cancelBurn)}đ</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5 print:border-slate-300 print:bg-white print:text-slate-950">
+          <h3 className="text-sm font-bold text-text-primary print:text-slate-950">3. Tool budget</h3>
+          <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Tổng burn: {money(report.monthlyBurn)}đ/tháng</p>
+          <p className="text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">Cần review: {money(report.reviewBurn)}đ • Nên hủy: {money(report.cancelBurn)}đ</p>
           <div className="mt-3 space-y-2">
             {report.topTools.map((tool) => (
-              <div key={`${tool.name}-${tool.monthlyCost}`} className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold text-slate-300 print:border-slate-300 print:bg-white print:text-slate-700">
+              <div key={`${tool.name}-${tool.monthlyCost}`} className="rounded-xl border border-border-primary bg-bg-primary p-3 text-xs font-semibold text-text-secondary print:border-slate-300 print:bg-white print:text-slate-700">
                 {tool.name || 'Unnamed tool'} • {money(Number(tool.monthlyCost || 0))}đ • {tool.decision || 'Keep'}
               </div>
             ))}
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5 print:border-slate-300 print:bg-white print:text-slate-950">
-          <h3 className="text-sm font-black text-white print:text-slate-950">4. Việc cần làm</h3>
-          <div className="mt-3 space-y-2 text-xs font-semibold leading-6 text-slate-300 print:text-slate-700">
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5 print:border-slate-300 print:bg-white print:text-slate-950">
+          <h3 className="text-sm font-bold text-text-primary print:text-slate-950">4. Việc cần làm</h3>
+          <div className="mt-3 space-y-2 text-xs font-semibold leading-6 text-text-secondary print:text-slate-700">
             <p>Build/demo: {report.focus}</p>
             <p>Hold: phỏng vấn thêm nếu paid signal chưa đủ rõ.</p>
             <p>Kill/giảm scope: {report.killOrReduce}</p>

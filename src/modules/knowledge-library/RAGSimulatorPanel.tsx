@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Database, Search, Cpu, ArrowRight, HelpCircle, Code, Copy, Check } from 'lucide-react';
-import { readLocalStorageValue } from '../ai-hr/storage';
+import { readLocalStorageValue } from '../ai-nhan-su/storage';
 
 const KNOWLEDGE_KEY = 'ledgerflow_company_knowledge_v1';
 
@@ -128,22 +128,22 @@ TRẢ LỜI:`;
           <Database className="w-5 h-5" />
         </div>
         <div>
-          <h4 className="text-sm font-black text-white">RAG Sandbox & Vector Search Simulator</h4>
-          <p className="text-xs font-semibold text-slate-400">Trực quan hóa cơ chế AI phân tích truy vấn, bóc tách vector và truy xuất tri thức tương đồng.</p>
+          <h4 className="text-sm font-black text-text-primary">RAG Sandbox & Vector Search Simulator</h4>
+          <p className="text-xs font-semibold text-text-secondary">Trực quan hóa cơ chế AI phân tích truy vấn, bóc tách vector và truy xuất tri thức tương đồng.</p>
         </div>
       </div>
 
       {/* Query Bar */}
       <div className="flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-text-tertiary" />
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             placeholder="Nhập câu hỏi để mô phỏng tìm kiếm (ví dụ: supabase, định vị, kế toán...)"
-            className="w-full rounded-xl border border-slate-800 bg-slate-900/60 pl-10 pr-4 py-2 text-xs font-semibold text-white outline-none focus:border-violet-400"
+            className="w-full rounded-xl border border-border-primary bg-bg-primary/60 pl-10 pr-4 py-2 text-xs font-semibold text-text-primary outline-none focus:border-violet-400"
           />
         </div>
         <button
@@ -169,11 +169,11 @@ TRẢ LỜI:`;
           <div className="space-y-4">
             
             {/* Step 1: Query Vector */}
-            <div className="rounded-xl border border-slate-900 bg-slate-900/30 p-4 space-y-2">
+            <div className="rounded-xl border border-slate-900 bg-bg-primary/30 p-4 space-y-2">
               <span className="rounded-full bg-violet-500/10 border border-violet-500/20 px-2.5 py-0.5 text-[9px] font-black text-violet-300">BƯỚC 1: VECTOR HÓA TRUY VẤN</span>
-              <p className="text-xs font-bold text-slate-300 mt-2">Câu hỏi: "{query}"</p>
+              <p className="text-xs font-bold text-text-secondary mt-2">Câu hỏi: "{query}"</p>
               <div className="mt-2">
-                <p className="text-[10px] font-black text-slate-500 uppercase">Simulated 6D Dense Vector</p>
+                <p className="text-[10px] font-black text-text-tertiary uppercase">Simulated 6D Dense Vector</p>
                 <div className="mt-1 flex flex-wrap gap-1.5 font-mono text-[10px]">
                   {queryVector.map((val, idx) => (
                     <span key={idx} className="rounded bg-slate-950 px-2 py-0.5 border border-slate-850 text-violet-300 font-bold">
@@ -185,7 +185,7 @@ TRẢ LỜI:`;
             </div>
 
             {/* Step 2: Cosine Similarity matching list */}
-            <div className="rounded-xl border border-slate-900 bg-slate-900/30 p-4 space-y-3">
+            <div className="rounded-xl border border-slate-900 bg-bg-primary/30 p-4 space-y-3">
               <span className="rounded-full bg-cyan-500/10 border border-cyan-500/20 px-2.5 py-0.5 text-[9px] font-black text-cyan-300">BƯỚC 2: TÌM KIẾM ĐỘ TƯƠNG ĐỒNG</span>
               
               <div className="space-y-3 mt-2">
@@ -196,10 +196,10 @@ TRẢ LỜI:`;
                     <div key={res.note.id} className="rounded-xl border border-slate-850 bg-slate-950/40 p-3 space-y-2 text-xs">
                       <div className="flex justify-between items-start">
                         <div>
-                          <strong className="text-white text-xs block">#{index + 1} {res.note.title}</strong>
-                          <span className="text-[10px] text-slate-500 font-bold uppercase">{res.note.source}</span>
+                          <strong className="text-text-primary text-xs block">#{index + 1} {res.note.title}</strong>
+                          <span className="text-[10px] text-text-tertiary font-bold uppercase">{res.note.source}</span>
                         </div>
-                        <span className={`text-[10px] font-black ${isMatch ? 'text-emerald-400' : 'text-slate-400'}`}>
+                        <span className={`text-[10px] font-black ${isMatch ? 'text-emerald-400' : 'text-text-secondary'}`}>
                           Score: {res.score}
                         </span>
                       </div>
@@ -215,10 +215,10 @@ TRẢ LỜI:`;
                       </div>
 
                       {res.overlapWords.length > 0 && (
-                        <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] text-slate-400">
-                          <span className="font-black text-slate-500">Khớp từ khóa:</span>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] text-text-secondary">
+                          <span className="font-black text-text-tertiary">Khớp từ khóa:</span>
                           {res.overlapWords.map(w => (
-                            <span key={w} className="rounded bg-slate-900 px-1.5 border border-slate-800 text-slate-300 font-semibold">{w}</span>
+                            <span key={w} className="rounded bg-bg-primary px-1.5 border border-border-primary text-text-secondary font-semibold">{w}</span>
                           ))}
                         </div>
                       )}
@@ -227,7 +227,7 @@ TRẢ LỜI:`;
                 })}
 
                 {results.length === 0 && (
-                  <p className="text-xs text-slate-500 italic">Không tìm thấy ghi chú tri thức Approved nào để đối sánh.</p>
+                  <p className="text-xs text-text-tertiary italic">Không tìm thấy ghi chú tri thức Approved nào để đối sánh.</p>
                 )}
               </div>
             </div>
@@ -235,13 +235,13 @@ TRẢ LỜI:`;
           </div>
 
           {/* Right Column: Prompt Construction */}
-          <div className="rounded-xl border border-slate-900 bg-slate-900/30 p-4 flex flex-col justify-between space-y-3">
+          <div className="rounded-xl border border-slate-900 bg-bg-primary/30 p-4 flex flex-col justify-between space-y-3">
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-[9px] font-black text-emerald-300">BƯỚC 3 & 4: LẮP GHÉP CONTEXT & PROMPT</span>
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1 text-[10px] font-black text-slate-400 hover:text-white transition"
+                  className="flex items-center gap-1 text-[10px] font-black text-text-secondary hover:text-text-primary transition"
                 >
                   {copied ? (
                     <>
@@ -257,18 +257,18 @@ TRẢ LỜI:`;
                 </button>
               </div>
 
-              <div className="mt-2 text-xs font-semibold text-slate-400">
+              <div className="mt-2 text-xs font-semibold text-text-secondary">
                 AI sẽ nhận được một Prompt đóng gói sẵn chứa các ngữ cảnh vừa tìm thấy ở bên trái để trả lời chính xác câu hỏi của bạn.
               </div>
 
-              <pre className="mt-3 p-3 rounded-xl border border-slate-800 bg-slate-950 text-[10px] font-mono text-slate-300 leading-5 overflow-auto max-h-[320px] select-all">
+              <pre className="mt-3 p-3 rounded-xl border border-border-primary bg-slate-950 text-[10px] font-mono text-text-secondary leading-5 overflow-auto max-h-[320px] select-all">
                 {assembledPrompt || 'Vui lòng nhập từ khóa có khớp với ghi chú tri thức.'}
               </pre>
             </div>
 
             <div className="border-t border-slate-850 pt-3 flex items-start gap-2.5">
               <Cpu className="w-4 h-4 text-violet-400 shrink-0 mt-0.5" />
-              <div className="text-[10px] text-slate-500 leading-relaxed">
+              <div className="text-[10px] text-text-tertiary leading-relaxed">
                 Trong thực tế, câu hỏi sẽ được gửi đến OpenAI/Gemini Embeddings API để chuyển thành vector 1536 chiều, sau đó tìm kiếm trong Vector Database (như pgvector/Pinecone) trước khi đưa vào LLM.
               </div>
             </div>

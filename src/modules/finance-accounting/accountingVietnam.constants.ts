@@ -49,7 +49,7 @@ export const SIM_CASES = [
   },
   {
     title: 'Case mô phỏng 04: Xây dựng - tạm ứng quá hạn',
-    lesson: 'Người học xem tuổi tạm ứng, người nhận, mục đích ứng, chứng từ hoàn ứng và mã công trình.',
+    lesson: 'Người học xem tuổi tạm ứng, người nhận, mục đích ứng, chứng từ hoàn ứng và mã dự án.',
     hint: 'Gợi ý học tập: đây là bài kiểm soát dòng tiền và chứng từ, không phải phần mềm hạch toán thay ERP.'
   }
 ] as const;
@@ -142,12 +142,12 @@ export const INDUSTRY_TEMPLATES: IndustryTemplate[] = [
   {
     id: 'construction',
     name: 'Xây dựng/Dự án',
-    budgetLabel: 'Dự toán công trình/dự án mẫu',
-    actualLabel: 'Chi phí công trình thực tế',
+    budgetLabel: 'Dự toán dự án mẫu',
+    actualLabel: 'Chi phí dự án thực tế',
     advanceLabel: 'Tạm ứng chỉ huy trưởng/thầu phụ',
     settledLabel: 'Đã hoàn ứng/nghiệm thu khối lượng',
-    budgetUsedLabel: 'Mức dùng dự toán công trình',
-    advanceLeftLabel: 'Treo tạm ứng công trình',
+    budgetUsedLabel: 'Mức dùng dự toán dự án',
+    advanceLeftLabel: 'Treo tạm ứng dự án',
     defaultBudget: 1200000000,
     defaultActual: 735000000,
     defaultAdvance: 180000000,

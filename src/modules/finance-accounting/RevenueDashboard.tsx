@@ -80,19 +80,19 @@ export default function RevenueDashboard() {
   }
 
   return (
-    <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-emerald-400/25 bg-slate-950 p-4 shadow-2xl shadow-emerald-950/20">
+    <section className="space-y-4 text-text-primary">
+      <div className="rounded-3xl border border-emerald-400/25 bg-bg-primary p-4 shadow-2xl shadow-emerald-950/20">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-300">Revenue Dashboard · Supabase</p>
-            <h3 className="mt-1 text-xl font-black text-white">Doanh thu thật / MRR / ARR</h3>
-            <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-slate-400">
-              Theo dõi doanh thu từ bảng <span className="text-emerald-200">revenue_records</span>, tính MRR/ARR/churn và danh sách khách hàng để AI CFO có số liệu thật.
+            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-success">Revenue Dashboard · Supabase</p>
+            <h3 className="mt-1 text-xl font-bold text-text-primary">Doanh thu thật / MRR / ARR</h3>
+            <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">
+              Theo dõi doanh thu từ bảng <span className="text-success">revenue_records</span>, tính MRR/ARR/churn và danh sách khách hàng để AI CFO có số liệu thật.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-black text-white" />
-            <button onClick={loadRecords} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-emerald-200">Refresh</button>
+            <input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-xs font-bold text-text-primary" />
+            <button onClick={loadRecords} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-200">Refresh</button>
           </div>
         </div>
 
@@ -113,9 +113,9 @@ export default function RevenueDashboard() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-        <div className="rounded-3xl border border-slate-800 bg-slate-950/95 p-4">
-          <p className="text-sm font-black text-white">Revenue by month</p>
-          <p className="mt-1 text-xs font-semibold text-slate-500">12 tháng gần nhất, gồm subscription/one-time/service theo ngày tạo hoặc ngày bắt đầu.</p>
+        <div className="rounded-3xl border border-border-primary bg-bg-primary p-4">
+          <p className="text-sm font-bold text-text-primary">Revenue by month</p>
+          <p className="mt-1 text-xs font-semibold text-text-muted">12 tháng gần nhất, gồm subscription/one-time/service theo ngày tạo hoặc ngày bắt đầu.</p>
           <div className="mt-4 h-80">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
@@ -129,38 +129,38 @@ export default function RevenueDashboard() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-800 bg-slate-950/95 p-4">
-          <p className="text-sm font-black text-white">+ Thêm giao dịch</p>
-          <input value={form.product_name} onChange={(event) => setForm((current) => ({ ...current, product_name: event.target.value }))} placeholder="Tên sản phẩm / dịch vụ" className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white placeholder:text-slate-600" />
-          <input value={form.customer_email} onChange={(event) => setForm((current) => ({ ...current, customer_email: event.target.value }))} placeholder="Email khách hàng" className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white placeholder:text-slate-600" />
-          <input value={form.amount_vnd} onChange={(event) => setForm((current) => ({ ...current, amount_vnd: event.target.value.replace(/[^0-9]/g, '') }))} placeholder="Số tiền VND" className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white placeholder:text-slate-600" />
+        <div className="rounded-3xl border border-border-primary bg-bg-primary p-4">
+          <p className="text-sm font-bold text-text-primary">+ Thêm giao dịch</p>
+          <input value={form.product_name} onChange={(event) => setForm((current) => ({ ...current, product_name: event.target.value }))} placeholder="Tên sản phẩm / dịch vụ" className="mt-3 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary placeholder:text-text-muted" />
+          <input value={form.customer_email} onChange={(event) => setForm((current) => ({ ...current, customer_email: event.target.value }))} placeholder="Email khách hàng" className="mt-3 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary placeholder:text-text-muted" />
+          <input value={form.amount_vnd} onChange={(event) => setForm((current) => ({ ...current, amount_vnd: event.target.value.replace(/[^0-9]/g, '') }))} placeholder="Số tiền VND" className="mt-3 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary placeholder:text-text-muted" />
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RevenueType }))} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white">
+            <select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value as RevenueType }))} className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary">
               {REVENUE_TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
             </select>
-            <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as RevenueStatus }))} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white">
+            <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as RevenueStatus }))} className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary">
               {REVENUE_STATUSES.map((status) => <option key={status} value={status}>{status}</option>)}
             </select>
           </div>
-          <select value={form.period} onChange={(event) => setForm((current) => ({ ...current, period: event.target.value as RevenuePeriod }))} className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white">
+          <select value={form.period} onChange={(event) => setForm((current) => ({ ...current, period: event.target.value as RevenuePeriod }))} className="mt-3 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary">
             {REVENUE_PERIODS.map((period) => <option key={period || 'none'} value={period}>{period || 'no period'}</option>)}
           </select>
-          <input value={form.source} onChange={(event) => setForm((current) => ({ ...current, source: event.target.value }))} placeholder="Nguồn: direct/zalo/facebook/referral" className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white placeholder:text-slate-600" />
-          <textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Ghi chú" rows={3} className="mt-3 w-full resize-none rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white placeholder:text-slate-600" />
-          <button onClick={handleAdd} disabled={saving || !form.product_name.trim() || Number(form.amount_vnd || 0) <= 0} className="mt-3 w-full rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-black text-slate-950 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-40">
+          <input value={form.source} onChange={(event) => setForm((current) => ({ ...current, source: event.target.value }))} placeholder="Nguồn: direct/zalo/facebook/referral" className="mt-3 w-full rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-bold text-text-primary placeholder:text-text-muted" />
+          <textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Ghi chú" rows={3} className="mt-3 w-full resize-none rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-sm font-semibold text-text-primary placeholder:text-text-muted" />
+          <button onClick={handleAdd} disabled={saving || !form.product_name.trim() || Number(form.amount_vnd || 0) <= 0} className="mt-3 w-full rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-200 disabled:cursor-not-allowed disabled:opacity-40">
             {saving ? 'Đang lưu...' : 'Lưu revenue record'}
           </button>
         </div>
       </div>
 
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/95 p-4">
-        <p className="text-sm font-black text-white">Customer / Revenue records</p>
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-4">
+        <p className="text-sm font-bold text-text-primary">Customer / Revenue records</p>
         {loading ? (
-          <div className="mt-4 rounded-3xl border border-slate-800 bg-slate-900/60 p-8 text-center text-sm font-bold text-slate-500">Đang tải revenue records...</div>
+          <div className="mt-4 rounded-3xl border border-border-primary bg-bg-surface p-8 text-center text-sm font-bold text-text-muted">Đang tải revenue records...</div>
         ) : (
-          <div className="mt-4 overflow-auto rounded-2xl border border-slate-800">
+          <div className="mt-4 overflow-auto rounded-2xl border border-border-primary">
             <table className="min-w-full text-left text-xs">
-              <thead className="bg-slate-900 text-slate-400">
+              <thead className="bg-bg-surface text-text-secondary">
                 <tr>
                   <th className="px-3 py-2">Product</th>
                   <th className="px-3 py-2">Customer</th>
@@ -173,10 +173,10 @@ export default function RevenueDashboard() {
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {records.map((record) => (
-                  <tr key={record.id} className="bg-slate-950/70 text-slate-300">
-                    <td className="px-3 py-2 font-black text-white">{record.product_name}</td>
+                  <tr key={record.id} className="bg-bg-primary text-text-secondary">
+                    <td className="px-3 py-2 font-bold text-text-primary">{record.product_name}</td>
                     <td className="px-3 py-2">{record.customer_email || '—'}</td>
-                    <td className="px-3 py-2 font-black text-emerald-200">{formatVnd(record.amount_vnd)}</td>
+                    <td className="px-3 py-2 font-bold text-success">{formatVnd(record.amount_vnd)}</td>
                     <td className="px-3 py-2">{record.type}</td>
                     <td className="px-3 py-2">{record.status}</td>
                     <td className="px-3 py-2">{record.source || 'direct'}</td>
@@ -185,7 +185,7 @@ export default function RevenueDashboard() {
                 ))}
               </tbody>
             </table>
-            {records.length === 0 && <div className="p-8 text-center text-sm font-bold text-slate-500">Chưa có revenue record nào.</div>}
+            {records.length === 0 && <div className="p-8 text-center text-sm font-bold text-text-muted">Chưa có revenue record nào.</div>}
           </div>
         )}
       </div>
@@ -195,9 +195,9 @@ export default function RevenueDashboard() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-3">
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
-      <p className="mt-1 text-lg font-black text-white">{value}</p>
+    <div className="rounded-2xl border border-border-primary bg-bg-surface p-3">
+      <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{label}</p>
+      <p className="mt-1 text-lg font-bold text-text-primary">{value}</p>
     </div>
   );
 }

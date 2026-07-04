@@ -225,60 +225,60 @@ export default function AuditTrailPanel() {
   const selected = filtered.find((item) => item.id === selectedId) ?? filtered[0];
 
   return (
-    <section className="rounded-3xl border border-slate-700 bg-slate-950/70 p-4 text-slate-100">
+    <section className="rounded-3xl border border-border-secondary bg-slate-950/70 p-4 text-slate-100">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400">Unified audit trail</p>
-          <h3 className="mt-1 text-xl font-black text-white">Nhật ký điều phối AI</h3>
-          <p className="mt-1 text-sm font-semibold leading-6 text-slate-400">Một nơi gom dấu vết từ Sessions, Workboard, Approval, Sandbox, Connectors, Review Desk, Build Monitor và CI Recovery.</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-text-secondary">Unified audit trail</p>
+          <h3 className="mt-1 text-xl font-black text-text-primary">Nhật ký điều phối AI</h3>
+          <p className="mt-1 text-sm font-semibold leading-6 text-text-secondary">Một nơi gom dấu vết từ Sessions, Workboard, Approval, Sandbox, Connectors, Review Desk, Build Monitor và CI Recovery.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={refresh} className="rounded-2xl border border-slate-700 px-4 py-2 text-xs font-black text-slate-300 hover:border-slate-300">Làm mới</button>
+          <button onClick={refresh} className="rounded-2xl border border-border-secondary px-4 py-2 text-xs font-black text-text-secondary hover:border-slate-300">Làm mới</button>
           <button onClick={() => exportJson('ledgerflow-unified-audit-trail.json', filtered)} className="rounded-2xl bg-slate-200 px-4 py-2 text-xs font-black text-slate-950">Xuất audit</button>
         </div>
       </div>
 
       <div className="mb-4 grid gap-2 md:grid-cols-[0.7fr_1.3fr]">
-        <select value={source} onChange={(event) => setSource(event.target.value as 'All' | AuditSource)} className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white">
+        <select value={source} onChange={(event) => setSource(event.target.value as 'All' | AuditSource)} className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary">
           {sourceOptions.map((option) => <option key={option}>{option}</option>)}
         </select>
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm theo action, branch, risk, status, PR..." className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-bold text-white" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm theo action, branch, risk, status, PR..." className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-bold text-text-primary" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-        <div className="max-h-[620px] space-y-2 overflow-y-auto rounded-3xl border border-slate-800 bg-slate-950/60 p-3">
-          {filtered.map((item) => <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === item.id ? 'border-slate-300 bg-slate-800/80' : 'border-slate-800 bg-slate-950/50 hover:border-slate-500'}`}>
+        <div className="max-h-[620px] space-y-2 overflow-y-auto rounded-3xl border border-border-primary bg-slate-950/60 p-3">
+          {filtered.map((item) => <button key={item.id} onClick={() => setSelectedId(item.id)} className={`w-full rounded-2xl border p-3 text-left transition ${selected?.id === item.id ? 'border-slate-300 bg-bg-surface/80' : 'border-border-primary bg-slate-950/50 hover:border-slate-500'}`}>
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-black text-white">{item.title}</p>
-              <span className="rounded-full border border-slate-700 px-2 py-0.5 text-[10px] font-black text-slate-300">{item.source}</span>
+              <p className="text-sm font-black text-text-primary">{item.title}</p>
+              <span className="rounded-full border border-border-secondary px-2 py-0.5 text-[10px] font-black text-text-secondary">{item.source}</span>
             </div>
-            <p className="mt-1 text-[11px] font-black text-slate-400">{item.action}</p>
-            <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-slate-500">{item.detail}</p>
-            <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black text-slate-500">
+            <p className="mt-1 text-[11px] font-black text-text-secondary">{item.action}</p>
+            <p className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-text-tertiary">{item.detail}</p>
+            <div className="mt-2 flex flex-wrap gap-2 text-[10px] font-black text-text-tertiary">
               {item.status && <span>Status: {item.status}</span>}
               {item.risk && <span>Risk: {item.risk}</span>}
               {item.at && <span>{item.at}</span>}
             </div>
           </button>)}
-          {filtered.length === 0 && <p className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-sm font-semibold text-slate-400">Chưa có audit item phù hợp.</p>}
+          {filtered.length === 0 && <p className="rounded-2xl border border-border-primary bg-slate-950 p-4 text-sm font-semibold text-text-secondary">Chưa có audit item phù hợp.</p>}
         </div>
 
-        {selected && <div className="rounded-3xl border border-slate-800 bg-slate-950/60 p-4">
+        {selected && <div className="rounded-3xl border border-border-primary bg-slate-950/60 p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Selected audit item</p>
-              <h4 className="mt-1 text-lg font-black text-white">{selected.title}</h4>
-              <p className="mt-1 text-xs font-bold text-slate-400">{selected.source} · {selected.action} · {selected.at || 'no time'}</p>
+              <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Selected audit item</p>
+              <h4 className="mt-1 text-lg font-black text-text-primary">{selected.title}</h4>
+              <p className="mt-1 text-xs font-bold text-text-secondary">{selected.source} · {selected.action} · {selected.at || 'no time'}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {selected.status && <span className="rounded-full border border-slate-700 px-3 py-1 text-xs font-black text-slate-300">{selected.status}</span>}
+              {selected.status && <span className="rounded-full border border-border-secondary px-3 py-1 text-xs font-black text-text-secondary">{selected.status}</span>}
               {selected.risk && <span className="rounded-full border border-amber-400/35 bg-amber-400/10 px-3 py-1 text-xs font-black text-amber-200">{selected.risk}</span>}
             </div>
           </div>
-          <p className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3 text-sm font-semibold leading-6 text-slate-300">{selected.detail || 'Không có mô tả.'}</p>
-          <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-950 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-500">Raw event</p>
-            <pre className="mt-2 max-h-[420px] overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-slate-300">{JSON.stringify(selected.raw, null, 2)}</pre>
+          <p className="mt-4 rounded-2xl border border-border-primary bg-slate-950 p-3 text-sm font-semibold leading-6 text-text-secondary">{selected.detail || 'Không có mô tả.'}</p>
+          <div className="mt-4 rounded-2xl border border-border-primary bg-slate-950 p-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-tertiary">Raw event</p>
+            <pre className="mt-2 max-h-[420px] overflow-auto whitespace-pre-wrap text-[11px] leading-5 text-text-secondary">{JSON.stringify(selected.raw, null, 2)}</pre>
           </div>
         </div>}
       </div>

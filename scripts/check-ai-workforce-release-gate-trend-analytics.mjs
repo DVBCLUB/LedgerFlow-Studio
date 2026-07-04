@@ -4,7 +4,7 @@ import fs from 'node:fs';
 const files = [
   'server/services/aiWorkforceReleaseGateDashboard.ts',
   'server/services/aiWorkforceReleaseGateTrendAnalytics.test.ts',
-  'src/modules/ai-hr/ReleaseGateDashboardCard.tsx',
+  'src/modules/ai-nhan-su/ReleaseGateDashboardCard.tsx',
   'dist/assistant-daemon.cjs',
 ];
 

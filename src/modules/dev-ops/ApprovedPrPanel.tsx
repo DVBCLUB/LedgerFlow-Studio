@@ -394,41 +394,41 @@ export default function ApprovedPrPanel() {
     <section className="rounded-3xl border border-emerald-400/35 bg-emerald-400/10 p-4 text-slate-100">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-black text-white">AI tạo nhánh + Draft PR</p>
-          <p className="mt-2 text-xs font-semibold leading-6 text-slate-300">Tạo nhánh ai/*, commit một hoặc nhiều file và mở Draft PR sau khi founder nhập câu phê duyệt. Token chỉ dùng ở backend.</p>
+          <p className="text-sm font-black text-text-primary">AI tạo nhánh + Draft PR</p>
+          <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">Tạo nhánh ai/*, commit một hoặc nhiều file và mở Draft PR sau khi founder nhập câu phê duyệt. Token chỉ dùng ở backend.</p>
         </div>
         <span className="rounded-full border border-emerald-400/35 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-200">Founder approval required</span>
       </div>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <div className="grid gap-3">
           {(sourceCardId || sourceSessionId || sourceBundleId) && <p className="rounded-2xl border border-violet-400/30 bg-violet-400/10 px-3 py-2 text-xs font-bold text-violet-200">Nguồn: {sourceBundleId || sourceSessionId || sourceCardId}</p>}
-          <label className="text-xs font-black text-slate-400">PR title<input className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={title} onChange={(event) => setTitle(event.target.value)} /></label>
-          <label className="text-xs font-black text-slate-400">Branch<input className="mt-1 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={branchName} onChange={(event) => setBranchName(event.target.value)} /></label>
-          <label className="text-xs font-black text-slate-400">Summary<textarea className="mt-1 min-h-[96px] w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm leading-6 text-white" value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
+          <label className="text-xs font-black text-text-secondary">PR title<input className="mt-1 w-full rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={title} onChange={(event) => setTitle(event.target.value)} /></label>
+          <label className="text-xs font-black text-text-secondary">Branch<input className="mt-1 w-full rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={branchName} onChange={(event) => setBranchName(event.target.value)} /></label>
+          <label className="text-xs font-black text-text-secondary">Summary<textarea className="mt-1 min-h-[96px] w-full rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm leading-6 text-text-primary" value={summary} onChange={(event) => setSummary(event.target.value)} /></label>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
+          <div className="rounded-2xl border border-border-primary bg-slate-950/70 p-3">
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div>
-                <p className="text-xs font-black text-white">Files for PR</p>
-                <p className="mt-1 text-[11px] font-bold text-slate-500">{validFiles.length} valid file(s) · {isMultiFile ? 'multi-file mode' : 'single-file mode'}</p>
+                <p className="text-xs font-black text-text-primary">Files for PR</p>
+                <p className="mt-1 text-[11px] font-bold text-text-tertiary">{validFiles.length} valid file(s) · {isMultiFile ? 'multi-file mode' : 'single-file mode'}</p>
               </div>
               <button onClick={addFile} className="rounded-full border border-emerald-400/40 px-3 py-1 text-[11px] font-black text-emerald-200 hover:bg-emerald-400/10">Thêm file</button>
             </div>
             <div className="mb-3 flex flex-wrap gap-2">
-              {files.map((file) => <button key={file.id} onClick={() => setSelectedFileId(file.id)} className={`rounded-full border px-3 py-1 text-[11px] font-black ${selectedFile?.id === file.id ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-slate-700 text-slate-300 hover:border-emerald-300'}`}>{file.path || 'untitled'}</button>)}
+              {files.map((file) => <button key={file.id} onClick={() => setSelectedFileId(file.id)} className={`rounded-full border px-3 py-1 text-[11px] font-black ${selectedFile?.id === file.id ? 'border-emerald-300 bg-emerald-400/10 text-emerald-100' : 'border-border-secondary text-text-secondary hover:border-emerald-300'}`}>{file.path || 'untitled'}</button>)}
             </div>
             {selectedFile && <div className="grid gap-2">
               <div className="grid gap-2 md:grid-cols-[1fr_130px]">
-                <input className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={selectedFile.path} onChange={(event) => updateFile(selectedFile.id, { path: event.target.value })} placeholder="src/example.tsx" />
-                <select className="rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={selectedFile.action || 'update'} onChange={(event) => updateFile(selectedFile.id, { action: event.target.value as ReviewFile['action'] })}>
+                <input className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={selectedFile.path} onChange={(event) => updateFile(selectedFile.id, { path: event.target.value })} placeholder="src/example.tsx" />
+                <select className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={selectedFile.action || 'update'} onChange={(event) => updateFile(selectedFile.id, { action: event.target.value as ReviewFile['action'] })}>
                   <option value="create">create</option>
                   <option value="update">update</option>
                   <option value="delete">delete</option>
                 </select>
               </div>
-              <textarea className="min-h-[220px] rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-white" value={selectedFile.content} onChange={(event) => updateFile(selectedFile.id, { content: event.target.value })} placeholder="File content" disabled={selectedFile.action === 'delete'} />
+              <textarea className="min-h-[220px] rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 font-mono text-xs leading-5 text-text-primary" value={selectedFile.content} onChange={(event) => updateFile(selectedFile.id, { content: event.target.value })} placeholder="File content" disabled={selectedFile.action === 'delete'} />
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="text-[11px] font-bold text-slate-500">Risk: {selectedFile.risk || 'UNKNOWN'}</p>
+                <p className="text-[11px] font-bold text-text-tertiary">Risk: {selectedFile.risk || 'UNKNOWN'}</p>
                 <button onClick={() => removeFile(selectedFile.id)} className="rounded-full border border-rose-400/40 px-3 py-1 text-[11px] font-black text-rose-200 hover:bg-rose-400/10">Xóa file</button>
               </div>
             </div>}
@@ -436,9 +436,9 @@ export default function ApprovedPrPanel() {
         </div>
         <div>
           <div className="rounded-2xl border border-amber-400/35 bg-amber-400/10 p-3">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Approval phrase</p>
+            <p className="text-[10px] font-black uppercase tracking-wider text-text-secondary">Approval phrase</p>
             <p className="mt-2 select-all font-mono text-xs font-black text-amber-200">{approvalPhrase}</p>
-            <input className="mt-3 w-full rounded-2xl border border-slate-700 bg-slate-950 px-3 py-2 text-sm font-semibold text-white" value={approval} onChange={(event) => setApproval(event.target.value)} placeholder="Paste approval phrase" />
+            <input className="mt-3 w-full rounded-2xl border border-border-secondary bg-slate-950 px-3 py-2 text-sm font-semibold text-text-primary" value={approval} onChange={(event) => setApproval(event.target.value)} placeholder="Paste approval phrase" />
           </div>
           <button disabled={!canSubmit || busy} onClick={submit} className="mt-3 w-full rounded-2xl bg-emerald-300 px-4 py-3 text-xs font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">{busy ? 'Creating draft PR...' : `Create branch + Draft PR (${validFiles.length} file${validFiles.length === 1 ? '' : 's'})`}</button>
           {error && <p className="mt-3 rounded-2xl border border-rose-400/35 bg-rose-400/10 p-3 text-xs font-bold text-rose-200">{error}</p>}
@@ -447,7 +447,7 @@ export default function ApprovedPrPanel() {
             <p className="font-black text-emerald-200">Draft PR #{result.pullRequestNumber || '?'}</p>
             <p>{result.repo}</p><p>{result.branchName}</p>
             {result.commitSha && <p>{result.commitSha.slice(0, 12)}</p>}
-            <p className="mt-2 text-slate-300">Changed files: {result.changedFiles.join(', ')}</p>
+            <p className="mt-2 text-text-secondary">Changed files: {result.changedFiles.join(', ')}</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {result.pullRequestUrl && <a className="inline-block font-black text-cyan-200 underline" href={result.pullRequestUrl} target="_blank" rel="noreferrer">Open Pull Request</a>}
               <button onClick={checkStatus} disabled={checking} className="rounded-full border border-cyan-400/40 px-3 py-1 text-[11px] font-black text-cyan-200 disabled:opacity-50">{checking ? 'Checking...' : 'Check PR/CI'}</button>
@@ -457,17 +457,17 @@ export default function ApprovedPrPanel() {
             <p className="font-black text-cyan-200">PR / CI status</p>
             <p>Checked: {statusSnapshot.checkedAt}</p>
             <p>PR state: {statusSnapshot.openPullRequestState || 'unknown'}</p>
-            {latestBranchRun ? <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 p-2">
-              <p className="font-black text-white">{latestBranchRun.name}</p>
+            {latestBranchRun ? <div className="mt-2 rounded-xl border border-border-primary bg-slate-950/70 p-2">
+              <p className="font-black text-text-primary">{latestBranchRun.name}</p>
               <p>{runConclusionText(latestBranchRun)}</p>
               <a className="font-black text-cyan-200 underline" href={latestBranchRun.htmlUrl} target="_blank" rel="noreferrer">Open workflow run</a>
               {failedRun && <p className="mt-2 rounded-xl border border-orange-400/35 bg-orange-400/10 p-2 text-orange-200">Workflow failed. CI fix package đã được tạo để AI Ops/CI Doctor xử lý tiếp.</p>}
-            </div> : <p className="mt-2 text-slate-400">Chưa thấy workflow run cho branch này trong latest runs. Đợi Actions vài phút rồi bấm lại.</p>}
+            </div> : <p className="mt-2 text-text-secondary">Chưa thấy workflow run cho branch này trong latest runs. Đợi Actions vài phút rồi bấm lại.</p>}
             {ciFixReady && <button onClick={() => { window.location.hash = '#/ci_doctor'; }} className="mt-3 rounded-full border border-orange-400/40 px-3 py-1 text-[11px] font-black text-orange-200 hover:bg-orange-400/10">Open CI Doctor</button>}
           </div>}
-          <div className="mt-3 rounded-2xl border border-slate-800 bg-slate-950/70 p-3">
-            <p className="text-xs font-black text-white">Kiểm soát</p>
-            <ul className="mt-2 space-y-2 text-xs font-semibold text-slate-400">
+          <div className="mt-3 rounded-2xl border border-border-primary bg-slate-950/70 p-3">
+            <p className="text-xs font-black text-text-primary">Kiểm soát</p>
+            <ul className="mt-2 space-y-2 text-xs font-semibold text-text-secondary">
               <li>✓ Chỉ nhánh ai/*</li><li>✓ Không merge tự động</li><li>✓ CI kiểm tra trước khi merge</li><li>✓ Founder duyệt cuối cùng</li><li>✓ Hỗ trợ multi-file từ Diff Review</li><li>✓ Nếu CI đỏ, tạo gói lỗi cho CI Doctor</li><li>✓ Build Monitor tự nhận trạng thái PR/CI</li>
             </ul>
           </div>

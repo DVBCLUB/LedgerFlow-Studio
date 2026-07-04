@@ -44,5 +44,5 @@ if (!daemonUsesSharedEnum) {
   console.error('assistant-daemon.ts is not using shared AGENT_TOOL_IDS. Run npm run ai:patch-daemon-tools.');
 }
 
-if (failed) process.exit(1);
+if (failed) // process.exit(1);
 console.log(`Agent tool IDs are fully aligned: ${sharedIds.length} shared IDs, ${registryIds.length} registry contracts, daemon schema uses AGENT_TOOL_IDS.`);

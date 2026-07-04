@@ -156,38 +156,38 @@ export default function WeeklyActionPlanner() {
   const completion = actions.length ? Math.round((doneCount / actions.length) * 100) : 0;
 
   return (
-    <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+    <section className="space-y-4 text-text-primary">
+      <div className="rounded-3xl border border-border-primary bg-bg-primary p-6">
         <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Weekly Action Planner</p>
-            <h2 className="mt-2 text-xl font-black text-white">Kế hoạch hành động tuần</h2>
-            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-success">Weekly Action Planner</p>
+            <h2 className="mt-2 text-xl font-bold text-text-primary">Kế hoạch hành động tuần</h2>
+            <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
               Tự sinh việc từ interview, lead, decision và tool budget. Dùng để chốt tuần này làm gì, ai làm, hạn ngày nào và trạng thái ra sao.
             </p>
           </div>
-          <button onClick={resetFromSignals} className="rounded-2xl border border-emerald-500/30 bg-emerald-400 px-4 py-3 text-xs font-black text-slate-950">Tạo lại từ dữ liệu mới</button>
+          <button onClick={resetFromSignals} className="rounded-2xl border border-success/30 bg-emerald-400 px-4 py-3 text-xs font-bold text-slate-950">Tạo lại từ dữ liệu mới</button>
         </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Tổng việc</p><p className="mt-2 text-3xl font-black text-white">{actions.length}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Đang làm</p><p className="mt-2 text-3xl font-black text-white">{doingCount}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Blocked</p><p className="mt-2 text-3xl font-black text-white">{blockedCount}</p></div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5"><p className="text-[10px] font-black uppercase text-slate-500">Hoàn thành</p><p className="mt-2 text-3xl font-black text-white">{completion}%</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Tổng việc</p><p className="mt-2 text-3xl font-bold text-text-primary">{actions.length}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Đang làm</p><p className="mt-2 text-3xl font-bold text-text-primary">{doingCount}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Blocked</p><p className="mt-2 text-3xl font-bold text-text-primary">{blockedCount}</p></div>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface p-5"><p className="text-[10px] font-bold uppercase text-text-muted">Hoàn thành</p><p className="mt-2 text-3xl font-bold text-text-primary">{completion}%</p></div>
       </div>
 
       <div className="space-y-3">
         {actions.map((action) => (
-          <div key={action.id} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <div key={action.id} className="rounded-2xl border border-border-primary bg-bg-surface p-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <p className="text-[10px] font-black uppercase tracking-wider text-cyan-300">{action.source}</p>
-                <h3 className="mt-1 text-sm font-black text-white">{action.title}</h3>
-                <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">{action.reason}</p>
-                <p className="mt-2 text-[11px] font-bold text-slate-500">Owner: {action.owner} • Deadline: {action.dueDate}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-info">{action.source}</p>
+                <h3 className="mt-1 text-sm font-bold text-text-primary">{action.title}</h3>
+                <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">{action.reason}</p>
+                <p className="mt-2 text-[11px] font-bold text-text-muted">Owner: {action.owner} • Deadline: {action.dueDate}</p>
               </div>
-              <select value={action.status} onChange={(event) => updateStatus(action.id, event.target.value as ActionStatus)} className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-xs font-black text-white">
+              <select value={action.status} onChange={(event) => updateStatus(action.id, event.target.value as ActionStatus)} className="rounded-xl border border-border-secondary bg-bg-primary px-3 py-2 text-xs font-bold text-text-primary">
                 {statusOptions.map((status) => <option key={status} value={status}>{status}</option>)}
               </select>
             </div>

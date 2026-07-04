@@ -157,12 +157,12 @@ export default function GameProgressDashboard() {
 
   return (
     <section className="space-y-4 text-slate-100">
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-6">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-black uppercase tracking-wider text-emerald-300">Game Progress</p>
-            <h2 className="mt-2 text-xl font-black text-white">Dashboard tiến độ mini-game</h2>
-            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+            <h2 className="mt-2 text-xl font-black text-text-primary">Dashboard tiến độ mini-game</h2>
+            <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
               Nguồn chính: <span className="font-black text-emerald-200">{GAME_SESSION_HISTORY_KEY}</span>. Dashboard ưu tiên lịch sử từng lượt chơi, chỉ fallback snapshot cũ khi game chưa có dữ liệu trong Game History.
             </p>
           </div>
@@ -170,94 +170,94 @@ export default function GameProgressDashboard() {
             Refresh history
           </button>
         </div>
-        <p className="mt-3 text-[11px] font-semibold text-slate-500">Cập nhật lần cuối: {fmtDate(lastRefreshedAt)}</p>
+        <p className="mt-3 text-[11px] font-semibold text-text-tertiary">Cập nhật lần cuối: {fmtDate(lastRefreshedAt)}</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-[10px] font-black uppercase text-slate-500">Learning score</p>
-          <p className="mt-2 text-3xl font-black text-white">{learningScore}/100</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+          <p className="text-[10px] font-black uppercase text-text-tertiary">Learning score</p>
+          <p className="mt-2 text-3xl font-black text-text-primary">{learningScore}/100</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-[10px] font-black uppercase text-slate-500">Game đã chơi</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+          <p className="text-[10px] font-black uppercase text-text-tertiary">Game đã chơi</p>
           <p className="mt-2 text-3xl font-black text-emerald-300">{played}/{games.length}</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-[10px] font-black uppercase text-slate-500">History attempts</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+          <p className="text-[10px] font-black uppercase text-text-tertiary">History attempts</p>
           <p className="mt-2 text-3xl font-black text-cyan-300">{historyAttempts}</p>
         </div>
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-          <p className="text-[10px] font-black uppercase text-slate-500">Nên chơi tiếp</p>
+        <div className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
+          <p className="text-[10px] font-black uppercase text-text-tertiary">Nên chơi tiếp</p>
           <p className="mt-2 text-sm font-black text-amber-300">{nextGame?.label}</p>
         </div>
       </div>
 
       <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-5">
         <p className="text-[10px] font-black uppercase text-amber-300">Gợi ý học tiếp</p>
-        <h3 className="mt-2 text-lg font-black text-white">{nextGame?.label}</h3>
+        <h3 className="mt-2 text-lg font-black text-text-primary">{nextGame?.label}</h3>
         <p className="mt-2 text-xs font-semibold leading-6 text-amber-100">{nextGame?.recommendation}</p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         {games.map((game) => (
-          <div key={game.gameId} className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+          <div key={game.gameId} className="rounded-2xl border border-border-primary bg-bg-surface/70 p-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-black uppercase text-emerald-300">{game.source}</p>
-                <h3 className="mt-1 text-sm font-black text-white">{game.label}</h3>
+                <h3 className="mt-1 text-sm font-black text-text-primary">{game.label}</h3>
               </div>
-              <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-300">{game.verdict}</span>
+              <span className="rounded-full border border-border-secondary px-3 py-1 text-[10px] font-black text-text-secondary">{game.verdict}</span>
             </div>
-            <p className="mt-3 text-xs font-semibold leading-6 text-slate-300">{game.skill}</p>
+            <p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">{game.skill}</p>
             <div className="mt-4 grid gap-3 md:grid-cols-4">
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-[10px] font-black uppercase text-slate-500">Attempts</p>
-                <p className="mt-1 text-xl font-black text-white">{game.attempts}</p>
+              <div className="rounded-xl border border-border-primary bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-text-tertiary">Attempts</p>
+                <p className="mt-1 text-xl font-black text-text-primary">{game.attempts}</p>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-[10px] font-black uppercase text-slate-500">History</p>
+              <div className="rounded-xl border border-border-primary bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-text-tertiary">History</p>
                 <p className="mt-1 text-xl font-black text-emerald-300">{game.historyAttempts}</p>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-[10px] font-black uppercase text-slate-500">Best</p>
+              <div className="rounded-xl border border-border-primary bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-text-tertiary">Best</p>
                 <p className="mt-1 text-xl font-black text-emerald-300">{game.bestScore}</p>
               </div>
-              <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3">
-                <p className="text-[10px] font-black uppercase text-slate-500">Avg</p>
+              <div className="rounded-xl border border-border-primary bg-slate-950/70 p-3">
+                <p className="text-[10px] font-black uppercase text-text-tertiary">Avg</p>
                 <p className="mt-1 text-xl font-black text-cyan-300">{game.averageScore}</p>
               </div>
             </div>
-            <p className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-400">
+            <p className="mt-3 rounded-xl border border-border-primary bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-text-secondary">
               Lần gần nhất: {fmtDate(game.latestPlayedAt)}{game.latestVerdict ? ` • ${game.latestVerdict}` : ''}
             </p>
-            <p className="mt-3 rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-slate-400">{game.recommendation}</p>
+            <p className="mt-3 rounded-xl border border-border-primary bg-slate-950/70 p-3 text-xs font-semibold leading-6 text-text-secondary">{game.recommendation}</p>
           </div>
         ))}
       </div>
 
-      <div className="rounded-3xl border border-slate-800 bg-slate-950/80 p-5">
+      <div className="rounded-3xl border border-border-primary bg-slate-950/80 p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-black uppercase text-cyan-300">Recent Game History</p>
-            <h3 className="mt-1 text-lg font-black text-white">8 lượt chơi gần nhất từ nguồn chính</h3>
+            <h3 className="mt-1 text-lg font-black text-text-primary">8 lượt chơi gần nhất từ nguồn chính</h3>
           </div>
-          <span className="rounded-full border border-slate-700 px-3 py-1 text-[10px] font-black text-slate-400">{GAME_SESSION_HISTORY_KEY}</span>
+          <span className="rounded-full border border-border-secondary px-3 py-1 text-[10px] font-black text-text-secondary">{GAME_SESSION_HISTORY_KEY}</span>
         </div>
 
-        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-800">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-border-primary">
           {recentSessions.length === 0 ? (
-            <p className="p-4 text-sm font-semibold text-slate-400">Chưa có lượt chơi trong Game History. Hãy vào từng mini-game và bấm lưu/nộp bài.</p>
+            <p className="p-4 text-sm font-semibold text-text-secondary">Chưa có lượt chơi trong Game History. Hãy vào từng mini-game và bấm lưu/nộp bài.</p>
           ) : (
             <div className="divide-y divide-slate-800">
               {recentSessions.map((session) => (
-                <div key={session.id} className="grid gap-3 p-4 text-xs font-semibold text-slate-300 md:grid-cols-[10rem_1fr_4rem_10rem]">
-                  <div className="text-slate-500">{fmtDate(session.playedAt)}</div>
+                <div key={session.id} className="grid gap-3 p-4 text-xs font-semibold text-text-secondary md:grid-cols-[10rem_1fr_4rem_10rem]">
+                  <div className="text-text-tertiary">{fmtDate(session.playedAt)}</div>
                   <div>
-                    <p className="font-black text-white">{session.gameLabel}</p>
-                    {session.note && <p className="mt-1 leading-5 text-slate-400">{session.note}</p>}
+                    <p className="font-black text-text-primary">{session.gameLabel}</p>
+                    {session.note && <p className="mt-1 leading-5 text-text-secondary">{session.note}</p>}
                   </div>
                   <div className="font-black text-emerald-300">{session.score}</div>
-                  <div className="text-slate-300">{session.verdict}</div>
+                  <div className="text-text-secondary">{session.verdict}</div>
                 </div>
               ))}
             </div>

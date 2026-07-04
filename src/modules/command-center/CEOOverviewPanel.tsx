@@ -1,5 +1,9 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, ClipboardList, Copy, FileText, Gauge, ShieldCheck, WalletCards, Activity, Calendar, Sparkles, TrendingUp, Cpu, Check } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, ClipboardList, Copy, FileText, ShieldCheck, WalletCards, Activity, Calendar, Sparkles, TrendingUp, Cpu, Check } from 'lucide-react';
+import { Card } from '../../components/ui/Card';
+import { Badge } from '../../components/ui/Badge';
+import { Button } from '../../components/ui/Button';
+import { SectionHeader } from '../../components/ui/SectionHeader';
 import {
   COMMAND_CENTER_ALERTS,
   COMMAND_CENTER_DECISION_QUEUE,
@@ -118,128 +122,120 @@ export default function CEOOverviewPanel() {
   return (
     <div className="space-y-6 select-none">
       {/* Header card accented */}
-      <section className="rounded-3xl border border-purple-500/25 bg-slate-950/70 p-6 shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+      <section className="rounded-3xl border border-brand/25 bg-bg-surface p-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-80 h-80 bg-brand/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between relative z-10">
           <div className="max-w-4xl text-left">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-purple-500/25 bg-purple-500/10 px-3 py-1 text-[11px] font-black uppercase tracking-wider text-purple-300">
-              <Sparkles className="h-3.5 w-3.5 text-purple-400" />
+            <Badge variant="brand" className="mb-3 gap-2 px-3 py-1 text-[11px]">
+              <Sparkles className="h-3.5 w-3.5" />
               Founder Command Room
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">
+            </Badge>
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">
               CEO Strategic Control Center
             </h1>
-            <p className="mt-3 text-sm font-semibold leading-7 text-slate-400">
+            <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">
               Trung tâm điều khiển chiến lược tích hợp. Nơi Founder rà soát chỉ số sức khỏe tài chính, dòng tiền giả lập, duyệt các quyết định vận hành và giám sát hoạt động thời gian thực của đội ngũ AI Agents.
             </p>
           </div>
 
-          <button
+          <Button
             onClick={() => copyText('bossBrief', bossBrief)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-500 border border-purple-400 hover:bg-purple-600 px-5 py-3.5 text-xs font-black text-white shadow-lg shadow-purple-950/40 cursor-pointer transition shrink-0"
+            variant="primary"
+            className="px-5 py-3.5 text-xs shadow-lg shrink-0"
           >
             {copied === 'bossBrief' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
             {copied === 'bossBrief' ? 'Đã copy báo cáo' : 'Copy báo cáo nhanh'}
-          </button>
+          </Button>
         </div>
       </section>
 
       {/* Main Grid: Priorities & Risk + AI Logs */}
       <section className="grid gap-5 xl:grid-cols-3">
         {/* CEO Priorities */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 xl:col-span-2 text-left">
+        <Card padding="lg" className="xl:col-span-2 text-left">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <ClipboardList className="h-4 w-4 text-purple-400" />
+            <SectionHeader icon={ClipboardList} iconClassName="text-brand">
               Ưu tiên điều hành hôm nay
-            </h2>
-            <span className="rounded-full border border-purple-500/20 bg-purple-500/10 px-3 py-1 text-[10px] font-black uppercase text-purple-300">
-              Active Strategy
-            </span>
+            </SectionHeader>
+            <Badge variant="brand">Active Strategy</Badge>
           </div>
           <div className="space-y-3">
             {COMMAND_CENTER_TODAY_PRIORITIES.map((item) => (
-              <div key={item.title} className="rounded-2xl border border-slate-800/80 bg-slate-950/60 p-4 hover:border-slate-700 transition">
+              <div key={item.title} className="rounded-2xl border border-border-primary bg-bg-elevated p-4 hover:border-border-secondary transition">
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded-full bg-purple-500/10 px-2 py-0.5 text-[9px] font-black uppercase text-purple-300">
-                        {item.lane}
-                      </span>
-                      <span className="text-[9px] font-black uppercase text-slate-500"><Calendar className="inline-block w-3 h-3 mr-1" />{item.due}</span>
+                      <Badge variant="brand">{item.lane}</Badge>
+                      <span className="text-[9px] font-bold uppercase text-text-muted"><Calendar className="inline-block w-3 h-3 mr-1" />{item.due}</span>
                     </div>
-                    <h3 className="mt-2 text-sm font-black text-white">{item.title}</h3>
-                    <p className="mt-2 text-xs font-semibold leading-6 text-slate-400">{item.decision}</p>
+                    <h3 className="mt-2 text-sm font-semibold text-text-primary">{item.title}</h3>
+                    <p className="mt-2 text-xs font-semibold leading-6 text-text-secondary">{item.decision}</p>
                   </div>
-                  <div className="shrink-0 rounded-xl border border-slate-800 bg-slate-900/80 px-3.5 py-2 text-xs font-bold text-slate-300 md:max-w-[180px] text-center border-l-4 border-l-purple-400">
+                  <div className="shrink-0 rounded-xl border border-border-primary bg-bg-surface px-3.5 py-2 text-xs font-bold text-text-secondary md:max-w-[180px] text-center border-l-4 border-l-brand">
                     Owner: {item.owner}
                   </div>
                 </div>
-                <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-6 text-emerald-300">
-                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                <p className="mt-3 flex items-start gap-2 text-xs font-semibold leading-6 text-success">
+                  <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-success" />
                   Tiêu chí: {item.successMetric}
                 </p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Real-time AI Agent Activity Logs */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 flex flex-col h-full text-left">
+        <Card padding="lg" className="flex flex-col h-full text-left">
           <div className="mb-4 flex items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-              <Activity className="h-4 w-4 text-violet-400 animate-pulse" />
+            <SectionHeader icon={Activity} iconClassName="text-accent-tertiary animate-pulse">
               Giám sát Robot AI (Live)
-            </h2>
+            </SectionHeader>
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-success"></span>
             </span>
           </div>
 
-          <div className="flex-1 rounded-2xl bg-slate-950/70 border border-slate-850 p-3 h-[440px] overflow-y-auto space-y-2.5 scrollbar-thin">
+          <div className="flex-1 rounded-2xl bg-bg-elevated border border-border-primary p-3 h-[440px] overflow-y-auto space-y-2.5 scrollbar-thin">
             {logs.map((log) => (
-              <div key={log.id} className="text-xs p-2.5 rounded-xl border border-slate-900 bg-slate-900/30 space-y-1 hover:border-slate-800 transition">
+              <div key={log.id} className="text-xs p-2.5 rounded-xl border border-border-primary bg-bg-surface space-y-1 hover:border-border-secondary transition">
                 <div className="flex justify-between items-center text-[10px] font-bold">
-                  <span className="flex items-center gap-1.5 text-violet-300">
-                    <Cpu className="w-3.5 h-3.5 text-violet-400" />
+                  <span className="flex items-center gap-1.5 text-accent-light">
+                    <Cpu className="w-3.5 h-3.5 text-accent-tertiary" />
                     {log.agent}
                   </span>
-                  <span className="text-slate-500">{log.time}</span>
+                  <span className="text-text-muted">{log.time}</span>
                 </div>
-                <p className="text-slate-300 font-semibold leading-5 pl-5">{log.action}</p>
+                <p className="text-text-secondary font-semibold leading-5 pl-5">{log.action}</p>
                 <div className="pl-5 flex justify-end">
-                  <span className={`rounded-full px-2 py-0.2 text-[8px] font-black uppercase ${
-                    log.status === 'success' ? 'bg-emerald-500/10 text-emerald-400' : log.status === 'warn' ? 'bg-amber-500/10 text-amber-400' : 'bg-blue-500/10 text-blue-400'
-                  }`}>
+                  <Badge variant={log.status === 'success' ? 'success' : log.status === 'warn' ? 'warning' : 'info'}>
                     {log.status}
-                  </span>
+                  </Badge>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* Cashflow SVG & Financial Metric section */}
       <section className="grid gap-5 lg:grid-cols-3">
         {/* SVG Cashflow Simulator */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 lg:col-span-2 text-left space-y-4">
+        <Card padding="lg" className="lg:col-span-2 text-left space-y-4">
           <div className="flex justify-between items-center flex-wrap gap-2">
             <div>
-              <h2 className="flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-                <BarChart3 className="h-4 w-4 text-emerald-400" />
+              <SectionHeader icon={BarChart3} iconClassName="text-success">
                 Mô phỏng Luồng tiền & Doanh thu
-              </h2>
-              <p className="text-[11px] text-slate-500 font-bold">Thử nghiệm các quý để vẽ lại biểu đồ luồng tiền giả lập.</p>
+              </SectionHeader>
+              <p className="text-[11px] text-text-muted font-bold">Thử nghiệm các quý để vẽ lại biểu đồ luồng tiền giả lập.</p>
             </div>
-            <div className="flex gap-1 border border-slate-800 bg-slate-950 p-1 rounded-xl">
+            <div className="flex gap-1 border border-border-primary bg-bg-elevated p-1 rounded-xl">
               {(['all', 'q1', 'q2'] as const).map((q) => (
                 <button
                   key={q}
                   onClick={() => setQuarter(q)}
-                  className={`rounded-lg px-2.5 py-1 text-[10px] font-black uppercase transition cursor-pointer ${
-                    quarter === q ? 'bg-emerald-400 text-slate-950' : 'text-slate-400 hover:text-white'
+                  className={`rounded-lg px-2.5 py-1 text-[10px] font-bold uppercase transition cursor-pointer ${
+                    quarter === q ? 'bg-success text-bg-primary' : 'text-text-muted hover:text-text-primary'
                   }`}
                 >
                   {q === 'all' ? '6 Tháng' : q.toUpperCase()}
@@ -249,7 +245,7 @@ export default function CEOOverviewPanel() {
           </div>
 
           {/* SVG Canvas Chart */}
-          <div className="relative rounded-2xl bg-slate-950/60 border border-slate-850 p-4 h-56 flex items-center justify-center">
+          <div className="relative rounded-2xl bg-bg-elevated border border-border-primary p-4 h-56 flex items-center justify-center">
             <svg className="w-full h-full" viewBox="0 0 600 180">
               {/* Grid Lines */}
               <line x1="40" y1="20" x2="580" y2="20" stroke="#1e293b" strokeDasharray="3,3" />
@@ -306,150 +302,143 @@ export default function CEOOverviewPanel() {
             </svg>
 
             {/* Chart Legend */}
-            <div className="absolute bottom-2 right-4 flex gap-3 text-[9px] font-black uppercase tracking-wider">
-              <span className="flex items-center gap-1 text-purple-300">
-                <span className="w-2.5 h-2.5 bg-purple-500 rounded-full inline-block" /> Doanh thu (M)
+            <div className="absolute bottom-2 right-4 flex gap-3 text-[9px] font-bold uppercase tracking-wider">
+              <span className="flex items-center gap-1 text-accent-light">
+                <span className="w-2.5 h-2.5 bg-brand rounded-full inline-block" /> Doanh thu (M)
               </span>
-              <span className="flex items-center gap-1 text-emerald-300">
-                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full inline-block" /> Thực thu (M)
+              <span className="flex items-center gap-1 text-success">
+                <span className="w-2.5 h-2.5 bg-success rounded-full inline-block" /> Thực thu (M)
               </span>
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* 4 Financial KPIs */}
         <div className="space-y-3 flex flex-col justify-between">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 flex items-center justify-between text-left">
+          <Card padding="md" className="flex items-center justify-between text-left">
             <div>
-              <WalletCards className="mb-2 h-5 w-5 text-emerald-300" />
-              <p className="text-[9px] font-black uppercase text-slate-500">Ngân sách còn lại</p>
-              <p className="fin-num mt-1 text-lg font-black text-white">{money(dashboard.remainingBudget)} đ</p>
+              <WalletCards className="mb-2 h-5 w-5 text-success" />
+              <p className="text-[9px] font-bold uppercase text-text-muted">Ngân sách còn lại</p>
+              <p className="fin-num mt-1 text-lg font-bold text-text-primary">{money(dashboard.remainingBudget)} đ</p>
             </div>
-            <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">An toàn</span>
-          </div>
+            <Badge variant="success">An toàn</Badge>
+          </Card>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 flex items-center justify-between text-left">
+          <Card padding="md" className="flex items-center justify-between text-left">
             <div>
-              <TrendingUp className="mb-2 h-5 w-5 text-purple-300" />
-              <p className="text-[9px] font-black uppercase text-slate-500">Tỷ lệ Hoàn ứng</p>
-              <p className="fin-num mt-1 text-lg font-black text-white">{dashboard.advanceRatio}%</p>
-              <p className="text-[9px] font-bold text-slate-500 mt-1">Cần đòi: {money(dashboard.openAdvance)} đ</p>
+              <TrendingUp className="mb-2 h-5 w-5 text-brand" />
+              <p className="text-[9px] font-bold uppercase text-text-muted">Tỷ lệ Hoàn ứng</p>
+              <p className="fin-num mt-1 text-lg font-bold text-text-primary">{dashboard.advanceRatio}%</p>
+              <p className="text-[9px] font-semibold text-text-muted mt-1">Cần đòi: {money(dashboard.openAdvance)} đ</p>
             </div>
-            <span className="text-[10px] font-black text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded border border-purple-500/20">Đạt 2/3</span>
-          </div>
+            <Badge variant="brand">Đạt 2/3</Badge>
+          </Card>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 flex items-center justify-between text-left">
+          <Card padding="md" className="flex items-center justify-between text-left">
             <div>
-              <FileText className="mb-2 h-5 w-5 text-amber-300" />
-              <p className="text-[9px] font-black uppercase text-slate-500">Tỷ lệ hồ sơ thiếu</p>
-              <p className="fin-num mt-1 text-lg font-black text-white">{dashboard.missingDocRatio}%</p>
-              <p className="text-[9px] font-bold text-slate-500 mt-1">Đang thiếu 14 chứng từ</p>
+              <FileText className="mb-2 h-5 w-5 text-warning" />
+              <p className="text-[9px] font-bold uppercase text-text-muted">Tỷ lệ hồ sơ thiếu</p>
+              <p className="fin-num mt-1 text-lg font-bold text-text-primary">{dashboard.missingDocRatio}%</p>
+              <p className="text-[9px] font-semibold text-text-muted mt-1">Đang thiếu 14 chứng từ</p>
             </div>
-            <span className="text-[10px] font-black text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">Cần xử lý</span>
-          </div>
+            <Badge variant="warning">Cần xử lý</Badge>
+          </Card>
         </div>
       </section>
 
       {/* Alerts and Decision Queue */}
       <section className="grid gap-5 lg:grid-cols-2 text-left">
         {/* Decision Queue */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-amber-300">
-            <AlertTriangle className="h-4 w-4 text-amber-300" />
+        <Card padding="lg">
+          <SectionHeader icon={AlertTriangle} iconClassName="text-warning" className="mb-4 text-warning">
             Hàng đợi quyết định vận hành
-          </h2>
+          </SectionHeader>
           <div className="space-y-3">
             {COMMAND_CENTER_DECISION_QUEUE.map((item) => (
-              <div key={item.decision} className="rounded-xl border border-amber-500/20 bg-slate-950/70 p-4">
-                <h3 className="text-xs font-black text-white">{item.decision}</h3>
-                <p className="mt-2 text-xs font-semibold leading-5 text-slate-400">{item.why}</p>
-                <p className="mt-2 text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 inline-block rounded">
+              <div key={item.decision} className="rounded-xl border border-warning/20 bg-bg-elevated p-4">
+                <h3 className="text-xs font-semibold text-text-primary">{item.decision}</h3>
+                <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary">{item.why}</p>
+                <Badge variant="success" className="mt-2 inline-flex">
                   Hành động mặc định: {item.defaultAction}
-                </p>
-                <p className="mt-1 text-xs font-semibold leading-6 text-amber-200">Mức rủi ro: {item.risk}</p>
+                </Badge>
+                <p className="mt-1 text-xs font-semibold leading-6 text-warning">Mức rủi ro: {item.risk}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
         {/* Risk Board */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-            <ShieldCheck className="h-4 w-4 text-emerald-400" />
+        <Card padding="lg">
+          <SectionHeader icon={ShieldCheck} iconClassName="text-success" className="mb-4">
             Bảng theo dõi rủi ro (Risk Board)
-          </h2>
+          </SectionHeader>
           <div className="space-y-3">
             {COMMAND_CENTER_ALERTS.map((alert) => (
-              <div key={alert.title} className="rounded-xl border border-slate-800 bg-slate-950/50 p-4">
+              <div key={alert.title} className="rounded-xl border border-border-primary bg-bg-elevated p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-xs font-black text-white">{alert.title}</h3>
-                  <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black border ${
-                    alert.level === 'CRITICAL' ? 'border-rose-400/30 text-rose-300 bg-rose-500/10' : 'border-amber-400/30 text-amber-300 bg-amber-500/10'
-                  }`}>{alert.level}</span>
+                  <h3 className="text-xs font-semibold text-text-primary">{alert.title}</h3>
+                  <Badge variant={alert.level === 'CRITICAL' ? 'error' : 'warning'}>{alert.level}</Badge>
                 </div>
-                <p className="mt-2 text-[10px] font-bold text-slate-500">Chịu trách nhiệm: {alert.owner}</p>
-                <p className="mt-2 text-xs font-semibold leading-5 text-slate-300">{alert.action}</p>
+                <p className="mt-2 text-[10px] font-bold text-text-muted">Chịu trách nhiệm: {alert.owner}</p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary">{alert.action}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </section>
 
       {/* KPI formulas */}
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 text-left">
-        <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-          <CheckCircle2 className="h-4 w-4 text-purple-400" />
+      <Card padding="lg" className="text-left">
+        <SectionHeader icon={CheckCircle2} iconClassName="text-brand" className="mb-4">
           Mô hình KPI cốt lõi
-        </h2>
+        </SectionHeader>
         <div className="grid gap-4 md:grid-cols-2">
           {COMMAND_CENTER_KPIS.map((item) => (
-            <div key={item.name} className="rounded-xl border border-slate-850 bg-slate-950/50 p-4 flex flex-col justify-between">
+            <div key={item.name} className="rounded-xl border border-border-secondary bg-bg-elevated p-4 flex flex-col justify-between">
               <div>
                 <div className="flex justify-between items-start gap-2">
-                  <h3 className="text-xs font-black text-white">{item.name}</h3>
-                  <span className="rounded bg-slate-900 border border-slate-800 px-1.5 py-0.5 text-[9px] font-black text-emerald-400">{item.status}</span>
+                  <h3 className="text-xs font-semibold text-text-primary">{item.name}</h3>
+                  <span className="rounded bg-bg-surface border border-border-primary px-1.5 py-0.5 text-[9px] font-bold text-success">{item.status}</span>
                 </div>
-                <p className="mt-2 text-xs font-semibold text-slate-400 leading-5">{item.detail}</p>
+                <p className="mt-2 text-xs font-semibold text-text-muted leading-5">{item.detail}</p>
               </div>
-              <code className="mt-3 block rounded-lg bg-black/40 p-2.5 text-[9px] font-mono text-purple-300 whitespace-pre-wrap">{item.formula}</code>
+              <code className="mt-3 block rounded-lg bg-black/40 p-2.5 text-[9px] font-mono text-accent-light whitespace-pre-wrap">{item.formula}</code>
             </div>
           ))}
         </div>
-      </section>
+      </Card>
 
       {/* Templates & Workflows */}
       <section className="grid gap-5 lg:grid-cols-5 text-left">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 lg:col-span-3 p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-            <ClipboardList className="h-4 w-4 text-violet-400" />
+        <Card padding="lg" className="lg:col-span-3">
+          <SectionHeader icon={ClipboardList} iconClassName="text-accent-tertiary" className="mb-4">
             Luồng xử lý từ Phát sinh đến Báo cáo
-          </h2>
+          </SectionHeader>
           <div className="space-y-3">
             {COMMAND_CENTER_WORKFLOWS.map((step) => (
-              <div key={step.step} className="flex gap-3 rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-violet-400" />
+              <div key={step.step} className="flex gap-3 rounded-xl border border-border-primary bg-bg-elevated p-4">
+                <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-accent-tertiary" />
                 <div>
-                  <h3 className="text-xs font-black text-white">{step.step}</h3>
-                  <p className="mt-1 text-xs font-semibold leading-5 text-slate-400">{step.detail}</p>
+                  <h3 className="text-xs font-semibold text-text-primary">{step.step}</h3>
+                  <p className="mt-1 text-xs font-semibold leading-5 text-text-secondary">{step.detail}</p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 lg:col-span-2 p-5">
-          <h2 className="mb-4 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-white">
-            <FileText className="h-4 w-4 text-cyan-300" />
+        <Card padding="lg" className="lg:col-span-2">
+          <SectionHeader icon={FileText} iconClassName="text-info" className="mb-4">
             Mẫu báo cáo nhanh
-          </h2>
+          </SectionHeader>
           <div className="space-y-3">
             {COMMAND_CENTER_REPORT_TEMPLATES.map((template) => (
-              <div key={template.title} className="rounded-xl border border-slate-800 bg-slate-950/40 p-4">
-                <h3 className="text-xs font-black text-white">{template.title}</h3>
-                <p className="mt-2 text-xs font-semibold leading-5 text-slate-400 line-clamp-3">{template.body}</p>
+              <div key={template.title} className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+                <h3 className="text-xs font-semibold text-text-primary">{template.title}</h3>
+                <p className="mt-2 text-xs font-semibold leading-5 text-text-secondary line-clamp-3">{template.body}</p>
                 <button
                   onClick={() => copyText(template.title, template.body)}
-                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-slate-700 px-3 py-1.5 text-[10px] font-black text-slate-300 hover:border-emerald-400 hover:text-white cursor-pointer transition"
+                  className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-border-secondary px-3 py-1.5 text-[10px] font-bold text-text-secondary hover:border-brand hover:text-text-primary cursor-pointer transition"
                 >
                   <Copy className="h-3 w-3" />
                   {copied === template.title ? 'Đã copy' : 'Copy mẫu'}
@@ -457,7 +446,7 @@ export default function CEOOverviewPanel() {
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </section>
     </div>
   );

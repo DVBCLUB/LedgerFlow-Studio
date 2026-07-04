@@ -4,8 +4,8 @@ import path from 'node:path';
 
 const root = process.cwd();
 const files = {
-  ops: path.join(root, 'src/modules/ai-hr/AIOperationsCenter.tsx'),
-  runbook: path.join(root, 'src/modules/ai-hr/AIWorkforcePatchSafetyRunbook.tsx'),
+  ops: path.join(root, 'src/modules/ai-nhan-su/AIOperationsCenter.tsx'),
+  runbook: path.join(root, 'src/modules/ai-nhan-su/AIWorkforcePatchSafetyRunbook.tsx'),
   runbookPatcher: path.join(root, 'scripts/patch-ai-ops-safety-runbook-panel.mjs'),
   oneShotPatcher: path.join(root, 'scripts/patch-ai-workforce-local.mjs'),
 };

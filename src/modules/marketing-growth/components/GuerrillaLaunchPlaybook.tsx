@@ -64,14 +64,14 @@ export default function GuerrillaLaunchPlaybook() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-5">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
         <div className="p-2 bg-sky-500/10 text-sky-400 border border-sky-500/25 rounded-xl">
           <Calendar className="w-5 h-5 animate-pulse" />
         </div>
         <div>
-          <h3 className="text-sm font-black text-white uppercase tracking-wider">Guerrilla Launch Playbook</h3>
-          <p className="text-[11px] text-slate-400 font-semibold leading-relaxed">Kịch bản 7 ngày ra mắt sản phẩm du kích không tốn chi phí cho Solo Founder.</p>
+          <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">Guerrilla Launch Playbook</h3>
+          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Kịch bản 7 ngày ra mắt sản phẩm du kích không tốn chi phí cho Solo Founder.</p>
         </div>
       </div>
 
@@ -84,7 +84,7 @@ export default function GuerrillaLaunchPlaybook() {
               className={`p-4 rounded-xl border transition-all ${
                 isDone
                   ? 'bg-slate-950/50 border-slate-900 opacity-60'
-                  : 'bg-slate-900/40 border-slate-850 hover:border-slate-800'
+                  : 'bg-bg-primary/40 border-slate-850 hover:border-border-primary'
               }`}
             >
               <div className="flex items-start justify-between gap-4">
@@ -100,19 +100,19 @@ export default function GuerrillaLaunchPlaybook() {
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20">
                         {plan.day}
                       </span>
-                      <span className="text-[10px] font-black text-slate-500 font-mono">
+                      <span className="text-[10px] font-black text-text-tertiary font-mono">
                         Platform: {plan.platform}
                       </span>
                     </div>
-                    <h4 className={`text-xs font-black mt-2 ${isDone ? 'text-slate-500 line-through' : 'text-white'}`}>
+                    <h4 className={`text-xs font-black mt-2 ${isDone ? 'text-text-tertiary line-through' : 'text-text-primary'}`}>
                       {plan.title}
                     </h4>
-                    <p className={`text-xs font-semibold leading-relaxed mt-1.5 ${isDone ? 'text-slate-500' : 'text-slate-350'}`}>
+                    <p className={`text-xs font-semibold leading-relaxed mt-1.5 ${isDone ? 'text-text-tertiary' : 'text-slate-350'}`}>
                       {plan.action}
                     </p>
                     
                     {!isDone && (
-                      <ul className="mt-3 space-y-1.5 text-[11px] text-slate-450 border-l-2 border-slate-800 pl-3">
+                      <ul className="mt-3 space-y-1.5 text-[11px] text-slate-450 border-l-2 border-border-primary pl-3">
                         {plan.details.map((detail, dIdx) => (
                           <li key={dIdx} className="list-disc list-inside leading-relaxed font-semibold">
                             {detail}

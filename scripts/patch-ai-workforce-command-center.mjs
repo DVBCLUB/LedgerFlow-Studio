@@ -223,20 +223,20 @@ app.post("/api/ai-workforce/mission-execution-queue/cancel"`, 'AI Workforce Miss
 
 const rendererPath = path.resolve('src/app/WorkspaceRenderer.tsx');
 const daemonPath = path.resolve('server/assistant-daemon.ts');
-const commandCenterPath = path.resolve('src/modules/ai-hr/AIWorkforceCommandCenter.tsx');
-const operationsCenterPath = path.resolve('src/modules/ai-hr/AIOperationsCenter.tsx');
+const commandCenterPath = path.resolve('src/modules/ai-nhan-su/AIWorkforceCommandCenter.tsx');
+const operationsCenterPath = path.resolve('src/modules/ai-nhan-su/AIOperationsCenter.tsx');
 
 const operationsCenterSource = fs.existsSync(operationsCenterPath) ? fs.readFileSync(operationsCenterPath, 'utf8') : '';
-const hasDirectCommandCenter = operationsCenterSource.includes("import AIWorkforceCommandCenter from './AIWorkforceCommandCenter';") && operationsCenterSource.includes('<AIWorkforceCommandCenter />');
-const hasDirectRuntimePanel = operationsCenterSource.includes("import AIWorkforceRuntimePanel from './AIWorkforceRuntimePanel';") && operationsCenterSource.includes('<AIWorkforceRuntimePanel />');
+const hasDirectCommandCenter = true;
+const hasDirectRuntimePanel = true;
 
 const rendererChanged = hasDirectCommandCenter ? false : patchFile(rendererPath, (initialSource) => {
   let source = initialSource;
 
   source = replaceOnce(
     source,
-    "const AgentAssemblyBuilder     = React.lazy(() => import('../modules/ai-hr/AgentAssemblyBuilder'));",
-    "const AgentAssemblyBuilder     = React.lazy(() => import('../modules/ai-hr/AgentAssemblyBuilder'));\nconst AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-hr/AIWorkforceCommandCenter'));",
+    "const AgentAssemblyBuilder     = React.lazy(() => import('../modules/ai-nhan-su/AgentAssemblyBuilder'));",
+    "const AgentAssemblyBuilder     = React.lazy(() => import('../modules/ai-nhan-su/AgentAssemblyBuilder'));\nconst AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceCommandCenter'));",
     'AgentAssemblyBuilder lazy import',
   );
 

@@ -1,4 +1,4 @@
-export type AIWorkforceRuntimeHealth = 'online' | 'offline' | 'unknown';
+export type AIWorkforceRuntimeHealth = 'online' | 'offline' | 'unknown' | 'checking';
 export type MissionReviewDecision = 'approved' | 'needs_changes' | 'blocked' | 'info';
 export type MissionReleaseCiStatus = 'success' | 'pending' | 'failed' | 'unknown';
 
@@ -235,7 +235,7 @@ export async function scoreSamplePRReadiness() {
     body: JSON.stringify({
       title: 'AI Workforce runtime UI smoke',
       changedFiles: [
-        { filename: 'src/modules/ai-hr/AIWorkforceCommandCenter.tsx', additions: 48, deletions: 2 },
+        { filename: 'src/modules/ai-nhan-su/AIWorkforceCommandCenter.tsx', additions: 48, deletions: 2 },
         { filename: 'server/services/aiWorkforceRuntimeHub.ts', additions: 24, deletions: 1 },
       ],
       checks: [
@@ -260,7 +260,7 @@ export async function buildSamplePRControlReport() {
       baseBranch: 'main',
       headBranch: 'ai-workforce-implementation',
       changedFiles: [
-        { filename: 'src/modules/ai-hr/AIWorkforceRuntimePanel.tsx', additions: 80, deletions: 2 },
+        { filename: 'src/modules/ai-nhan-su/AIWorkforceRuntimePanel.tsx', additions: 80, deletions: 2 },
         { filename: 'server/services/softwareFactoryPrControl.ts', additions: 140, deletions: 0 },
       ],
       checks: [

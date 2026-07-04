@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = process.cwd();
-const file = path.join(root, 'src/modules/ai-hr/AIOperationsCenter.tsx');
+const file = path.join(root, 'src/modules/ai-nhan-su/AIOperationsCenter.tsx');
 const source = fs.readFileSync(file, 'utf8');
 let next = source;
 

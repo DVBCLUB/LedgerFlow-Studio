@@ -5,7 +5,7 @@ import path from 'node:path';
 const root = process.cwd();
 const pluginSystemFile = path.join(root, 'server/services/pluginExtensionSystem.ts');
 const pluginPolicyFile = path.join(root, 'server/services/pluginSecurityPolicy.ts');
-const pluginPanelFile = path.join(root, 'src/modules/ai-hr/AIWorkforcePluginSecurityGuard.tsx');
+const pluginPanelFile = path.join(root, 'src/modules/ai-nhan-su/AIWorkforcePluginSecurityGuard.tsx');
 
 let failed = false;
 

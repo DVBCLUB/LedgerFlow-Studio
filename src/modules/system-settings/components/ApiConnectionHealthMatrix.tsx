@@ -67,18 +67,18 @@ export default function ApiConnectionHealthMatrix() {
   const healthy = connections.filter((item) => item.status === 'active').length;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
-      <div className="mb-5 flex items-center justify-between gap-3 border-b border-slate-800 pb-4">
+    <div className="rounded-2xl border border-border-primary bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 text-left shadow-xl">
+      <div className="mb-5 flex items-center justify-between gap-3 border-b border-border-primary pb-4">
         <div className="flex items-center gap-3">
-          <div className="rounded-xl border border-slate-500/25 bg-slate-500/10 p-2 text-slate-300">
+          <div className="rounded-xl border border-slate-500/25 bg-slate-500/10 p-2 text-text-secondary">
             <Network className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-sm font-black uppercase tracking-wider text-white">API Connection Health Matrix</h3>
-            <p className="text-[11px] font-semibold leading-relaxed text-slate-400">Real checks for desktop backend, assistant service, AI, robot and automation routes.</p>
+            <h3 className="text-sm font-black uppercase tracking-wider text-text-primary">API Connection Health Matrix</h3>
+            <p className="text-[11px] font-semibold leading-relaxed text-text-secondary">Real checks for desktop backend, assistant service, AI, robot and automation routes.</p>
           </div>
         </div>
-        <button onClick={() => void checkAll()} disabled={pinging === 'all'} className="inline-flex items-center gap-2 rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-[10px] font-black text-slate-300 hover:text-white disabled:opacity-50">
+        <button onClick={() => void checkAll()} disabled={pinging === 'all'} className="inline-flex items-center gap-2 rounded-lg border border-border-primary bg-bg-primary px-3 py-2 text-[10px] font-black text-text-secondary hover:text-text-primary disabled:opacity-50">
           <RefreshCw className={`h-3.5 w-3.5 ${pinging === 'all' ? 'animate-spin' : ''}`} /> Check all
         </button>
       </div>
@@ -102,19 +102,19 @@ export default function ApiConnectionHealthMatrix() {
                   <span className={`block h-3.5 w-3.5 rounded-full ${dotColor} ${isOk ? 'animate-pulse' : ''}`} />
                 </div>
                 <div>
-                  <h4 className="text-xs font-black text-white">{c.name}</h4>
-                  <p className="mt-1 text-[10px] font-semibold leading-none text-slate-500">Provider: {c.provider}</p>
+                  <h4 className="text-xs font-black text-text-primary">{c.name}</h4>
+                  <p className="mt-1 text-[10px] font-semibold leading-none text-text-tertiary">Provider: {c.provider}</p>
                   <p className="mt-2 text-[10px] font-mono text-slate-600">{c.endpoint}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-6 text-left text-xs">
-                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Scope</span><span className="mt-1 block font-bold text-slate-300">{c.quota}</span></div>
-                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Runtime</span><span className="mt-1 block font-bold text-slate-300">{c.expiry}</span></div>
-                <div><span className="block text-[9px] font-black uppercase tracking-wider text-slate-500">Latency</span><span className={`mt-1 block font-mono font-bold ${textColor}`}>{isLoading ? 'checking...' : c.latency}</span></div>
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-text-tertiary">Scope</span><span className="mt-1 block font-bold text-text-secondary">{c.quota}</span></div>
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-text-tertiary">Runtime</span><span className="mt-1 block font-bold text-text-secondary">{c.expiry}</span></div>
+                <div><span className="block text-[9px] font-black uppercase tracking-wider text-text-tertiary">Latency</span><span className={`mt-1 block font-mono font-bold ${textColor}`}>{isLoading ? 'checking...' : c.latency}</span></div>
               </div>
 
-              <button disabled={isLoading} onClick={() => void handlePing(c.id)} className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-[10px] font-black text-slate-350 transition-all hover:border-slate-700 hover:text-white disabled:opacity-50">
+              <button disabled={isLoading} onClick={() => void handlePing(c.id)} className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-border-primary bg-bg-primary px-3 py-1.5 text-[10px] font-black text-slate-350 transition-all hover:border-border-secondary hover:text-text-primary disabled:opacity-50">
                 <Activity className="h-3.5 w-3.5" /> {isLoading ? 'Checking...' : 'Check'} {isOk ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" /> : <XCircle className="h-3.5 w-3.5 text-rose-300" />}
               </button>
             </div>

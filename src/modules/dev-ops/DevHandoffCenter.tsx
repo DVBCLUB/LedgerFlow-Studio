@@ -27,15 +27,15 @@ export default function DevHandoffCenter() {
       />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <button type="button" onClick={openRepo} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-left hover:border-cyan-500/50">
+        <button type="button" onClick={openRepo} className="rounded-2xl border border-border-primary bg-slate-950/70 p-4 text-left hover:border-cyan-500/50">
           <Github className="mb-3 h-5 w-5 text-cyan-300" />
-          <div className="text-sm font-black text-white">Mở GitHub repo</div>
-          <div className="mt-1 text-xs font-semibold text-slate-500">Xem code, commit và diff.</div>
+          <div className="text-sm font-black text-text-primary">Mở GitHub repo</div>
+          <div className="mt-1 text-xs font-semibold text-text-tertiary">Xem code, commit và diff.</div>
         </button>
-        <button type="button" onClick={openIssues} className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-left hover:border-emerald-500/50">
+        <button type="button" onClick={openIssues} className="rounded-2xl border border-border-primary bg-slate-950/70 p-4 text-left hover:border-emerald-500/50">
           <Send className="mb-3 h-5 w-5 text-emerald-300" />
-          <div className="text-sm font-black text-white">Mở Issues</div>
-          <div className="mt-1 text-xs font-semibold text-slate-500">Ghi việc cần sửa nếu muốn theo dõi.</div>
+          <div className="text-sm font-black text-text-primary">Mở Issues</div>
+          <div className="mt-1 text-xs font-semibold text-text-tertiary">Ghi việc cần sửa nếu muốn theo dõi.</div>
         </button>
       </div>
     </div>

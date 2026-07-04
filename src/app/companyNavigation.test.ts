@@ -25,7 +25,7 @@ test('mandatory Company OS workspaces remain visible', () => {
     'sales-crm',
     'finance-accounting',
     'ai-workforce',
-    'analytics-sandbox',
+    'analytics-models-sandbox',
     'system-settings',
   ]) assert.ok(ids.has(required as never), `Missing mandatory workspace: ${required}`);
 });

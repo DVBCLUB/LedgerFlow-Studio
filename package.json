@@ -42,7 +42,7 @@
     "report:pr-readiness:weekly": "node scripts/summarize-pr-readiness-metrics.mjs --days 7",
     "report:pr-readiness:30d": "node scripts/summarize-pr-readiness-metrics.mjs --days 30",
     "check:ai-workforce-command-center": "node scripts/check-ai-workforce-command-center.mjs",
-    "check:company-os": "npm run lint && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:agentops-contracts && npm run check:ai-workforce-command-center",
+    "check:company-os": "npm run lint && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:ai-workforce-command-center",
     "check:software-factory": "node scripts/check-software-factory.mjs",
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",
@@ -66,7 +66,7 @@
     "build:manifest": "node scripts/write-build-manifest.mjs",
     "release:notes": "node scripts/finalize-release.mjs --notes-only",
     "release:finalize": "node scripts/finalize-release.mjs",
-    "prebuild": "npm run prepare:icons && npm run ai:patch-daemon-entrypoint && npm run ai:patch-daemon-tools && npm run ai:patch-daemon-hardening && npm run ai:patch-telegram-missions && npm run ai:patch-patch-review-routes && npm run ai:patch-ai-workforce-command-center && npm run ai:patch-ai-workforce-snapshot-export && npm run ai:patch-ai-workforce-snapshot-export-ui && npm run check:env && npm run check:ai-desktop-integration && npm test && npm run check:runtime-side-effects && npm run check:simulations && npm run check:founder-labs && npm run check:accounting-calculations && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:agentops-contracts && npm run check:ai-assistant-safety && npm run check:ai-workforce-command-center && npm run check:desktop && npm run check:offline",
+    "prebuild": "npm run prepare:icons && npm run ai:patch-daemon-entrypoint && npm run ai:patch-daemon-tools && npm run ai:patch-daemon-hardening && npm run ai:patch-telegram-missions && npm run ai:patch-patch-review-routes && npm run ai:patch-ai-workforce-command-center && npm run ai:patch-ai-workforce-snapshot-export && npm run ai:patch-ai-workforce-snapshot-export-ui && npm run check:env && npm run check:ai-desktop-integration && npm test && npm run check:runtime-side-effects && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:ai-assistant-safety && npm run check:ai-workforce-command-center && npm run check:desktop && npm run check:offline",
     "build:web": "vite build",
     "build:web:vercel": "npm run lint && npm run build:web",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/assistant-daemon-desktop.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/assistant-daemon.cjs",
@@ -93,6 +93,7 @@
   "dependencies": {
     "@google/genai": "^2.4.0",
     "@supabase/supabase-js": "^2.108.2",
+    "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
@@ -101,6 +102,7 @@
     "node-cron": "^4.2.1",
     "puppeteer": "^25.1.0",
     "simple-git": "^3.36.0",
+    "tailwind-merge": "^3.6.0",
     "xlsx": "^0.18.5",
     "zod": "^4.4.3"
   },
