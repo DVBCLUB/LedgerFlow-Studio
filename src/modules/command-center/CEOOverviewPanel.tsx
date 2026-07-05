@@ -1,9 +1,18 @@
 import React, { useMemo, useState, useEffect } from 'react';
-import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, ClipboardList, Copy, FileText, ShieldCheck, WalletCards, Activity, Calendar, Sparkles, TrendingUp, Cpu, Check } from 'lucide-react';
+import { AlertTriangle, ArrowRight, BarChart3, CheckCircle2, ClipboardList, Copy, FileText, ShieldCheck, WalletCards, Activity, Calendar, Sparkles, TrendingUp, Cpu, Check, RefreshCw, ServerCog } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { SectionHeader } from '../../components/ui/SectionHeader';
+import {
+  checkDaemonHealth,
+  fetchAgentRuns,
+  fetchAuditLogs,
+  fetchSweAgentMissions,
+  runSweDockerDoctor,
+  type AuditLogEntry,
+  type SweMissionState,
+} from '../../utils/assistantApi';
 import {
   COMMAND_CENTER_ALERTS,
   COMMAND_CENTER_DECISION_QUEUE,
@@ -24,6 +33,19 @@ type LogItem = {
   status: 'info' | 'success' | 'warn';
 };
 
+type DailyCommandSnapshot = {
+  daemonOk: boolean;
+  daemonHint: string;
+  emergencyStop: boolean;
+  waitingApproval: number;
+  activeRuns: number;
+  recentAudit: AuditLogEntry[];
+  sweMissions: SweMissionState[];
+  dockerOk: boolean | null;
+  dockerSummary: string;
+  loadedAt: string;
+};
+
 const AGENT_MOCK_ACTIONS = [
   { agent: 'AI Chief of Staff', action: 'Rà soát độ lệch ngân sách quý 2 và cảnh báo dòng tiền.', status: 'info' as const },
   { agent: 'AI Developer', action: 'Hoàn thành Patch #104 fix lỗi WASM SQLite sandbox, chuẩn bị merge.', status: 'success' as const },
@@ -33,10 +55,19 @@ const AGENT_MOCK_ACTIONS = [
   { agent: 'AI Sales Agent', action: 'Đang huấn luyện kịch bản đàm phán với khách hàng B2B lớn mới.', status: 'info' as const },
 ];
 
+function badgeForRuntime(ok: boolean | null) {
+  if (ok === true) return 'success';
+  if (ok === false) return 'warning';
+  return 'default';
+}
+
 export default function CEOOverviewPanel() {
   const [copied, setCopied] = useState<string | null>(null);
   const [quarter, setQuarter] = useState<'all' | 'q1' | 'q2'>('all');
   const [logs, setLogs] = useState<LogItem[]>([]);
+  const [dailySnapshot, setDailySnapshot] = useState<DailyCommandSnapshot | null>(null);
+  const [dailyLoading, setDailyLoading] = useState(false);
+  const [dailyError, setDailyError] = useState('');
 
   // Simulation: Append new AI logs over time
   useEffect(() => {
@@ -68,6 +99,47 @@ export default function CEOOverviewPanel() {
     }, 4500);
 
     return () => clearInterval(interval);
+  }, []);
+
+  const refreshDailySnapshot = async () => {
+    setDailyLoading(true);
+    setDailyError('');
+    try {
+      const [healthResult, runsResult, auditResult, missionsResult, dockerResult] = await Promise.allSettled([
+        checkDaemonHealth(),
+        fetchAgentRuns(20),
+        fetchAuditLogs(8),
+        fetchSweAgentMissions(8),
+        runSweDockerDoctor(),
+      ]);
+
+      const health = healthResult.status === 'fulfilled' ? healthResult.value : null;
+      const runs = runsResult.status === 'fulfilled' ? runsResult.value : null;
+      const audit = auditResult.status === 'fulfilled' ? auditResult.value : [];
+      const missions = missionsResult.status === 'fulfilled' ? missionsResult.value : [];
+      const docker = dockerResult.status === 'fulfilled' ? dockerResult.value : null;
+
+      setDailySnapshot({
+        daemonOk: Boolean(health?.ok),
+        daemonHint: health?.hint || (healthResult.status === 'rejected' ? healthResult.reason?.message || 'Assistant daemon unavailable.' : 'Assistant daemon status unknown.'),
+        emergencyStop: Boolean(runs?.emergencyStop),
+        waitingApproval: runs?.runs.filter((run) => run.status === 'waiting_approval').length ?? 0,
+        activeRuns: runs?.runs.filter((run) => run.status === 'running' || run.status === 'planned').length ?? 0,
+        recentAudit: audit,
+        sweMissions: missions,
+        dockerOk: docker ? docker.ok : null,
+        dockerSummary: docker?.summary || (dockerResult.status === 'rejected' ? dockerResult.reason?.message || 'Docker Doctor unavailable.' : 'Docker Doctor not checked.'),
+        loadedAt: new Date().toISOString(),
+      });
+    } catch (err: any) {
+      setDailyError(err?.message || 'Không tải được dữ liệu điều hành hôm nay.');
+    } finally {
+      setDailyLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshDailySnapshot();
   }, []);
 
   const copyText = async (id: string, text: string) => {
@@ -148,6 +220,102 @@ export default function CEOOverviewPanel() {
           </Button>
         </div>
       </section>
+
+      <Card padding="lg" className="text-left">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div>
+            <SectionHeader icon={ServerCog} iconClassName="text-brand">
+              Founder Daily Command
+            </SectionHeader>
+            <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-text-secondary">
+              Tóm tắt dữ liệu vận hành thật từ assistant daemon, agent runtime, audit log, Docker Doctor và Autonomous SWE Agent Loop.
+            </p>
+          </div>
+          <Button onClick={() => void refreshDailySnapshot()} disabled={dailyLoading} variant="secondary" size="sm" className="shrink-0 gap-2">
+            <RefreshCw className={`h-3.5 w-3.5 ${dailyLoading ? 'animate-spin' : ''}`} />
+            Làm mới
+          </Button>
+        </div>
+
+        {dailyError && (
+          <div className="mt-4 rounded-xl border border-error/20 bg-error-bg p-3 text-xs font-bold text-error">
+            {dailyError}
+          </div>
+        )}
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-text-muted">Assistant daemon</p>
+            <Badge variant={dailySnapshot?.daemonOk ? 'success' : 'warning'} className="mt-2">{dailySnapshot?.daemonOk ? 'Online' : 'Needs check'}</Badge>
+            <p className="mt-2 line-clamp-3 text-[11px] font-semibold leading-5 text-text-secondary">{dailySnapshot?.daemonHint || 'Đang tải trạng thái daemon...'}</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-text-muted">Agent runtime</p>
+            <p className="mt-2 text-xl font-black text-text-primary">{dailySnapshot?.activeRuns ?? 0}</p>
+            <p className="text-[11px] font-semibold text-text-secondary">run đang hoạt động</p>
+            <Badge variant={dailySnapshot?.emergencyStop ? 'error' : 'success'} className="mt-2">{dailySnapshot?.emergencyStop ? 'Emergency stop' : 'Ready'}</Badge>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-text-muted">Chờ duyệt</p>
+            <p className="mt-2 text-xl font-black text-warning">{dailySnapshot?.waitingApproval ?? 0}</p>
+            <p className="text-[11px] font-semibold text-text-secondary">agent run cần founder quyết định</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-text-muted">SWE missions</p>
+            <p className="mt-2 text-xl font-black text-text-primary">{dailySnapshot?.sweMissions.length ?? 0}</p>
+            <p className="text-[11px] font-semibold text-text-secondary">mission gần nhất trong lịch sử</p>
+          </div>
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-[10px] font-black uppercase tracking-wide text-text-muted">Docker sandbox</p>
+            <Badge variant={badgeForRuntime(dailySnapshot?.dockerOk ?? null)} className="mt-2">
+              {dailySnapshot?.dockerOk === true ? 'OK' : dailySnapshot?.dockerOk === false ? 'Check' : 'Unknown'}
+            </Badge>
+            <p className="mt-2 line-clamp-3 text-[11px] font-semibold leading-5 text-text-secondary">{dailySnapshot?.dockerSummary || 'Docker Doctor chưa có dữ liệu.'}</p>
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-xs font-black uppercase tracking-wide text-text-secondary">SWE mission gần nhất</p>
+            <div className="mt-3 space-y-2">
+              {(dailySnapshot?.sweMissions ?? []).slice(0, 4).map((mission) => (
+                <div key={mission.id} className="rounded-lg border border-border-primary bg-bg-surface p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-xs font-black text-text-primary">{mission.id}</p>
+                    <Badge variant={mission.status === 'completed' ? 'success' : mission.status === 'failed' ? 'error' : mission.status === 'awaiting_human_approval' ? 'warning' : 'info'}>
+                      {mission.status}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-5 text-text-secondary">{mission.config.goalPrompt}</p>
+                </div>
+              ))}
+              {(!dailySnapshot || dailySnapshot.sweMissions.length === 0) && <p className="text-xs font-semibold text-text-muted">Chưa có mission SWE nào.</p>}
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-border-primary bg-bg-elevated p-4">
+            <p className="text-xs font-black uppercase tracking-wide text-text-secondary">Audit log mới</p>
+            <div className="mt-3 space-y-2">
+              {(dailySnapshot?.recentAudit ?? []).slice(0, 4).map((entry) => (
+                <div key={entry.id} className="rounded-lg border border-border-primary bg-bg-surface p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="truncate text-xs font-black text-text-primary">{entry.action}</p>
+                    <Badge variant={entry.status === 'failed' ? 'error' : entry.status === 'executed' ? 'success' : 'info'}>{entry.status}</Badge>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-5 text-text-secondary">{entry.summary}</p>
+                </div>
+              ))}
+              {(!dailySnapshot || dailySnapshot.recentAudit.length === 0) && <p className="text-xs font-semibold text-text-muted">Chưa có audit log gần đây.</p>}
+            </div>
+          </div>
+        </div>
+
+        {dailySnapshot?.loadedAt && (
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-wide text-text-muted">
+            Cập nhật: {new Date(dailySnapshot.loadedAt).toLocaleString('vi-VN')}
+          </p>
+        )}
+      </Card>
 
       {/* Main Grid: Priorities & Risk + AI Logs */}
       <section className="grid gap-5 xl:grid-cols-3">

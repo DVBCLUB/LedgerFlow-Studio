@@ -55,7 +55,7 @@ export default function ProductIdeationLab() {
       {/* Content */}
       <div className="flex-1 overflow-auto rounded-3xl border border-border-primary bg-bg-base shadow-2xl">
         {activeTab === 'ideas' && <IdeasTab />}
-        {activeTab === 'strategy' && <StrategyTab />}
+        {activeTab === 'strategy' && <StrategyTab setActiveTab={() => {}} setSelectedAgentId={() => {}} setAgentUserInput={() => {}} setAgentOutput={() => {}} />}
         {activeTab === 'icp' && (
           <div className="p-6">
             <ICPHypothesisCanvas />

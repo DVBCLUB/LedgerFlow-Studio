@@ -7,6 +7,7 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
+import { resolveRuntimeDirPath, resolveRuntimeReadDirFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface VectorDocument {
@@ -86,17 +87,18 @@ function cosineSimilarity(a: number[], b: number[]): number {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const VECTOR_DIR = path.join(process.cwd(), 'vector_store');
+const VECTOR_DIR = resolveRuntimeDirPath('vector_store');
+const VECTOR_READ_DIR = resolveRuntimeReadDirFromEnv('VECTOR_STORE_DIR', 'vector_store');
 const DIMENSION = 128;
 let namespaces: Map<string, VectorNamespace> = new Map();
 
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(VECTOR_DIR)) await fs.promises.mkdir(VECTOR_DIR, { recursive: true });
-    const files = fs.readdirSync(VECTOR_DIR).filter(f => f.endsWith('.json'));
+    const files = fs.existsSync(VECTOR_READ_DIR) ? fs.readdirSync(VECTOR_READ_DIR).filter(f => f.endsWith('.json')) : [];
     for (const file of files) {
       try {
-        const data = JSON.parse(await fs.promises.readFile(path.join(VECTOR_DIR, file), 'utf8'));
+        const data = JSON.parse(await fs.promises.readFile(path.join(VECTOR_READ_DIR, file), 'utf8'));
         const ns: VectorNamespace = { ...data, documents: data.documents || [] };
         namespaces.set(ns.name, ns);
       } catch { }

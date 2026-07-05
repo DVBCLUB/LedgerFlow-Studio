@@ -121,9 +121,9 @@ function FactoryOperatingCatalog() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Pill tone="emerald">{FACTORY_RUNTIME_LANES.length} lanes</Pill>
-          <Pill tone="cyan">{FACTORY_PROVIDER_PROFILES.length} providers</Pill>
-          <Pill tone="amber">{pendingApprovalCount()} approvals</Pill>
+          <Pill tone="emerald">{`${FACTORY_RUNTIME_LANES.length} lanes`}</Pill>
+          <Pill tone="cyan">{`${FACTORY_PROVIDER_PROFILES.length} providers`}</Pill>
+          <Pill tone="amber">{`${pendingApprovalCount()} approvals`}</Pill>
         </div>
       </div>
 
@@ -172,13 +172,13 @@ function FactoryOperatingCatalog() {
         </div>
         <div className="rounded-2xl border border-border-primary bg-slate-950/75 p-3">
           <p className="text-xs font-black text-text-primary">Control surface</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Pill tone="cyan">{workflowFlow.length} workflow nodes</Pill>
-            <Pill tone="violet">{countFactoryAssets()} assets</Pill>
-            <Pill tone="amber">{FACTORY_APPROVAL_GATES.length} gates</Pill>
-            <Pill tone="emerald">{FACTORY_LAUNCH_ASSETS.length} launch assets</Pill>
-            <Pill tone="slate">{FACTORY_ASSET_RECORDS.length} records</Pill>
-          </div>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <Pill tone="violet">{`${laneStats.review} pending approvals`}</Pill>
+                  <Pill tone="emerald">{`${queueStats.running} running jobs`}</Pill>
+                  <Pill tone="cyan">{`${queueStats.review} jobs in review`}</Pill>
+                  <Pill tone="amber">{`${queueStats.queued} jobs queued`}</Pill>
+                  <Pill tone="slate">{`${FACTORY_ASSET_RECORDS.length} records`}</Pill>
+                </div>
         </div>
       </section>
     </Card>

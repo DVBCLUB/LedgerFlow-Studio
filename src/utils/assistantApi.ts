@@ -157,3 +157,104 @@ export interface ControlPlaneMetrics { totalRuns: number; completed: number; fai
 export async function executeControlPlane(input: { goal: string; domain?: string; systemInstruction?: string; webPlatform?: string; profileId?: string; autoHandoff?: boolean; handoffTarget?: string; filePaths?: string[] }): Promise<ControlPlaneRun> { const res = await daemonFetch<{ ok: boolean; run: ControlPlaneRun }>('/api/control-plane/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) }, 300000); return res.run; }
 export async function fetchControlPlaneRuns(): Promise<{ runs: ControlPlaneRun[]; metrics: ControlPlaneMetrics }> { return daemonFetch('/api/control-plane/runs'); }
 export async function fetchControlPlaneRun(id: string): Promise<ControlPlaneRun> { const res = await daemonFetch<{ ok: boolean; run: ControlPlaneRun }>(`/api/control-plane/runs/${encodeURIComponent(id)}`); return res.run; }
+
+export type SweMissionStatus =
+  | 'running_ai_query'
+  | 'testing'
+  | 'repairing'
+  | 'awaiting_human_approval'
+  | 'pushing_to_github'
+  | 'completed'
+  | 'failed'
+  | 'rejected'
+  | 'cancelled';
+export interface SweMissionAttemptLog {
+  attempt: number;
+  aiPromptSent: string;
+  aiRawResponsePreview: string;
+  codeBlocksExtracted: number;
+  testResult: { ok: boolean; exitCode: number; stderrPreview: string };
+}
+export interface SweMissionState {
+  id: string;
+  config: {
+    id: string;
+    goalPrompt: string;
+    platform: string;
+    profileId?: string;
+    testCommand: string;
+    maxAttempts: number;
+    targetFiles: string[];
+    repoBaseBranch?: string;
+    requireHumanApprovalBeforePush: boolean;
+  };
+  status: SweMissionStatus;
+  attempts: SweMissionAttemptLog[];
+  createdAt: string;
+  updatedAt: string;
+  finalError?: string;
+  pendingChangeRequest?: { branchName: string; files: Array<{ path: string; content: string; diff: string }> };
+  safetyReview?: {
+    riskScore: number;
+    fileCount: number;
+    changedLines: number;
+    maxFileBytes: number;
+    approvalBlocked: boolean;
+    reasons: string[];
+  };
+  githubResult?: { branch: string; prUrl?: string };
+  rejectedReason?: string;
+}
+export interface CreateSweMissionInput {
+  goalPrompt: string;
+  platform: string;
+  profileId?: string;
+  testCommand: string;
+  targetFiles: string[];
+  maxAttempts?: number;
+  repoBaseBranch?: string;
+  requireHumanApprovalBeforePush?: boolean;
+}
+export async function createSweAgentMission(input: CreateSweMissionInput): Promise<SweMissionState> {
+  const res = await daemonFetch<{ ok: boolean; mission: SweMissionState }>('/api/company-os/swe-agent/mission', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) }, 900000);
+  return res.mission;
+}
+export async function fetchSweAgentMission(id: string): Promise<SweMissionState> {
+  const res = await daemonFetch<{ ok: boolean; mission: SweMissionState }>(`/api/company-os/swe-agent/mission/${encodeURIComponent(id)}`);
+  return res.mission;
+}
+export async function fetchSweAgentMissions(limit = 25): Promise<SweMissionState[]> {
+  const res = await daemonFetch<{ ok: boolean; missions: SweMissionState[] }>(`/api/company-os/swe-agent/missions?limit=${encodeURIComponent(String(limit))}`);
+  return res.missions ?? [];
+}
+export async function approveSweAgentMissionPush(id: string): Promise<SweMissionState> {
+  const res = await daemonFetch<{ ok: boolean; mission: SweMissionState }>(`/api/company-os/swe-agent/mission/${encodeURIComponent(id)}/approve-push`, { method: 'POST' }, 180000);
+  return res.mission;
+}
+export async function rejectSweAgentMission(id: string, reason?: string): Promise<SweMissionState> {
+  const res = await daemonFetch<{ ok: boolean; mission: SweMissionState }>(`/api/company-os/swe-agent/mission/${encodeURIComponent(id)}/reject`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  }, 30000);
+  return res.mission;
+}
+export interface DockerDoctorCheck {
+  id: string;
+  label: string;
+  ok: boolean;
+  durationMs: number;
+  outputPreview?: string;
+  error?: string;
+  hint?: string;
+}
+export interface DockerDoctorResult {
+  ok: boolean;
+  checkedAt: string;
+  checks: DockerDoctorCheck[];
+  summary: string;
+}
+export async function runSweDockerDoctor(): Promise<DockerDoctorResult> {
+  const res = await daemonFetch<{ ok: boolean; doctor: DockerDoctorResult }>('/api/company-os/swe-agent/docker-doctor', undefined, 45000);
+  return res.doctor;
+}

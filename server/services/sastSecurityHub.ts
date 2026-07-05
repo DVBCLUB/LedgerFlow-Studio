@@ -279,7 +279,7 @@ export async function runSastScan(
   const mediumCount = findings.filter(f => f.severity === 'medium').length;
   const lowCount = findings.filter(f => f.severity === 'low').length;
 
-  if (findings.length > 0 && content.length > 0) {
+  if (findings.length > 0) {
     try {
       const aiPrompt = `Summarize this SAST scan in 2-3 sentences:
 

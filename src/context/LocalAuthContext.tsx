@@ -6,6 +6,7 @@ const SESSION_KEY = 'lf_auth_session';
 export interface LocalSession {
   email: string;
   loggedInAt: string;
+  role?: string;
 }
 
 interface LocalAuthContextValue {
@@ -17,6 +18,7 @@ interface LocalAuthContextValue {
   error: string;
   usesDevPassword: boolean;
   isSubmitting: boolean;
+  isCheckingSession: boolean;
   login: (event: React.FormEvent) => Promise<void>;
   logout: () => void;
 }
@@ -38,26 +40,24 @@ export function readLocalSession(): LocalSession | null {
 }
 
 async function requestLocalSession(email: string, password: string): Promise<{ session: LocalSession; usesDevPassword: boolean }> {
-  try {
-    const response = await fetch('/api/auth/local-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) {
-      throw new BackendAuthError(data?.error || 'Email hoặc mật khẩu không đúng.');
-    }
-    if (!data?.session?.email || !data?.session?.loggedInAt) {
-      throw new BackendAuthError('Phiên đăng nhập backend không hợp lệ.');
-    }
-    return {
-      session: data.session,
-      usesDevPassword: Boolean(data.usesDevPassword),
-    };
-  } catch (error: unknown) {
-    throw error;
+  const response = await fetch('/api/auth/local-session', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new BackendAuthError(data?.error || 'Email hoặc mật khẩu không đúng.');
   }
+  if (!data?.session?.email || !data?.session?.loggedInAt) {
+    throw new BackendAuthError('Phiên đăng nhập backend không hợp lệ.');
+  }
+
+  return {
+    session: data.session,
+    usesDevPassword: Boolean(data.usesDevPassword),
+  };
 }
 
 export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
@@ -69,20 +69,33 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState('');
   const [usesDevPassword, setUsesDevPassword] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(Boolean(initialSession));
 
   useEffect(() => {
-    if (!initialSession) return;
+    if (!initialSession) {
+      setIsCheckingSession(false);
+      return;
+    }
+
     fetch('/api/auth/session')
       .then((response) => {
         if (!response.ok) throw new Error('Session expired');
         return response.json();
       })
       .then((data) => {
-        if (data?.session) setSession(data.session);
+        if (data?.session) {
+          setSession(data.session);
+          return;
+        }
+        localStorage.removeItem(SESSION_KEY);
+        setSession(null);
       })
       .catch(() => {
         localStorage.removeItem(SESSION_KEY);
         setSession(null);
+      })
+      .finally(() => {
+        setIsCheckingSession(false);
       });
   }, [initialSession]);
 
@@ -127,6 +140,7 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
     error,
     usesDevPassword,
     isSubmitting,
+    isCheckingSession,
     login,
     logout,
   };

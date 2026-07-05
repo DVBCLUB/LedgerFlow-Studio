@@ -69,26 +69,30 @@ export interface ChainExecutionRun {
 
 // ─── Storage ────────────────────────────────────────────────────────
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
-const CHAINS_FILE = path.join(process.cwd(), 'prompt_chains.json');
-const RUNS_FILE = path.join(process.cwd(), 'chain_runs.json');
+const CHAINS_FILE = resolveRuntimePathFromEnv('PROMPT_CHAINS_FILE', 'prompt_chains.json');
+const RUNS_FILE = resolveRuntimePathFromEnv('CHAIN_RUNS_FILE', 'chain_runs.json');
 
 let chains: PromptChain[] = [];
 let execRuns: ChainExecutionRun[] = [];
 
 async function loadAll(): Promise<void> {
   try {
-    if (fs.existsSync(CHAINS_FILE)) chains = JSON.parse(await fs.promises.readFile(CHAINS_FILE, 'utf8'));
-    if (fs.existsSync(RUNS_FILE)) execRuns = JSON.parse(await fs.promises.readFile(RUNS_FILE, 'utf8'));
+    const chainsFile = resolveRuntimeReadPathFromEnv('PROMPT_CHAINS_FILE', 'prompt_chains.json');
+    const runsFile = resolveRuntimeReadPathFromEnv('CHAIN_RUNS_FILE', 'chain_runs.json');
+    if (fs.existsSync(chainsFile)) chains = JSON.parse(await fs.promises.readFile(chainsFile, 'utf8'));
+    if (fs.existsSync(runsFile)) execRuns = JSON.parse(await fs.promises.readFile(runsFile, 'utf8'));
   } catch { }
 }
 loadAll().catch(() => undefined);
 
 async function saveChains(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(CHAINS_FILE, JSON.stringify(chains, null, 2), 'utf8');
 }
 async function saveRuns(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(RUNS_FILE, JSON.stringify(execRuns.slice(-50), null, 2), 'utf8');
 }
 

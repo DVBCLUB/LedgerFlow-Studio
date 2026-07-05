@@ -186,7 +186,7 @@ export async function runAutoRepairLoop(
 
       const currentStep = {
         loop: loops,
-        errors: check.errors,
+        errors: check.errors || "",
         fixedFiles: [] as string[],
       };
       steps.push(currentStep);
@@ -289,7 +289,7 @@ export async function runAutoRepairLoop(
     // Record final state failure if we reached maximum retries
     steps.push({
       loop: loops + 1,
-      errors: finalCheck.errors,
+      errors: finalCheck.errors || "",
       fixedFiles: [],
     });
 

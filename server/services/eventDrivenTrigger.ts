@@ -11,9 +11,9 @@
  */
 import { randomUUID } from 'node:crypto';
 import fs from 'fs';
-import path from 'path';
 import { appendAuditEvent } from './auditLog';
 import { runAgenticLoop, type AgenticLoopOptions } from './agenticLoopEngine';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type TriggerType = 'ci_failure' | 'file_change' | 'cron' | 'webhook' | 'manual';
@@ -54,8 +54,8 @@ export interface TriggerEvent {
 }
 
 // ─── Store ──────────────────────────────────────────────────────────
-const TRIGGER_FILE = path.join(process.cwd(), 'trigger_rules.json');
-const EVENTS_FILE = path.join(process.cwd(), 'trigger_events.json');
+const TRIGGER_FILE = resolveRuntimePathFromEnv('TRIGGER_RULES_FILE', 'trigger_rules.json');
+const EVENTS_FILE = resolveRuntimePathFromEnv('TRIGGER_EVENTS_FILE', 'trigger_events.json');
 
 let rules: TriggerRule[] = [];
 let events: TriggerEvent[] = [];
@@ -111,8 +111,9 @@ const DEFAULT_RULES: TriggerRule[] = [
 
 async function loadRules(): Promise<void> {
   try {
-    if (fs.existsSync(TRIGGER_FILE)) {
-      const raw = await fs.promises.readFile(TRIGGER_FILE, 'utf8');
+    const triggerFile = resolveRuntimeReadPathFromEnv('TRIGGER_RULES_FILE', 'trigger_rules.json');
+    if (fs.existsSync(triggerFile)) {
+      const raw = await fs.promises.readFile(triggerFile, 'utf8');
       rules = JSON.parse(raw);
     } else {
       rules = [...DEFAULT_RULES];
@@ -124,18 +125,21 @@ async function loadRules(): Promise<void> {
 }
 
 async function saveRules(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(TRIGGER_FILE, JSON.stringify(rules, null, 2), 'utf8');
 }
 
 async function loadEvents(): Promise<void> {
   try {
-    if (fs.existsSync(EVENTS_FILE)) {
-      events = JSON.parse(await fs.promises.readFile(EVENTS_FILE, 'utf8'));
+    const eventsFile = resolveRuntimeReadPathFromEnv('TRIGGER_EVENTS_FILE', 'trigger_events.json');
+    if (fs.existsSync(eventsFile)) {
+      events = JSON.parse(await fs.promises.readFile(eventsFile, 'utf8'));
     }
   } catch { events = []; }
 }
 
 async function saveEvents(): Promise<void> {
+  ensureRuntimeRootSync();
   // Keep last 200 events
   const trimmed = events.slice(-200);
   await fs.promises.writeFile(EVENTS_FILE, JSON.stringify(trimmed, null, 2), 'utf8');

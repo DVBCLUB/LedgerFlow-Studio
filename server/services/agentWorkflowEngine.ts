@@ -550,7 +550,7 @@ export async function startWorkflow(
   };
 
   await mutate((store) => { store.workflows[workflowId] = workflow; });
-  await appendAuditEvent({ actor: userId, workspace: 'ai-ops', action: 'workflow.started', target: workflowId, risk: 'LOW', status: 'running', summary: `Workflow "${template.name}" started.`, evidence: { templateId, stepCount: template.steps.length } });
+  await appendAuditEvent({ actor: userId, workspace: 'ai-ops', action: 'workflow.started', target: workflowId, risk: 'LOW', status: 'sandbox', summary: `Workflow "${template.name}" started.`, evidence: { templateId, stepCount: template.steps.length } });
 
   await executeSteps(workflow, template, 0);
   return workflow;

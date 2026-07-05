@@ -20,7 +20,9 @@
  * ============================================================
  */
 
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request as ExpressRequest, Response, NextFunction } from "express";
+
+type Request<P = Record<string, string>, ResBody = any, ReqBody = any, ReqQuery = any, Loc extends Record<string, any> = Record<string, any>> = ExpressRequest<P, ResBody, ReqBody, ReqQuery, Loc>;
 import { auditOpenClawSkillInvocation } from './services/openClawSkillInvocationGateway';
 import { getOpenClawSkill, getOpenClawSkillSummary, listOpenClawSkills } from './services/openClawSkillRegistry';
 import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './services/automationSchedulerLoop';
@@ -101,7 +103,8 @@ import { addSessionMemory, searchMemory, recordObservation, promoteToLongTerm, g
 import { agenticRetrieve, dispatchWithRag, type AgenticRagResult } from "./services/agenticRagRouter";
 import { analyzeAndOptimize, savePromptVersion, getLatestPromptVersion, listPromptVersions, type OptimizationSuggestion } from "./services/promptOptimizer";
 import { orchestrateMultiAgent, getPlan, listPlans, getAgentSpecs, storePlan, type MultiAgentOptions } from "./services/multiAgentOrchestrator";
-import { createSandboxSession, executeInSandbox, getSandboxSession, listSandboxSessions, completeSandboxSession, autoTestAndRepair, type SandboxPolicy } from "./services/sandboxCodeExecutor";
+import { createSandboxSession, executeInSandbox, getSandboxSession, listSandboxSessions, completeSandboxSession, autoTestAndRepair, runDockerDoctor, type SandboxPolicy } from "./services/sandboxCodeExecutor";
+import { createMission, runMission, getMission, listMissions, confirmMissionPush, rejectMission } from "./services/autonomousSweAgentLoop";
 import { listTriggerRules, createTriggerRule, updateTriggerRule, deleteTriggerRule, fireTrigger, listTriggerEvents, getTriggerStats, simulateCiFailure, simulateFileChange, type TriggerType } from "./services/eventDrivenTrigger";
 import { startObserver, stopObserver, runObserverCheck, getObserverConfig, getLatestReport, listRecentReports, getObserverHealth } from "./services/observerAgent";
 import { recordUsage, getSnapshot as getCostSnapshot, getAgentBudget, setAgentBudget, getModelPricing, getRecords, getDailyCosts } from "./services/costObservability";
@@ -689,7 +692,7 @@ app.post("/api/rollback", async (req: Request, res: Response) => {
 
   try {
     const result = await rollbackFile(file);
-    res.json({ ok: true, file, ...result });
+    res.json({ ok: true, file, ...(result as any) });
   } catch (err: any) {
     res.status(400).json({ ok: false, error: err.message });
   }
@@ -923,7 +926,7 @@ app.post("/api/web-ai/profiles/:id/check", async (req: Request, res: Response) =
       status: checkResult.status as any,
       error: checkResult.error,
     });
-    res.json({ ok: true, ...checkResult });
+    res.json({ ok: true, ...(checkResult as any) });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -944,7 +947,7 @@ app.post("/api/web-ai/profiles/:id/login", async (req: Request, res: Response) =
       status: checkResult.status as any,
       error: checkResult.error,
     });
-    res.json({ ok: true, ...checkResult });
+    res.json({ ok: true, ...(checkResult as any) });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -1412,7 +1415,7 @@ app.get('/api/gateway/health', async (_req: Request, res: Response) => {
 });
 
 app.post('/api/gateway/circuit/:provider/reset', async (req: Request, res: Response) => {
-  resetCircuitBreaker(req.params.provider);
+  resetCircuitBreaker(req.params.provider, req.body?.model || "default");
   res.json({ ok: true, provider: req.params.provider });
 });
 
@@ -1519,7 +1522,7 @@ app.post("/api/robot-simulation/command", async (req: Request, res: Response) =>
     }
 
     // Legacy simulation result for backward compat
-    const result = simulateRobotCommand(parsed.data);
+    const result = simulateRobotCommand(parsed.data as any);
     res.json({ success: true, result, boundary: boundaryResult });
   } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
 });
@@ -1550,7 +1553,7 @@ app.post("/api/automation-rules", (req: Request, res: Response) => {
   try {
     const parsed = automationRuleSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.issues.map(i => i.message).join(", ") });
-    const rule = createAutomationRule(parsed.data);
+    const rule = createAutomationRule(parsed.data as any);
     res.json(rule);
   } catch (err: any) { res.status(400).json({ error: err.message }); }
 });
@@ -1666,7 +1669,7 @@ app.post("/api/ai-fabric/dispatch", async (req: Request, res: Response) => {
   };
   if (!text?.trim()) return res.status(400).json({ ok: false, error: "Missing 'text' in request body." });
   try {
-    const run = await dispatchTextThroughFabric(text, systemInstruction, { domain, webPlatform, profileId, localFallback, filePath, task, agentRole });
+    const run = await dispatchTextThroughFabric(text, systemInstruction, { domain: domain as any, webPlatform, profileId, localFallback, filePath, task, agentRole: agentRole as any });
     res.json({ ok: true, run });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
@@ -2027,6 +2030,72 @@ app.post("/api/sandbox/test-repair", async (req: Request, res: Response) => {
     res.json({ ok: true, ...result });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/api/company-os/swe-agent/docker-doctor", async (_req: Request, res: Response) => {
+  try {
+    const doctor = await runDockerDoctor();
+    res.json({ ok: true, doctor });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Autonomous SWE Agent Loop endpoints
+// ---------------------------------------------------------------------------
+const sweAgentMissionSchema = z.object({
+  id: z.string().trim().optional(),
+  goalPrompt: z.string().trim().min(1),
+  platform: z.string().trim().min(1),
+  profileId: z.string().trim().optional(),
+  testCommand: z.string().trim().min(1),
+  targetFiles: z.array(z.string().trim().min(1)).min(1).max(10),
+  maxAttempts: z.number().int().min(1).max(8).optional(),
+  repoBaseBranch: z.string().trim().optional(),
+  requireHumanApprovalBeforePush: z.boolean().optional(),
+});
+
+app.post("/api/company-os/swe-agent/mission", async (req: Request, res: Response) => {
+  try {
+    const config = sweAgentMissionSchema.parse(req.body || {});
+    const mission = createMission(config);
+    const result = await runMission(mission.id);
+    res.json({ ok: true, mission: result });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/api/company-os/swe-agent/missions", async (req: Request, res: Response) => {
+  const parsedLimit = Number(req.query.limit);
+  const limit = Number.isFinite(parsedLimit) ? parsedLimit : 25;
+  res.json({ ok: true, missions: listMissions(limit) });
+});
+
+app.get("/api/company-os/swe-agent/mission/:id", async (req: Request, res: Response) => {
+  const mission = getMission(req.params.id);
+  if (!mission) return res.status(404).json({ ok: false, error: "Mission not found." });
+  res.json({ ok: true, mission });
+});
+
+app.post("/api/company-os/swe-agent/mission/:id/approve-push", async (req: Request, res: Response) => {
+  try {
+    const mission = await confirmMissionPush(req.params.id);
+    res.json({ ok: true, mission });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/company-os/swe-agent/mission/:id/reject", async (req: Request, res: Response) => {
+  try {
+    const reason = typeof req.body?.reason === "string" ? req.body.reason : undefined;
+    const mission = await rejectMission(req.params.id, reason);
+    res.json({ ok: true, mission });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
   }
 });
 
@@ -3750,7 +3819,7 @@ app.delete("/api/kb/articles/:id", async (_req: Request, res: Response) => {
 app.post("/api/context/window", async (req: Request, res: Response) => {
   const { id, maxTokens, strategy } = (req.body || {}) as any;
   if (!id) return res.status(400).json({ ok: false, error: "Missing id." });
-  const window = createContextWindow(id, maxTokens, strategy);
+  const window = createContextWindow(id, { maxTokens, ...strategy });
   res.json({ ok: true, window });
 });
 app.get("/api/context/windows", async (_req: Request, res: Response) => {
@@ -3767,9 +3836,8 @@ app.delete("/api/context/windows/:id", async (_req: Request, res: Response) => {
 app.post("/api/context/windows/:id/segment", async (req: Request, res: Response) => {
   const { type, content, priority } = (req.body || {}) as any;
   if (!content) return res.status(400).json({ ok: false, error: "Missing content." });
-  const segment = addSegment(req.params.id, type || 'user', content, priority);
-  if (!segment) return res.status(404).json({ ok: false, error: "Window not found." });
-  res.json({ ok: true, segment });
+  addSegment(req.params.id, type || 'user', content, priority);
+  res.json({ ok: true });
 });
 app.post("/api/context/windows/:id/memory", async (req: Request, res: Response) => {
   const { query, limit } = (req.body || {}) as any;
@@ -3787,7 +3855,7 @@ app.post("/api/context/windows/:id/prune", async (req: Request, res: Response) =
 });
 app.post("/api/context/windows/:id/summarize", async (req: Request, res: Response) => {
   const result = await summarizeContext(req.params.id);
-  res.json({ ok: true, ...result });
+  res.json({ ok: true, summary: result });
 });
 app.post("/api/context/estimate-tokens", async (req: Request, res: Response) => {
   const { text } = (req.body || {}) as any;

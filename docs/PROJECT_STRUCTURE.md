@@ -165,7 +165,7 @@ Scripts in `scripts/` are intentionally kept as `.mjs` Node scripts for cross-pl
 | Doctors/checks | `doctor.mjs`, `ai-doctor.mjs`, `check-*.mjs` |
 | Desktop resources | `prepare-desktop-icons.mjs` |
 | Release helpers | `write-build-manifest.mjs`, `finalize-release.mjs` |
-| Maintenance | `clean.mjs` |
+| Maintenance | `clean.mjs`, `migrate-runtime-files.mjs` |
 
 Avoid adding shell-only logic to `package.json`; prefer Node scripts so Windows/GitHub Actions/local machines behave consistently.
 
@@ -204,8 +204,15 @@ runtime/ai_prompt_registry.json
 runtime/integration_registry.json
 runtime/integration_events.log.json
 runtime/ledgerflow_audit.log.json
-company_os_control_plane.json
-web_ai_profiles.json
+runtime/company_os_control_plane.json
+runtime/web_ai_profiles.json
+runtime/conversation_threads/
+runtime/fine_tuning_data/
+runtime/job_results/
+runtime/knowledge_base/
+runtime/reports/
+runtime/snapshots/
+runtime/vector_store/
 db_storage.json
 release/
 dist/

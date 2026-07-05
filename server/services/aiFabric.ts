@@ -97,7 +97,7 @@ export async function dispatchThroughFabric(
   try {
     const stepStart = Date.now();
     const result = await routeAIThroughProvider(messages, {
-      model: options.agentRole || "ai-assistant",
+      model: (options.agentRole as any) || "ai-assistant",
       temperature: options.temperature,
       maxTokens: options.maxTokens,
       task: options.task,
@@ -169,16 +169,12 @@ export async function dispatchThroughFabric(
       recommend = { platform, reasoning: "Default dispatch" };
     }
 
-    const targetPlatform = (recommend?.platform as string) || platform;
+    const targetPlatform = ((recommend as any)?.recommendations?.[0]?.platform as string) || platform;
     const profiles = await WebAiSessionManager.listAvailableProfiles(targetPlatform, options.profileId);
     const profile = profiles[0];
 
     if (!profile) {
-      throw new WebAIError(
-        "login_required",
-        `No available ${targetPlatform} profile. Please check login status.`,
-        targetPlatform
-      );
+      throw new Error(`No available ${targetPlatform} profile. Please check login status.`);
     }
 
     const webResult = await executeWebAIAutomation(targetPlatform, userText, options.filePath, {
@@ -251,7 +247,7 @@ export async function dispatchThroughFabric(
       };
 
       const result = await routeAIThroughProvider(messages, {
-        model: "ollama-local",
+        model: "ollama-local" as any,
         temperature: options.temperature ?? 0.7,
         maxTokens: options.maxTokens ?? 1024,
         task: options.task,

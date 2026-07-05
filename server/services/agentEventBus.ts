@@ -25,7 +25,8 @@ export type AgentBusEventType =
   | 'cron.job.done'
   | 'ai.call.completed'
   | 'ai.call.failed'
-  | 'agent.step.approval_required';
+  | 'agent.step.approval_required'
+  | 'agent.step.rejected';
 
 export interface AgentBusEvent {
   id: string;

@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { appendAuditEvent } from './auditLog.ts';
 import { createApprovalFingerprint, getAgentToolContract } from './agentToolRegistry.ts';
@@ -9,6 +8,7 @@ import { signRecord, verifyRecord } from './signedRecords.ts';
 import { publish } from './agentEventBus.ts';
 import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
 import { recordRuntimeCoreMission, type RuntimeCoreMissionStatus } from './agentRuntimeCore.ts';
+import { resolveRuntimePathFromEnv } from './runtimePaths.ts';
 
 export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
 export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
@@ -30,7 +30,7 @@ export interface AgentRun {
 type RuntimeStore = { emergencyStop: boolean; stopReason?: string; runs: Record<string, AgentRun> };
 let writeQueue = Promise.resolve();
 
-function storageFile() { return path.resolve(process.cwd(), process.env.AGENT_RUNTIME_STORE_FILE || 'agent_runtime.local.enc'); }
+function storageFile() { return resolveRuntimePathFromEnv('AGENT_RUNTIME_STORE_FILE', 'agent_runtime.local.enc'); }
 async function readStoreUnsafe(): Promise<RuntimeStore> { const parsed = await readSecureJson<RuntimeStore>(storageFile(), { emergencyStop: false, runs: {} }); return { emergencyStop: Boolean(parsed.emergencyStop), stopReason: parsed.stopReason, runs: parsed.runs || {} }; }
 
 async function mutate<T>(operation: (store: RuntimeStore) => T | Promise<T>): Promise<T> {
@@ -49,6 +49,7 @@ function planSteps(plan: AgentPlan, maxSteps: number, toolInputs: Partial<Record
 function mapAgentRunStatus(status: AgentRunStatus): RuntimeCoreMissionStatus {
   if (status === 'planned') return 'planning';
   if (status === 'running') return 'running';
+  if (status === 'rejected') return 'failed';
   return status;
 }
 

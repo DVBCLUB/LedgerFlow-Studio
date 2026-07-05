@@ -115,7 +115,7 @@ function withReplayArtifact(queue: MissionExecutionQueue, step: MissionExecution
     step,
     requestedToolId: partial.requestedToolId,
     adapterToolId: partial.adapterToolId,
-    mode: partial.mode,
+    mode: partial.mode as any,
     fingerprint: partial.preview.fingerprint,
     safetyDecision: partial.safetyDecision,
     generatedEvidence: evidence,
@@ -197,19 +197,19 @@ export async function executeMissionStepToolConnector(queue: MissionExecutionQue
   let evidenceStr = '';
   try {
     if (adapterToolId === 'github_create_draft_pr') {
-      const payload = (step.payload as Record<string, unknown>) || {};
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
       const res = await createApprovedGitHubChangeRequest({
         title: (payload.title as string) || `AI Change: ${step.title}`,
-        description: (payload.description as string) || 'Draft PR created by AI Workforce',
-        files: (payload.files as string[]) || [],
+        summary: "Draft PR created by AI Workforce",
+        files: (payload.files as any) || [],
         approvalPhrase: 'APPROVE AI GITHUB PUSH',
         baseBranch: (payload.baseBranch as string) || 'main'
       });
-      evidenceStr = `Created draft PR #${res.pullRequest.number} on branch ${res.branch}`;
+      evidenceStr = `Created draft PR #${res.pullRequest?.number} on branch ${res.branch}`;
     } else if (adapterToolId === 'github_pull_local') {
-      const payload = (step.payload as Record<string, unknown>) || {};
-      const res = await gitPullLocal((payload.branch as string) || 'main');
-      evidenceStr = `Pulled branch ${res.branch}. Modified ${res.files.length} files.`;
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const res = await gitPullLocal();
+      evidenceStr = `Pulled successfully. Log: ${res.log.slice(0, 100)}`;
     } else {
       throw new Error(`Connector for tool ${adapterToolId} is not implemented.`);
     }

@@ -8,10 +8,10 @@ import {
 } from './aiWorkforceMissionReviewNotes.ts';
 import { createJsonFileLocalStore } from './aiWorkforceLocalStore.ts';
 
-export interface MissionOperatorReviewNoteStoreState {
+export type MissionOperatorReviewNoteStoreState = {
   version: 1;
   notesByQueueId: Record<string, MissionOperatorReviewNote[]>;
-}
+};
 
 function emptyState(): MissionOperatorReviewNoteStoreState {
   return { version: 1, notesByQueueId: {} };

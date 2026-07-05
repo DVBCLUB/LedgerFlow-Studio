@@ -15,7 +15,7 @@ import { recordUsage } from './costObservability.ts';
 import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
 import { agentToolContractsToSpecs } from './agentExecutionCore.ts';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface SwarmAgent {
@@ -98,15 +98,19 @@ const DEFAULT_SWARM: SwarmAgent[] = [
 ];
 
 // ─── Storage ────────────────────────────────────────────────────────
-const FILE = path.join(process.cwd(), 'swarm_missions.json');
+const FILE = resolveRuntimePathFromEnv('SWARM_MISSIONS_FILE', 'swarm_missions.json');
 let missions: SwarmMission[] = [];
 
 async function load(): Promise<void> {
-  try { if (fs.existsSync(FILE)) missions = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { }
+  try {
+    const file = resolveRuntimeReadPathFromEnv('SWARM_MISSIONS_FILE', 'swarm_missions.json');
+    if (fs.existsSync(file)) missions = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch { }
 }
 load().catch(() => undefined);
 
 async function save(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(FILE, JSON.stringify(missions.slice(-30), null, 2), 'utf8');
 }
 

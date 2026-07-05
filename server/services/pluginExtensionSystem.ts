@@ -221,7 +221,6 @@ export async function invokePlugin(pluginId: string, capability: string, params:
       permissions: plugin.manifest.permissions,
       signature: plugin.manifest.signature,
       sandbox,
-      sandbox_required,
       trustLevel: plugin.manifest.trustLevel,
     },
   });
@@ -237,7 +236,6 @@ export async function invokePlugin(pluginId: string, capability: string, params:
       permissions: plugin.manifest.permissions,
       signature: plugin.manifest.signature,
       sandbox,
-      sandbox_required,
       trustLevel: plugin.manifest.trustLevel,
     },
   }, decision);

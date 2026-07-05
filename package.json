@@ -6,6 +6,7 @@
   "type": "module",
   "main": "desktop/main.cjs",
   "scripts": {
+    "check:encoding": "node scripts/check-encoding.mjs",
     "dev": "node scripts/dev-launcher.mjs",
     "predev": "npm run prepare:icons && npm run ai:patch-daemon-entrypoint && npm run ai:patch-daemon-tools && npm run ai:patch-daemon-hardening && npm run ai:patch-telegram-missions && npm run ai:patch-patch-review-routes && npm run ai:patch-ai-workforce-command-center && npm run ai:patch-ai-workforce-snapshot-export && npm run ai:patch-ai-workforce-snapshot-export-ui",
     "dev:app": "tsx server.ts",
@@ -42,7 +43,7 @@
     "report:pr-readiness:weekly": "node scripts/summarize-pr-readiness-metrics.mjs --days 7",
     "report:pr-readiness:30d": "node scripts/summarize-pr-readiness-metrics.mjs --days 30",
     "check:ai-workforce-command-center": "node scripts/check-ai-workforce-command-center.mjs",
-    "check:company-os": "npm run lint && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:ai-workforce-command-center",
+    "check:company-os": "npm run check:encoding && npm run lint && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:ai-workforce-command-center",
     "check:software-factory": "node scripts/check-software-factory.mjs",
     "migrate:accounting-calculations": "node scripts/migrate-accounting-calculations.mjs",
     "check:build": "node scripts/check-build-output.mjs",

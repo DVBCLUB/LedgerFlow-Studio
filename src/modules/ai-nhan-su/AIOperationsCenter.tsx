@@ -7,6 +7,7 @@ const AIWorkforceRuntimePanel = lazy(() => import('./AIWorkforceRuntimePanel'));
 const AICommandCenterHubPanel = lazy(() => import('./AICommandCenterHubPanel'));
 
 const AIWorkforceMissionControl = lazy(() => import('./AIWorkforceMissionControl'));
+const AutonomousSweAgentLoopPanel = lazy(() => import('./AutonomousSweAgentLoopPanel'));
 const AIWorkforcePatchReviewSessions = lazy(() => import('./AIWorkforcePatchReviewSessions'));
 const AIWorkforcePatchSafetyRunbook = lazy(() => import('./AIWorkforcePatchSafetyRunbook'));
 const AIWorkforcePluginSecurityGuard = lazy(() => import('./AIWorkforcePluginSecurityGuard'));
@@ -360,6 +361,7 @@ export default function AIOperationsCenter() {
         </summary>
         <div className="mt-4 space-y-6">
 
+          <AutonomousSweAgentLoopPanel />
           <AIWorkforceMissionControl />
           <AIWorkforcePatchReviewSessions />
           <AIWorkforcePatchSafetyRunbook />

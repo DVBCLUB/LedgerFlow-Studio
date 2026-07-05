@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
 import { appendAuditEvent } from './auditLog';
+import { resolveRuntimeDirPath, resolveRuntimeFilePath, resolveRuntimeReadDirFromEnv, resolveRuntimeReadPathFromEnv, runtimeRoot } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface SnapshotManifest {
@@ -43,8 +44,10 @@ export interface Snapshot {
 }
 
 // ─── Config ─────────────────────────────────────────────────────────
-const SNAPSHOTS_DIR = path.join(process.cwd(), 'snapshots');
-const MANIFEST_FILE = path.join(process.cwd(), 'snapshot_manifest.json');
+const SNAPSHOTS_DIR = resolveRuntimeDirPath('snapshots');
+const SNAPSHOTS_READ_DIR = resolveRuntimeReadDirFromEnv('SNAPSHOTS_DIR', 'snapshots');
+const MANIFEST_FILE = resolveRuntimeFilePath('snapshot_manifest.json');
+const MANIFEST_READ_FILE = resolveRuntimeReadPathFromEnv('SNAPSHOT_MANIFEST_FILE', 'snapshot_manifest.json');
 
 const SYSTEM_FILES = [
   // Core system files
@@ -79,8 +82,8 @@ let snapshots: Snapshot[] = [];
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(SNAPSHOTS_DIR)) await fs.promises.mkdir(SNAPSHOTS_DIR, { recursive: true });
-    if (fs.existsSync(MANIFEST_FILE)) {
-      snapshots = JSON.parse(await fs.promises.readFile(MANIFEST_FILE, 'utf8'));
+    if (fs.existsSync(MANIFEST_READ_FILE)) {
+      snapshots = JSON.parse(await fs.promises.readFile(MANIFEST_READ_FILE, 'utf8'));
     }
   } catch { }
 }
@@ -123,7 +126,7 @@ export async function createSnapshot(
 
   // Copy system files
   for (const file of SYSTEM_FILES) {
-    const srcPath = path.join(process.cwd(), file);
+    const srcPath = path.join(runtimeRoot(), file);
     try {
       if (fs.existsSync(srcPath)) {
         const stat = fs.statSync(srcPath);
@@ -210,7 +213,7 @@ export async function createSnapshot(
 }
 
 export async function restoreSnapshot(snapId: string): Promise<{ success: boolean; restored: number; errors: number; report: string }> {
-  const snapDir = path.join(SNAPSHOTS_DIR, snapId);
+  const snapDir = path.join(SNAPSHOTS_READ_DIR, snapId);
   if (!fs.existsSync(snapDir)) return { success: false, restored: 0, errors: 0, report: 'Snapshot not found.' };
 
   let manifest: SnapshotManifest;
@@ -227,7 +230,7 @@ export async function restoreSnapshot(snapId: string): Promise<{ success: boolea
   for (const file of manifest.includedFiles) {
     try {
       const srcPath = path.join(snapDir, file);
-      const destPath = path.join(process.cwd(), file);
+      const destPath = path.join(runtimeRoot(), file);
 
       if (!fs.existsSync(srcPath)) {
         errors++;
@@ -280,7 +283,8 @@ export function getSnapshot(id: string): Snapshot | undefined {
 }
 
 export function deleteSnapshot(id: string): boolean {
-  const snapDir = path.join(SNAPSHOTS_DIR, id);
+  const snapshot = snapshots.find(s => s.id === id);
+  const snapDir = snapshot?.archivePath || path.join(SNAPSHOTS_DIR, id);
   const idx = snapshots.findIndex(s => s.id === id);
   if (idx >= 0) snapshots.splice(idx, 1);
 
@@ -306,44 +310,44 @@ function gatherSystemState(): SnapshotManifest['systemState'] {
   let rules = 0, skills = 0, reports = 0;
 
   try {
-    const wf = path.join(process.cwd(), 'workflows.json');
+    const wf = path.join(runtimeRoot(), 'workflows.json');
     if (fs.existsSync(wf)) workflows = JSON.parse(fs.readFileSync(wf, 'utf8')).length;
   } catch { }
 
   try {
-    const rpa = path.join(process.cwd(), 'rpa_scripts.json');
+    const rpa = path.join(runtimeRoot(), 'rpa_scripts.json');
     if (fs.existsSync(rpa)) rpaScripts = JSON.parse(fs.readFileSync(rpa, 'utf8')).length;
   } catch { }
 
   // Count memory files
   try {
-    const memDir = path.join(process.cwd(), 'memory');
+    const memDir = path.join(runtimeRoot(), 'memory');
     if (fs.existsSync(memDir)) memories = fs.readdirSync(memDir).filter(f => f.endsWith('.json')).length;
   } catch { }
 
   try {
-    const chain = path.join(process.cwd(), 'prompt_chains.json');
+    const chain = path.join(runtimeRoot(), 'prompt_chains.json');
     if (fs.existsSync(chain)) chains = JSON.parse(fs.readFileSync(chain, 'utf8')).length;
   } catch { }
 
   try {
-    const wr = path.join(process.cwd(), 'watch_rules.json');
+    const wr = path.join(runtimeRoot(), 'watch_rules.json');
     if (fs.existsSync(wr)) rules = JSON.parse(fs.readFileSync(wr, 'utf8')).length;
   } catch { }
 
   try {
-    const sk = path.join(process.cwd(), 'skill_registry.json');
+    const sk = path.join(runtimeRoot(), 'skill_registry.json');
     if (fs.existsSync(sk)) skills = JSON.parse(fs.readFileSync(sk, 'utf8')).length;
   } catch { }
 
   try {
-    const rptDir = path.join(process.cwd(), 'reports', 'auto-generated');
+    const rptDir = path.join(runtimeRoot(), 'reports', 'auto-generated');
     if (fs.existsSync(rptDir)) reports = fs.readdirSync(rptDir).filter(f => f.endsWith('.md')).length;
   } catch { }
 
   let costs = '0';
   try {
-    const costFile = path.join(process.cwd(), 'cost_records.json');
+    const costFile = path.join(runtimeRoot(), 'cost_records.json');
     if (fs.existsSync(costFile)) {
       const records = JSON.parse(fs.readFileSync(costFile, 'utf8'));
       const totalCost = records.reduce((s: number, r: any) => s + (r.costUsd || 0), 0);

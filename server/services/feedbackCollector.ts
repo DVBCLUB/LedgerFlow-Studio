@@ -153,7 +153,7 @@ export function getFeedbackStats(agent?: string, days = 30): FeedbackStats {
 
     const md = byModel[r.model] || { total: 0, sumScore: 0 };
     md.total++;
-    md.sumScore += RATING_SCORES[r.model] || 3;
+    md.sumScore += RATING_SCORES[r.rating] || 3;
     byModel[r.model] = md;
   }
 

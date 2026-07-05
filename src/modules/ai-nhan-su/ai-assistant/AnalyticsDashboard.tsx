@@ -166,7 +166,7 @@ export default function AnalyticsDashboard() {
                     <XCircle className="h-3 w-3 text-rose-400 mt-0.5 shrink-0" />
                     <div>
                       <div className="text-text-secondary font-bold">{fp.pattern}</div>
-                      <div className="text-text-tertiary">{fp.agent} · {fp.domain} · {fp.occurrences} lần</div>
+                      <div className="text-text-tertiary">{fp.agent} · {fp.occurrences} lần</div>
                       <div className="text-amber-400 mt-0.5">Fix: {fp.recommendedFix}</div>
                     </div>
                   </div>

@@ -9,6 +9,7 @@ import { searchSimilar, insertDocument, createNamespace } from './vectorEmbeddin
 import { appendAuditEvent } from './auditLog';
 import fs from 'fs';
 import path from 'path';
+import { resolveRuntimeDirPath, resolveRuntimeReadDirFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface KBArticle {
@@ -21,15 +22,17 @@ export interface KBArticle {
 export interface KBCategory { name: string; description: string; articleCount: number; }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const KB_DIR = path.join(process.cwd(), 'knowledge_base');
+const KB_DIR = resolveRuntimeDirPath('knowledge_base');
+const KB_READ_DIR = resolveRuntimeReadDirFromEnv('KNOWLEDGE_BASE_DIR', 'knowledge_base');
 const INDEX_FILE = path.join(KB_DIR, '_index.json');
+const INDEX_READ_FILE = path.join(KB_READ_DIR, '_index.json');
 
 let articles: KBArticle[] = [];
 
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(KB_DIR)) await fs.promises.mkdir(KB_DIR, { recursive: true });
-    if (fs.existsSync(INDEX_FILE)) articles = JSON.parse(await fs.promises.readFile(INDEX_FILE, 'utf8'));
+    if (fs.existsSync(INDEX_READ_FILE)) articles = JSON.parse(await fs.promises.readFile(INDEX_READ_FILE, 'utf8'));
     // Seed vector namespace
     createNamespace('knowledge_base');
   } catch { }

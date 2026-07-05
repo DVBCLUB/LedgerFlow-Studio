@@ -474,8 +474,3 @@ export async function registerDeferredRoutes(app: Express): Promise<void> {
 // and loaded lazily
 // ==========================================================================
 
-/**
- * Simplified version: Just re-export the main registration function
- * The full implementation would move all routes from server.ts here
- */
-export { registerDeferredRoutes };

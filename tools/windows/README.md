@@ -12,6 +12,8 @@ BUILD_WINDOWS_INSTALLER.bat
 
 Script nay tu quay ve thu muc goc project, cai dependencies, tao lai icon Windows hop le, build web/server va tao `release/win-unpacked/LedgerFlow Hub.exe`.
 
+De chay moi truong dev local tren Windows, dung `RUN_LOCAL_DEV.bat`.
+
 ## Ban tai cho nguoi dung
 
 Nguoi dung khong nen tai nut **Code > Download ZIP** cua GitHub vi do la source code. Ban phat hanh dung nam trong:

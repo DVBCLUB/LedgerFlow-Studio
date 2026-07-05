@@ -12,6 +12,7 @@
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -48,9 +49,9 @@ export interface CompoundMemoryStats {
 }
 
 // ─── Storage paths ──────────────────────────────────────────────────
-const SHORT_TERM_FILE = path.join(process.cwd(), 'compound_memory_short_term.json');
+const SHORT_TERM_FILE = resolveRuntimePathFromEnv('COMPOUND_MEMORY_SHORT_TERM_FILE', 'compound_memory_short_term.json');
 const LONG_TERM_FILE = path.join(process.cwd(), 'MEMORY.md');
-const CURATION_META_FILE = path.join(process.cwd(), 'compound_memory_meta.json');
+const CURATION_META_FILE = resolveRuntimePathFromEnv('COMPOUND_MEMORY_META_FILE', 'compound_memory_meta.json');
 
 // ─── Session memory (in-memory) ─────────────────────────────────────
 const sessionMemory = new Map<string, MemoryRecord>();
@@ -61,8 +62,9 @@ let shortTermCache: MemoryRecord[] | null = null;
 async function loadShortTerm(): Promise<MemoryRecord[]> {
   if (shortTermCache) return shortTermCache;
   try {
-    if (!fs.existsSync(SHORT_TERM_FILE)) return [];
-    const raw = await fs.promises.readFile(SHORT_TERM_FILE, 'utf8');
+    const shortTermFile = resolveRuntimeReadPathFromEnv('COMPOUND_MEMORY_SHORT_TERM_FILE', 'compound_memory_short_term.json');
+    if (!fs.existsSync(shortTermFile)) return [];
+    const raw = await fs.promises.readFile(shortTermFile, 'utf8');
     shortTermCache = JSON.parse(raw) as MemoryRecord[];
     return shortTermCache!;
   } catch {
@@ -72,6 +74,7 @@ async function loadShortTerm(): Promise<MemoryRecord[]> {
 
 async function saveShortTerm(records: MemoryRecord[]): Promise<void> {
   shortTermCache = records;
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(SHORT_TERM_FILE, JSON.stringify(records, null, 2), 'utf8');
 }
 
@@ -87,10 +90,11 @@ let curationMeta: CurationMeta | null = null;
 async function loadCurationMeta(): Promise<CurationMeta> {
   if (curationMeta) return curationMeta;
   try {
-    if (!fs.existsSync(CURATION_META_FILE)) {
+    const curationMetaFile = resolveRuntimeReadPathFromEnv('COMPOUND_MEMORY_META_FILE', 'compound_memory_meta.json');
+    if (!fs.existsSync(curationMetaFile)) {
       return { curatedByIds: [], version: 1 };
     }
-    curationMeta = JSON.parse(await fs.promises.readFile(CURATION_META_FILE, 'utf8'));
+    curationMeta = JSON.parse(await fs.promises.readFile(curationMetaFile, 'utf8'));
     return curationMeta!;
   } catch {
     return { curatedByIds: [], version: 1 };
@@ -99,6 +103,7 @@ async function loadCurationMeta(): Promise<CurationMeta> {
 
 async function saveCurationMeta(meta: CurationMeta): Promise<void> {
   curationMeta = meta;
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(CURATION_META_FILE, JSON.stringify(meta, null, 2), 'utf8');
 }
 

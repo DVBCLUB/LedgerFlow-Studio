@@ -11,7 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { dispatchTextThroughFabric } from './aiFabric';
 import { appendAuditEvent } from './auditLog';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface VoterAgent {
@@ -75,14 +75,18 @@ const DEFAULT_VOTERS: VoterAgent[] = [
 ];
 
 // ─── Storage ────────────────────────────────────────────────────────
-const FILE = path.join(process.cwd(), 'voting_sessions.json');
+const FILE = resolveRuntimePathFromEnv('VOTING_SESSIONS_FILE', 'voting_sessions.json');
 let sessions: VotingSession[] = [];
 
 async function load(): Promise<void> {
-  try { if (fs.existsSync(FILE)) sessions = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { }
+  try {
+    const file = resolveRuntimeReadPathFromEnv('VOTING_SESSIONS_FILE', 'voting_sessions.json');
+    if (fs.existsSync(file)) sessions = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch { }
 }
 load().catch(() => undefined);
 async function save(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(FILE, JSON.stringify(sessions.slice(-30), null, 2), 'utf8');
 }
 

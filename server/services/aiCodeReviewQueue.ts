@@ -10,7 +10,7 @@ import { dispatchTextThroughFabric } from './aiFabric';
 import { appendAuditEvent } from './auditLog';
 import { auditFile } from './aiSecurityAuditor';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface ReviewComment {
@@ -67,12 +67,20 @@ const REVIEWER_PROFILES: Array<{ name: string; systemPrompt: string; focus: stri
 ];
 
 // ─── Storage ────────────────────────────────────────────────────────
-const FILE = path.join(process.cwd(), 'code_reviews.json');
+const FILE = resolveRuntimePathFromEnv('CODE_REVIEWS_FILE', 'code_reviews.json');
 let reviews: CodeReviewRun[] = [];
 
-async function load(): Promise<void> { try { if (fs.existsSync(FILE)) reviews = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { } }
+async function load(): Promise<void> {
+  try {
+    const file = resolveRuntimeReadPathFromEnv('CODE_REVIEWS_FILE', 'code_reviews.json');
+    if (fs.existsSync(file)) reviews = JSON.parse(await fs.promises.readFile(file, 'utf8'));
+  } catch { }
+}
 load().catch(() => undefined);
-async function save(): Promise<void> { await fs.promises.writeFile(FILE, JSON.stringify(reviews.slice(-30), null, 2), 'utf8'); }
+async function save(): Promise<void> {
+  ensureRuntimeRootSync();
+  await fs.promises.writeFile(FILE, JSON.stringify(reviews.slice(-30), null, 2), 'utf8');
+}
 
 // ─── Core API ───────────────────────────────────────────────────────
 
@@ -135,7 +143,7 @@ export async function runCodeReview(
       try {
         const prompt = `Review this code as a ${reviewer.name}. Focus on: ${reviewer.focus.join(', ')}.
 
-FILE: ${path.basename(fp)} (${lines.length} lines)
+FILE: ${fp.split(/[\\/]/).pop() || fp} (${lines.length} lines)
 
 CODE:
 \`\`\`typescript

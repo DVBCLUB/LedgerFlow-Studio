@@ -12,6 +12,7 @@ import { execSync, exec } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { appendAuditEvent } from './auditLog';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type RPAActionType = 'shell' | 'copy_file' | 'move_file' | 'delete_file' | 'http_request' | 'wait' | 'notify';
@@ -65,8 +66,8 @@ export interface RPAExecution {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const SCRIPTS_FILE = path.join(process.cwd(), 'rpa_scripts.json');
-const EXEC_FILE = path.join(process.cwd(), 'rpa_executions.json');
+const SCRIPTS_FILE = resolveRuntimePathFromEnv('RPA_SCRIPTS_FILE', 'rpa_scripts.json');
+const EXEC_FILE = resolveRuntimePathFromEnv('RPA_EXECUTIONS_FILE', 'rpa_executions.json');
 
 let scripts: RPAScript[] = [];
 let executions: RPAExecution[] = [];
@@ -74,16 +75,20 @@ const cronTimers = new Map<string, ReturnType<typeof setInterval>>();
 
 async function loadAll(): Promise<void> {
   try {
-    if (fs.existsSync(SCRIPTS_FILE)) scripts = JSON.parse(await fs.promises.readFile(SCRIPTS_FILE, 'utf8'));
-    if (fs.existsSync(EXEC_FILE)) executions = JSON.parse(await fs.promises.readFile(EXEC_FILE, 'utf8'));
+    const scriptsFile = resolveRuntimeReadPathFromEnv('RPA_SCRIPTS_FILE', 'rpa_scripts.json');
+    const execFile = resolveRuntimeReadPathFromEnv('RPA_EXECUTIONS_FILE', 'rpa_executions.json');
+    if (fs.existsSync(scriptsFile)) scripts = JSON.parse(await fs.promises.readFile(scriptsFile, 'utf8'));
+    if (fs.existsSync(execFile)) executions = JSON.parse(await fs.promises.readFile(execFile, 'utf8'));
   } catch { }
 }
 loadAll().catch(() => undefined);
 
 async function saveScripts(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(SCRIPTS_FILE, JSON.stringify(scripts, null, 2), 'utf8');
 }
 async function saveExecs(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(EXEC_FILE, JSON.stringify(executions.slice(-100), null, 2), 'utf8');
 }
 

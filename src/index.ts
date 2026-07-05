@@ -18,7 +18,8 @@
 export * from './components';
 
 // App
-export * from './app';
+// Use the explicit index path to avoid Windows resolving ./app as ./App.tsx.
+export * from './app/index';
 
 // Context
 export * from './context';

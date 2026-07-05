@@ -13,6 +13,7 @@ import path from 'path';
 import { appendAuditEvent } from './auditLog';
 import { autoRemediate } from './autoRemediationPipeline';
 import { executeScript } from './rpaEngine';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type WatchEventType = 'created' | 'modified' | 'deleted' | 'renamed';
@@ -52,8 +53,8 @@ export interface WatchEvent {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const RULES_FILE = path.join(process.cwd(), 'watch_rules.json');
-const EVENTS_FILE = path.join(process.cwd(), 'watch_events.json');
+const RULES_FILE = resolveRuntimePathFromEnv('WATCH_RULES_FILE', 'watch_rules.json');
+const EVENTS_FILE = resolveRuntimePathFromEnv('WATCH_EVENTS_FILE', 'watch_events.json');
 
 let rules: WatchRule[] = [];
 let events: WatchEvent[] = [];
@@ -62,14 +63,22 @@ const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
 
 async function loadAll(): Promise<void> {
   try {
-    if (fs.existsSync(RULES_FILE)) rules = JSON.parse(await fs.promises.readFile(RULES_FILE, 'utf8'));
-    if (fs.existsSync(EVENTS_FILE)) events = JSON.parse(await fs.promises.readFile(EVENTS_FILE, 'utf8'));
+    const rulesFile = resolveRuntimeReadPathFromEnv('WATCH_RULES_FILE', 'watch_rules.json');
+    const eventsFile = resolveRuntimeReadPathFromEnv('WATCH_EVENTS_FILE', 'watch_events.json');
+    if (fs.existsSync(rulesFile)) rules = JSON.parse(await fs.promises.readFile(rulesFile, 'utf8'));
+    if (fs.existsSync(eventsFile)) events = JSON.parse(await fs.promises.readFile(eventsFile, 'utf8'));
   } catch { }
 }
 loadAll().catch(() => undefined);
 
-async function saveRules(): Promise<void> { await fs.promises.writeFile(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8'); }
-async function saveEvents(): Promise<void> { await fs.promises.writeFile(EVENTS_FILE, JSON.stringify(events.slice(-200), null, 2), 'utf8'); }
+async function saveRules(): Promise<void> {
+  ensureRuntimeRootSync();
+  await fs.promises.writeFile(RULES_FILE, JSON.stringify(rules, null, 2), 'utf8');
+}
+async function saveEvents(): Promise<void> {
+  ensureRuntimeRootSync();
+  await fs.promises.writeFile(EVENTS_FILE, JSON.stringify(events.slice(-200), null, 2), 'utf8');
+}
 
 // ─── Core API ───────────────────────────────────────────────────────
 

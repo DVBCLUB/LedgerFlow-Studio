@@ -104,7 +104,7 @@ function markdownExport(queue: MissionExecutionQueue, runbook: MissionOperatorRu
     ? artifacts.map((item) => `- **${item.title}** (${item.kind}) — ${item.stepTitle}: ${item.value}`).join('\n')
     : '- No evidence artifacts captured yet.';
   const timeline = queue.timeline.length
-    ? queue.timeline.map((item) => `- ${item.createdAt}: ${item.event} by ${item.actor} — ${item.summary}`).join('\n')
+    ? queue.timeline.map((item) => `- ${item.createdAt}: ${(item as any).event || (item as any).action} by ${item.actor} — ${item.summary}`).join('\n')
     : '- No timeline events captured.';
   const reviewNotes = reviewDossier.notes.length
     ? reviewDossier.notes.map((note) => `- **${note.decision}** by ${note.reviewer}: ${note.summary}\n  - Requested action: ${note.requestedAction}\n  - Checksum: ${note.checksum}`).join('\n')

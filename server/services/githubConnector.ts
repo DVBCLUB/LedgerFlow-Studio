@@ -269,7 +269,7 @@ function mapWorkflowJob(job: any): GitHubWorkflowJobSummary {
     htmlUrl: String(job.html_url || ""),
     startedAt: job.started_at ?? null,
     completedAt: job.completed_at ?? null,
-    failedSteps: steps.filter((step) => step.conclusion === "failure" || step.conclusion === "cancelled"),
+    failedSteps: steps.filter((step: any) => step.conclusion === "failure" || step.conclusion === "cancelled"),
     steps,
   };
 }
@@ -459,7 +459,7 @@ export async function getGitHubWorkflowRunJobs(inputRepo: string | undefined, ru
     return { jobs: [] };
   });
   const jobs = Array.isArray(jobsResponse.jobs) ? jobsResponse.jobs.map(mapWorkflowJob) : [];
-  const failedJobs = jobs.filter((job) => job.conclusion === "failure" || job.failedSteps.length > 0);
+  const failedJobs = jobs.filter((job: any) => job.conclusion === "failure" || job.failedSteps.length > 0);
   return {
     repo,
     runId,

@@ -17,6 +17,7 @@ import { getBenchmarkRuns } from './modelBenchmark';
 import { appendAuditEvent } from './auditLog';
 import fs from 'fs';
 import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimeDirPath, resolveRuntimePathFromEnv, resolveRuntimeReadDirFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type ReportType = 'daily' | 'weekly' | 'monthly' | 'custom';
@@ -58,8 +59,9 @@ export interface GeneratedReport {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const SCHEDULES_FILE = path.join(process.cwd(), 'report_schedules.json');
-const REPORTS_DIR = path.join(process.cwd(), 'reports', 'auto-generated');
+const SCHEDULES_FILE = resolveRuntimePathFromEnv('REPORT_SCHEDULES_FILE', 'report_schedules.json');
+const REPORTS_DIR = path.join(resolveRuntimeDirPath('reports'), 'auto-generated');
+const REPORTS_READ_DIR = path.join(resolveRuntimeReadDirFromEnv('REPORTS_DIR', 'reports'), 'auto-generated');
 
 let schedules: ReportSchedule[] = [];
 let generated: GeneratedReport[] = [];
@@ -68,19 +70,23 @@ const cronTimers = new Map<string, ReturnType<typeof setInterval>>();
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(REPORTS_DIR)) await fs.promises.mkdir(REPORTS_DIR, { recursive: true });
-    if (fs.existsSync(SCHEDULES_FILE)) schedules = JSON.parse(await fs.promises.readFile(SCHEDULES_FILE, 'utf8'));
+    const schedulesFile = resolveRuntimeReadPathFromEnv('REPORT_SCHEDULES_FILE', 'report_schedules.json');
+    if (fs.existsSync(schedulesFile)) schedules = JSON.parse(await fs.promises.readFile(schedulesFile, 'utf8'));
     // Load previously generated reports
-    if (fs.existsSync(REPORTS_DIR)) {
-      const files = fs.readdirSync(REPORTS_DIR).filter(f => f.endsWith('.report.json'));
+    if (fs.existsSync(REPORTS_READ_DIR)) {
+      const files = fs.readdirSync(REPORTS_READ_DIR).filter(f => f.endsWith('.report.json'));
       for (const f of files.slice(-20)) {
-        try { generated.push(JSON.parse(await fs.promises.readFile(path.join(REPORTS_DIR, f), 'utf8'))); } catch { }
+        try { generated.push(JSON.parse(await fs.promises.readFile(path.join(REPORTS_READ_DIR, f), 'utf8'))); } catch { }
       }
     }
   } catch { }
 }
 init().catch(() => undefined);
 
-async function saveSchedules(): Promise<void> { await fs.promises.writeFile(SCHEDULES_FILE, JSON.stringify(schedules, null, 2), 'utf8'); }
+async function saveSchedules(): Promise<void> {
+  ensureRuntimeRootSync();
+  await fs.promises.writeFile(SCHEDULES_FILE, JSON.stringify(schedules, null, 2), 'utf8');
+}
 
 // ─── Core API ───────────────────────────────────────────────────────
 

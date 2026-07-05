@@ -78,8 +78,8 @@ function recordAgenticLoopSnapshot(run: AgenticLoopRun, event: string) {
       updatedAt: run.updatedAt,
       completedAt: run.completedAt,
       stepCount: run.steps.length,
-      completedStepCount: run.steps.filter((step) => step.status === 'completed').length,
-      failedStepCount: run.steps.filter((step) => step.status === 'failed').length,
+      completedStepCount: run.steps.filter((step) => step.phase === 'completed').length,
+      failedStepCount: run.steps.filter((step) => step.phase === 'failed').length,
       maxLoops: run.maxLoops,
       maxRepairAttempts: run.maxRepairAttempts,
       autoRepair: run.autoRepair,
@@ -132,7 +132,7 @@ export async function runAgenticLoop(options: AgenticLoopOptions): Promise<Agent
 
   try {
     // ── Phase: Planning ───────────────────────────────────────────
-    const plan = await generatePlan(options.goal, options.domain, options.systemInstruction);
+    const plan = await generatePlan(options.goal, options.domain || "general", options.systemInstruction || "");
     run.plan = plan;
     run.status = 'executing';
     run.updatedAt = new Date().toISOString();
@@ -216,7 +216,7 @@ export async function runAgenticLoop(options: AgenticLoopOptions): Promise<Agent
     status: run.status === 'completed' ? 'executed' : 'failed',
     summary: `Agentic loop ${runId} ${run.status}: ${run.summary?.slice(0, 80)}`,
     connectorId: 'agentic-loop',
-    evidence: { runId, status: run.status, steps: run.steps.length, planLength: plan.length },
+    evidence: { runId, status: run.status, steps: run.steps.length, planLength: run.plan.length },
   }).catch(() => undefined);
 
   // Track cost & knowledge graph

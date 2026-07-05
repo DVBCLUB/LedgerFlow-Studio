@@ -13,6 +13,7 @@ import { executeScript } from './rpaEngine';
 import { runRuntimeCoreMission } from './agentRuntimeCore.ts';
 import fs from 'fs';
 import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimeDirPath, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type JobType = 'ai_task' | 'rpa_script' | 'agent_loop' | 'report_generate' | 'audit' | 'refactor';
@@ -51,8 +52,8 @@ export interface QueueStats {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const QUEUE_FILE = path.join(process.cwd(), 'job_queue.json');
-const JOBS_DIR = path.join(process.cwd(), 'job_results');
+const QUEUE_FILE = resolveRuntimePathFromEnv('JOB_QUEUE_FILE', 'job_queue.json');
+const JOBS_DIR = resolveRuntimeDirPath('job_results');
 
 const MAX_CONCURRENT = 4;
 const PRIORITY_WEIGHTS: Record<JobPriority, number> = { critical: 0, high: 1, normal: 2, low: 3 };
@@ -65,8 +66,9 @@ let deadLetterJobs: BackgroundJob[] = [];
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(JOBS_DIR)) await fs.promises.mkdir(JOBS_DIR, { recursive: true });
-    if (fs.existsSync(QUEUE_FILE)) {
-      const data = JSON.parse(await fs.promises.readFile(QUEUE_FILE, 'utf8'));
+    const queueFile = resolveRuntimeReadPathFromEnv('JOB_QUEUE_FILE', 'job_queue.json');
+    if (fs.existsSync(queueFile)) {
+      const data = JSON.parse(await fs.promises.readFile(queueFile, 'utf8'));
       queue = data.queue || [];
       deadLetterJobs = data.deadLetter || [];
       // Reset running jobs to failed if daemon restarted
@@ -79,6 +81,7 @@ async function init(): Promise<void> {
 init().catch(() => undefined);
 
 async function persist(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(QUEUE_FILE, JSON.stringify({ queue: queue.slice(-500), deadLetter: deadLetterJobs.slice(-100) }, null, 2), 'utf8');
 }
 

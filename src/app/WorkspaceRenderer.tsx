@@ -189,6 +189,16 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'tax_simulator', label: 'Tax Simulator', icon: Calculator },
     { id: 'approval', label: 'Duyệt chi phí', icon: CheckCircle },
   ],
+  projects_delivery: [
+    { id: 'portfolio', label: 'Danh mục dự án', icon: FolderKanban },
+    { id: 'industry_templates', label: 'Mẫu ngành', icon: Database },
+    { id: 'admin_ops', label: 'Admin Ops', icon: UsersRound },
+  ],
+  documents_approval: [
+    { id: 'approvals', label: 'Luồng phê duyệt', icon: CheckCircle },
+    { id: 'audit', label: 'Kiểm soát hồ sơ', icon: ShieldCheck },
+    { id: 'evidence', label: 'Audit trail', icon: FileCheck2 },
+  ],
   ai_factory: [
     { id: 'command', label: 'Trung tâm Điều hành', icon: Bot },
     { id: 'builder', label: 'Lắp ráp & Năng lực', icon: Sparkles },
@@ -575,6 +585,81 @@ function OperationsWorkspace({ subtab }: { subtab: string }) {
   return <ProjectPortfolioPanel />;
 }
 
+function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'industry_templates') {
+    return (
+      <div className="space-y-5">
+        <WorkspaceHero
+          title="Mẫu ngành & Delivery"
+          description="Các template theo ngành được đặt dưới dự án/delivery, không còn là danh tính sản phẩm toàn cục."
+          chips={['Construction', 'Service', 'Trading', 'Manufacturing']}
+        />
+        <ProjectPortfolioPanel />
+        <ProcurementLogisticsPanel />
+      </div>
+    );
+  }
+  if (subtab === 'admin_ops') {
+    return (
+      <div className="space-y-5">
+        <WorkspaceHero
+          title="Admin Ops theo dự án"
+          description="Theo dõi hành chính vận hành, nhân sự triển khai và chi phí hỗ trợ delivery."
+          chips={['Admin', 'Delivery', 'Internal Ops']}
+        />
+        <HRAdminPanel />
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Dự án & Delivery"
+        description="Theo dõi dự án sản phẩm, triển khai khách hàng, milestone, ngân sách, rủi ro và gói template theo ngành."
+        chips={['Sản phẩm', 'Triển khai', 'Mẫu ngành']}
+      />
+      <ProjectPortfolioPanel />
+    </div>
+  );
+}
+
+function DocumentsApprovalWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'audit') {
+    return (
+      <div className="space-y-5">
+        <WorkspaceHero
+          title="Kiểm soát hồ sơ"
+          description="Kiểm tra chứng từ, bằng chứng nghiệp vụ, rủi ro phê duyệt và các điểm cần bổ sung."
+          chips={['Hồ sơ', 'Audit', 'Risk']}
+        />
+        <InternalAuditWorkspace />
+      </div>
+    );
+  }
+  if (subtab === 'evidence') {
+    return (
+      <div className="space-y-5">
+        <WorkspaceHero
+          title="Audit trail & bằng chứng"
+          description="Tập trung nhật ký kiểm soát, dấu vết thao tác và bằng chứng phục vụ phê duyệt hoặc phát hành."
+          chips={['Audit trail', 'Evidence', 'Control']}
+        />
+        <AuditTrailPanel />
+      </div>
+    );
+  }
+  return (
+    <div className="space-y-5">
+      <WorkspaceHero
+        title="Hồ sơ & Phê duyệt"
+        description="Quản lý luồng duyệt chi phí, yêu cầu phê duyệt, hồ sơ cần kiểm tra và trạng thái xử lý."
+        chips={['Phê duyệt', 'Chứng từ', 'Kiểm soát']}
+      />
+      <ApprovalWorkflow />
+    </div>
+  );
+}
+
 function LegacyWorkspace() {
   return (
     <div className="space-y-5">
@@ -631,10 +716,12 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
         {activeSegment === 'sales_crm' && staticConfig && <SalesCRMWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}
         {activeSegment === 'ai_factory' && <AIWorkforceWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'finance_accounting' && <FinanceWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'projects_delivery' && <ProjectsDeliveryWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'documents_approval' && <DocumentsApprovalWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'analytics' && <AnalyticsWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'system_settings' && <SettingsWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'operations' && <OperationsWorkspace subtab={currentSubTabId} />}
-        {!staticConfig && !['knowledge_library', 'finance_accounting', 'analytics', 'system_settings', 'ai_factory', 'marketing_growth', 'product_studio', 'sales_crm', 'operations'].includes(activeSegment) && <LegacyWorkspace />}
+        {!staticConfig && !['knowledge_library', 'finance_accounting', 'projects_delivery', 'documents_approval', 'analytics', 'system_settings', 'ai_factory', 'marketing_growth', 'product_studio', 'sales_crm', 'operations'].includes(activeSegment) && <LegacyWorkspace />}
       </Suspense>
     </div>
   );

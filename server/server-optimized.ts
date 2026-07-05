@@ -59,9 +59,9 @@ type ChatMessage = {
 
 // Lazy load AI Client
 let aiClient: {
-  callAI: (messages: ChatMessage[], options?: CallAIOptions) => Promise<{ text: string; provider?: string; model?: string; usage?: any }>;
-  streamAI: (messages: ChatMessage[], options?: CallAIOptions) => AsyncIterable<any>;
-  checkAIProxyHealth: () => Promise<{ healthy: boolean; providers: string[] }>;
+  callAI: (messages: ChatMessage[], options?: any) => Promise<any>;
+  streamAI: (messages: ChatMessage[], options?: any) => any;
+  checkAIProxyHealth: () => Promise<any>;
 } | null = null;
 
 async function getAIClient() {
@@ -85,9 +85,9 @@ let aiKeyVault: {
   getSupportedAIProviders: () => any[];
   importAIKeyBackup: (...args: any[]) => Promise<any>;
   listAIKeys: () => Promise<any[]>;
-  lockAIVault: () => Promise<void>;
-  setupAIVaultPassphrase: (...args: any[]) => Promise<void>;
-  unlockAIVault: (...args: any[]) => Promise<void>;
+  lockAIVault: () => Promise<any>;
+  setupAIVaultPassphrase: (...args: any[]) => Promise<any>;
+  unlockAIVault: (...args: any[]) => Promise<any>;
   updateAIKey: (...args: any[]) => Promise<any>;
 } | null = null;
 
@@ -162,10 +162,10 @@ async function getAIUsageLog() {
 
 // Lazy load AI Prompt Registry
 let aiPromptRegistry: {
-  AI_PROMPT_TASKS: string[];
+  AI_PROMPT_TASKS: readonly string[] | string[];
   activatePromptVersion: (...args: any[]) => Promise<any>;
   createPromptVersion: (...args: any[]) => Promise<any>;
-  getActivePrompt: (task: string) => Promise<any>;
+  getActivePrompt: (task: any) => Promise<any>;
   listPromptTemplates: () => Promise<any[]>;
 } | null = null;
 

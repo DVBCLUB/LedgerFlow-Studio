@@ -26,23 +26,6 @@ export interface CronStatus extends CronJobDefinition {
 }
 
 
-type CronJobName = "daily_brief" | "weekly_report" | "monthly_close_reminder" | "competitor_scan" | "ai_health_check" | "auto_backup_memory" | "product_kpi_snapshot";
-type CronJobStatus = "ok" | "error" | "skipped";
-type DailyCard = { title?: string; status?: string; risk?: string; ai_staff?: string };
-type AgentTaskRow = { agent_role?: string; status?: string; created_at?: string };
-type ProductRow = { name?: string; status?: string; mrr_vnd?: number | string | null };
-
-type RuntimeJobStatus = Pick<CronJobDefinition, "lastRun" | "lastStatus">;
-
-export interface CronJobDefinition {
-  name: CronJobName;
-  schedule: string;
-  description: string;
-  enabled: boolean;
-  lastRun?: string;
-  lastStatus?: CronJobStatus;
-}
-
 export interface CronStatus extends CronJobDefinition {
   isRunning: boolean;
   timezone: "Asia/Ho_Chi_Minh";

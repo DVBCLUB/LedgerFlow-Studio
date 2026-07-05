@@ -48,7 +48,7 @@ export interface DocumentIntelligence {
 
 // ─── Core Analysis (heuristic, no AI) ───────────────────────────────
 
-function analyzeDocumentHeuristic(filePath: string, content: string): Partial<DocumentIntelligence> {
+function analyzeDocumentHeuristic(filePath: string, content: string): Omit<DocumentIntelligence, 'id' | 'summary' | 'keyPoints' | 'generatedAt' | 'processingMs'> {
   const lines = content.split('\n');
   const wordCount = content.split(/\s+/).filter(w => w.length > 1).length;
   const readingTimeMinutes = Math.ceil(wordCount / 200);

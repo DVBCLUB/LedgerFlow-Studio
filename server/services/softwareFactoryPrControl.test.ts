@@ -37,7 +37,7 @@ test('Software Factory PR Control blocks risky PR without approvals', () => {
       { filename: 'server/services/localAuth.ts', additions: 40, deletions: 10 },
       { filename: 'server/db/schema.ts', additions: 25, deletions: 5 },
     ],
-    checks: [{ name: 'npm test', status: 'failure', conclusion: 'unit failure' }],
+    checks: [{ name: 'npm test', status: 'failure' }],
     hasRollbackPlan: false,
     requestedReviewers: [],
   });

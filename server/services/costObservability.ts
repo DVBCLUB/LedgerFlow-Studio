@@ -6,8 +6,8 @@
  * Hỗ trợ budget limits và alert khi vượt ngân sách.
  */
 import fs from 'fs';
-import path from 'path';
 import { randomUUID } from 'node:crypto';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface TokenUsage {
@@ -68,24 +68,28 @@ const MODEL_PRICING: Record<string, { prompt: number; completion: number }> = {
 };
 
 // ─── Storage ────────────────────────────────────────────────────────
-const COST_FILE = path.join(process.cwd(), 'cost_records.json');
-const BUDGET_FILE = path.join(process.cwd(), 'agent_budgets.json');
+const COST_FILE = resolveRuntimePathFromEnv('COST_RECORDS_FILE', 'cost_records.json');
+const BUDGET_FILE = resolveRuntimePathFromEnv('AGENT_BUDGETS_FILE', 'agent_budgets.json');
 
 let records: CostRecord[] = [];
 let budgets: AgentBudget[] = [];
 
 async function loadData(): Promise<void> {
   try {
-    if (fs.existsSync(COST_FILE)) records = JSON.parse(await fs.promises.readFile(COST_FILE, 'utf8'));
-    if (fs.existsSync(BUDGET_FILE)) budgets = JSON.parse(await fs.promises.readFile(BUDGET_FILE, 'utf8'));
+    const costFile = resolveRuntimeReadPathFromEnv('COST_RECORDS_FILE', 'cost_records.json');
+    const budgetFile = resolveRuntimeReadPathFromEnv('AGENT_BUDGETS_FILE', 'agent_budgets.json');
+    if (fs.existsSync(costFile)) records = JSON.parse(await fs.promises.readFile(costFile, 'utf8'));
+    if (fs.existsSync(budgetFile)) budgets = JSON.parse(await fs.promises.readFile(budgetFile, 'utf8'));
   } catch { /* init empty */ }
 }
 loadData().catch(() => undefined);
 
 async function saveRecords(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(COST_FILE, JSON.stringify(records.slice(-2000), null, 2), 'utf8');
 }
 async function saveBudgets(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(BUDGET_FILE, JSON.stringify(budgets, null, 2), 'utf8');
 }
 

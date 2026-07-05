@@ -13,6 +13,7 @@ import { getRecords } from './costObservability';
 import { getFeedbackStats } from './feedbackCollector';
 import fs from 'fs';
 import path from 'path';
+import { resolveRuntimeDirPath, resolveRuntimeReadDirFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface TrainingPair {
@@ -45,8 +46,10 @@ export interface FineTuningDataset {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const PAIRS_DIR = path.join(process.cwd(), 'fine_tuning_data');
+const PAIRS_DIR = resolveRuntimeDirPath('fine_tuning_data');
+const PAIRS_READ_DIR = resolveRuntimeReadDirFromEnv('FINE_TUNING_DATA_DIR', 'fine_tuning_data');
 const DATASETS_FILE = path.join(PAIRS_DIR, '_datasets.json');
+const DATASETS_READ_FILE = path.join(PAIRS_READ_DIR, '_datasets.json');
 
 let pairs: TrainingPair[] = [];
 let datasets: FineTuningDataset[] = [];
@@ -54,12 +57,12 @@ let datasets: FineTuningDataset[] = [];
 async function init(): Promise<void> {
   try {
     if (!fs.existsSync(PAIRS_DIR)) await fs.promises.mkdir(PAIRS_DIR, { recursive: true });
-    if (fs.existsSync(DATASETS_FILE)) datasets = JSON.parse(await fs.promises.readFile(DATASETS_FILE, 'utf8'));
+    if (fs.existsSync(DATASETS_READ_FILE)) datasets = JSON.parse(await fs.promises.readFile(DATASETS_READ_FILE, 'utf8'));
     // Load all pair files
-    const pairFiles = fs.existsSync(PAIRS_DIR) ? fs.readdirSync(PAIRS_DIR).filter(f => f.endsWith('.json') && f !== '_datasets.json') : [];
+    const pairFiles = fs.existsSync(PAIRS_READ_DIR) ? fs.readdirSync(PAIRS_READ_DIR).filter(f => f.endsWith('.json') && f !== '_datasets.json') : [];
     for (const file of pairFiles.slice(0, 10)) {
       try {
-        const filePairs = JSON.parse(await fs.promises.readFile(path.join(PAIRS_DIR, file), 'utf8'));
+        const filePairs = JSON.parse(await fs.promises.readFile(path.join(PAIRS_READ_DIR, file), 'utf8'));
         pairs.push(...filePairs);
       } catch { }
     }
@@ -179,7 +182,7 @@ export function createDataset(
   let filtered = [...pairs];
   if (options.domain) filtered = filtered.filter(p => p.domain === options.domain);
   if (options.quality) filtered = filtered.filter(p => p.quality === options.quality);
-  if (options.minConfidence) filtered = filtered.filter(p => p.confidence >= options.minConfidence);
+  if (options.minConfidence !== undefined) { const minC = options.minConfidence; filtered = filtered.filter(p => p.confidence >= minC); }
 
   filtered = filtered.slice(0, options.maxPairs || 100);
 

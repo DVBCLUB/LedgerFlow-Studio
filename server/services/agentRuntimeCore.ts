@@ -94,8 +94,8 @@ export function agenticLoopRunToRuntimeCoreMission(run: AgenticLoopRun): Runtime
     completedAt: run.completedAt,
     summary: run.summary,
     stepCount: run.steps.length,
-    completedStepCount: run.steps.filter((step) => step.status === 'completed' || step.observation.success).length,
-    failedStepCount: run.steps.filter((step) => step.status === 'failed' || (!step.observation.success && step.completedAt)).length,
+    completedStepCount: run.steps.filter((step) => step.phase === 'completed' || step.observation.success).length,
+    failedStepCount: run.steps.filter((step) => step.phase === 'failed' || (!step.observation.success && step.completedAt)).length,
     waitingApprovalCount: undefined, // TODO: not tracked at step level yet
     totalDurationMs: run.totalDurationMs,
     metadata: {

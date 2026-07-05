@@ -7,6 +7,8 @@ release/
 release-clean/
 release-erp/
 release-final/
+/LedgerFlow-Hub*.exe
+/KHOI_DONG*.cmd
 
 # IDE
 .idea/
@@ -22,6 +24,7 @@ Thumbs.db
 .env*
 !.env.example
 !.env.assistant.example
+!.env.software-factory.example
 .ledgerflow_signing_secret
 .ledgerflow_secret
 
@@ -34,7 +37,7 @@ browser_logs*.txt
 
 # Local data files - ALL runtime generated data
 # All JSON files in data/ directory are ignored
-data/
+/data/
 
 # Legacy single file ignores (kept for backward compatibility)
 ai_keys.vault.json
@@ -99,12 +102,13 @@ skill_registry.json
 trigger_rules.json
 webhook_rules.json
 web_ai_profiles.json
-job_results/
-snapshots/
-conversation_threads/
-vector_store/
-fine_tuning_data/
-knowledge_base/
-reports/
-artifacts/
-plugins/
+/job_results/
+/snapshots/
+/conversation_threads/
+/vector_store/
+/fine_tuning_data/
+/knowledge_base/
+/reports/
+/artifacts/
+/exports/
+/plugins/

@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimeDirPath, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export interface WebAIProfile {
   id: string; // e.g. "profile_1718000000"
@@ -37,8 +38,8 @@ export interface WebAIProfilePatch {
   lastError?: string | null;
 }
 
-const PROFILES_FILE = path.join(process.cwd(), 'web_ai_profiles.json');
-const CHROME_PROFILES_DIR = path.join(process.cwd(), '.chrome_profiles');
+const PROFILES_FILE = resolveRuntimePathFromEnv('WEB_AI_PROFILES_FILE', 'web_ai_profiles.json');
+const CHROME_PROFILES_DIR = resolveRuntimeDirPath('.chrome_profiles');
 
 export class WebAiSessionManager {
   public static isSupportedPlatform(platform: string): platform is WebAIPlatform {
@@ -67,10 +68,11 @@ export class WebAiSessionManager {
 
   private static async readProfiles(): Promise<WebAIProfile[]> {
     try {
-      if (!fs.existsSync(PROFILES_FILE)) {
+      const profilesFile = resolveRuntimeReadPathFromEnv('WEB_AI_PROFILES_FILE', 'web_ai_profiles.json');
+      if (!fs.existsSync(profilesFile)) {
         return [];
       }
-      const data = await fs.promises.readFile(PROFILES_FILE, 'utf8');
+      const data = await fs.promises.readFile(profilesFile, 'utf8');
       const parsed = JSON.parse(data) as Partial<WebAIProfile>[];
       return Array.isArray(parsed)
         ? parsed.map((profile) => this.normalizeProfile(profile)).filter((profile): profile is WebAIProfile => Boolean(profile))
@@ -83,6 +85,7 @@ export class WebAiSessionManager {
 
   private static async writeProfiles(profiles: WebAIProfile[]): Promise<void> {
     try {
+      ensureRuntimeRootSync();
       await fs.promises.writeFile(PROFILES_FILE, JSON.stringify(profiles, null, 2), 'utf8');
     } catch (err) {
       console.error('[Web AI Session Manager] Error writing profiles file:', err);

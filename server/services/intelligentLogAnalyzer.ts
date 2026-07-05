@@ -225,16 +225,16 @@ RECOMMENDATIONS: [3-5 bullet points, most urgent first]`;
     } catch { }
   }
 
+  const healthScore = Math.max(0, 100
+    - heuristic.anomalies.filter(a => a.level === 'CRITICAL' || a.level === 'critical').length * 20
+    - heuristic.anomalies.filter(a => a.level === 'HIGH' || a.level === 'high').length * 8
+    - heuristic.anomalies.length * 2);
+
   if (!summary) {
     summary = heuristic.anomalies.length === 0
       ? `Logs look clean. ${totalLines} lines analyzed, no critical/high anomalies detected.`
       : `Found ${heuristic.anomalies.length} anomalies in ${totalLines} log lines. Health score: ${healthScore}/100.`;
   }
-
-  const healthScore = Math.max(0, 100
-    - heuristic.anomalies.filter(a => a.level === 'CRITICAL' || a.level === 'critical').length * 20
-    - heuristic.anomalies.filter(a => a.level === 'HIGH' || a.level === 'high').length * 8
-    - heuristic.anomalies.length * 2);
 
   const analysis: LogAnalysis = {
     id: analysisId, source: filePath, fileSize, totalLines,

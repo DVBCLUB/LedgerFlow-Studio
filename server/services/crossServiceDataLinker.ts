@@ -83,10 +83,10 @@ export interface UnifiedSystemOverview {
   topRecommendations: string[];
 }
 
-export function gatherSystemOverview(): UnifiedSystemOverview {
+export async function gatherSystemOverview(): Promise<UnifiedSystemOverview> {
   const now = new Date().toISOString();
   const cost = getSnapshot(30);
-  const memStats = getMemoryStats();
+  const memStats = await getMemoryStats();
   const loopMetrics = getAgenticLoopMetrics();
   const rpa = getRPAStats();
   const watch = getWatchStats();
@@ -117,7 +117,7 @@ export function gatherSystemOverview(): UnifiedSystemOverview {
       - (memStats.totalRecords > 1000 ? 5 : 0)
     ));
   const automationScore = Math.round(
-    Math.min(100, (rpa.scripts + watch.rules + workflows.total) * 5)
+    Math.min(100, (rpa.scripts + watch.rules + listWorkflows().length) * 5)
   );
   const qualityScore = Math.round(
     Math.min(100, review.total > 0
@@ -148,13 +148,13 @@ export function gatherSystemOverview(): UnifiedSystemOverview {
   return {
     generatedAt: now,
     cost: { total30d: cost.totalCostUsd, dailyAvg: cost.totalCostUsd / 30, modelCount: Object.keys(cost.byModel).length },
-    memory: { totalRecords: (memStats as any).totalRecords || 0, shortTerm: (memStats as any).shortTerm?.count || 0, longTerm: (memStats as any).longTerm?.count || 0 },
+    memory: { totalRecords: memStats.totalRecords || 0, shortTerm: memStats.shortTerm?.count || 0, longTerm: memStats.longTerm?.count || 0 },
     agents: { completed: loopMetrics.completed, failed: loopMetrics.failed, running: loopMetrics.running },
     rpa: { scripts: rpa.scripts, executions: rpa.totalExecutions, cronActive: rpa.cronActive },
     watchers: { rules: watch.rules, active: watch.active, totalEvents: watch.totalEvents },
     workflows: { total: workflows.length, active: workflows.filter(w => (w as any).enabled).length },
     chains: { total: chains.length },
-    aiGateway: { totalRequests: gw.totalRequests, successRate: gw.successRate + '%', avgLatency: gw.avgLatency + 'ms', circuitsOpen: gw.circuitBreakersOpen },
+    aiGateway: { totalRequests: gw.totalRequests, successRate: (gw as any).successPercentage + '%', avgLatency: (gw as any).avgLatencyMs + 'ms', circuitsOpen: gw.circuitBreakersOpen },
     decisions: { totalTraces: decisions.totalTraces, avgConfidence: decisions.avgConfidence },
     sast: { avgScore: sast.avgScore, totalFindings: sast.totalFindings },
     codeReview: { total: review.total, avgScore: review.avgScore, approvedRate: review.approvedRate },

@@ -5,11 +5,14 @@
  * môi trường an toàn. Hỗ trợ Docker sandbox + fallback local.
  * Tích hợp với agentic loop để tự động chạy test + sửa lỗi.
  */
-import { execSync, spawn } from 'child_process';
+import { execFile, execSync, spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
+import { promisify } from 'node:util';
 import { appendAuditEvent } from './auditLog.ts';
+
+const execFileAsync = promisify(execFile);
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type SandboxMode = 'local' | 'docker' | 'dry_run';
@@ -37,6 +40,7 @@ export interface SandboxPolicy {
   allowNetwork: boolean;           // Cho phép network trong sandbox
   allowFileWrite: boolean;         // Cho phép ghi file
   maxFileSizeBytes: number;        // Max file size được tạo
+  isolationRequired: boolean;      // true = Docker is mandatory, no silent local fallback
 }
 
 export interface SandboxSession {
@@ -51,10 +55,27 @@ export interface SandboxSession {
   summary: string;
 }
 
+export interface DockerDoctorCheck {
+  id: string;
+  label: string;
+  ok: boolean;
+  durationMs: number;
+  outputPreview?: string;
+  error?: string;
+  hint?: string;
+}
+
+export interface DockerDoctorResult {
+  ok: boolean;
+  checkedAt: string;
+  checks: DockerDoctorCheck[];
+  summary: string;
+}
+
 // ─── Default policy ─────────────────────────────────────────────────
 
 const DEFAULT_POLICY: SandboxPolicy = {
-  mode: 'local',
+  mode: 'docker',
   timeoutMs: 120_000,
   maxOutputBytes: 500_000,
   allowedCommands: [
@@ -70,6 +91,7 @@ const DEFAULT_POLICY: SandboxPolicy = {
   allowNetwork: true,
   allowFileWrite: true,
   maxFileSizeBytes: 10 * 1024 * 1024, // 10MB
+  isolationRequired: true,
 };
 
 // ─── Active sessions ────────────────────────────────────────────────
@@ -116,7 +138,7 @@ export async function executeInSandbox(
 export async function runTestSuiteInSandbox(
   sessionId: string,
   testCommand: string,
-  options?: { filePattern?: string; approvalPhrase?: string }
+  options?: { filePattern?: string; approvalPhrase?: string; cwd?: string; env?: Record<string, string> }
 ): Promise<SandboxResult> {
   const session = activeSessions.get(sessionId);
   if (!session) throw new Error(`Sandbox session "${sessionId}" not found.`);
@@ -154,6 +176,112 @@ export async function completeSandboxSession(sessionId: string): Promise<Sandbox
 }
 
 // ─── Command execution ──────────────────────────────────────────────
+
+export async function runDockerDoctor(): Promise<DockerDoctorResult> {
+  const checks: DockerDoctorCheck[] = [];
+
+  checks.push(await runDoctorCommand({
+    id: 'docker-version',
+    label: 'Docker CLI responds',
+    file: 'docker',
+    args: ['--version'],
+    hint: 'Install Docker Desktop, then restart LedgerFlow after Docker is available in PATH.',
+  }));
+
+  checks.push(await runDoctorCommand({
+    id: 'docker-info',
+    label: 'Docker engine is running',
+    file: 'docker',
+    args: ['info', '--format', '{{.ServerVersion}}'],
+    hint: 'Start Docker Desktop and wait until the engine is ready.',
+  }));
+
+  const imageCheck = await runDoctorCommand({
+    id: 'node-image-local',
+    label: 'node:22-alpine image is available locally',
+    file: 'docker',
+    args: ['image', 'inspect', 'node:22-alpine'],
+    hint: 'Run: docker pull node:22-alpine',
+  });
+  checks.push(imageCheck);
+
+  if (imageCheck.ok) {
+    checks.push(await runDoctorCommand({
+      id: 'node-container-smoke',
+      label: 'node:22-alpine container can execute Node',
+      file: 'docker',
+      args: ['run', '--rm', '--network', 'none', 'node:22-alpine', 'node', '--version'],
+      hint: 'If the image exists but this fails, review Docker Desktop virtualization and resource settings.',
+    }));
+  } else {
+    checks.push({
+      id: 'node-container-smoke',
+      label: 'node:22-alpine container can execute Node',
+      ok: false,
+      durationMs: 0,
+      error: 'Skipped because node:22-alpine is not available locally.',
+      hint: 'Run: docker pull node:22-alpine, then run Docker Doctor again.',
+    });
+  }
+
+  const ok = checks.every((check) => check.ok);
+  const failed = checks.filter((check) => !check.ok);
+  const summary = ok
+    ? 'Docker sandbox is ready for autonomous SWE missions.'
+    : `Docker sandbox is not ready: ${failed.map((check) => check.label).join(', ')}.`;
+
+  await appendAuditEvent({
+    actor: 'system',
+    workspace: 'Sandbox Executor',
+    action: 'sandbox.docker_doctor',
+    target: 'docker',
+    risk: ok ? 'LOW' : 'MEDIUM',
+    status: ok ? 'executed' : 'failed',
+    summary,
+    connectorId: 'sandbox-executor',
+    evidence: { checks: checks.map((check) => ({ id: check.id, ok: check.ok, error: check.error })) },
+  }).catch(() => undefined);
+
+  return { ok, checkedAt: new Date().toISOString(), checks, summary };
+}
+
+async function runDoctorCommand(input: {
+  id: string;
+  label: string;
+  file: string;
+  args: string[];
+  hint: string;
+  timeoutMs?: number;
+}): Promise<DockerDoctorCheck> {
+  const started = Date.now();
+  try {
+    const result = await execFileAsync(input.file, input.args, {
+      timeout: input.timeoutMs ?? 8000,
+      windowsHide: true,
+      maxBuffer: 80_000,
+    });
+    return {
+      id: input.id,
+      label: input.label,
+      ok: true,
+      durationMs: Date.now() - started,
+      outputPreview: `${result.stdout || result.stderr || ''}`.trim().slice(0, 500),
+      hint: input.hint,
+    };
+  } catch (err: any) {
+    const timedOut = err?.killed || err?.signal === 'SIGTERM' || err?.code === 'ETIMEDOUT';
+    const output = `${err?.stdout || ''}${err?.stderr || ''}`.trim();
+    return {
+      id: input.id,
+      label: input.label,
+      ok: false,
+      durationMs: Date.now() - started,
+      outputPreview: output.slice(0, 500),
+      error: timedOut ? `Command timed out after ${input.timeoutMs ?? 8000}ms.` : (err?.message || 'Unknown Docker doctor error.'),
+      hint: input.hint,
+    };
+  }
+}
 
 async function runCommand(
   session: SandboxSession,
@@ -281,13 +409,15 @@ function executeLocally(
 async function executeInDocker(
   command: string,
   policy: SandboxPolicy,
-  options?: { cwd?: string }
+  options?: { cwd?: string; env?: Record<string, string> }
 ): Promise<{ ok: boolean; exitCode: number; stdout: string; stderr: string }> {
   // Check if Docker is available
   try {
     execSync('docker --version', { encoding: 'utf8', timeout: 5000, windowsHide: true, stdio: 'ignore' });
   } catch {
-    // Docker not available, fallback to local
+    if (policy.isolationRequired) {
+      throw new Error('SANDBOX_ISOLATION_REQUIRED: Docker khong kha dung. Khong the chay code chua kiem chung truc tiep tren may host. Cai Docker Desktop hoac dat isolationRequired=false neu chap nhan rui ro.');
+    }
     return executeLocally(command, policy, options);
   }
 

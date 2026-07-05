@@ -26,6 +26,7 @@ export interface ContextWindow {
   currentTokens: number;
   summary: string;            // Tóm tắt các segment đã bị prune
   pruneHistory: Array<{ at: string; reason: string; prunedCount: number }>;
+  createdAt?: string;
 }
 
 export interface ContextStrategy {
@@ -68,6 +69,7 @@ export function createContextWindow(
     currentTokens: 0,
     summary: '',
     pruneHistory: [],
+    createdAt: new Date().toISOString(),
   };
   activeWindows.set(id, window);
   return window;
@@ -203,18 +205,17 @@ export async function deepSummarize(windowId: string): Promise<string> {
 
 // ─── Alias exports for assistant-daemon compatibility ──────────────
 
-export function addMemoryContext(windowId: string, _query: string, _limit?: number): number {
+export async function addMemoryContext(windowId: string, _query: string, _limit?: number): Promise<number> {
   // Stub: inject memory context into window (delegates to existing injectMemoryContext)
-  const count = injectMemoryContext(windowId);
-  return count || 0;
+  await injectMemoryContext(windowId, _query);
+  return 1;
 }
 
 export function addKnowledgeContext(windowId: string, _query: string): number {
   // Stub: inject knowledge base context into window
   const window = activeWindows.get(windowId);
   if (!window) return 0;
-  const segId = `kb_${Date.now()}`;
-  addSegment(windowId, { id: segId, type: 'knowledge', content: `KB context for: ${_query.slice(0, 200)}`, tokenEstimate: estimateTokens(_query.slice(0, 200)), priority: 5, timestamp: new Date().toISOString() });
+  addSegment(windowId, 'knowledge', `KB context for: ${_query.slice(0, 200)}`, 5);
   return 1;
 }
 
@@ -222,7 +223,7 @@ export function pruneContextWindow(windowId: string): { pruned: number; remainin
   const window = activeWindows.get(windowId);
   if (!window) return { pruned: 0, remainingTokens: 0 };
   const before = window.segments.length;
-  pruneWindow(windowId, { keepLastN: 10, reserveForResponse: 1000, summarizationThreshold: 0.8, prioritySystemMin: 8 });
+  pruneWindow(windowId, { keepLastN: 10, reserveForResponse: 1000, summarizationThreshold: 0.8, prioritySystemMin: 8, maxTokens: window.maxTokens, autoInjectMemory: true });
   return { pruned: before - window.segments.length, remainingTokens: window.currentTokens };
 }
 

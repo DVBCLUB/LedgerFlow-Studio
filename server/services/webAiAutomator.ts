@@ -88,10 +88,62 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
   },
 };
 
+const XML_BLOCK_REGEX = /<code_block\s+file="([^"]+)"(?:\s+lang="([^"]+)")?\s*>([\s\S]*?)<\/code_block>/g;
+
+export function inferLanguageFromPath(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  const languageByExtension: Record<string, string> = {
+    '.ts': 'typescript',
+    '.tsx': 'tsx',
+    '.js': 'javascript',
+    '.jsx': 'jsx',
+    '.mjs': 'javascript',
+    '.cjs': 'javascript',
+    '.json': 'json',
+    '.css': 'css',
+    '.scss': 'scss',
+    '.html': 'html',
+    '.md': 'markdown',
+    '.py': 'python',
+    '.sh': 'shell',
+    '.bash': 'shell',
+    '.yml': 'yaml',
+    '.yaml': 'yaml',
+    '.sql': 'sql',
+    '.c': 'c',
+    '.cpp': 'cpp',
+    '.cs': 'csharp',
+    '.go': 'go',
+    '.rs': 'rust',
+    '.java': 'java',
+  };
+  return languageByExtension[ext] || 'text';
+}
+
+export function extractXmlCodeBlocks(text: string): WebAICodeBlock[] {
+  const blocks: WebAICodeBlock[] = [];
+  let match;
+  XML_BLOCK_REGEX.lastIndex = 0;
+
+  while ((match = XML_BLOCK_REGEX.exec(text)) !== null) {
+    const targetFile = match[1].trim();
+    blocks.push({
+      targetFile,
+      language: (match[2] || inferLanguageFromPath(targetFile)).toLowerCase(),
+      code: match[3].replace(/^\n/, '').replace(/\n$/, ''),
+    });
+  }
+
+  return blocks;
+}
+
 /**
  * Extracts code blocks from raw text and matches them to suggested filenames.
  */
 export function extractCodeBlocks(text: string, defaultTargetFile?: string): WebAICodeBlock[] {
+  const xmlBlocks = extractXmlCodeBlocks(text);
+  if (xmlBlocks.length > 0) return xmlBlocks;
+
   const codeBlocks: WebAICodeBlock[] = [];
   const regex = /```(\w*)\n([\s\S]*?)```/g;
   let match;

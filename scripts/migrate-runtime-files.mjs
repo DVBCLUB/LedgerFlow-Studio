@@ -24,6 +24,16 @@ const knownRuntimeFiles = [
   '.ledgerflow_secret',
 ];
 
+const knownRuntimeDirs = [
+  'conversation_threads',
+  'fine_tuning_data',
+  'job_results',
+  'knowledge_base',
+  'reports',
+  'snapshots',
+  'vector_store',
+];
+
 fs.mkdirSync(runtimeDir, { recursive: true });
 
 let moved = 0;
@@ -44,6 +54,23 @@ for (const file of knownRuntimeFiles) {
   fs.renameSync(src, dst);
   moved += 1;
   console.log(`moved: ${file} -> ${path.relative(root, dst)}`);
+}
+
+for (const dir of knownRuntimeDirs) {
+  const src = path.resolve(root, dir);
+  const dst = path.resolve(runtimeDir, dir);
+
+  if (!fs.existsSync(src)) {
+    continue;
+  }
+  if (fs.existsSync(dst)) {
+    skipped += 1;
+    continue;
+  }
+
+  fs.renameSync(src, dst);
+  moved += 1;
+  console.log(`moved: ${dir}/ -> ${path.relative(root, dst)}/`);
 }
 
 console.log(`runtime migration done (moved=${moved}, skipped=${skipped}).`);

@@ -12,7 +12,7 @@ import { dispatchTextThroughFabric } from './aiFabric';
 import { appendAuditEvent } from './auditLog';
 import { recordUsage } from './costObservability';
 import fs from 'fs';
-import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type WorkflowStepType = 'agent_task' | 'condition' | 'delay' | 'notify' | 'parallel';
@@ -72,8 +72,8 @@ export interface WorkflowExecution {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const WF_FILE = path.join(process.cwd(), 'workflows.json');
-const EXEC_FILE = path.join(process.cwd(), 'workflow_executions.json');
+const WF_FILE = resolveRuntimePathFromEnv('WORKFLOWS_FILE', 'workflows.json');
+const EXEC_FILE = resolveRuntimePathFromEnv('WORKFLOW_EXECUTIONS_FILE', 'workflow_executions.json');
 
 let workflows: WorkflowDefinition[] = [];
 let executions: WorkflowExecution[] = [];
@@ -81,16 +81,20 @@ const cronTimers = new Map<string, ReturnType<typeof setInterval>>();
 
 async function loadAll(): Promise<void> {
   try {
-    if (fs.existsSync(WF_FILE)) workflows = JSON.parse(await fs.promises.readFile(WF_FILE, 'utf8'));
-    if (fs.existsSync(EXEC_FILE)) executions = JSON.parse(await fs.promises.readFile(EXEC_FILE, 'utf8'));
+    const workflowsFile = resolveRuntimeReadPathFromEnv('WORKFLOWS_FILE', 'workflows.json');
+    const executionsFile = resolveRuntimeReadPathFromEnv('WORKFLOW_EXECUTIONS_FILE', 'workflow_executions.json');
+    if (fs.existsSync(workflowsFile)) workflows = JSON.parse(await fs.promises.readFile(workflowsFile, 'utf8'));
+    if (fs.existsSync(executionsFile)) executions = JSON.parse(await fs.promises.readFile(executionsFile, 'utf8'));
   } catch { }
 }
 loadAll().catch(() => undefined);
 
 async function saveWorkflows(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(WF_FILE, JSON.stringify(workflows, null, 2), 'utf8');
 }
 async function saveExecutions(): Promise<void> {
+  ensureRuntimeRootSync();
   await fs.promises.writeFile(EXEC_FILE, JSON.stringify(executions.slice(-100), null, 2), 'utf8');
 }
 
@@ -237,7 +241,7 @@ export async function executeWorkflow(workflowId: string, trigger: WorkflowExecu
         }
 
         if (step.type === 'delay' && step.delayMs) {
-          await new Promise(r => setTimeout(r, Math.min(step.delayMs, 60000)));
+          await new Promise(r => setTimeout(r, Math.min(step.delayMs || 0, 60000)));
         }
       }
     }

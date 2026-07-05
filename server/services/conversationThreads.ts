@@ -11,6 +11,7 @@ import path from 'path';
 import { recordObservation } from './compoundMemory';
 import { recordUsage } from './costObservability';
 import { createContextWindow, addSegment, removeWindow, getAllSegments, deepSummarize, type ContextWindow, type WindowSegment, type ContextStrategy } from './contextWindowManager';
+import { resolveRuntimeDirPath, resolveRuntimeReadDirFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface ConversationTurn {
@@ -46,8 +47,10 @@ export interface ThreadExport {
 }
 
 // ─── Storage ────────────────────────────────────────────────────────
-const THREADS_DIR = path.join(process.cwd(), 'conversation_threads');
+const THREADS_DIR = resolveRuntimeDirPath('conversation_threads');
+const THREADS_READ_DIR = resolveRuntimeReadDirFromEnv('CONVERSATION_THREADS_DIR', 'conversation_threads');
 const INDEX_FILE = path.join(THREADS_DIR, '_index.json');
+const INDEX_READ_FILE = path.join(THREADS_READ_DIR, '_index.json');
 
 let threads: ConversationThread[] = [];
 const activeContextWindows = new Map<string, ContextWindow>();
@@ -57,8 +60,8 @@ async function init(): Promise<void> {
     if (!fs.existsSync(THREADS_DIR)) {
       await fs.promises.mkdir(THREADS_DIR, { recursive: true });
     }
-    if (fs.existsSync(INDEX_FILE)) {
-      threads = JSON.parse(await fs.promises.readFile(INDEX_FILE, 'utf8'));
+    if (fs.existsSync(INDEX_READ_FILE)) {
+      threads = JSON.parse(await fs.promises.readFile(INDEX_READ_FILE, 'utf8'));
     }
   } catch { }
 }

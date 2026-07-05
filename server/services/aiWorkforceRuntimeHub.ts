@@ -589,14 +589,14 @@ export async function getAIWorkforceHealthSnapshot(): Promise<{
     const lastAudit = ledger.auditStats?.latestEvent;
 
     // Estimate active/pending from mission queue stats
-    const totalQueued = missionStats.totalQueues ?? 0;
-    const pendingApprovals = missionStats.totalByStatus?.['needs_approval'] ?? 0;
-    const activeRuns = missionStats.totalByStatus?.['running'] ?? 0;
-    const blockedCount = missionStats.totalByStatus?.['blocked'] ?? 0;
+    const totalQueued = missionStats.total ?? 0;
+    const pendingApprovals = missionStats.byStatus?.['needs_approval'] ?? 0;
+    const activeRuns = missionStats.byStatus?.['running'] ?? 0;
+    const blockedCount = missionStats.byStatus?.['blocked'] ?? 0;
 
     const backgroundServices = [
       { name: 'AI Gateway', status: 'running' as const },
-      { name: 'Agent Runtime', status: (runtimeStats.totalRecords ?? 0) > 0 ? 'running' as const : 'idle' as const },
+      { name: 'Agent Runtime', status: (runtimeStats.total ?? 0) > 0 ? 'running' as const : 'idle' as const },
       { name: 'Mission Queue', status: totalQueued > 0 ? 'running' as const : 'idle' as const },
       { name: 'Observability', status: (metricStats.total ?? 0) > 0 ? 'running' as const : 'idle' as const },
     ];

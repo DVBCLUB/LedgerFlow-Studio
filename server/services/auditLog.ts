@@ -2,7 +2,7 @@ import fs from "fs";
 import { signRecord, verifyRecord } from "./signedRecords.ts";
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths.ts";
 
-export type AuditActor = "founder" | "ai-agent" | "system" | "connector";
+export type AuditActor = "founder" | "ai-agent" | "system" | "connector" | "observer" | "github" | "workflow-engine" | "webhook" | string;
 export type AuditRisk = "LOW" | "MEDIUM" | "HIGH" | "BLOCKED";
 export type AuditStatus = "planned" | "sandbox" | "pending_approval" | "approved" | "rejected" | "executed" | "failed";
 

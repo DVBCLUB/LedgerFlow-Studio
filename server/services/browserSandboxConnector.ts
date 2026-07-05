@@ -184,7 +184,7 @@ async function executeSandboxTask(
     logToRun(runId, 'Không tìm thấy Google Chrome cài đặt trên Windows. Sử dụng Chromium mặc định.');
   }
 
-  let browser;
+  let browser: any;
   let screenshotInterval: NodeJS.Timeout | undefined;
   try {
     browser = await puppeteer.launch({

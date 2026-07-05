@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractCodeBlocks, PLATFORMS } from "./webAiAutomator.ts";
+import { extractCodeBlocks, extractXmlCodeBlocks, inferLanguageFromPath, PLATFORMS } from "./webAiAutomator.ts";
 import { parseQuotaResetTime } from "./webAiPolicy.ts";
 import { WEB_AI_PLATFORMS } from "./webAiSessionManager.ts";
 
@@ -31,6 +31,31 @@ test("webAiAutomator - extractCodeBlocks from markdown text", () => {
   assert.equal(blocks[1].language, "css");
   assert.equal(blocks[1].targetFile, "index.css");
   assert.equal(blocks[1].code.trim(), "body { background: #000; }");
+});
+
+test("webAiAutomator - extractCodeBlocks prefers XML file blocks", () => {
+  const sampleText = `
+  <code_block file="server/services/example.ts">
+  export const answer = 42;
+  </code_block>
+  <code_block file="src/App.tsx" lang="tsx">
+  export function App() { return <main />; }
+  </code_block>
+  `;
+
+  const blocks = extractCodeBlocks(sampleText, "fallback.txt");
+  assert.equal(blocks.length, 2);
+  assert.equal(blocks[0].targetFile, "server/services/example.ts");
+  assert.equal(blocks[0].language, "typescript");
+  assert.equal(blocks[0].code.trim(), "export const answer = 42;");
+  assert.equal(blocks[1].targetFile, "src/App.tsx");
+  assert.equal(blocks[1].language, "tsx");
+});
+
+test("webAiAutomator - XML extractor and language inference", () => {
+  assert.equal(inferLanguageFromPath("scripts/check.py"), "python");
+  assert.equal(inferLanguageFromPath("docs/NOTE.md"), "markdown");
+  assert.deepEqual(extractXmlCodeBlocks("No code here."), []);
 });
 
 test("webAiAutomator - parseQuotaResetTime extracts correct dates", () => {

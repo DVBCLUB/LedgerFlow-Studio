@@ -20,12 +20,6 @@ release/
 
 Bam file `.exe` de cai dat **LedgerFlow Hub**.
 
-Neu da co ban Portable trong `release/`, co the bam:
-
-```bat
-KHOI_DONG_PHAN_MEM.cmd
-```
-
 ## Chay dev local
 
 Danh cho nguoi sua code/test. Che do nay chi la ha tang noi bo de lap trinh, khong phai ban web rieng cho nguoi dung:
@@ -33,6 +27,12 @@ Danh cho nguoi sua code/test. Che do nay chi la ha tang noi bo de lap trinh, kho
 ```bash
 npm install
 npm run dev
+```
+
+Tren Windows co the dung script phu:
+
+```bat
+tools\windows\RUN_LOCAL_DEV.bat
 ```
 
 ## AI Gateway
@@ -96,6 +96,7 @@ Quy tac ngan:
 Lenh huu ich de giu repo gon khi code truc tiep:
 
 - `npm run runtime:migrate` (gom local runtime files tu root vao `runtime/`)
+- `npm run clean -- --runtime` (xoa build/cache va archive runtime local vao `.local-cleanup/`)
 - `npm run check:codemap` (guard placement theo CODEMAP)
 - `npm run check:pr-readiness` (risk-aware pre-merge checks cho moi AI platform)
 

@@ -336,7 +336,7 @@ export async function executeHandoff(request: ConnectorHandoffRequest): Promise<
       };
     }
 
-    return { ...base, error: `Hành động không được hỗ trợ: ${action}`, message: 'Handoff thất bại.' };
+    return { ...base, evidence: {}, error: `Hành động không được hỗ trợ: ${action}`, message: 'Handoff thất bại.' };
   }
 
   // Fallback: mở URL nếu connector có url
