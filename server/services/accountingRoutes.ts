@@ -46,14 +46,14 @@ const notificationTestSchema = z.object({ userId: z.string().uuid(), message: z.
 const companyOsEventSchema = z.object({ source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).default("dashboard"), eventType: z.string().min(1), title: z.string().min(1), body: z.string().optional(), agentRole: z.string().optional(), taskId: z.string().optional(), risk: z.enum(["low", "medium", "high", "blocked"]).optional(), payload: z.record(z.string(), z.unknown()).optional(), userId: z.string().optional() });
 const companyOsTaskSchema = z.object({ title: z.string().min(1), description: z.string().optional(), agentRole: z.string().optional(), source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).default("dashboard"), risk: z.enum(["low", "medium", "high", "blocked"]).optional(), status: z.enum(["inbox", "planning", "waiting_approval", "ready", "done", "blocked"]).optional(), payload: z.record(z.string(), z.unknown()).optional(), userId: z.string().optional() });
 const companyOsTaskUpdateSchema = z.object({ status: z.enum(["inbox", "planning", "waiting_approval", "ready", "done", "blocked"]), note: z.string().optional(), source: z.enum(["founder", "n8n", "telegram", "openclaw", "dashboard", "system"]).optional(), userId: z.string().optional() });
-const openClawActionSchema = z.object({ action: z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"]), title: z.string().min(1), target: z.string().optional(), prompt: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), simulate: z.boolean().optional().default(true), userId: z.string().optional() });
-const toolExecutionInputSchema = z.object({ toolId: z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"]), title: z.string().min(1), target: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), executionMode: z.literal("simulation") });
+const openClawActionSchema = z.object({ action: z.enum(AGENT_TOOL_IDS), title: z.string().min(1), target: z.string().optional(), prompt: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), simulate: z.boolean().optional().default(true), userId: z.string().optional() });
+const toolExecutionInputSchema = z.object({ toolId: z.enum(AGENT_TOOL_IDS), title: z.string().min(1), target: z.string().optional(), payload: z.record(z.string(), z.unknown()).optional(), executionMode: z.literal("simulation") });
 const toolExecutionApproveSchema = z.object({ previewId: z.string().min(1), fingerprint: z.string().regex(/^[a-f0-9]{64}$/) });
 const toolExecutionConsumeSchema = toolExecutionInputSchema.extend({ previewId: z.string().min(1), approvalToken: z.string().optional() });
 const agentRunCreateSchema = z.object({
   goal: z.string().min(3).max(4_000),
   requestedBy: z.string().max(100).optional(),
-  requestedTools: z.array(z.enum(["read_knowledge", "draft_plan", "draft_patch", "browser_check", "terminal_check", "external_connector"])).max(8).optional(),
+  requestedTools: z.array(z.enum(AGENT_TOOL_IDS)).max(8).optional(),
   toolInputs: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),
   maxSteps: z.number().int().min(1).max(12).optional(),
   maxRuntimeMs: z.number().int().min(5_000).max(600_000).optional(),

@@ -276,7 +276,7 @@ async function finalizeMissionPush(mission: MissionState): Promise<MissionState>
     mission.status = 'failed';
     mission.finalError = err.message || String(err);
     touchMission(mission);
-    await auditMission(mission, 'mission.push_failed', 'failed', mission.finalError, 'HIGH', {
+    await auditMission(mission, 'mission.push_failed', 'failed', mission.finalError || 'Unknown error', 'HIGH', {
       files: mission.pendingChangeRequest.files.map((file) => file.path),
     });
   }

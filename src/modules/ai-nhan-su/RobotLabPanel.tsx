@@ -62,6 +62,7 @@ export default function RobotLabPanel() {
   const [velocity, setVelocity] = useState('25');
   const [gripAngle, setGripAngle] = useState('90');
   const [approvalConfirmed, setApprovalConfirmed] = useState(false);
+  const [previewData, setPreviewData] = useState<any>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const fetchState = useCallback(async () => {
@@ -111,6 +112,34 @@ export default function RobotLabPanel() {
       await fetchState();
     } catch (err: any) {
       setMessage(`Command failed: ${err?.message || 'unknown error'}`);
+    } finally {
+      setExecuting(false);
+    }
+  };
+
+  const handlePreview = async () => {
+    setExecuting(true);
+    setPreviewData(null);
+    try {
+      const body: Record<string, unknown> = {};
+      if (cmd === 'move') {
+        body.position = { x: Number(targetX), y: Number(targetY), z: Number(targetZ), roll: 0, pitch: 0, yaw: 0 };
+      } else if (cmd === 'rotate') {
+        body.position = { x: 0, y: 0, z: 0, roll: Number(targetRoll), pitch: Number(targetPitch), yaw: Number(targetYaw) };
+      } else {
+        setMessage('Preview only available for move/rotate.');
+        setExecuting(false);
+        return;
+      }
+      
+      const data = await daemonFetch<any>('/api/robot-simulation/preview', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      setPreviewData(data.preview);
+    } catch (err: any) {
+      setMessage(`Preview failed: ${err?.message || 'unknown error'}`);
     } finally {
       setExecuting(false);
     }
@@ -179,7 +208,21 @@ export default function RobotLabPanel() {
           {cmd === 'move' && <div className="mt-3 grid grid-cols-4 gap-2"><input value={targetX} onChange={(e) => setTargetX(e.target.value)} placeholder="X" className="rounded-lg bg-slate-950 p-2" /><input value={targetY} onChange={(e) => setTargetY(e.target.value)} placeholder="Y" className="rounded-lg bg-slate-950 p-2" /><input value={targetZ} onChange={(e) => setTargetZ(e.target.value)} placeholder="Z" className="rounded-lg bg-slate-950 p-2" /><input value={velocity} onChange={(e) => setVelocity(e.target.value)} placeholder="V" className="rounded-lg bg-slate-950 p-2" /></div>}
           {cmd === 'rotate' && <div className="mt-3 grid grid-cols-3 gap-2"><input value={targetRoll} onChange={(e) => setTargetRoll(e.target.value)} placeholder="Roll" className="rounded-lg bg-slate-950 p-2" /><input value={targetPitch} onChange={(e) => setTargetPitch(e.target.value)} placeholder="Pitch" className="rounded-lg bg-slate-950 p-2" /><input value={targetYaw} onChange={(e) => setTargetYaw(e.target.value)} placeholder="Yaw" className="rounded-lg bg-slate-950 p-2" /></div>}
           {cmd === 'grip' && <input value={gripAngle} onChange={(e) => setGripAngle(e.target.value)} placeholder="Grip angle" className="mt-3 w-full rounded-lg bg-slate-950 p-2" />}
-          {(cmd === 'move' || cmd === 'rotate') && <label className="mt-3 flex items-center gap-2 text-xs font-bold text-amber-200"><input type="checkbox" checked={approvalConfirmed} onChange={(e) => setApprovalConfirmed(e.target.checked)} />Approve simulation command</label>}
+          {(cmd === 'move' || cmd === 'rotate') && (
+            <div className="mt-3 space-y-2">
+              <button onClick={() => void handlePreview()} disabled={executing} className="w-full rounded-xl border border-cyan-500/50 bg-cyan-500/10 px-4 py-2 text-xs font-black text-cyan-300">Preview Path</button>
+              {previewData && (
+                <div className="rounded-lg bg-slate-950 p-3 text-xs text-slate-300">
+                  <p><strong>Distance:</strong> {previewData.distanceMm?.toFixed(2)} mm</p>
+                  <p><strong>Time:</strong> {previewData.estimatedTimeSec?.toFixed(2)} s</p>
+                  <p><strong>Collision Risk:</strong> {previewData.collisionRisk ? <span className="text-rose-500">YES</span> : 'NO'}</p>
+                  <p><strong>Boundary OK:</strong> {previewData.boundaryCheckPassed ? 'YES' : <span className="text-rose-500">NO</span>}</p>
+                  <p className="mt-1 text-[10px] text-amber-200">{previewData.checklist?.join(' | ')}</p>
+                </div>
+              )}
+              <label className="flex items-center gap-2 text-xs font-bold text-amber-200"><input type="checkbox" checked={approvalConfirmed} onChange={(e) => setApprovalConfirmed(e.target.checked)} />Approve simulation command</label>
+            </div>
+          )}
           <button onClick={() => void handleCommand()} disabled={executing} className="mt-4 w-full rounded-xl bg-emerald-400 px-4 py-3 text-sm font-black text-slate-950 disabled:opacity-50"><Home className="mr-2 inline h-4 w-4" />Run command</button>
         </div>
       </div>

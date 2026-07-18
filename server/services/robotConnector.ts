@@ -307,3 +307,41 @@ export function simulateRobotCommand(input: {
 }
 
 export { ENVELOPE as ROBOT_SAFETY_ENVELOPE };
+
+export function previewRobotDigitalTwinPath(targetPosition: RobotPosition6DOF): {
+  distanceMm: number;
+  estimatedTimeSec: number;
+  collisionRisk: boolean;
+  boundaryCheckPassed: boolean;
+  checklist: string[];
+} {
+  const current = state.position;
+  
+  const dx = targetPosition.x - current.x;
+  const dy = targetPosition.y - current.y;
+  const dz = targetPosition.z - current.z;
+  const distanceMm = Math.sqrt(dx*dx + dy*dy + dz*dz);
+  
+  const velocityMmS = ENVELOPE.maxVelocityMmS;
+  const estimatedTimeSec = distanceMm / velocityMmS;
+  
+  const boundaryCheckPassed = 
+    Math.abs(targetPosition.x) <= ENVELOPE.maxLinearMm &&
+    Math.abs(targetPosition.y) <= ENVELOPE.maxLinearMm &&
+    Math.abs(targetPosition.z) <= ENVELOPE.maxLinearMm;
+
+  const collisionRisk = detectCollision(targetPosition);
+  
+  const checklist = [];
+  if (!boundaryCheckPassed) checklist.push('Target outside safety envelope limits.');
+  if (collisionRisk) checklist.push('Collision risk detected on path.');
+  if (distanceMm > 0) checklist.push(`Estimated travel time: ${estimatedTimeSec.toFixed(2)}s.`);
+
+  return {
+    distanceMm,
+    estimatedTimeSec,
+    collisionRisk,
+    boundaryCheckPassed,
+    checklist
+  };
+}

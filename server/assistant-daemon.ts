@@ -85,8 +85,13 @@ import {
 import {
   getRobotSimulationState,
   setRobotEmergencyStop,
-  simulateRobotCommand
+  simulateRobotCommand,
+  previewRobotDigitalTwinPath
 } from "./services/robotConnector";
+import { listMissionTraces } from "./services/aiWorkforceMissionTraceLedger";
+import { checkWorldClassReadiness } from "./services/aiWorkforceWorldClassReadiness";
+import { listAllProfileHealth } from "./services/webAiReliability";
+import { preflightRobotPlan, executeRobotPlan } from "./services/openClawWebRobotOperator";
 import {
   createAutomationRule,
   deleteAutomationRule,
@@ -1527,6 +1532,15 @@ app.post("/api/robot-simulation/command", async (req: Request, res: Response) =>
   } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
 });
 
+app.post("/api/robot-simulation/preview", async (req: Request, res: Response) => {
+  try {
+    const parsed = z.object({ position: z.object({ x: z.number(), y: z.number(), z: z.number(), roll: z.number().optional(), pitch: z.number().optional(), yaw: z.number().optional() }) }).safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") });
+    const preview = previewRobotDigitalTwinPath(parsed.data.position as any);
+    res.json({ success: true, preview });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
 app.post("/api/robot-simulation/emergency-stop", async (req: Request, res: Response) => {
   try {
     const parsed = z.object({ active: z.boolean() }).safeParse(req.body);
@@ -1547,6 +1561,45 @@ app.get("/api/automation-rules/logs", (req: Request, res: Response) => {
     const limit = Number(req.query.limit || 50);
     res.json(getAutomationExecutionLog(limit));
   } catch (err: any) { res.status(500).json({ error: err.message }); }
+});
+
+// --- AI Workforce Mission Trace ---
+app.get("/api/agent-runtime/runs/trace", (_req: Request, res: Response) => {
+  try {
+    const traces = listMissionTraces(50);
+    res.json({ success: true, traces });
+  } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// --- Web AI Scheduler Health ---
+app.get("/api/web-ai/scheduler/health", (_req: Request, res: Response) => {
+  try {
+    const profiles = listAllProfileHealth();
+    res.json({ success: true, profiles });
+  } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+// --- OpenClaw Web Robot ---
+app.post("/api/openclaw/web-robot/preflight", async (req: Request, res: Response) => {
+  try {
+    const plan = await preflightRobotPlan(req.body);
+    res.json({ success: true, plan });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+app.post("/api/openclaw/web-robot/execute", async (req: Request, res: Response) => {
+  try {
+    const results = await executeRobotPlan(req.body.plan, req.body.approvalPhrase);
+    res.json({ success: true, results });
+  } catch (err: any) { res.status(400).json({ success: false, error: err.message }); }
+});
+
+// --- World Class Readiness ---
+app.get("/api/ai-workforce/world-class-readiness", async (_req: Request, res: Response) => {
+  try {
+    const scorecard = await checkWorldClassReadiness();
+    res.json({ success: true, scorecard });
+  } catch (err: any) { res.status(500).json({ success: false, error: err.message }); }
 });
 
 app.post("/api/automation-rules", (req: Request, res: Response) => {
