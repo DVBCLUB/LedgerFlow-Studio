@@ -29,6 +29,8 @@ Thumbs.db
 .ledgerflow_secret
 
 # Logs
+
+# Logs
 *.log
 *.err
 .tmp-runtime.err.log
@@ -36,13 +38,11 @@ Thumbs.db
 browser_logs*.txt
 
 # Local data files - ALL runtime generated data
-# All JSON files in data/ directory are ignored
+*.local.json
+*.local.enc
+cross_learning_events.json
+browser_runbook.json
 /data/
-
-# Legacy single file ignores (kept for backward compatibility)
-ai_keys.vault.json
-.ai_vault_session.json
-.agent_sandbox/
 .chrome_profile
 .chrome_profiles/
 company_os_control_plane.json
@@ -112,3 +112,4 @@ web_ai_profiles.json
 /artifacts/
 /exports/
 /plugins/
+.agent_sandbox/

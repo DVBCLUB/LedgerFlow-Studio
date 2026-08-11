@@ -17,6 +17,22 @@ interface ProfilesTabProps {
   pushNotice: (kind: 'success' | 'error', text: string) => void;
 }
 
+const statusStyles: Record<string, string> = {
+  ready: 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/20',
+  login_required: 'bg-amber-950/60 text-amber-300 border border-amber-500/20',
+  error: 'bg-rose-950/60 text-rose-300 border border-rose-500/20',
+  quota: 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/20',
+  untested: 'bg-slate-950/60 text-text-secondary border border-border-primary',
+};
+
+function StatusBadge({ status }: { status: string }) {
+  return (
+    <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${statusStyles[status] || statusStyles.untested}`}>
+      {status}
+    </span>
+  );
+}
+
 export default function ProfilesTab({
   webAIProfiles,
   webAIProfilesLoading,
@@ -128,89 +144,78 @@ export default function ProfilesTab({
           <div className="flex items-center justify-center py-6 text-xs text-text-tertiary gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-violet-400" /> Đang tải danh sách profile...
           </div>
-        ) : webAIProfiles.length === 0 ? (
+        ) : (webAIProfiles || []).length === 0 ? (
           <div className="text-center py-8 text-xs text-text-tertiary font-semibold">
             Chưa có profile tài khoản nào. Hãy đăng ký một tài khoản ở trên.
           </div>
         ) : (
-          <div className="space-y-2">
-            {webAIProfiles.map(p => (
-              <div key={p.id} className="flex items-center justify-between p-3 rounded-xl border border-border-primary bg-slate-950/60 hover:border-border-secondary/60 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-bg-primary border border-border-primary flex items-center justify-center">
-                    <User className="h-4 w-4 text-text-secondary" />
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-text-primary flex items-center gap-2">
-                      {p.name}
-                      <span className="text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded bg-violet-950 text-violet-400 border border-violet-800/40 font-mono">
-                        {p.platform}
-                      </span>
-                    </div>
-                    <div className="text-[10px] text-text-tertiary font-mono mt-0.5">
-                      Thư mục: .chrome_profiles/{p.profileDir}
-                    </div>
-                    {p.lastUsedAt && (
-                      <div className="text-[9px] text-slate-600 mt-0.5 font-semibold">
-                        Sử dụng cuối: {new Date(p.lastUsedAt).toLocaleString('vi-VN')}
+          <div className="space-y-3">
+            {(webAIProfiles || []).map(p => {
+              const isChecking = checkingIds[p.id];
+              const isLoggingIn = loggingInIds[p.id];
+              return (
+                <div key={p.id} className="rounded-2xl border border-border-primary bg-slate-950/70 p-3 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-black text-text-primary truncate" title={p.name}>{p.name}</span>
+                        <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-violet-950 text-violet-300 border border-violet-800/40 font-mono">
+                          {p.platform}
+                        </span>
                       </div>
-                    )}
-                    <div className="mt-1 text-[9px] font-bold text-text-tertiary">
-                      Status: {p.status} · Failures: {p.consecutiveFailures}
+                      <div className="flex flex-wrap gap-2 text-[9px] text-text-tertiary">
+                        <span>.chrome_profiles/{p.profileDir}</span>
+                        {p.lastUsedAt && <span>Last used {new Date(p.lastUsedAt).toLocaleString('vi-VN')}</span>}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge status={p.status} />
+                        <span className="text-[9px] text-text-secondary">Failures: {p.consecutiveFailures}</span>
+                      </div>
+                      {p.lastError && <div className="text-[10px] text-rose-400 truncate" title={p.lastError}>{p.lastError}</div>}
                     </div>
-                    {p.lastError && <div className="mt-1 max-w-md truncate text-[9px] text-rose-400" title={p.lastError}>{p.lastError}</div>}
+
+                    <button
+                      onClick={() => {
+                        setSelectedProfileId(p.id);
+                        pushNotice('success', `Đã chọn profile "${p.name}" cho các tác vụ Web AI.`);
+                      }}
+                      className={`px-3 py-1.5 text-[10px] font-black rounded-xl transition-all ${
+                        selectedProfileId === p.id
+                          ? 'bg-emerald-600 text-text-primary'
+                          : 'bg-bg-primary text-text-secondary border border-border-primary hover:bg-bg-surface'
+                      }`}
+                    >
+                      {selectedProfileId === p.id ? 'Đang dùng' : 'Chọn'}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleCheckSession(p.id, p.platform)}
+                      disabled={isChecking || isLoggingIn}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-border-primary bg-violet-950/20 px-2 py-2 text-[10px] font-black text-violet-300 hover:bg-violet-950/30 disabled:opacity-50"
+                    >
+                      {isChecking ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                      Kiểm tra
+                    </button>
+                    <button
+                      onClick={() => handleManualLogin(p.id, p.platform)}
+                      disabled={isChecking || isLoggingIn}
+                      className="flex items-center justify-center gap-2 rounded-xl border border-border-primary bg-slate-950/80 px-2 py-2 text-[10px] font-black text-text-secondary hover:bg-slate-900 disabled:opacity-50"
+                    >
+                      {isLoggingIn ? <Loader2 className="h-3 w-3 animate-spin" /> : <ExternalLink className="h-3 w-3" />}
+                      Login
+                    </button>
+                    <button
+                      onClick={() => handleDeleteProfile(p.id)}
+                      className="col-span-2 rounded-xl border border-rose-700/40 bg-rose-950/20 px-2 py-2 text-[10px] font-black text-rose-300 hover:bg-rose-900/30"
+                    >
+                      <Trash2 className="h-3.5 w-3.5 inline" /> Xóa profile
+                    </button>
                   </div>
                 </div>
-                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleCheckSession(p.id, p.platform)}
-                    disabled={checkingIds[p.id] || loggingInIds[p.id]}
-                    className="px-2 py-1 text-[10px] font-black rounded-lg border border-border-primary bg-bg-primary text-text-secondary hover:bg-bg-surface disabled:opacity-50 flex items-center gap-1"
-                    title="Kiểm tra trạng thái session cookies"
-                  >
-                    {checkingIds[p.id] ? (
-                      <Loader2 className="h-3 w-3 animate-spin text-violet-400" />
-                    ) : (
-                      <RefreshCw className="h-3 w-3 text-text-secondary" />
-                    )}
-                    <span>Check</span>
-                  </button>
-                  <button
-                    onClick={() => handleManualLogin(p.id, p.platform)}
-                    disabled={checkingIds[p.id] || loggingInIds[p.id]}
-                    className="px-2 py-1 text-[10px] font-black rounded-lg border border-violet-800/45 bg-violet-950/20 text-violet-300 hover:bg-violet-900 disabled:opacity-50 flex items-center gap-1"
-                    title="Mở trình duyệt để đăng nhập thủ công"
-                  >
-                    {loggingInIds[p.id] ? (
-                      <Loader2 className="h-3 w-3 animate-spin text-violet-400" />
-                    ) : (
-                      <ExternalLink className="h-3 w-3 text-violet-400" />
-                    )}
-                    <span>Login</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setSelectedProfileId(p.id);
-                      pushNotice('success', `Đã chọn profile "${p.name}" cho các tác vụ Web AI.`);
-                    }}
-                    className={`px-2.5 py-1 text-[10px] font-black rounded-lg transition-all ${
-                      selectedProfileId === p.id
-                        ? 'bg-emerald-600 hover:bg-emerald-500 text-text-primary'
-                        : 'bg-bg-primary hover:bg-bg-surface text-text-secondary border border-border-primary'
-                    }`}
-                  >
-                    {selectedProfileId === p.id ? 'Đang Chọn' : 'Chọn'}
-                  </button>
-                  <button
-                    onClick={() => handleDeleteProfile(p.id)}
-                    className="p-1.5 hover:bg-rose-950/40 text-text-tertiary hover:text-rose-400 rounded-lg transition-colors"
-                    title="Xóa Profile"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

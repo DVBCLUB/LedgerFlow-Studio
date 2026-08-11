@@ -33,24 +33,24 @@ export type DecisionLogItem = {
 
 export const SIM_CASES = [
   {
-    title: 'Case mô phỏng 01: Thương mại - hàng về lệch hóa đơn',
-    lesson: 'Người học nhận ra hóa đơn chưa đủ; phải đối chiếu đơn hàng, nhập kho, giao nhận và công nợ.',
-    hint: 'Gợi ý học tập: so sánh số lượng hóa đơn, số lượng kho nhận, giá vốn và công nợ NCC.'
+    title: 'Nghiệp vụ 01: Thương mại - hàng về lệch hóa đơn',
+    lesson: 'Chuyên viên kế toán đối chiếu chứng từ: bắt buộc kiểm tra đơn mua hàng, phiếu nhập kho, biên bản giao nhận và công nợ nhà cung cấp.',
+    hint: 'Điểm soát xét: so sánh số lượng trên hóa đơn GTGT, số lượng thực nhận tại kho, giá vốn và công nợ nhà cung cấp.'
   },
   {
-    title: 'Case mô phỏng 02: Sản xuất - định mức lệch thực tế',
-    lesson: 'Người học kiểm tra BOM, lệnh sản xuất, NVL xuất dùng, WIP, phế phẩm và giá thành.',
-    hint: 'Gợi ý học tập: phân biệt lệch do kỹ thuật, hao hụt, định mức cũ hoặc kiểm soát kho yếu.'
+    title: 'Nghiệp vụ 02: Sản xuất - định mức nguyên vật liệu lệch thực tế',
+    lesson: 'Soát xét chi phí sản xuất: kiểm tra định mức BOM, lệnh sản xuất, phiếu xuất kho NVL, dở dang WIP và phế phẩm.',
+    hint: 'Điểm soát xét: phân biệt chênh lệch do kỹ thuật, hao hụt định mức, định mức cũ hoặc quản lý kho.'
   },
   {
-    title: 'Case mô phỏng 03: Dịch vụ - nghiệm thu và doanh thu',
-    lesson: 'Người học xem hợp đồng, timesheet, nghiệm thu và thời điểm ghi nhận doanh thu.',
-    hint: 'Gợi ý học tập: dịch vụ cần bằng chứng đã cung cấp và quyền thu tiền, không chỉ nhìn hóa đơn.'
+    title: 'Nghiệp vụ 03: Dịch vụ - nghiệm thu và thời điểm ghi nhận doanh thu',
+    lesson: 'Soát xét doanh thu dịch vụ: kiểm tra hợp đồng, bảng kê khối lượng, biên bản nghiệm thu và thời điểm ghi nhận doanh thu chuẩn VAS.',
+    hint: 'Điểm soát xét: doanh thu dịch vụ bắt buộc có bằng chứng đã cung cấp và quyền thu tiền hợp pháp.'
   },
   {
-    title: 'Case mô phỏng 04: Xây dựng - tạm ứng quá hạn',
-    lesson: 'Người học xem tuổi tạm ứng, người nhận, mục đích ứng, chứng từ hoàn ứng và mã dự án.',
-    hint: 'Gợi ý học tập: đây là bài kiểm soát dòng tiền và chứng từ, không phải phần mềm hạch toán thay ERP.'
+    title: 'Nghiệp vụ 04: Dự án - quản lý công nợ và hoàn ứng tạm ứng',
+    lesson: 'Soát xét công nợ tạm ứng: kiểm tra tuổi nợ tạm ứng, người nhận, mục đích chi, chứng từ hoàn ứng và mã chi phí dự án.',
+    hint: 'Điểm soát xét: kiểm soát dòng tiền, chứng từ hợp lệ và hạn mức tạm ứng đúng quy định.'
   }
 ] as const;
 
@@ -64,20 +64,20 @@ export const TAB_LABELS: Array<[AccountingTab, string]> = [
   ['decisions', 'Decision Log'],
   ['promptlab', 'Prompt giao việc'],
   ['survey', 'Khảo sát'],
-  ['cases', 'Case mô phỏng'],
-  ['costs', 'Thẻ chi phí'],
-  ['docs', 'Quiz chứng từ'],
-  ['score', 'Score lab'],
+  ['cases', 'Nghiệp vụ soát xét'],
+  ['costs', 'Phân loại chi phí'],
+  ['docs', 'Soát xét chứng từ'],
+  ['score', 'Thước đo hiệu suất'],
   ['coverage', 'Rà soát module'],
-  ['casebank', 'Case nâng cao'],
+  ['casebank', 'Nghiệp vụ nâng cao'],
   ['blueprint', 'Blueprint triển khai'],
   ['companyos', 'Company OS'],
   ['departments', 'Sơ đồ công ty'],
-  ['agents', 'Nhân viên AI'],
-  ['datasets', 'Dataset mô phỏng'],
+  ['agents', 'Đội ngũ Agent AI'],
+  ['datasets', 'Bảng dữ liệu hạch toán'],
   ['experiments', 'Thí nghiệm R&D'],
-  ['roadmap', 'Roadmap bán hàng'],
-  ['tools', 'Tool miễn phí/rẻ'],
+  ['roadmap', 'Lộ trình phát triển'],
+  ['tools', 'Công cụ tối ưu chi phí'],
   ['backlog', 'Backlog cải tiến']
 ];
 

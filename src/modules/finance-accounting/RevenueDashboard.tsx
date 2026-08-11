@@ -158,33 +158,43 @@ export default function RevenueDashboard() {
         {loading ? (
           <div className="mt-4 rounded-3xl border border-border-primary bg-bg-surface p-8 text-center text-sm font-bold text-text-muted">Đang tải revenue records...</div>
         ) : (
-          <div className="mt-4 overflow-auto rounded-2xl border border-border-primary">
-            <table className="min-w-full text-left text-xs">
-              <thead className="bg-bg-surface text-text-secondary">
+          <div className="mt-4 overflow-hidden rounded-2xl border border-border-primary bg-bg-surface/50 shadow-inner">
+            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-white/10">
+            <table className="min-w-full text-left text-xs border-collapse">
+              <thead className="bg-slate-900/80 text-slate-400 border-b border-border-primary">
                 <tr>
-                  <th className="px-3 py-2">Product</th>
-                  <th className="px-3 py-2">Customer</th>
-                  <th className="px-3 py-2">Amount</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Source</th>
-                  <th className="px-3 py-2">Created</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Product</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Customer</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Amount</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Type</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Source</th>
+                  <th className="px-4 py-3 font-bold uppercase tracking-wider">Created</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800">
+              <tbody className="divide-y divide-border-primary/50">
                 {records.map((record) => (
-                  <tr key={record.id} className="bg-bg-primary text-text-secondary">
-                    <td className="px-3 py-2 font-bold text-text-primary">{record.product_name}</td>
-                    <td className="px-3 py-2">{record.customer_email || '—'}</td>
-                    <td className="px-3 py-2 font-bold text-success">{formatVnd(record.amount_vnd)}</td>
-                    <td className="px-3 py-2">{record.type}</td>
-                    <td className="px-3 py-2">{record.status}</td>
-                    <td className="px-3 py-2">{record.source || 'direct'}</td>
-                    <td className="px-3 py-2">{new Date(record.created_at).toLocaleDateString('vi-VN')}</td>
+                  <tr key={record.id} className="bg-bg-primary/40 hover:bg-bg-surface transition-colors group">
+                    <td className="px-4 py-3 font-bold text-slate-200">{record.product_name}</td>
+                    <td className="px-4 py-3 text-slate-400">{record.customer_email || '—'}</td>
+                    <td className="px-4 py-3 font-black text-emerald-400 font-mono tabular-nums tracking-tight">{formatVnd(record.amount_vnd)}</td>
+                    <td className="px-4 py-3">
+                      <span className="bg-indigo-500/10 text-indigo-400 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border border-indigo-500/20">{record.type}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase border ${
+                        record.status === 'active' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 
+                        record.status === 'paused' ? 'bg-amber-500/10 text-amber-400 border-amber-500/20' : 
+                        'bg-rose-500/10 text-rose-400 border-rose-500/20'
+                      }`}>{record.status}</span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-400">{record.source || 'direct'}</td>
+                    <td className="px-4 py-3 text-slate-500 font-mono text-[11px]">{new Date(record.created_at).toLocaleDateString('vi-VN')}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            </div>
             {records.length === 0 && <div className="p-8 text-center text-sm font-bold text-text-muted">Chưa có revenue record nào.</div>}
           </div>
         )}
@@ -197,7 +207,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border-primary bg-bg-surface p-3">
       <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{label}</p>
-      <p className="mt-1 text-lg font-bold text-text-primary">{value}</p>
+      <p className="mt-1 text-lg font-black text-text-primary font-mono tabular-nums tracking-tight">{value}</p>
     </div>
   );
 }

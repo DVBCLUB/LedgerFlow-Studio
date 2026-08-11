@@ -15,6 +15,10 @@ const AIWorkforceSkillDirectory = lazy(() => import('./AIWorkforceSkillDirectory
 const AIWorkforceSkillInvocationPlanner = lazy(() => import('./AIWorkforceSkillInvocationPlanner'));
 const AIWorkforceRobotAutomationBridge = lazy(() => import('./AIWorkforceRobotAutomationBridge'));
 const AIWorkforceStatusBar = lazy(() => import('./AIWorkforceStatusBar'));
+const AIWorkforceVisualOrgChart = lazy(() => import('./components/AIWorkforceVisualOrgChart'));
+const AIAgentSchedulerPanel = lazy(() => import('./components/AIAgentSchedulerPanel'));
+const DirectWebRobotAutomationPanel = lazy(() => import('../../components/shared/DirectWebRobotAutomationPanel'));
+const RobotCloudHybridControlCockpit = lazy(() => import('../../components/shared/RobotCloudHybridControlCockpit'));
 const backgroundServices = [
   {
     title: 'Cổng AI',
@@ -29,8 +33,8 @@ const backgroundServices = [
     icon: Cpu,
   },
   {
-    title: 'Robot mô phỏng',
-    detail: 'Điều khiển robot, mô phỏng lệnh và hỗ trợ dừng khẩn cấp.',
+    title: 'Robot phần mềm',
+    detail: 'Vận hành robot phần mềm, gửi lệnh tự động hóa và hỗ trợ dừng khẩn cấp.',
     status: 'An toàn',
     icon: Activity,
   },
@@ -74,7 +78,7 @@ const commandTargets = [
   { id: 'agent', label: 'Agent Runtime' },
   { id: 'control', label: 'Control Plane A-Z' },
   { id: 'fabric', label: 'AI Fabric' },
-  { id: 'robot', label: 'Robot mô phỏng' },
+  { id: 'robot', label: 'Robot phần mềm' },
 ];
 
 const platformTargets = [
@@ -200,7 +204,15 @@ function AICommandLauncher() {
   };
 
   return (
-    <section className="rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/20 p-5 text-left shadow-xl shadow-slate-950/20">
+    <div className="space-y-6">
+      <Suspense fallback={<div className="h-48 bg-slate-900 border border-slate-800 rounded-3xl animate-pulse" />}>
+        <AIWorkforceVisualOrgChart />
+        <AIAgentSchedulerPanel />
+        <DirectWebRobotAutomationPanel />
+        <RobotCloudHybridControlCockpit />
+      </Suspense>
+
+      <section className="rounded-3xl border border-cyan-500/25 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/20 p-5 text-left shadow-xl shadow-slate-950/20">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-cyan-200">Ra lệnh cho Đội ngũ AI</p>
@@ -371,6 +383,7 @@ export default function AIOperationsCenter() {
           <AIWorkforceSkillInvocationPlanner />
         </div>
       </details>
+      </div>
       </div>
     </Suspense>
   );

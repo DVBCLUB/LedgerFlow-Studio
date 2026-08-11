@@ -12,6 +12,18 @@ export default function AdCampaignSimulator() {
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [hasRun, setHasRun] = useState<boolean>(false);
 
+  // Active campaigns mock data
+  const [activeCampaigns, setActiveCampaigns] = useState([
+    { id: 1, name: 'Google Search: "Phần mềm kế toán online"', channel: 'Google', budget: '200K/ngày', active: true, roas: '2.4x' },
+    { id: 2, name: 'Facebook Ads: Founder Retargeting', channel: 'Facebook', budget: '500K/ngày', active: false, roas: '1.1x' },
+    { id: 3, name: 'TikTok: Viral Meme "Kế toán chạy deadline"', channel: 'TikTok', budget: '100K/ngày', active: true, roas: '3.8x' },
+  ]);
+
+  const toggleCampaign = (id: number) => {
+    setActiveCampaigns(prev => prev.map(c => c.id === id ? { ...c, active: !c.active } : c));
+  };
+
+
   // Run simulation calculation
   const simulationResults = useMemo(() => {
     if (!hasRun) return null;
@@ -318,6 +330,34 @@ export default function AdCampaignSimulator() {
 
         </div>
 
+      </div>
+
+      {/* Active Campaigns List with Toggle */}
+      <div className="mt-8">
+        <h3 className="mb-4 text-sm font-black text-text-primary uppercase tracking-wider flex items-center gap-2">
+          <Send className="w-4 h-4 text-sky-400" /> Các chiến dịch đang chạy (Live Campaigns)
+        </h3>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {activeCampaigns.map(camp => (
+            <div key={camp.id} className={`relative overflow-hidden rounded-2xl border p-4 transition-all ${camp.active ? 'border-sky-500/50 bg-sky-950/20 shadow-[0_0_15px_rgba(14,165,233,0.15)]' : 'border-border-primary bg-bg-primary opacity-60'}`}>
+              <div className="flex justify-between items-start mb-3">
+                <span className="text-[10px] font-black uppercase text-text-tertiary bg-slate-900 px-2 py-1 rounded border border-slate-800">{camp.channel}</span>
+                {/* Custom Toggle Switch */}
+                <button
+                  onClick={() => toggleCampaign(camp.id)}
+                  className={`w-10 h-5 rounded-full relative transition-colors cursor-pointer ${camp.active ? 'bg-sky-500' : 'bg-slate-700'}`}
+                >
+                  <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-transform ${camp.active ? 'left-5' : 'left-0.5'}`} />
+                </button>
+              </div>
+              <h4 className="font-bold text-sm text-text-primary mb-1 line-clamp-2 leading-snug">{camp.name}</h4>
+              <div className="flex justify-between items-center text-xs mt-3 pt-3 border-t border-slate-850">
+                <span className="text-text-secondary font-semibold">{camp.budget}</span>
+                <span className={`font-black ${camp.active ? 'text-emerald-400' : 'text-slate-500'}`}>ROAS: {camp.roas}</span>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

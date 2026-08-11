@@ -18,6 +18,8 @@ import fs from 'fs';
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
+export type SwarmModelTier = 'tier-1-micro' | 'tier-2-standard' | 'tier-3-heavy-reasoning';
+
 export interface SwarmAgent {
   id: string;
   name: string;
@@ -25,6 +27,7 @@ export interface SwarmAgent {
   systemPrompt: string;
   specializations: string[];
   maxConcurrency: boolean;   // Can this agent run parallel with others?
+  modelTier?: SwarmModelTier; // Dynamic cost-latency tier assignment
 }
 
 export interface SwarmTask {
@@ -70,30 +73,35 @@ const DEFAULT_SWARM: SwarmAgent[] = [
     systemPrompt: 'Orchestrator — analyze the goal, break it into tasks, assign to the right specialists.',
     specializations: ['planning', 'delegation', 'integration'],
     maxConcurrency: false,
+    modelTier: 'tier-3-heavy-reasoning',
   },
   {
     id: 'swarm_coder', name: 'Coder', role: 'developer',
     systemPrompt: 'Developer — write clean, well-structured code with types and error handling.',
     specializations: ['coding', 'typescript', 'algorithms'],
     maxConcurrency: true,
+    modelTier: 'tier-2-standard',
   },
   {
     id: 'swarm_reviewer', name: 'Reviewer', role: 'reviewer',
     systemPrompt: 'Reviewer — check for bugs, security issues, edge cases, and code quality.',
     specializations: ['review', 'security', 'quality'],
     maxConcurrency: true,
+    modelTier: 'tier-2-standard',
   },
   {
     id: 'swarm_tester', name: 'Tester', role: 'tester',
     systemPrompt: 'Tester — write comprehensive tests covering edge cases.',
     specializations: ['testing', 'edge_cases', 'coverage'],
     maxConcurrency: true,
+    modelTier: 'tier-1-micro',
   },
   {
     id: 'swarm_docs', name: 'Documenter', role: 'documenter',
     systemPrompt: 'Documenter — write clear, concise documentation and usage examples.',
     specializations: ['documentation', 'examples', 'api_docs'],
     maxConcurrency: true,
+    modelTier: 'tier-1-micro',
   },
 ];
 

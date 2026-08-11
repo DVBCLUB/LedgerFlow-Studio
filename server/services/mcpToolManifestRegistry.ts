@@ -185,7 +185,25 @@ export function assessMCPToolHealth(manifest: MCPToolManifest, signals: MCPToolR
   return { toolId: manifest.id, health, score, lastRunAt, failures, averageLatencyMs, reasons };
 }
 
-export function exportMCPToolManifestCatalog(signals: MCPToolRunSignal[] = [], now = new Date()): MCPToolManifestCatalog {
+const recordedSignals: MCPToolRunSignal[] = [];
+
+export function recordMCPToolRun(signal: MCPToolRunSignal): void {
+  recordedSignals.push(signal);
+  if (recordedSignals.length > 500) {
+    recordedSignals.shift();
+  }
+}
+
+export function listMCPToolManifests(): MCPToolManifest[] {
+  return listAgentToolContracts().map(buildMCPToolManifest);
+}
+
+export function getMCPToolManifest(toolId: string): MCPToolManifest | undefined {
+  const tool = listAgentToolContracts().find((t) => t.id === toolId);
+  return tool ? buildMCPToolManifest(tool) : undefined;
+}
+
+export function exportMCPToolManifestCatalog(signals: MCPToolRunSignal[] = recordedSignals, now = new Date()): MCPToolManifestCatalog {
   const manifests = listAgentToolContracts().map(buildMCPToolManifest);
   const health = manifests.map((manifest) => assessMCPToolHealth(manifest, signals, now));
   return {

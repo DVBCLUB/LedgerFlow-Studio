@@ -13,6 +13,8 @@ import { WebAiSessionManager, type WebAIProfile } from "./webAiSessionManager.ts
 import { WebAiTaskRouter, type TaskDomain } from "./webAiTaskRouter.ts";
 import { appendAuditEvent } from "./auditLog.ts";
 import { recordUsage } from "./costObservability.ts";
+import { validateAIOutput } from "./aiOutputValidator.ts";
+import { searchKnowledgeGraph } from "./knowledgeGraph.ts";
 import type { CallAIOptions, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
 
 let routeAIThroughProvider = callAIWithFallback;
@@ -39,6 +41,11 @@ export interface FabricStep {
   contentPreview?: string;
   toolCalls?: NormalizedToolCall[];
   evidence?: Record<string, unknown>;
+  // V2: actionable diagnostics
+  errorCode?: string;        // api_quota, web_login_required, web_no_profile, local_unavailable, etc.
+  fixSuggestion?: string;    // Hướng dẫn người dùng cách sửa
+  fixAction?: string;        // Hành động cụ thể: "open_login", "add_api_key", "install_ollama"
+  fixActionLabel?: string;   // Nhãn nút hiển thị cho người dùng
 }
 
 export interface FabricRun {
@@ -70,15 +77,60 @@ export interface AIFabricOptions {
   filePath?: string;       // File cần phân tích qua Web AI
 }
 
+// ─── Response Cache System (TTL 5 minutes) ───────────────────────────
+interface CachedFabricRun {
+  run: FabricRun;
+  expiresAt: number;
+}
+const fabricResponseCache = new Map<string, CachedFabricRun>();
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+export function clearFabricResponseCache(): void {
+  fabricResponseCache.clear();
+}
+
 // ─── Fabric dispatch ────────────────────────────────────────────────
 
 export async function dispatchThroughFabric(
   messages: ChatMessage[],
   options: AIFabricOptions = {}
 ): Promise<FabricRun> {
+  const userText = messages.filter(m => m.role === "user").map(m => m.content).join("\n");
+
+  // Check cache for identical query (short-circuit for fast response & token savings)
+  const cacheKey = `${options.domain || 'general'}:${options.task || 'general'}:${userText.slice(0, 300)}`;
+  const cached = fabricResponseCache.get(cacheKey);
+  if (cached && cached.expiresAt > Date.now()) {
+    console.log(`[AI Fabric] ⚡ Cache HIT for query: "${userText.slice(0, 50)}..."`);
+    return {
+      ...cached.run,
+      id: `fabric_cached_${Date.now()}`,
+      startedAt: new Date().toISOString(),
+      completedAt: new Date().toISOString(),
+      totalLatencyMs: 5,
+    };
+  }
+
   const runId = `fabric_${Date.now()}_${Math.random().toString(16).slice(2, 6)}`;
   const startedAt = new Date().toISOString();
   const started = Date.now();
+
+  // Knowledge Items (KI) Enrichment — search repo memory before dispatching
+  try {
+    const kiMatches = searchKnowledgeGraph(userText, { maxResults: 3 });
+    if (kiMatches.length > 0) {
+      const kiSummary = kiMatches.map(m => `• [${m.node.type}] ${m.node.label}: ${m.node.description}`).join("\n");
+      const kiHeader = `\n\n🧠 [KNOWLEDGE ITEMS SNAPSHOT - TRI THỨC DỰ ÁN TÍCH LŨY]:\n${kiSummary}`;
+      const sysMsg = messages.find(m => m.role === "system");
+      if (sysMsg) {
+        sysMsg.content += kiHeader;
+      } else {
+        messages.unshift({ role: "system", content: kiHeader.trim() });
+      }
+    }
+  } catch {
+    // Non-fatal if Knowledge Graph search fails
+  }
 
   const run: FabricRun = {
     id: runId,
@@ -90,8 +142,6 @@ export async function dispatchThroughFabric(
     steps: [],
     totalLatencyMs: 0,
   };
-
-  const userText = messages.filter(m => m.role === "user").map(m => m.content).join("\n");
 
   // ── Step 1: API route ─────────────────────────────────────────────
   try {
@@ -105,6 +155,7 @@ export async function dispatchThroughFabric(
       toolChoice: options.toolChoice,
     });
 
+    const validation = validateAIOutput(userText, result.content);
     run.steps.push({
       route: "api",
       provider: result.modelUsed,
@@ -112,6 +163,7 @@ export async function dispatchThroughFabric(
       latencyMs: Date.now() - stepStart,
       contentPreview: result.content.slice(0, 200),
       toolCalls: result.toolCalls || [],
+      evidence: { validationSummary: validation.summary, valid: validation.valid },
     });
 
     run.status = "completed";
@@ -144,15 +196,42 @@ export async function dispatchThroughFabric(
       evidence: { runId, route: "api", steps: 1 },
     }).catch(() => undefined);
 
+    fabricResponseCache.set(cacheKey, { run, expiresAt: Date.now() + CACHE_TTL_MS });
     return run;
   } catch (apiErr: any) {
+    // Phân tích lỗi API để đưa ra gợi ý phù hợp
+    const apiMsg = apiErr.message?.toLowerCase() || "";
+    let errorCode = "api_unknown";
+    let fixSuggestion: string | undefined;
+    let fixAction: string | undefined;
+    let fixActionLabel: string | undefined;
+    
+    if (apiMsg.includes("quota") || apiMsg.includes("rate") || apiMsg.includes("exceeded") || apiMsg.includes("429")) {
+      errorCode = "api_quota";
+      fixSuggestion = "API key đã hết quota. Hệ thống sẽ tự động chuyển sang Web AI. Nếu Web AI chưa được thiết lập, vào Đội ngũ AI → Profiles để tạo tài khoản.";
+    } else if (apiMsg.includes("key") || apiMsg.includes("auth") || apiMsg.includes("unauthorized") || apiMsg.includes("401") || apiMsg.includes("403")) {
+      errorCode = "api_auth";
+      fixSuggestion = "API key không hợp lệ hoặc đã hết hạn. Vào Cài đặt AI → AI Settings để cập nhật key mới.";
+      fixAction = "open_ai_settings";
+      fixActionLabel = "Mở AI Settings";
+    } else if (apiMsg.includes("no enabled") || apiMsg.includes("no api key") || apiMsg.includes("no key")) {
+      errorCode = "api_no_key";
+      fixSuggestion = "Chưa có API key nào được thiết lập. Vào Cài đặt AI → AI Settings để thêm key (Gemini miễn phí, Groq miễn phí...).";
+      fixAction = "open_ai_settings";
+      fixActionLabel = "Thêm API Key";
+    }
+    
     run.steps.push({
       route: "api",
       status: "failed",
-      error: apiErr.message?.slice(0, 200),
+      error: apiErr.message?.slice(0, 300),
       latencyMs: 0,
+      errorCode,
+      fixSuggestion,
+      fixAction,
+      fixActionLabel,
     });
-    console.warn(`[AI Fabric] API route failed: ${apiErr.message}`);
+    console.warn(`[AI Fabric] API route failed (${errorCode}): ${apiErr.message}`);
   }
 
   // ── Step 2: Web AI route ──────────────────────────────────────────
@@ -161,25 +240,67 @@ export async function dispatchThroughFabric(
     const domain = options.domain || "general";
     const stepStart = Date.now();
 
-    // Route recommendation
+    // Route recommendation: chỉ dùng router nếu user KHÔNG chọn platform cụ thể
     let recommend;
-    try {
-      recommend = await WebAiTaskRouter.recommend(userText);
-    } catch {
-      recommend = { platform, reasoning: "Default dispatch" };
+    if (!options.webPlatform) {
+      try {
+        recommend = await WebAiTaskRouter.recommend(userText);
+      } catch {
+        recommend = { platform, reasoning: "Default dispatch" };
+      }
     }
 
-    const targetPlatform = ((recommend as any)?.recommendations?.[0]?.platform as string) || platform;
+    const targetPlatform = options.webPlatform || ((recommend as any)?.recommendations?.[0]?.platform as string) || platform;
     const profiles = await WebAiSessionManager.listAvailableProfiles(targetPlatform, options.profileId);
     const profile = profiles[0];
 
     if (!profile) {
-      throw new Error(`No available ${targetPlatform} profile. Please check login status.`);
+      // Phân biệt: không có profile nào vs có profile nhưng chưa login
+      const allProfiles = await WebAiSessionManager.listProfiles();
+      const platformProfiles = allProfiles.filter(p => p.platform === targetPlatform);
+      const hasProfiles = platformProfiles.length > 0;
+      const hasUntested = platformProfiles.some(p => p.status === "untested");
+      
+      let errMsg: string;
+      let errorCode: string;
+      let fixSuggestion: string;
+      let fixAction: string;
+      let fixActionLabel: string;
+      
+      if (!hasProfiles) {
+        errMsg = `Chưa có tài khoản ${targetPlatform.toUpperCase()} nào được thiết lập.`;
+        errorCode = "web_no_profile";
+        fixSuggestion = `Vào Đội ngũ AI → Profiles → Thêm tài khoản mới, chọn nền tảng ${targetPlatform.toUpperCase()}, sau đó bấm "🔑 Đăng nhập Chrome" để đăng nhập một lần.`;
+        fixAction = "create_profile";
+        fixActionLabel = `Tạo tài khoản ${targetPlatform.toUpperCase()}`;
+      } else if (hasUntested) {
+        errMsg = `Tài khoản ${targetPlatform.toUpperCase()} đã được tạo nhưng CHƯA ĐĂNG NHẬP.`;
+        errorCode = "web_login_required";
+        fixSuggestion = `Vào Đội ngũ AI → Profiles, chọn tài khoản ${targetPlatform.toUpperCase()}, bấm "🔑 Đăng nhập Chrome". Sau khi đăng nhập xong, ĐÓNG cửa sổ Chrome để hệ thống ghi nhận.`;
+        fixAction = "open_login";
+        fixActionLabel = `Mở đăng nhập ${targetPlatform.toUpperCase()}`;
+      } else {
+        errMsg = `Không có tài khoản ${targetPlatform.toUpperCase()} nào khả dụng (tất cả đều bị lỗi hoặc hết quota).`;
+        errorCode = "web_all_unavailable";
+        fixSuggestion = `Vào Đội ngũ AI → Profiles để kiểm tra trạng thái các tài khoản ${targetPlatform.toUpperCase()}. Tạo tài khoản mới nếu cần.`;
+        fixAction = "check_profiles";
+        fixActionLabel = "Kiểm tra Profiles";
+      }
+      
+      throw new WebAIError(errMsg, "login_required" as any, true);
+    }
+
+    // Đánh dấu profile sẽ được dùng, nếu là untested thì thử chạy không headless để user có thể login
+    const shouldShowBrowser = profile.status === "untested" || profile.status === "login_required";
+    const effectiveHeadless = shouldShowBrowser ? false : (options.headless ?? true);
+    
+    if (shouldShowBrowser) {
+      console.log(`[AI Fabric] Profile ${profile.name} is untested/login_required. Opening visible browser for login...`);
     }
 
     const webResult = await executeWebAIAutomation(targetPlatform, userText, options.filePath, {
       profileId: profile.id,
-      headless: options.headless ?? true,
+      headless: effectiveHeadless,
       captureScreenshot: options.captureScreenshot,
     });
 
@@ -218,14 +339,38 @@ export async function dispatchThroughFabric(
   } catch (webErr: any) {
     const status = profileStatusForWebAIError(webErr);
     const quotaResetAt = webErr instanceof WebAIError ? webErr.quotaResetAt : undefined;
+    const isWebAIError = webErr instanceof WebAIError;
+    const errorCode = isWebAIError ? `web_${webErr.code}` : "web_unknown";
+    
+    // Tạo thông báo sửa lỗi dựa trên loại lỗi
+    let fixSuggestion: string | undefined;
+    let fixAction: string | undefined;
+    let fixActionLabel: string | undefined;
+    
+    if (isWebAIError && webErr.code === "login_required") {
+      fixSuggestion = `Tài khoản Web AI chưa đăng nhập. Vào Đội ngũ AI → Profiles → bấm "🔑 Đăng nhập Chrome" để đăng nhập một lần. Sau đó đóng cửa sổ Chrome.`;
+      fixAction = "open_login";
+      fixActionLabel = "Mở đăng nhập Chrome";
+    } else if (isWebAIError && webErr.code === "quota") {
+      fixSuggestion = `Tài khoản Web AI đã hết lượt dùng. Hãy đợi quota reset hoặc tạo tài khoản mới trong Đội ngũ AI → Profiles.`;
+      fixAction = "check_profiles";
+      fixActionLabel = "Kiểm tra Profiles";
+    } else if (status === "error") {
+      fixSuggestion = `Lỗi kỹ thuật khi chạy Web AI. Kiểm tra Chrome đã được cài đặt và không bị chặn bởi firewall.`;
+    }
+    
     run.steps.push({
       route: "web",
       status: "failed",
-      error: webErr.message?.slice(0, 200),
+      error: webErr.message?.slice(0, 300),
       latencyMs: 0,
       evidence: { webStatus: status, quotaResetAt },
+      errorCode,
+      fixSuggestion,
+      fixAction,
+      fixActionLabel,
     });
-    console.warn(`[AI Fabric] Web route failed: ${webErr.message}`);
+    console.warn(`[AI Fabric] Web route failed (${errorCode}): ${webErr.message}`);
   }
 
   // ── Step 3: Local route (Ollama) ──────────────────────────────────
@@ -299,8 +444,12 @@ export async function dispatchThroughFabric(
       run.steps.push({
         route: "local",
         status: "failed",
-        error: localErr.message?.slice(0, 200),
+        error: localErr.message?.slice(0, 300),
         latencyMs: 0,
+        errorCode: "local_unavailable",
+        fixSuggestion: "Ollama không khả dụng. Cài đặt Ollama từ https://ollama.com và chạy lệnh: ollama pull qwen2.5:7b",
+        fixAction: "install_ollama",
+        fixActionLabel: "Hướng dẫn cài Ollama",
       });
       console.warn(`[AI Fabric] Local route failed: ${localErr.message}`);
     }

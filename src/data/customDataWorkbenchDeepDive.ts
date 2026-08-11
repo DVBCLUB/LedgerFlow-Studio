@@ -72,21 +72,21 @@ export interface ExportSafetyChecklist {
 export const CUSTOM_DATA_SCHEMA_PREVIEWS: WorkbenchSchemaPreview[] = [
   {
     id: 'project_costs',
-    title: 'Sổ chi phí công trình',
-    domain: 'Xây dựng/dự án',
-    purpose: 'Theo dõi chi phí theo công trình, hạng mục, loại chi phí, hồ sơ và trạng thái hoàn ứng.',
+    title: 'Sổ chi phí dự án & sản phẩm',
+    domain: 'Công nghệ/sản phẩm',
+    purpose: 'Theo dõi chi phí theo dự án sản phẩm, hạng mục, loại chi phí, hồ sơ và trạng thái thanh toán.',
     columns: [
       { name: 'transaction_date', type: 'date', required: true, example: '2026-06-15', businessMeaning: 'Ngày phát sinh nghiệp vụ.' },
-      { name: 'project_code', type: 'text', required: true, example: 'CT-001', businessMeaning: 'Mã công trình để gom chi phí.' },
-      { name: 'cost_type', type: 'category', required: true, example: 'Vật tư', businessMeaning: 'Nhóm chi phí để phân tích.' },
+      { name: 'project_code', type: 'text', required: true, example: 'PRJ-GAME-01', businessMeaning: 'Mã dự án sản phẩm để gom chi phí.' },
+      { name: 'cost_type', type: 'category', required: true, example: 'API AI Render', businessMeaning: 'Nhóm chi phí để phân tích.' },
       { name: 'amount', type: 'number', required: true, example: '12500000', businessMeaning: 'Số tiền phát sinh.' },
       { name: 'document_status', type: 'category', required: true, example: 'Đủ hồ sơ', businessMeaning: 'Tình trạng hồ sơ trước khi báo cáo.' }
     ],
     recommendedQuestions: [
-      'Chi phí theo từng công trình trong tháng?',
+      'Chi phí theo từng dự án sản phẩm trong tháng?',
       'Loại chi phí nào chiếm tỷ trọng lớn?',
       'Dòng nào chưa đủ hồ sơ?',
-      'Công trình nào gần vượt ngân sách?'
+      'Dự án nào gần vượt ngân sách?'
     ],
     qualityChecks: [
       'Không để trống project_code.',
@@ -126,9 +126,9 @@ export const QUERY_BUILDER_EXPLANATION_STEPS: QueryBuilderExplanationStep[] = [
   {
     id: 'question-to-source',
     step: '1. Map business question to dataset',
-    userQuestion: 'Founder hoi: cong trinh nao dang vuot ngan sach hoac thieu ho so?',
-    builderAction: 'Chon source table co project_code, amount, budget/document_status va ky bao cao.',
-    reviewerCheck: 'Nguoi duyet xac nhan dataset dung pham vi, khong tron du lieu that voi du lieu demo.'
+    userQuestion: 'Founder hỏi: dự án sản phẩm nào đang vượt ngân sách hoặc thiếu hồ sơ?',
+    builderAction: 'Chọn source table có project_code, amount, budget/document_status và kỳ báo cáo.',
+    reviewerCheck: 'Người duyệt xác nhận dataset đúng phạm vi, không trộn dữ liệu thật với dữ liệu demo.'
   },
   {
     id: 'select-filter-group',

@@ -2,15 +2,17 @@ import React, { useState } from 'react';
 import AccountingVietnam from './AccountingVietnam';
 import AccountingVietnamDeepDivePanel from './AccountingVietnamDeepDivePanel';
 import CustomDataWorkbench from '../analytics-models-sandbox/CustomDataWorkbench';
-import { Beaker, BookOpen, Database } from 'lucide-react';
+import InvoiceSplitViewDemo from './components/InvoiceSplitViewDemo';
+import { Beaker, BookOpen, Database, ScanLine } from 'lucide-react';
 
 export default function LedgerAccountingWorkspace() {
-  const [activeTab, setActiveTab] = useState<'lab' | 'deepdive' | 'workbench'>('lab');
+  const [activeTab, setActiveTab] = useState<'invoice' | 'deepdive' | 'workbench' | 'lab'>('invoice');
 
   const tabs = [
-    { id: 'lab' as const, label: 'Phòng Lab & Mô phỏng', icon: Beaker, desc: 'Mô phỏng tài chính, what-if và chấm điểm ý tưởng.' },
-    { id: 'deepdive' as const, label: 'Kiến thức chuyên sâu VAS', icon: BookOpen, desc: 'Quy định Thông tư 200/133, thuế suất VAT và hàng tồn kho.' },
-    { id: 'workbench' as const, label: 'Bàn làm việc dữ liệu', icon: Database, desc: 'Công cụ làm việc và phân tích dữ liệu tùy biến.' }
+    { id: 'invoice' as const, label: 'Xử lý Chứng từ AI', icon: ScanLine, desc: 'Split view AI OCR đối chiếu hóa đơn gốc.' },
+    { id: 'deepdive' as const, label: 'Chế độ Kế toán VAS', icon: BookOpen, desc: 'Quy định Thông tư 200/133, thuế suất VAT và hàng tồn kho.' },
+    { id: 'workbench' as const, label: 'Bàn làm việc dữ liệu', icon: Database, desc: 'Công cụ làm việc và phân tích dữ liệu tùy biến.' },
+    { id: 'lab' as const, label: 'Phòng Lab & Mô phỏng', icon: Beaker, desc: 'Mô phỏng tài chính, what-if và chấm điểm ý tưởng.' }
   ];
 
   return (
@@ -54,6 +56,12 @@ export default function LedgerAccountingWorkspace() {
         {activeTab === 'workbench' && (
           <div className="animate-fade-in">
             <CustomDataWorkbench />
+          </div>
+        )}
+
+        {activeTab === 'invoice' && (
+          <div className="animate-fade-in">
+            <InvoiceSplitViewDemo />
           </div>
         )}
       </div>

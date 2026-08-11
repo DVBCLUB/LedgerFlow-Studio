@@ -30,14 +30,14 @@ const SCRAPBOOK_KEY = 'fastrack_saved_snippets';
 const watchedEvents = ['ledgerflow-aiops-card-updated', 'ledgerflow-ai-staff-updated', 'storage'];
 
 const roleDirectory = [
-  { name: 'AI Chief of Staff', mission: 'Điều phối founder dashboard, standup, risk queue và ưu tiên công việc.', permission: 'MEDIUM', connectors: ['AI Gateway', 'Knowledge Library'], output: 'Daily brief, work order, risk summary' },
-  { name: 'AI Dev', mission: 'Lập plan code, sửa UI/module nhỏ, tạo handoff cho VS Code/Cursor và Draft PR.', permission: 'HIGH', connectors: ['GitHub', 'VS Code', 'CI Doctor'], output: 'Code plan, patch summary, PR checklist' },
-  { name: 'AI Designer', mission: 'Thiết kế giao diện Company OS, flow màn hình và component spec.', permission: 'MEDIUM', connectors: ['Knowledge Library'], output: 'Wireframe note, UI checklist' },
-  { name: 'AI Marketer', mission: 'Lập content calendar, SEO angle, A/B test landing page và feedback loop.', permission: 'LOW', connectors: ['Marketing workspace'], output: 'Campaign brief, copy draft' },
-  { name: 'AI Accountant', mission: 'Mô phỏng case kế toán Việt Nam, calculator và checklist chứng từ.', permission: 'MEDIUM', connectors: ['Finance & Accounting'], output: 'Simulation case, journal checklist' },
-  { name: 'AI Auditor', mission: 'Tìm red flag, Benford/Isolation Forest lab và checklist kiểm soát.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Audit finding, risk scoring' },
-  { name: 'AI Data Analyst', mission: 'Phân tích KPI, cashflow, anomaly và dashboard metric.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Insight card, model note' },
-  { name: 'AI QA', mission: 'Viết checklist test, release readiness, CI triage và regression note.', permission: 'HIGH', connectors: ['CI Doctor', 'Risk & Release Audit'], output: 'QA checklist, release gate result' },
+  { name: 'AI Chief of Staff', mission: 'Điều phối hoạt động doanh nghiệp, standup, quy trình phê duyệt và ưu tiên chiến lược.', permission: 'MEDIUM', connectors: ['AI Gateway', 'Knowledge Library'], output: 'Daily brief, work order, risk summary' },
+  { name: 'AI Dev', mission: 'Lập kế hoạch phát triển mã nguồn, tối ưu UI/UX, hỗ trợ GitOps và tự động hóa thử nghiệm.', permission: 'HIGH', connectors: ['GitHub', 'VS Code', 'CI Doctor'], output: 'Code plan, patch summary, PR checklist' },
+  { name: 'AI Designer', mission: 'Thiết kế giao diện Company OS, flow trải nghiệm và quy chuẩn thiết kế hệ thống.', permission: 'MEDIUM', connectors: ['Knowledge Library'], output: 'Wireframe note, UI checklist' },
+  { name: 'AI Marketer', mission: 'Điều phối chiến dịch marketing, lập lịch nội dung, tối ưu SEO và đo lường phễu chuyển đổi.', permission: 'LOW', connectors: ['Marketing workspace'], output: 'Campaign brief, copy draft' },
+  { name: 'AI Accountant', mission: 'Xử lý chứng từ AI OCR, định khoản hạch toán VAS 200/133, tính thuế TNCN/GTGT/TNDN và soát xét sổ sách.', permission: 'MEDIUM', connectors: ['Finance & Accounting'], output: 'Báo cáo kiểm soát, bút toán VAS' },
+  { name: 'AI Auditor', mission: 'Soát xét rủi ro chứng từ, quy trình kiểm soát nội bộ, phát hiện sai lệch và xây dựng ma trận rủi ro.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Audit finding, ma trận rủi ro' },
+  { name: 'AI Data Analyst', mission: 'Phân tích chỉ số dòng tiền, KPI vận hành, phát hiện bất thường và dự báo xu hướng.', permission: 'MEDIUM', connectors: ['Analytics & Sandbox'], output: 'Insight card, dashboard metric' },
+  { name: 'AI QA', mission: 'Kiểm thử chất lượng hệ thống, soát xét trước khi phát hành, giám sát CI và báo cáo độ ổn định.', permission: 'HIGH', connectors: ['CI Doctor', 'Risk & Release Audit'], output: 'QA checklist, release gate result' },
 ];
 
 interface SavedSnippet {
@@ -1339,8 +1339,10 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
         </div>
       </div>
 
-      {/* ── RIGHT MAIN PANEL (Flexible) ── */}
-      <div className="lg:col-span-3 space-y-4">
+      {/* ── RIGHT MAIN PANEL (Split-Pane Architecture) ── */}
+      <div className="lg:col-span-3 grid lg:grid-cols-2 gap-4 h-[calc(100vh-6rem)]">
+        {/* PANEL 1: Workspace Execution (Trái) */}
+        <div className="space-y-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 h-full relative">
         {/* DRAG AND DROP OVERLAY FEEDBACK */}
         {isDragging && (
           <div className="absolute inset-0 bg-purple-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center border-2 border-dashed border-purple-500 rounded-xl animate-fade-in">
@@ -1818,8 +1820,18 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
             )}
           </div>
         ) : (
-          /* State B: General multi-turn chat client active */
-          <div className="bg-bg-primary/60 border border-border-primary rounded-2xl p-5 min-h-[500px] flex flex-col justify-between relative">
+          <div className="flex flex-col items-center justify-center h-[500px] text-slate-500 font-bold border border-dashed border-slate-850 rounded-2xl bg-slate-950/30">
+            <Layers className="w-12 h-12 mb-4 text-slate-800" />
+            <p>Chưa có tiến trình nào đang chạy.</p>
+            <p className="text-[10px] font-normal mt-1">Chọn nhiệm vụ từ danh sách bên trái để theo dõi Workspace.</p>
+          </div>
+        )}
+        </div>
+
+        {/* PANEL 2: Chat AI Client (Phải) */}
+        <div className="h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 flex flex-col">
+          {/* State B: General multi-turn chat client active */}
+          <div className="bg-bg-primary/60 border border-border-primary rounded-2xl p-5 flex-1 flex flex-col justify-between relative min-h-[600px]">
             
             {/* Scrapbook toast success indicator */}
             <div id="scrapbook-toast" className="opacity-0 transition-opacity duration-300 pointer-events-none absolute right-12 top-24 bg-emerald-500/20 text-emerald-450 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-emerald-500/30 shadow-lg z-50 flex items-center gap-2">
@@ -1918,9 +1930,10 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
               ))}
 
               {loading && (
-                <div className="p-4 bg-slate-950 border border-slate-850 mr-12 rounded-xl text-xs text-text-secondary flex items-center gap-3 shadow animate-pulse">
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-ping"></span>
-                  <span className="font-bold">Gemini đang tạo câu trả lời và stream từng hạt token...</span>
+                <div className="p-4 mr-12 rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md text-xs text-slate-200 flex items-center gap-3 shadow-xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-[100%] animate-[shimmer_2s_infinite]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse shrink-0 shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
+                  <span className="font-black tracking-wide font-sans relative z-10">Gemini đang tạo câu trả lời và stream từng hạt token...</span>
                 </div>
               )}
               <div ref={chatEndRef} />
@@ -2001,7 +2014,7 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
               )}
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );

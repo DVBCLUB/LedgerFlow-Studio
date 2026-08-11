@@ -7,12 +7,12 @@
  * Dùng in-memory queue + file persistence cho durability.
  */
 import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric } from './aiFabric';
-import { appendAuditEvent } from './auditLog';
-import { executeScript } from './rpaEngine';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { appendAuditEvent } from './auditLog.ts';
+import { executeScript } from './rpaEngine.ts';
 import { runRuntimeCoreMission } from './agentRuntimeCore.ts';
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { ensureRuntimeRootSync, resolveRuntimeDirPath, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -314,13 +314,21 @@ async function executeJobByType(job: BackgroundJob): Promise<string> {
 
     case 'agent_loop': {
       const goal = (job.payload.goal || '') as string;
-      if (!goal) throw new Error('Missing goal');
-      const { run: loop } = await runRuntimeCoreMission({
+      if (!goal) throw new Error('Missing goal for agent_loop job');
+      // Import lazily to avoid circular deps at module load time
+      const { runAgenticLoop } = await import('./agenticLoopEngine.ts');
+      const loop = await runAgenticLoop({
         goal,
-        domain: (job.payload.domain || 'coding') as any,
-        maxLoops: (job.payload.maxLoops as number) || 3,
+        domain: (job.payload.domain as any) || 'coding',
+        maxLoops: (job.payload.maxLoops as number) || 5,
+        maxRepairAttempts: (job.payload.maxRepairAttempts as number) || 3,
+        autoRepair: Boolean(job.payload.autoRepair),
+        stopOnFirstError: job.payload.stopOnFirstError !== false,
+        sandboxMode: (job.payload.sandboxMode as any) || undefined,
+        testCommand: (job.payload.testCommand as string) || undefined,
+        systemInstruction: (job.payload.systemInstruction as string) || undefined,
       });
-      return `Loop: ${loop.status} (${loop.steps.length} steps)`;
+      return `Loop[${loop.id}]: ${loop.status} — ${loop.steps.length} steps, ${loop.currentLoop} loops`;
     }
 
     case 'report_generate': {

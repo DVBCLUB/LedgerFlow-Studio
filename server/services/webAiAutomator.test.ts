@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractCodeBlocks, extractXmlCodeBlocks, inferLanguageFromPath, PLATFORMS } from "./webAiAutomator.ts";
+import { extractCodeBlocks, extractXmlCodeBlocks, inferLanguageFromPath, PLATFORMS, BrowserPoolManager, getSystemChromeExecutablePath } from "./webAiAutomator.ts";
 import { parseQuotaResetTime } from "./webAiPolicy.ts";
 import { WEB_AI_PLATFORMS } from "./webAiSessionManager.ts";
 
@@ -91,5 +91,17 @@ test("webAiAutomator - PLATFORMS selector validation smoke test", () => {
     // Selectors must not contain invalid contains logic
     assert.ok(!config.inputSelector.includes(":contains"), `Platform "${platform}" input selector should not use invalid :contains syntax.`);
     assert.ok(!config.messageSelector.includes(":contains"), `Platform "${platform}" message selector should not use invalid :contains syntax.`);
+  }
+});
+
+test("webAiAutomator - BrowserPoolManager active keys and system Chrome discovery", () => {
+  assert.ok(Array.isArray(BrowserPoolManager.getActiveKeys()), "BrowserPoolManager.getActiveKeys() should return an array.");
+  
+  const systemChrome = getSystemChromeExecutablePath();
+  if (process.platform === 'win32') {
+    // If Chrome is installed on Windows, systemChrome should be a valid string path
+    if (systemChrome) {
+      assert.ok(systemChrome.includes('chrome.exe'), "System Chrome path should contain chrome.exe.");
+    }
   }
 });

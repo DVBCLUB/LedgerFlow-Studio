@@ -13,7 +13,7 @@
  */
 
 import { spawn } from 'node:child_process';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import path from 'node:path';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -71,7 +71,35 @@ console.log('  DAEMON: http://127.0.0.1:3001');
 console.log('');
 
 const mainServer = startProcess('APP:3005', 'server.ts', { PORT: '3005' });
-const daemon = startProcess('DAEMON:3001', 'server/assistant-daemon.ts');
+
+// Start daemon with esbuild __name polyfill loaded first (CJS require runs before ESM imports)
+const polyfillCjsPath = path.resolve(__dirname, 'esbuild-name-polyfill.cjs');
+const daemon = spawn('node', ['--require', polyfillCjsPath, '--import', 'tsx', 'server/assistant-daemon.ts'], {
+  cwd: root,
+  stdio: 'pipe',
+  env: { ...process.env, NODE_ENV: 'development', FROM_DEV_LAUNCHER: 'true' },
+  shell: false
+});
+
+daemon.stdout.on('data', (data) => {
+  for (const line of data.toString().split('\n').filter(Boolean)) {
+    console.log(`[DAEMON:3001] ${line}`);
+  }
+});
+
+daemon.stderr.on('data', (data) => {
+  for (const line of data.toString().split('\n').filter(Boolean)) {
+    console.error(`[DAEMON:3001] ${line}`);
+  }
+});
+
+daemon.on('error', (err) => {
+  console.error(`[DAEMON:3001] Failed to start: ${err.message}`);
+});
+
+daemon.on('close', (code) => {
+  console.log(`[DAEMON:3001] Process exited with code ${code}`);
+});
 
 // Forward termination signals
 process.on('SIGINT', () => {

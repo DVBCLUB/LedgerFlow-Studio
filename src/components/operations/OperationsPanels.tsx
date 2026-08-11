@@ -134,10 +134,15 @@ export function ProcurementLogisticsPanel() {
   };
 
   return (
-    <Card className="space-y-6">
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-4">
-        <ShoppingCart className="h-5 w-5 text-emerald-400" />
-        <h2 className="text-sm font-black text-white uppercase tracking-wider">Procurement & Inventory</h2>
+    <Card className="space-y-6 border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 p-6 shadow-2xl backdrop-blur-xl text-left">
+      <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+        <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 shadow-sm">
+          <ShoppingCart className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-sm font-black text-white uppercase tracking-wider">Procurement & Inventory</h2>
+          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Quản lý yêu cầu mua sắm thiết bị, kho vận vật tư và duyệt khoản chi mua ngoài.</p>
+        </div>
       </div>
 
       {/* Purchase Requests */}
@@ -146,47 +151,49 @@ export function ProcurementLogisticsPanel() {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs font-semibold text-slate-300">
             <thead>
-              <tr className="border-b border-slate-800 text-slate-500">
-                <th className="py-2">Mã PR</th>
-                <th className="py-2">Mặt hàng / Thiết bị</th>
-                <th className="py-2 text-right">Chi phí</th>
-                <th className="py-2 text-center">Trạng thái</th>
-                <th className="py-2 text-center">Hành động</th>
+              <tr className="border-b border-white/10 text-slate-400 text-[10px] uppercase font-black tracking-wider">
+                <th className="py-2.5 px-3">Mã PR</th>
+                <th className="py-2.5 px-3">Mặt hàng / Thiết bị</th>
+                <th className="py-2.5 px-3 text-right">Chi phí</th>
+                <th className="py-2.5 px-3 text-center">Trạng thái</th>
+                <th className="py-2.5 px-3 text-center">Hành động</th>
               </tr>
             </thead>
             <tbody>
               {requests.map((req) => (
-                <tr key={req.id} className="border-b border-slate-850">
-                  <td className="py-3 font-bold text-cyan-200">{req.id}</td>
-                  <td className="py-3 text-left">{req.item} <span className="text-[10px] text-slate-500">x{req.qty}</span></td>
-                  <td className="py-3 text-right text-emerald-400 font-bold">${req.cost.toLocaleString()}</td>
-                  <td className="py-3 text-center">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
-                      req.status === 'approved' ? 'bg-emerald-500/15 text-emerald-300' :
-                      req.status === 'rejected' ? 'bg-rose-500/15 text-rose-300' :
-                      'bg-amber-500/15 text-amber-300'
+                <tr key={req.id} className="border-b border-white/5 hover:bg-slate-900/60 transition-colors">
+                  <td className="py-3 px-3 font-black text-cyan-300">{req.id}</td>
+                  <td className="py-3 px-3 text-left font-bold text-white">
+                    {req.item} <span className="text-[10px] text-slate-400 font-semibold ml-1">x{req.qty}</span>
+                  </td>
+                  <td className="py-3 px-3 text-right text-emerald-300 font-black">${req.cost.toLocaleString()}</td>
+                  <td className="py-3 px-3 text-center">
+                    <span className={`inline-block px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase border ${
+                      req.status === 'approved' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' :
+                      req.status === 'rejected' ? 'bg-rose-500/10 text-rose-300 border-rose-500/20' :
+                      'bg-amber-500/10 text-amber-300 border-amber-500/20'
                     }`}>{req.status}</span>
                   </td>
-                  <td className="py-3 text-center">
+                  <td className="py-3 px-3 text-center">
                     {req.status === 'pending' ? (
-                      <div className="flex justify-center gap-1">
+                      <div className="flex justify-center gap-1.5">
                         <button 
                           onClick={() => handleAction(req.id, 'approved')}
-                          className="p-1 text-emerald-400 hover:bg-emerald-500/10 rounded transition" 
+                          className="p-1.5 text-emerald-400 hover:bg-emerald-500/20 rounded-lg border border-emerald-500/30 transition shadow-sm" 
                           title="Duyệt"
                         >
                           <CheckCircle className="h-4 w-4" />
                         </button>
                         <button 
                           onClick={() => handleAction(req.id, 'rejected')}
-                          className="p-1 text-rose-400 hover:bg-rose-500/10 rounded transition" 
+                          className="p-1.5 text-rose-400 hover:bg-rose-500/20 rounded-lg border border-rose-500/30 transition shadow-sm" 
                           title="Từ chối"
                         >
                           <XCircle className="h-4 w-4" />
                         </button>
                       </div>
                     ) : (
-                      <span className="text-[10px] text-slate-500 font-normal">Đã xử lý</span>
+                      <span className="text-[10px] text-slate-500 font-bold">Đã xử lý</span>
                     )}
                   </td>
                 </tr>
@@ -245,30 +252,35 @@ export function ProcurementLogisticsPanel() {
 // ─── 3. HR & Admin Panel ─────────────────────────────────────────────────────
 export function HRAdminPanel() {
   return (
-    <Card className="space-y-6">
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-4">
-        <Users className="h-5 w-5 text-rose-400" />
-        <h2 className="text-sm font-black text-white uppercase tracking-wider">HR & Administrative Center</h2>
+    <Card className="space-y-6 border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 p-6 shadow-2xl backdrop-blur-xl text-left">
+      <div className="flex items-center gap-3 border-b border-white/10 pb-4">
+        <div className="p-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 shadow-sm">
+          <Users className="h-5 w-5" />
+        </div>
+        <div>
+          <h2 className="text-sm font-black text-white uppercase tracking-wider">HR & Administrative Center</h2>
+          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Theo dõi nhân sự triển khai, chi phí hành chính và tổ đội thuê ngoài.</p>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 text-left">
         {/* Expenses & Advances */}
         <div className="space-y-3">
           <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Tạm ứng & Chi phí Hành chính</h3>
-          <div className="space-y-2 text-xs">
-            <div className="p-3 bg-slate-950/30 border border-slate-850 rounded-xl flex justify-between items-center">
+          <div className="space-y-2.5 text-xs">
+            <div className="p-3.5 bg-slate-900/60 border border-white/10 rounded-2xl flex justify-between items-center hover:border-white/20 transition-all">
               <div>
-                <strong className="text-white block">Tạm ứng công tác phí (Đoàn HN)</strong>
-                <span className="text-[10px] text-slate-500">Người nhận: Nguyễn Văn A</span>
+                <strong className="text-white block font-black">Tạm ứng công tác phí (Đoàn HN)</strong>
+                <span className="text-[10px] text-slate-400 font-semibold">Người nhận: Nguyễn Văn A</span>
               </div>
-              <span className="font-black text-amber-300">$1,500</span>
+              <span className="font-black text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">$1,500</span>
             </div>
-            <div className="p-3 bg-slate-950/30 border border-slate-850 rounded-xl flex justify-between items-center">
+            <div className="p-3.5 bg-slate-900/60 border border-white/10 rounded-2xl flex justify-between items-center hover:border-white/20 transition-all">
               <div>
-                <strong className="text-white block">Chi phí Văn phòng phẩm Q2</strong>
-                <span className="text-[10px] text-slate-500">Mã chi: EXP-Admin</span>
+                <strong className="text-white block font-black">Chi phí Văn phòng phẩm Q2</strong>
+                <span className="text-[10px] text-slate-400 font-semibold">Mã chi: EXP-Admin</span>
               </div>
-              <span className="font-black text-emerald-400">$640</span>
+              <span className="font-black text-emerald-300 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">$640</span>
             </div>
           </div>
         </div>
@@ -276,18 +288,20 @@ export function HRAdminPanel() {
         {/* Outsourced Labor & Payroll checklist */}
         <div className="space-y-3">
           <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Nhân công thuê ngoài (Outsourced Labor)</h3>
-          <div className="p-4 bg-slate-950/30 border border-slate-850 rounded-xl space-y-3 text-xs">
-            <div className="flex justify-between">
+          <div className="p-4 bg-slate-900/60 border border-white/10 rounded-2xl space-y-3 text-xs backdrop-blur-sm">
+            <div className="flex justify-between items-center">
               <span className="text-slate-400 font-bold">Số lượng tổ đội thuê ngoài:</span>
               <span className="font-black text-white">4 Tổ đội (45 nhân sự)</span>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-slate-400 font-bold">Chi phí nhân công lũy kế:</span>
-              <span className="font-black text-rose-450">$18,400</span>
+              <span className="font-black text-rose-400">$18,400</span>
             </div>
-            <div className="border-t border-slate-850 pt-2 flex items-center justify-between text-[11px] font-black text-slate-500">
+            <div className="border-t border-white/10 pt-3 flex items-center justify-between text-[11px] font-black text-slate-400">
               <span>Bảng lương tháng gần nhất:</span>
-              <span className="text-emerald-400 flex items-center gap-1"><CheckCircle className="h-3.5 w-3.5" /> Đã chốt sổ</span>
+              <span className="text-emerald-400 flex items-center gap-1.5 bg-emerald-500/10 px-2.5 py-1 rounded-full border border-emerald-500/20">
+                <CheckCircle className="h-3.5 w-3.5" /> Đã chốt sổ
+              </span>
             </div>
           </div>
         </div>

@@ -492,3 +492,26 @@ async function auditMission(
     evidence,
   }).catch(() => undefined);
 }
+
+export function triggerAutoHealingMission(input: {
+  ciFailureSummary: string;
+  targetFiles?: string[];
+  testCommand?: string;
+  repo?: string;
+  runId?: string;
+}): { mission: MissionState; message: string } {
+  const targetFiles = input.targetFiles && input.targetFiles.length > 0 ? input.targetFiles : ['package.json'];
+  const config: MissionConfig = {
+    goalPrompt: `Auto-Healing CI Repair: ${input.ciFailureSummary}`,
+    platform: 'github_ci',
+    testCommand: input.testCommand || 'npm test',
+    targetFiles,
+    requireHumanApprovalBeforePush: true,
+  };
+
+  const mission = createMission(config);
+  return {
+    mission,
+    message: `Autonomous self-healing mission ${mission.id} triggered for CI failure: ${input.ciFailureSummary.slice(0, 80)}`,
+  };
+}

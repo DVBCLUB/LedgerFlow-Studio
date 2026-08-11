@@ -4,34 +4,34 @@ import { createClient } from "@supabase/supabase-js";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
-import { callAI } from "./aiClient";
-import { getAgentRole, listAgentRoles } from "./agentRoles";
-import { registerBrief3Routes } from "./brief3Routes";
-import { cancelCronQueueJob, getCronQueueStatus, getCronStatus, pruneCronQueue, retryCronQueueJob, startCronScheduler, triggerJobNow } from "./cronScheduler";
-import { getGitHubSummary } from "./githubConnector";
-import { extractInvoiceFromImage } from "./invoiceOCR";
-import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator";
-import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler";
-import { appendCompanyOsEvent, createCompanyOsTask, exportCompanyOsAuditLog, getCompanyOsContracts, listCompanyOsControlPlane, simulateOpenClawAction, updateCompanyOsTask, type OpenClawActionInput } from "./companyOsControlPlane";
-import { startBrowserSandboxRun, getBrowserModeDiagnostics, getRun, stopRun } from "./browserSandboxConnector";
-import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from "./agentToolExecutionGate";
-import { advanceAgentRun, approveAgentRunStep, createAgentRun, getAgentRun, getAgentRuntimeMetrics, importLegacyAgentRuns, listAgentRuns, replanAgentRun, setAgentRuntimeEmergencyStop, stopAgentRun } from "./agentRuntime";
-import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from "./agentMemoryStore";
-import { getRobotSimulationState, setRobotEmergencyStop, simulateRobotCommand } from "./robotConnector";
-import { readRequestPrincipal, requireRoles } from "./localAuth";
-import { verifyAuditChain } from "./auditLog";
-import { runAISystemReadiness } from "./aiSystemReadiness";
-import { getLibraryStats as getPromptLibraryStats, getTemplates } from "./aiPromptLibrary";
-import { getKBStats } from "./teamKnowledgeBase";
-import { getSkillStats, listSkills } from "./skillRegistry";
-import { listWorkflowTemplates } from "./agentWorkflowEngine";
+import { callAI } from "./aiClient.js";
+import { getAgentRole, listAgentRoles } from "./agentRoles.js";
+import { registerBrief3Routes } from "./brief3Routes.js";
+import { cancelCronQueueJob, getCronQueueStatus, getCronStatus, pruneCronQueue, retryCronQueueJob, startCronScheduler, triggerJobNow } from "./cronScheduler.js";
+import { getGitHubSummary } from "./githubConnector.js";
+import { extractInvoiceFromImage } from "./invoiceOCR.js";
+import { getPipelineById, listPipelineTypes, PIPELINE_TEMPLATES, resumePipeline, startPipeline, type PipelineType } from "./pipelineOrchestrator.js";
+import { aiClassifyUnknown, reconcileStatement } from "./vietqrReconciler.js";
+import { appendCompanyOsEvent, createCompanyOsTask, exportCompanyOsAuditLog, getCompanyOsContracts, listCompanyOsControlPlane, simulateOpenClawAction, updateCompanyOsTask, type OpenClawActionInput } from "./companyOsControlPlane.js";
+import { startBrowserSandboxRun, getBrowserModeDiagnostics, getRun, stopRun } from "./browserSandboxConnector.js";
+import { approveAgentToolExecution, consumeAgentToolExecution, createAgentToolExecutionPreview } from "./agentToolExecutionGate.js";
+import { advanceAgentRun, approveAgentRunStep, createAgentRun, getAgentRun, getAgentRuntimeMetrics, importLegacyAgentRuns, listAgentRuns, replanAgentRun, setAgentRuntimeEmergencyStop, stopAgentRun } from "./agentRuntime.js";
+import { createAgentMemory, reviewAgentMemory, searchAgentMemory } from "./agentMemoryStore.js";
+import { getRobotSimulationState, setRobotEmergencyStop, simulateRobotCommand } from "./robotConnector.js";
+import { readRequestPrincipal, requireRoles } from "./localAuth.js";
+import { verifyAuditChain } from "./auditLog.js";
+import { runAISystemReadiness } from "./aiSystemReadiness.js";
+import { getLibraryStats as getPromptLibraryStats, getTemplates } from "./aiPromptLibrary.js";
+import { getKBStats } from "./teamKnowledgeBase.js";
+import { getSkillStats, listSkills } from "./skillRegistry.js";
+import { listWorkflowTemplates } from "./agentWorkflowEngine.js";
 import {
   createAutomationRule,
   deleteAutomationRule,
   getAutomationExecutionLog,
   listAutomationRules,
   toggleAutomationRule
-} from "./automationRuleEngine";
+} from "./automationRuleEngine.js";
 
 let securityInstalled = false;
 

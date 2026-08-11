@@ -23,10 +23,15 @@ export default function AIWorkforceTaskBoard() {
   const fetchTasks = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/ai-tasks').then(r => r.json());
-      if (res.success) setTasks(res.tasks);
+      const res = await fetch('/api/ai-tasks').then(r => r.json()).catch(() => null);
+      if (res && res.success && Array.isArray(res.tasks)) {
+        setTasks(res.tasks);
+      } else {
+        setTasks([]);
+      }
     } catch (err) {
       console.error('Failed to load tasks', err);
+      setTasks([]);
     } finally {
       setIsLoading(false);
     }
@@ -133,7 +138,7 @@ export default function AIWorkforceTaskBoard() {
         </form>
       )}
 
-      {isLoading && tasks.length === 0 ? (
+      {isLoading && (!tasks || tasks.length === 0) ? (
         <div className="py-20 text-center flex flex-col items-center justify-center text-text-tertiary">
           <Loader2 className="h-6 w-6 animate-spin mb-2" /> Đang tải dữ liệu...
         </div>
@@ -146,12 +151,12 @@ export default function AIWorkforceTaskBoard() {
                   <col.icon className="h-4 w-4" /> {col.title}
                 </h3>
                 <span className="text-[10px] font-bold bg-bg-primary px-2 py-0.5 rounded-full text-text-secondary">
-                  {tasks.filter(t => t.status === col.id).length}
+                  {(tasks || []).filter(t => t.status === col.id).length}
                 </span>
               </div>
               
               <div className="space-y-3">
-                {tasks.filter(t => t.status === col.id).map(task => (
+                {(tasks || []).filter(t => t.status === col.id).map(task => (
                   <div key={task.id} className="rounded-xl border border-border-primary bg-bg-primary/80 p-3 shadow-lg hover:border-violet-500/50 transition-colors cursor-pointer group relative">
                     <p className="text-xs font-bold text-text-primary mb-1 line-clamp-2">{task.title}</p>
                     {task.description && <p className="text-[10px] text-text-secondary line-clamp-2 mb-2 leading-relaxed">{task.description}</p>}

@@ -161,7 +161,7 @@ export default function BrowserRunbookTab() {
       )}
 
       {/* Recent errors */}
-      {summary && summary.recentErrors.length > 0 && (
+      {summary && (summary.recentErrors?.length ?? 0) > 0 && (
         <div className="rounded-xl border border-rose-800/30 bg-rose-950/20 p-3 space-y-1">
           <div className="text-[10px] font-black uppercase text-rose-300">Lỗi gần đây</div>
           {summary.recentErrors.slice(-5).map((e, i) => (
@@ -179,13 +179,13 @@ export default function BrowserRunbookTab() {
         <div className="flex items-center justify-center py-8 text-xs text-text-tertiary gap-2">
           <Loader2 className="h-4 w-4 animate-spin text-violet-400" /> Đang tải runbook...
         </div>
-      ) : sessions.length === 0 ? (
+      ) : (sessions || []).length === 0 ? (
         <div className="text-center py-8 text-xs text-text-tertiary">Chưa có phiên browser nào. Hãy chạy Web AI Execute để tạo dữ liệu.</div>
       ) : (
         <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-          {sessions.map(session => {
+          {(sessions || []).map(session => {
             const isExpanded = expandedId === session.id;
-            const failedSteps = session.steps.filter(s => !s.success).length;
+            const failedSteps = (session.steps || []).filter(s => !s.success).length;
             return (
               <div key={session.id} className="rounded-xl border border-border-primary bg-slate-950/60 overflow-hidden">
                 {/* Session header */}
@@ -206,7 +206,7 @@ export default function BrowserRunbookTab() {
                       <div className="flex items-center gap-2 mt-0.5">
                         <span className="text-[9px] text-text-tertiary">{formatDate(session.startedAt)}</span>
                         <span className="text-[9px] text-slate-600">· {(session.totalDurationMs / 1000).toFixed(1)}s</span>
-                        <span className="text-[9px] text-slate-600">· {session.steps.length} steps</span>
+                        <span className="text-[9px] text-slate-600">· {(session.steps?.length || 0)} steps</span>
                         {failedSteps > 0 && <span className="text-[9px] text-rose-400">· {failedSteps} lỗi</span>}
                       </div>
                     </div>
@@ -220,7 +220,7 @@ export default function BrowserRunbookTab() {
                     {session.error && (
                       <div className="rounded-lg border border-rose-800/30 bg-rose-950/20 p-2 text-[10px] font-bold text-rose-300">Lỗi: {session.error}</div>
                     )}
-                    {session.steps.map((step, i) => {
+                    {(session.steps || []).map((step, i) => {
                       const Icon = actionIcons[step.action] || Bot;
                       return (
                         <div key={step.id} className="flex items-start gap-2 text-[10px] py-1">
@@ -248,7 +248,7 @@ export default function BrowserRunbookTab() {
                       );
                     })}
                     {/* Artifacts */}
-                    {session.artifacts.length > 0 && (
+                    {(session.artifacts?.length ?? 0) > 0 && (
                       <div className="pt-2 border-t border-border-primary mt-2">
                         <div className="text-[10px] font-black text-text-tertiary uppercase mb-1">Artifacts</div>
                         {session.artifacts.map(a => (

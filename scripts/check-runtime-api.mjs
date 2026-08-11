@@ -116,7 +116,7 @@ try {
   const authenticated = { headers: { Cookie: cookie } };
   const dbLoad = await fetchJson('/api/db/load', authenticated);
   if (!dbLoad.response.ok || dbLoad.json?.success !== true) {
-    throw new Error('/api/db/load did not return success true.');
+    throw new Error('/api/db/load did not return success true: ' + JSON.stringify(dbLoad.json));
   }
 
   const aiHealth = await fetchJson('/api/ai/health', authenticated);

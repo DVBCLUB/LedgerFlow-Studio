@@ -37,49 +37,70 @@ export default function WorkspaceSubNavigation<T extends string = string>({
   eyebrow,
 }: WorkspaceSubNavigationProps<T>) {
   return (
-    <header className="rounded-3xl border border-border-primary/80 bg-bg-surface/40 p-5 shadow-xl backdrop-blur relative overflow-hidden space-y-4">
-      {/* Background glow effects */}
-      <div className="absolute right-0 top-0 -mt-10 -mr-10 w-36 h-36 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none" />
-      <div className="absolute left-1/4 bottom-0 w-24 h-24 rounded-full bg-violet-500/5 blur-2xl pointer-events-none" />
+    <header
+      className="rounded-2xl relative overflow-hidden"
+      style={{
+        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid rgba(255,255,255,0.06)',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      }}
+    >
+      {/* Ambient glow */}
+      <div className="absolute right-0 top-0 -mt-10 -mr-10 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)' }} />
 
+      {/* Title row */}
       {title && (
-        <div className="text-left relative z-10">
+        <div className="px-5 pt-4 pb-3">
           {eyebrow && (
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-300">
-              {eyebrow}
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-400 mb-1">{eyebrow}</p>
           )}
-          <h2 className="text-xl font-black text-white mt-1">{title}</h2>
+          <h2 className="text-lg font-black text-white">{title}</h2>
         </div>
       )}
 
-      {/* Tabs Container */}
-      <div className="flex flex-wrap gap-2 select-none relative z-10 border-t border-border-primary/60 pt-3">
+      {/* Tab bar — responsive flex wrap with horizontal overflow safety */}
+      <div
+        className="flex flex-wrap items-center gap-1 p-1.5 max-w-full overflow-x-auto"
+        style={{
+          borderTop: title ? '1px solid rgba(255,255,255,0.05)' : 'none',
+        }}
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
           const hub = INTEGRATED_HUB_LABELS[String(tab.id)];
           const displayLabel = hub?.label ?? tab.label;
           const displayBadge = tab.badge ?? hub?.badge;
-          const displayBadgeColor = tab.badgeColor ?? (hub ? 'bg-cyan-500/20 text-cyan-200' : undefined);
+          const displayBadgeColor = tab.badgeColor ?? (hub ? 'text-cyan-300 bg-cyan-500/10' : undefined);
+
           return (
             <button
               key={tab.id}
               type="button"
               onClick={() => onChange(tab.id)}
               title={hub ? `${displayLabel} — ${tab.label}` : tab.label}
-              className={`py-2 px-3 text-xs font-black uppercase tracking-wider rounded-xl transition-all flex items-center gap-2 border cursor-pointer ${
+              className={`relative flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-xs font-bold whitespace-nowrap cursor-pointer transition-all rounded-xl select-none group ${
                 isActive
-                  ? 'bg-gradient-to-r from-brand/10 via-bg-primary to-brand/10 text-brand-light border-brand/35 shadow-lg shadow-brand/5'
-                  : 'border-transparent text-text-secondary bg-bg-primary/20 hover:text-text-primary hover:bg-bg-primary/60 hover:border-border-secondary/40'
+                  ? 'bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 shadow-sm shadow-indigo-500/10'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'
               }`}
             >
-              {Icon && <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-brand-light' : 'text-text-secondary'}`} />}
+              {Icon && (
+                <Icon
+                  className="w-3.5 h-3.5 shrink-0"
+                  style={{ color: isActive ? '#818cf8' : 'inherit' }}
+                />
+              )}
               <span>{displayLabel}</span>
               {displayBadge && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${displayBadgeColor || 'bg-indigo-500/20 text-indigo-300'}`}>
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-black ${displayBadgeColor || 'bg-indigo-500/10 text-indigo-400'}`}>
                   {displayBadge}
                 </span>
+              )}
+
+              {/* Active indicator dot */}
+              {isActive && (
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse ml-0.5" />
               )}
             </button>
           );

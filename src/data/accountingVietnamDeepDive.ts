@@ -52,8 +52,8 @@ export const VIETNAM_ACCOUNTING_DEEP_DIVE: DeepDiveCard[] = [
     learningGoal: 'Người học hiểu vì sao không nên chọn hệ thống tài khoản chỉ vì file mẫu cũ; phải có policy được duyệt và có version.',
     documents: ['quy mô doanh nghiệp', 'nhu cầu báo cáo quản trị', 'hệ thống tài khoản dự kiến', 'mẫu BCTC cần xuất', 'biên bản chọn chính sách'],
     simulatedEntries: ['Nợ 156 / Nợ 1331 / Có 331 khi mua hàng có hóa đơn', 'Nợ 632 / Có 156 khi xuất bán hàng hóa', 'Nợ 131 / Có 511 / Có 3331 khi ghi nhận doanh thu bán hàng'],
-    redFlags: ['dùng sai hệ thống tài khoản', 'không có chính sách kế toán được duyệt', 'không tách tài khoản chi tiết cho công trình/dự án khi cần'],
-    controlQuestions: ['doanh nghiệp cần báo cáo quản trị chi tiết đến mức nào?', 'có dùng tài khoản chi phí công trình 621/622/623/627 không?', 'policy có được lưu ngày hiệu lực và người duyệt không?']
+    redFlags: ['dùng sai hệ thống tài khoản', 'không có chính sách kế toán được duyệt', 'không tách tài khoản chi tiết cho dự án khi cần'],
+    controlQuestions: ['doanh nghiệp cần báo cáo quản trị chi tiết đến mức nào?', 'có dùng tài khoản chi phí 621/622/627 không?', 'policy có được lưu ngày hiệu lực và người duyệt không?']
   },
   {
     id: 'vat-8-10-review-lab',
@@ -76,14 +76,14 @@ export const VIETNAM_ACCOUNTING_DEEP_DIVE: DeepDiveCard[] = [
     controlQuestions: ['phương pháp nào đang được policy duyệt?', 'ảnh hưởng COGS và gross margin là bao nhiêu?', 'có phát sinh âm kho hoặc lệch kiểm kê không?']
   },
   {
-    id: 'construction-advance-settlement',
-    title: 'Case xây dựng: tạm ứng và hoàn ứng công trình',
-    scope: 'Mô phỏng theo dõi tiền ứng cho chỉ huy trưởng/thủ kho, chi phí công trình và chứng từ hoàn ứng.',
+    id: 'project-advance-settlement',
+    title: 'Case dự án: tạm ứng và hoàn ứng chi phí R&D',
+    scope: 'Mô phỏng theo dõi tiền ứng cho quản lý sản phẩm/R&D, chi phí dự án và chứng từ hoàn ứng.',
     learningGoal: 'Người học hiểu tạm ứng là khoản cần theo dõi tuổi nợ, người nhận, mục đích và hồ sơ hoàn ứng.',
     documents: ['đề nghị tạm ứng', 'phiếu chi/ủy nhiệm chi', 'bảng kê hoàn ứng', 'hóa đơn/chứng từ gốc', 'xác nhận số còn treo'],
-    simulatedEntries: ['Nợ 141 / Có 111 hoặc 112 khi chi tạm ứng', 'Nợ 621/623/627 hoặc 642 / Nợ 1331 nếu đủ điều kiện / Có 141 khi hoàn ứng', 'Nợ 111/112 / Có 141 nếu nộp lại tiền thừa'],
-    redFlags: ['ứng mới khi ứng cũ chưa hoàn', 'quá hạn hoàn ứng', 'chi sai mã công trình', 'chứng từ yếu nhưng giá trị lặp lại nhiều lần'],
-    controlQuestions: ['còn treo bao nhiêu?', 'quá hạn bao nhiêu ngày?', 'có gắn mã công trình và người chịu trách nhiệm không?']
+    simulatedEntries: ['Nợ 141 / Có 111 hoặc 112 khi chi tạm ứng', 'Nợ 627/642 / Nợ 1331 nếu đủ điều kiện / Có 141 khi hoàn ứng', 'Nợ 111/112 / Có 141 nếu nộp lại tiền thừa'],
+    redFlags: ['ứng mới khi ứng cũ chưa hoàn', 'quá hạn hoàn ứng', 'chi sai mã dự án', 'chứng từ yếu nhưng giá trị lặp lại nhiều lần'],
+    controlQuestions: ['còn treo bao nhiêu?', 'quá hạn bao nhiêu ngày?', 'có gắn mã dự án và người chịu trách nhiệm không?']
   }
 ];
 

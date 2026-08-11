@@ -4,7 +4,6 @@
  * server/services/accountingRoutes.ts, không di chuyển.
  */
 import type { IModule } from '../../core/types/module.interface.js';
-import { registerAccountingRoutes } from '../../server/services/accountingRoutes.ts';
 
 const AccountingModule: IModule = {
   meta: {
@@ -28,7 +27,7 @@ const AccountingModule: IModule = {
   },
 
   registerRoutes(app) {
-    registerAccountingRoutes(app);
+    // Note: Các route API thực tế của Kế Toán hiện đang được đăng ký trực tiếp trong server.ts.
   },
 };
 

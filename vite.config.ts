@@ -50,6 +50,8 @@ export default defineConfig(() => {
           '**/ledgerflow_audit.log.json',
           '**/runtime/*.json',
           '**/runtime/*.log',
+          '**/runtime/.chrome_profiles/**',
+          '**/.chrome_profiles/**',
           '**/*.db',
           '**/*.sqlite',
           '**/*.log',

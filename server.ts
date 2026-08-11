@@ -3,6 +3,7 @@ import path from "path";
 import dotenv from "dotenv";
 import rateLimit from "express-rate-limit";
 import { z } from "zod";
+// ── AI Gateway (core — không được thay đổi) ──────────────────────────
 import { callAI, streamAI, checkAIProxyHealth, type ChatMessage, type CallAIOptions } from "./server/services/aiClient";
 import { createAIKey, deleteAIKey, exportAIKeyBackup, getAIVaultSecurityStatus, getSupportedAIProviders, importAIKeyBackup, listAIKeys, lockAIVault, setupAIVaultPassphrase, unlockAIVault, updateAIKey } from "./server/services/aiKeyVault";
 import { diagnoseAIRouter, testAIKey } from "./server/services/aiRouter";
@@ -11,12 +12,14 @@ import { clearAIUsageLogs, readAIUsageLogs } from "./server/services/aiUsageLog"
 import { buildAIUsageMetrics } from "./server/services/aiUsageMetrics";
 import { AI_PROMPT_TASKS, activatePromptVersion, createPromptVersion, getActivePrompt, listPromptTemplates } from "./server/services/aiPromptRegistry";
 import { disarmAIVaultAutoLock, getAIVaultAutoLockStatus, markAIVaultActivity, updateAIVaultAutoLockConfig } from "./server/services/aiVaultAutoLock";
+// ── Integration & DevOps ──────────────────────────────────────────────
 import { appendIntegrationEvent, clearIntegrationEvents, listIntegrationConnectors, readIntegrationEvents, testIntegrationConnector, updateIntegrationConnector } from "./server/services/integrationRegistry";
 import { createApprovedGitHubChangeRequest, createGitHubIssue, getGitHubPullRequestDigest, getGitHubSummary, getGitHubWorkflowRunJobs, requestCloseGitHubPullRequest, getGitLocalStatus, gitPullLocal, gitPushLocal } from "./server/services/githubConnector";
 import { getGitHubWorkflowRunArtifacts } from "./server/services/githubArtifacts";
 import { getLocalToolSummary, openLocalTool } from "./server/services/localToolConnector";
 import { seedContractsFromRegistry, listContracts, getContract, updateContractHealth } from "./server/services/connectorContract";
 import { checkAllIDEs, openIDE, generateHandoffPrompt, checkIDEBridgeHealth, type IDETarget } from "./server/services/ideBridge";
+// ── Accounting & Core Data ────────────────────────────────────────────
 import { registerAccountingRoutes } from "./server/services/accountingRoutes";
 import { clearLocalSession, createLocalSession, readLocalServerSession, requireLocalAuth, setLocalSessionCookie } from "./server/services/localAuth";
 import { loadLocalDatabase, saveLocalDatabase } from "./server/services/localDatabase";
@@ -43,6 +46,9 @@ import { getAIWorkforceHealthSnapshot } from "./server/services/aiWorkforceRunti
 import { videoMakerRoutes } from "./server/services/videoMakerRoutes";
 import { aiTaskBoardRoutes } from "./server/services/aiTaskBoardRoutes";
 import { localOfficeRoutes } from "./server/services/localOfficeRoutes";
+import { registerAgentSystemRoutes } from "./server/services/agentSystemRoutes";
+import { registerMCPHttpRoutes } from "./server/services/mcpHttpRoutes";
+import { hydrateExternalMCPServerCatalog } from "./server/services/mcpClientGateway";
 
 // ── Core Module Loader (Modular Monolith Setup) ─────────────────────
 import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
@@ -88,6 +94,7 @@ function buildAIMessages(input: GeminiGenerateInput, resolvedSystemInstruction?:
 function isRateLimitOrQuotaError(err: any): boolean { const text = `${err?.status || ""} ${err?.message || ""} ${JSON.stringify(err?.body || {})}`.toLowerCase(); return text.includes("429") || text.includes("quota") || text.includes("resource_exhausted") || text.includes("rate limit") || text.includes("too many requests"); }
 
 async function startServer() {
+  await hydrateExternalMCPServerCatalog();
   const app = express();
   const PORT = Number(process.env.PORT ?? 3000);
   app.set("trust proxy", 1);
@@ -161,6 +168,7 @@ async function startServer() {
     return res.json({ success: true });
   });
   app.use("/api", requireLocalAuth);
+  registerMCPHttpRoutes(app);
 
   app.post("/api/client-error", express.json(), (req, res) => {
     console.error("🔴 [ClientError]", req.body);
@@ -759,6 +767,11 @@ async function startServer() {
       sseClients.delete(res);
     });
   });
+
+  // ═══════════════════════════════════════════════════════════════════
+  // Agent System Routes — Loop Jobs, Circuit Breaker, Performance Ledger
+  // ═══════════════════════════════════════════════════════════════════
+  registerAgentSystemRoutes(app);
 
   // ═══════════════════════════════════════════════════════════════════
   // Cost Observability — theo dõi chi phí token/$

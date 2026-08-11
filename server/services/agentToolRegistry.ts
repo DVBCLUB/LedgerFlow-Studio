@@ -180,7 +180,11 @@ const contracts = [
 const registry = new Map<string, AgentToolContract>(contracts.map((c) => [c.id, c]));
 
 export function listAgentToolContracts(): AgentToolContract[] {
-  return contracts.map((c) => ({ ...c }));
+  return Array.from(registry.values()).map((c) => ({ ...c }));
+}
+
+export function registerAgentToolContract(contract: AgentToolContract): void {
+  registry.set(contract.id, contract);
 }
 
 export function getAgentToolContract(id: string): AgentToolContract | undefined {

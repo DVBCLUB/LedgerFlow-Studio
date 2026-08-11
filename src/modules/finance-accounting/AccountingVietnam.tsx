@@ -316,12 +316,12 @@ export default function AccountingVietnam() {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-4xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-info/20 bg-info/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-info">
-              <Receipt className="h-3.5 w-3.5" /> Multi-Industry Founder Simulation Lab
+              <Receipt className="h-3.5 w-3.5" /> Company Operating System & Finance Hub
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-text-primary">Lab học tập kế toán - kiểm toán đa ngành, mô phỏng sản phẩm và vận hành công ty solo founder</h1>
-            <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">Module này không phải phần mềm nhập liệu kế toán thay MISA AMIS, Bravo hay ERP. Đây là phòng học, R&amp;D, mô phỏng và điều hành: kế toán/kiểm toán đa ngành, lập trình sản phẩm/app/game, AI agent workforce, marketing, tài chính và quy trình vận hành với chi phí thấp nhất.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-text-primary">Trung tâm Kiểm soát Kế toán & Vận hành Doanh nghiệp (Company OS)</h1>
+            <p className="mt-3 text-sm font-semibold leading-7 text-text-secondary">Hệ thống tích hợp quy trình kế toán - kiểm toán đa ngành, kiểm soát rủi ro thuế, quản lý sản phẩm và điều hành đội ngũ Agent AI vận hành doanh nghiệp.</p>
           </div>
-          <button onClick={() => copyText()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-xs font-bold text-slate-950"><Copy className="h-4 w-4" />{copied === 'report' ? 'Đã copy' : 'Copy báo cáo mô phỏng'}</button>
+          <button onClick={() => copyText()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-3 text-xs font-bold text-slate-950"><Copy className="h-4 w-4" />{copied === 'report' ? 'Đã copy' : 'Copy báo cáo điều hành'}</button>
         </div>
         <div className="mt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border-primary/60 pt-4">
           <div className="flex flex-wrap gap-2">
@@ -1110,7 +1110,7 @@ Vui lòng hỗ trợ tôi thực hiện bước đầu tiên hoặc đặt câu 
 
       {tab === 'casebank' && <section className="grid gap-4 lg:grid-cols-3">{ADVANCED_CONSTRUCTION_CASES.map((item) => <Card key={item.title}><BookOpen className="mb-3 h-5 w-5 text-purple-300" /><h2 className="text-sm font-bold text-text-primary">{item.title}</h2><p className="mt-3 text-xs font-semibold leading-6 text-text-secondary">{item.situation}</p><p className="mt-4 text-[10px] font-bold uppercase text-info">Trọng tâm kế toán</p><BulletList items={item.accountingFocus} className="text-cyan-100" /><p className="mt-4 text-[10px] font-bold uppercase text-warning">Câu hỏi kiểm soát</p><BulletList items={item.controlQuestions} className="text-amber-100" /></Card>)}</section>}
 
-      <section className="rounded-2xl border border-success/20 bg-success/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-success"><CheckCircle2 className="h-4 w-4" />Ranh giới module</h2><p className="text-xs font-semibold leading-7 text-text-secondary">Đây là simulation lab và company operating system cho solo founder: học bằng case giả lập, mô phỏng khảo sát, lập kế hoạch sản phẩm và quản lý AI agent. Dữ liệu chạy offline-first bằng static data/localStorage, không thay phần mềm kế toán, không thay văn bản pháp lý hiện hành và không thay người duyệt chuyên môn.</p></section>
+      <section className="rounded-2xl border border-success/20 bg-success/5 p-5"><h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wider text-success"><CheckCircle2 className="h-4 w-4" />Quy chuẩn hệ thống</h2><p className="text-xs font-semibold leading-7 text-text-secondary">Hệ thống điều hành doanh nghiệp (Company Operating System): tích hợp kiểm soát kế toán, khảo sát thị trường, phát triển sản phẩm và quản lý tự động hóa đội ngũ AI. Dữ liệu vận hành an toàn, hỗ trợ xuất báo cáo và đối chiếu chứng từ thực tế.</p></section>
     </div>
   );
 }

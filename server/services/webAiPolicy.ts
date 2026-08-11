@@ -1,4 +1,4 @@
-export type WebAIPageErrorCode = 'quota' | 'platform_error';
+export type WebAIPageErrorCode = 'quota' | 'platform_error' | 'session_expired';
 
 const QUOTA_PATTERNS = [
   /you(?:'ve| have) reached (?:the|your) .*limit/i,
@@ -8,6 +8,18 @@ const QUOTA_PATTERNS = [
   /limit reached.*try again/i,
   /het luot/i,
   /dat gioi han/i,
+  /usage cap/i,
+  /daily limit/i,
+  /message limit/i,
+  /you(?:'ve| have) used all/i,
+];
+
+const SESSION_EXPIRED_PATTERNS = [
+  /your session has expired/i,
+  /phiên đã hết hạn/i,
+  /session expired/i,
+  /please log in again/i,
+  /vui lòng đăng nhập lại/i,
 ];
 
 const PLATFORM_ERROR_PATTERNS = [
@@ -16,10 +28,27 @@ const PLATFORM_ERROR_PATTERNS = [
   /server error/i,
   /could not generate/i,
   /unable to generate/i,
+  /temporarily unavailable/i,
+  /tạm thời không khả dụng/i,
+  /an error occurred/i,
+  /đã xảy ra lỗi/i,
+  /please try again later/i,
+  /vui lòng thử lại sau/i,
+  /connection lost/i,
+  /mất kết nối/i,
+  /internal server error/i,
+  /service unavailable/i,
+  /failed to generate/i,
+  /generation failed/i,
+  /response error/i,
+  /couldn't complete/i,
+  /we're experiencing issues/i,
+  /overloaded/i,
 ];
 
 export function classifyWebAIPageText(text: string): WebAIPageErrorCode | null {
   if (QUOTA_PATTERNS.some((pattern) => pattern.test(text))) return 'quota';
+  if (SESSION_EXPIRED_PATTERNS.some((pattern) => pattern.test(text))) return 'session_expired';
   if (PLATFORM_ERROR_PATTERNS.some((pattern) => pattern.test(text))) return 'platform_error';
   return null;
 }
@@ -61,4 +90,3 @@ export function parseQuotaResetTime(text: string): string {
   // Default fallback: 1 hour from now
   return new Date(Date.now() + 60 * 60 * 1000).toISOString();
 }
-

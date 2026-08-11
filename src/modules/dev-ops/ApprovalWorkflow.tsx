@@ -465,6 +465,81 @@ export default function ApprovalWorkflow() {
                 </div>
               )}
 
+              {/* Office Paper-Grade Voucher Sheet */}
+              <div className="bg-slate-900 border border-slate-700/80 rounded-xl p-5 shadow-2xl space-y-4 font-sans text-slate-200">
+                {/* Office Header */}
+                <div className="flex items-start justify-between border-b border-slate-700/80 pb-3 text-left">
+                  <div>
+                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">CÔNG TY CỔ PHẦN CÔNG NGHỆ LEDGERFLOW</p>
+                    <p className="text-[9px] text-slate-400 font-semibold">Tòa nhà Studio Enterprise · Hệ thống Quản trị Doanh nghiệp</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-mono font-bold text-slate-300">Mẫu số: 01-VT/VAS</p>
+                    <p className="text-[9px] text-slate-400 font-mono">Mã: {selected.code}</p>
+                  </div>
+                </div>
+
+                {/* Office Voucher Title */}
+                <div className="text-center space-y-1">
+                  <h4 className="text-base font-black text-white uppercase tracking-wider">PHIẾU ĐỀ NGHỊ THANH TOÁN & PHÊ DUYỆT</h4>
+                  <p className="text-[10px] text-slate-400 italic">Ngày {new Date(selected.createdAt).getDate()} tháng {new Date(selected.createdAt).getMonth()+1} năm {new Date(selected.createdAt).getFullYear()}</p>
+                </div>
+
+                {/* Voucher Meta Grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs border border-slate-800 rounded-lg p-3 bg-slate-950/60">
+                  <div><span className="text-slate-500 font-medium">Đơn vị đề nghị:</span> <span className="font-bold text-slate-200">{selected.department}</span></div>
+                  <div><span className="text-slate-500 font-medium">Người đề nghị:</span> <span className="font-bold text-slate-200">{selected.requestedBy}</span></div>
+                  <div className="col-span-2"><span className="text-slate-500 font-medium">Nội dung chi:</span> <span className="font-bold text-slate-200">{selected.title}</span></div>
+                </div>
+
+                {/* Office Amount Table */}
+                <table className="w-full text-left text-xs border-collapse border border-slate-700/80">
+                  <thead>
+                    <tr className="bg-slate-800/80 text-slate-300 text-[10px] uppercase font-bold tracking-wider">
+                      <th className="border border-slate-700 p-2 text-center w-10">STT</th>
+                      <th className="border border-slate-700 p-2">Khoản mục thanh toán</th>
+                      <th className="border border-slate-700 p-2 text-center w-16">ĐVT</th>
+                      <th className="border border-slate-700 p-2 text-right w-28">Số tiền (VNĐ)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td className="border border-slate-700 p-2 text-center font-mono">01</td>
+                      <td className="border border-slate-700 p-2 font-medium">{selected.title} {selected.description ? `(${selected.description})` : ''}</td>
+                      <td className="border border-slate-700 p-2 text-center font-medium">Gói</td>
+                      <td className="border border-slate-700 p-2 text-right font-mono font-bold text-orange-400">{fmtVND(selected.amount)}</td>
+                    </tr>
+                    <tr className="bg-slate-800/40 font-bold">
+                      <td colSpan={3} className="border border-slate-700 p-2 text-right uppercase text-[10px] tracking-wider text-slate-300 border-b-4 border-double">TỔNG CỘNG TIỀN PHÊ DUYỆT:</td>
+                      <td className="border border-slate-700 p-2 text-right font-mono text-sm text-emerald-400 border-b-4 border-double">{fmtVND(selected.amount)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                {/* Office 3-Column Signature Block */}
+                <div className="grid grid-cols-3 gap-2 text-center pt-3 border-t border-slate-800 text-[10px]">
+                  <div className="space-y-1">
+                    <p className="font-black text-slate-300 uppercase">NGƯỜI LẬP PHIẾU</p>
+                    <p className="text-[9px] text-slate-500 italic">(Ký, ghi rõ họ tên)</p>
+                    <div className="h-12 flex items-end justify-center font-bold text-indigo-300 font-mono">{selected.requestedBy}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-black text-slate-300 uppercase">KẾ TOÁN TRƯỞNG</p>
+                    <p className="text-[9px] text-slate-500 italic">(Ký, ghi rõ họ tên)</p>
+                    <div className="h-12 flex items-end justify-center font-bold text-emerald-300 font-mono">
+                      {selected.status === 'checked' || selected.status === 'approved' || selected.status === 'archived' ? 'Đã kiểm tra ✓' : '...'}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="font-black text-slate-300 uppercase">GIÁM ĐỐC PHÊ DUYỆT</p>
+                    <p className="text-[9px] text-slate-500 italic">(Ký và đóng dấu)</p>
+                    <div className="h-12 flex items-end justify-center font-bold text-amber-300 font-mono">
+                      {selected.status === 'approved' || selected.status === 'archived' ? 'Đã phê duyệt ✓' : '...'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Timeline */}
               {selected.comments.length > 0 && (
                 <div>

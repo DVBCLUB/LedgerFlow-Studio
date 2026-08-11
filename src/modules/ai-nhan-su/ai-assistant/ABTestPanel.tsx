@@ -93,21 +93,21 @@ export default function ABTestPanel() {
                   <div className="text-xs text-slate-200 truncate max-w-[350px]">{run.name}</div>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-[9px] text-text-tertiary">{run.domain}</span>
-                    <span className="text-[9px] text-slate-600">· {run.responses.length} models</span>
+                    <span className="text-[9px] text-slate-600">· {run.responses?.length || 0} models</span>
                     {run.winner && <span className="text-[9px] text-amber-400">· Winner: {run.winner.modelId} ({run.winner.totalScore}/10)</span>}
                   </div>
                 </div>
               </div>
-              <span className="text-[9px] text-slate-600">${run.totalCostUsd.toFixed(4)}</span>
+              <span className="text-[9px] text-slate-600">${run.totalCostUsd?.toFixed(4) || '0.0000'}</span>
             </button>
 
             {isExpanded && (
               <div className="border-t border-border-primary p-3 space-y-3 bg-slate-950/40">
-                <div className="text-[10px] text-text-secondary font-bold">Prompt: {run.prompt.slice(0, 200)}</div>
+                <div className="text-[10px] text-text-secondary font-bold">Prompt: {run.prompt?.slice(0, 200) || ''}</div>
 
                 {/* Scoreboard */}
                 <div className="flex gap-2">
-                  {run.scores.map((score, i) => (
+                  {(run.scores || []).map((score, i) => (
                     <div key={score.modelId} className={`flex-1 rounded-lg border p-2.5 ${i === 0 ? 'border-amber-500/40 bg-amber-950/20' : 'border-border-primary bg-bg-primary/30'}`}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[10px] font-black text-text-secondary">{score.modelId}</span>

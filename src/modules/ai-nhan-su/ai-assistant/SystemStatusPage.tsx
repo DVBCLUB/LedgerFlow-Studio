@@ -54,11 +54,11 @@ export default function SystemStatusPage() {
       ]);
 
       next.observer = obs?.health || next.observer;
-      next.cost = cost?.snapshot ? { totalCostUsd: cost.snapshot.totalCostUsd, agents: Object.keys(cost.snapshot.byAgent), models: Object.keys(cost.snapshot.byModel) } : next.cost;
+      next.cost = cost?.snapshot ? { totalCostUsd: cost.snapshot.totalCostUsd || 0, agents: Object.keys(cost.snapshot.byAgent || {}), models: Object.keys(cost.snapshot.byModel || {}) } : next.cost;
       next.memory = mem?.stats || next.memory;
       next.triggers = trig?.stats || next.triggers;
-      next.sandbox = sand?.sessions ? { sessions: sand.sessions.length, totalCommands: sand.sessions.reduce((s: number, ss: any) => s + (ss.results?.length || 0), 0) } : next.sandbox;
-      next.multiAgent = ma?.plans ? { plans: ma.plans.length } : next.multiAgent;
+      next.sandbox = sand?.sessions ? { sessions: (sand.sessions || []).length, totalCommands: (sand.sessions || []).reduce((s: number, ss: any) => s + (ss.results?.length || 0), 0) } : next.sandbox;
+      next.multiAgent = ma?.plans ? { plans: (ma.plans || []).length } : next.multiAgent;
       next.loop = loop?.metrics || next.loop;
       next.knowledgeGraph = kg?.stats || next.knowledgeGraph;
       next.fabric = cost?.snapshot?.totalCostUsd !== undefined ? { ok: true, apiKeys: 0, webProfiles: 0, localAvailable: true } : next.fabric;
@@ -82,7 +82,7 @@ export default function SystemStatusPage() {
           </div>
           <div>
             <h2 className="text-sm font-black text-text-primary">System Status</h2>
-            <p className="text-[10px] text-text-tertiary">{loading ? 'Loading...' : allGreen ? 'All systems operational' : `${health?.errors.length || 0} issues detected`}</p>
+            <p className="text-[10px] text-text-tertiary">{loading ? 'Loading...' : allGreen ? 'All systems operational' : `${health?.errors?.length || 0} issues detected`}</p>
           </div>
         </div>
         <button onClick={refresh} className="flex items-center gap-1 rounded-lg border border-border-primary bg-bg-primary px-3 py-1.5 text-[10px] font-bold text-text-secondary hover:border-violet-500">
@@ -90,14 +90,14 @@ export default function SystemStatusPage() {
         </button>
       </header>
 
-      {health?.errors.length ? <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-2 text-[10px] font-bold text-rose-200">{health.errors.join(' · ')}</div> : null}
+      {health?.errors?.length ? <div className="rounded-xl border border-rose-500/30 bg-rose-950/20 p-2 text-[10px] font-bold text-rose-200">{health.errors.join(' · ')}</div> : null}
 
       {/* Section 1: Core AI */}
       <Section title="Core AI Engine">
         <Row icon={<Zap className="h-3.5 w-3.5 text-amber-400" />} label="AI Fabric" ok={health?.fabric.ok} detail={`${health?.fabric.apiKeys || 0} keys · ${health?.fabric.webProfiles || 0} profiles · local ${health?.fabric.localAvailable ? 'ON' : 'OFF'}`} />
         <Row icon={<BrainCircuit className="h-3.5 w-3.5 text-blue-400" />} label="Agent Loop" ok={health?.loop ? (health.loop.failed === 0) : undefined} detail={`${health?.loop.completed || 0} done · ${health?.loop.running || 0} running · ${health?.loop.failed || 0} failed`} />
         <Row icon={<Users className="h-3.5 w-3.5 text-cyan-400" />} label="Multi-Agent" ok={true} detail={`${health?.multiAgent.plans || 0} orchestrations`} />
-        <Row icon={<DollarSign className="h-3.5 w-3.5 text-amber-400" />} label="AI Cost" ok={true} detail={`$${health?.cost.totalCostUsd.toFixed(4) || '0'} · ${health?.cost.agents.length || 0} agents · ${health?.cost.models.length || 0} models`} />
+        <Row icon={<DollarSign className="h-3.5 w-3.5 text-amber-400" />} label="AI Cost" ok={true} detail={`$${health?.cost?.totalCostUsd?.toFixed(4) || '0'} · ${health?.cost?.agents?.length || 0} agents · ${health?.cost?.models?.length || 0} models`} />
       </Section>
 
       {/* Section 2: Memory & Knowledge */}

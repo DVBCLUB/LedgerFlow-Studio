@@ -172,7 +172,14 @@ export class WebAiSessionManager {
 
   public static async getProfileForPlatform(id: string, platform: string): Promise<WebAIProfile> {
     const normalizedPlatform = platform.trim().toLowerCase();
-    const profile = (await this.readProfiles()).find((item) => item.id === id);
+    const profiles = await this.readProfiles();
+    let profile = profiles.find((item) => item.id === id);
+    if (!profile && (id === 'default' || !id)) {
+      profile = profiles.find((item) => item.platform === normalizedPlatform && item.enabled);
+      if (!profile) {
+        profile = await this.createProfile(`Mặc định (${normalizedPlatform.toUpperCase()})`, normalizedPlatform);
+      }
+    }
     if (!profile) throw new Error(`Web AI profile not found: ${id}`);
     if (!profile.enabled) throw new Error(`Web AI profile is disabled: ${profile.name}`);
     if (profile.platform !== normalizedPlatform) {

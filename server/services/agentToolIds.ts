@@ -11,6 +11,8 @@ export const AGENT_TOOL_IDS = [
   'search_web_context',
   'robot_inspect',
   'robot_move',
+  'github_create_draft_pr',
+  'github_pull_local',
 ] as const;
 
 export type AgentToolId = typeof AGENT_TOOL_IDS[number];

@@ -9,9 +9,9 @@
  */
 import { randomUUID } from 'node:crypto';
 import { execSync, exec } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { appendAuditEvent } from './auditLog';
+import fs from 'node:fs';
+import path from 'node:path';
+import { appendAuditEvent } from './auditLog.ts';
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────

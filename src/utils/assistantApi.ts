@@ -26,11 +26,40 @@ export async function daemonFetch<T>(path: string, options?: RequestInit, timeou
   try {
     const res = await fetch(`${DAEMON_URL}${path}`, { ...options, signal: controller.signal });
     clearTimeout(timer);
-    const json = await res.json().catch(() => ({}));
+    const text = await res.text().catch(() => '');
+    let json: any = {};
+    try {
+      json = JSON.parse(text);
+    } catch {
+      json = {};
+    }
     if (!res.ok) {
-      const errorObj = new Error(json.error ?? json.message ?? `HTTP ${res.status}`) as any;
+      // Aggressive extraction of error diagnostics from JSON or HTML text
+      let msg = json.error || json.message || json.webError || json.gatewayError || json.details;
+      
+      if (!msg && text.trim()) {
+        // Strip HTML tags if server returned an Express/Vite HTML error page
+        const strippedText = text.replace(/<[^>]*>?/gm, '').replace(/\s+/g, ' ').trim();
+        if (strippedText && strippedText.length > 5 && !strippedText.toLowerCase().includes('html')) {
+          msg = strippedText.slice(0, 300);
+        }
+      }
+
+      if (!msg || msg === `HTTP Error: ${res.status}`) {
+        if (path.includes('web-ai')) {
+          msg = `Lỗi thực thi Robot Web AI (Mã ${res.status}). Phiên Chrome hoặc nền tảng AI chưa sẵn sàng. Vui lòng kiểm tra lại tài khoản hoặc chuyển API Gateway.`;
+        } else {
+          msg = `Lỗi hệ thống AI (HTTP ${res.status}). Máy chủ daemon gặp sự cố khi xử lý tác vụ.`;
+        }
+      }
+
+      if (typeof msg === 'object') msg = JSON.stringify(msg);
+      const errorObj = new Error(msg) as any;
       errorObj.isQuotaError = json.isQuotaError;
       errorObj.fallbackProfile = json.fallbackProfile;
+      errorObj.webError = json.webError;
+      errorObj.gatewayError = json.gatewayError;
+      errorObj.statusCode = res.status;
       throw errorObj;
     }
     return json as T;
@@ -104,7 +133,7 @@ export interface WebAIProfile { id: string; name: string; platform: string; prof
 export interface PlatformAccountLease { id: string; resourceId: string; resourceKind: 'web_profile' | 'api_key'; platform: string; leaseOwner: string; purpose: string; status: 'active' | 'released' | 'expired'; createdAt: string; expiresAt: string; releasedAt?: string; releasedBy?: string }
 export interface PlatformAccountResource { id: string; kind: 'web_profile' | 'api_key'; platform: string; label: string; mode: 'web_automation' | 'api'; enabled: boolean; status: 'untested' | 'ready' | 'quota' | 'login_required' | 'error' | 'active' | 'disabled'; createdAt: string; lastUsedAt?: string; lastError?: string; quotaResetAt?: string; consecutiveFailures?: number; capacity: 'exclusive' | 'shared'; leaseable: boolean; source: 'web_ai_profile' | 'ai_key_vault'; detail: Record<string, unknown>; activeLease?: PlatformAccountLease | null }
 export interface PlatformAccountSummary { totalResources: number; byKind: Record<'web_profile' | 'api_key', number>; byStatus: Record<string, number>; activeLeases: number }
-export interface WebAIExecuteResult { ok: boolean; text: string; codeBlocks: CodeBlock[]; modelUsed: string; hasPendingSuggestion: boolean; profileUsed?: string; attempts?: Array<{ profileId?: string; status: string; error?: string }>; screenshotPath?: string }
+export interface WebAIExecuteResult { ok: boolean; text: string; codeBlocks: CodeBlock[]; modelUsed: string; hasPendingSuggestion: boolean; profileUsed?: string; attempts?: Array<{ profileId?: string; status: string; error?: string }>; screenshotPath?: string; wasFallback?: boolean; fallbackNotice?: string }
 export interface WebAIExecutionPreview { id: string; fingerprint: string; platform: string; profileId?: string; promptChars: number; redactedPreview: string; findings: Array<{ type: string; severity: 'sensitive' | 'secret'; count: number }>; risk: 'LOW' | 'HIGH' | 'BLOCKED'; blocked: boolean; requiresApproval: boolean; expiresAt: string }
 export async function previewWebAIExecution(prompt: string, platform: string, profileId?: string): Promise<WebAIExecutionPreview> { const res = await daemonFetch<{ ok: boolean; preview: WebAIExecutionPreview }>('/api/web-ai/preview', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt, platform, profileId }) }); return res.preview; }
 export async function approveWebAIExecution(previewId: string, fingerprint: string): Promise<{ approvalToken: string; expiresAt: string }> { return daemonFetch('/api/web-ai/approve', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ previewId, fingerprint, confirmed: true }) }); }
@@ -115,10 +144,29 @@ export async function updateWebAIProfile(id: string, patch: Partial<Pick<WebAIPr
 export async function deleteWebAIProfile(id: string): Promise<{ ok: boolean; message: string }> { return daemonFetch<{ ok: boolean; message: string }>(`/api/web-ai/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' }); }
 export async function checkWebAIProfileSession(id: string, platform: string): Promise<{ ok: boolean; status: string; error?: string }> { return daemonFetch<{ ok: boolean; status: string; error?: string }>(`/api/web-ai/profiles/${encodeURIComponent(id)}/check`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ platform }) }, 40000); }
 export async function openWebAIProfileLogin(id: string, platform: string): Promise<{ ok: boolean; status: string; error?: string }> { return daemonFetch<{ ok: boolean; status: string; error?: string }>(`/api/web-ai/profiles/${encodeURIComponent(id)}/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ platform }) }, 300000); }
+
+export async function fetchWebAIStats(): Promise<{ ok: boolean; pool: any; reliability: any; profiles: any[] }> { return daemonFetch('/api/web-ai/stats'); }
+export async function fetchBrowserRunbooks(limit = 50): Promise<any[]> { const res = await daemonFetch<{ ok: boolean; runbooks: any[] }>(`/api/web-ai/runbooks?limit=${limit}`); return res.runbooks ?? []; }
+export async function fetchBrowserRunbookSession(id: string): Promise<any> { const res = await daemonFetch<{ ok: boolean; session: any }>(`/api/web-ai/runbooks/${encodeURIComponent(id)}`); return res.session; }
+export async function fetchBrowserRunbookSummary(): Promise<any> { const res = await daemonFetch<{ ok: boolean; summary: any }>('/api/web-ai/runbook-summary'); return res.summary; }
+export async function recommendWebAITask(prompt: string): Promise<any> { return daemonFetch('/api/web-ai/recommend', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) }); }
+export async function validateAIOutputClient(input: string, output: string): Promise<any> { const res = await daemonFetch<{ ok: boolean; validation: any }>('/api/ai/validate-output', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ input, output }) }); return res.validation; }
+export async function auditSecurityClient(fileOrFiles: string | string[]): Promise<any> {
+  const body = Array.isArray(fileOrFiles) ? { files: fileOrFiles } : { file: fileOrFiles };
+  return daemonFetch('/api/security/audit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+}
 export async function fetchPlatformAccountResources(platform?: string): Promise<{ resources: PlatformAccountResource[]; leases: PlatformAccountLease[]; summary: PlatformAccountSummary }> { const query = platform ? `?platform=${encodeURIComponent(platform)}` : ''; return daemonFetch(`/api/platform-accounts/resources${query}`); }
 export async function fetchPlatformAccountLeases(): Promise<PlatformAccountLease[]> { const res = await daemonFetch<{ ok: boolean; leases: PlatformAccountLease[] }>('/api/platform-accounts/leases'); return res.leases ?? []; }
 export async function claimPlatformAccountLease(input: { platform: string; resourceId?: string; leaseOwner: string; purpose: string; ttlMinutes?: number }): Promise<{ resource: PlatformAccountResource; lease: PlatformAccountLease }> { return daemonFetch('/api/platform-accounts/leases/claim', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) }); }
 export async function releasePlatformAccountLease(id: string, releasedBy?: string): Promise<PlatformAccountLease> { const res = await daemonFetch<{ ok: boolean; lease: PlatformAccountLease }>(`/api/platform-accounts/leases/${encodeURIComponent(id)}/release`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ releasedBy }) }); return res.lease; }
+
+// ─── IDE Bridge API ─────────────────────────────────────────────────────────
+export type IDETarget = 'vscode' | 'cursor' | 'github' | 'terminal' | 'windsurf' | 'copilot';
+export interface IDECheckResult { target: IDETarget; available: boolean; path?: string; version?: string; message: string; projectRoot: string; }
+export interface IDEOpenResult { ok: boolean; target: IDETarget; opened: boolean; command: string; message: string; }
+export async function checkAllIDEs(): Promise<IDECheckResult[]> { const res = await daemonFetch<{ ok: boolean; results: IDECheckResult[] }>('/api/ide/check-all'); return res.results ?? []; }
+export async function checkIDETarget(target: IDETarget): Promise<IDECheckResult> { const res = await daemonFetch<{ ok: boolean; result: IDECheckResult }>(`/api/ide/check/${encodeURIComponent(target)}`); return res.result; }
+export async function openProjectInIDE(target: IDETarget, filePath?: string): Promise<IDEOpenResult> { const res = await daemonFetch<{ ok: boolean; result: IDEOpenResult }>('/api/ide/open', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target, filePath }) }); return res.result; }
 
 export interface ExecResult { ok: boolean; exitCode: number; output: string }
 export async function executeSafeCommand(command: string): Promise<ExecResult> { return daemonFetch<ExecResult>('/api/exec', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command }) }, 60000); }
@@ -147,7 +195,7 @@ export async function fetchRobotStatus(): Promise<RobotSimulationState> { const 
 export async function executeRobotCommand(command: 'inspect' | 'move' | 'stop' | 'home', options?: { position?: { x: number; y: number; z: number }; velocity?: number; approvalPhrase?: string }): Promise<RobotCommandResult> { const res = await daemonFetch<{ success: boolean; result: RobotCommandResult }>('/api/robot-simulation/command', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ command, ...options }) }); return res.result; }
 export async function setRobotEmergencyStop(active: boolean): Promise<RobotSimulationState> { const res = await daemonFetch<{ success: boolean; state: RobotSimulationState }>('/api/robot-simulation/emergency-stop', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ active }) }); return res.state; }
 
-export interface FabricStep { route: string; provider?: string; profileId?: string; profileName?: string; status: 'success' | 'failed' | 'skipped'; error?: string; latencyMs: number; contentPreview?: string; evidence?: Record<string, unknown> }
+export interface FabricStep { route: string; provider?: string; profileId?: string; profileName?: string; status: 'success' | 'failed' | 'skipped'; error?: string; latencyMs: number; contentPreview?: string; evidence?: Record<string, unknown>; errorCode?: string; fixSuggestion?: string; fixAction?: string; fixActionLabel?: string }
 export interface FabricRun { id: string; task: string; domain: string; status: string; startedAt: string; completedAt: string; steps: FabricStep[]; winner?: FabricStep; modelUsed?: string; totalLatencyMs: number }
 export type FabricDispatchInput = { text: string; systemInstruction?: string; domain?: string; webPlatform?: string; profileId?: string; localFallback?: boolean; filePath?: string; task?: string; agentRole?: string };
 export async function dispatchAIFabric(input: FabricDispatchInput): Promise<FabricRun> { const res = await daemonFetch<{ ok: boolean; run: FabricRun }>('/api/ai-fabric/dispatch', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) }, 180000); return res.run; }

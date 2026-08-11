@@ -12,6 +12,8 @@ import { recordObservation, searchMemory } from './compoundMemory.ts';
 import { appendAuditEvent } from './auditLog.ts';
 import { recordRuntimeCoreMission } from './agentRuntimeCore.ts';
 import { agentToolContractsToSpecs } from './agentExecutionCore.ts';
+import { recordAgentOutcome } from './agentPerformanceLedger.ts';
+import { shareLearning } from './crossAgentLearning.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export type AgentRole = 'code' | 'test' | 'review' | 'finance' | 'planner' | 'general';
@@ -233,10 +235,40 @@ async function executeAgentTask(task: AgentTask, options: MultiAgentOptions): Pr
       `multi-agent:${task.id}`,
       task.result.success
     ).catch(() => undefined);
+
+    // Track performance in ledger
+    recordAgentOutcome(
+      task.role,
+      options.domain || 'general',
+      task.result.success,
+      task.result.latencyMs,
+      { taskTitle: task.goal.slice(0, 120) },
+    );
+
+    // Share successful patterns as cross-agent learning
+    if (task.result.success) {
+      shareLearning(
+        `multi-agent:${task.role}`,
+        spec.domain,
+        'success',
+        `Agent ${task.role}: ${task.goal.slice(0, 80)}`,
+        task.result.content.slice(0, 400),
+        0.8,
+        ['multi-agent', task.role, spec.domain],
+      ).catch(() => undefined);
+    }
   } catch (err: any) {
     task.status = 'failed';
     task.error = err.message;
     task.completedAt = new Date().toISOString();
+    // Track failure in ledger
+    recordAgentOutcome(
+      task.role,
+      options.domain || 'general',
+      false,
+      Date.now() - started,
+      { taskTitle: task.goal.slice(0, 120), errorSummary: err.message },
+    );
   }
 
   return task;

@@ -116,6 +116,49 @@ export default function MarketingFunnelLab() {
         </div>
       </section>
 
+      {/* Visual Funnel (Phase 7 UI/UX Enhancement) */}
+      {tab === 'funnel' && (
+        <section className="rounded-2xl border border-border-primary bg-bg-surface/70 p-6 shadow-lg animate-fade-in">
+          <h2 className="mb-6 flex items-center gap-2 text-sm font-black uppercase tracking-wider text-text-primary">
+            <TrendingUp className="h-4 w-4 text-violet-400" />
+            Mô hình phễu chuyển đổi (Visual Funnel)
+          </h2>
+          <div className="space-y-4">
+            {[
+              { label: 'Traffic', value: traffic, color: 'bg-violet-500', icon: MousePointerClick },
+              { label: 'Leads', value: metrics.leads, color: 'bg-cyan-500', icon: Users },
+              { label: 'Demos', value: metrics.demos, color: 'bg-emerald-500', icon: Target },
+              { label: 'Proposals', value: metrics.proposals, color: 'bg-amber-500', icon: ClipboardList },
+              { label: 'Paid Customers', value: metrics.paid, color: 'bg-rose-500', icon: WalletCards },
+            ].map((step, idx, arr) => {
+              const percentage = idx === 0 ? 100 : Math.max(2, Math.round((step.value / arr[0].value) * 100));
+              const convRate = idx === 0 ? null : ((step.value / arr[idx-1].value) * 100).toFixed(1);
+              return (
+                <div key={step.label} className="flex items-center gap-4">
+                  <div className="w-32 shrink-0 text-right">
+                    <div className="text-[11px] font-black text-text-primary uppercase tracking-wider">{step.label}</div>
+                    <div className="text-[10px] font-bold text-text-tertiary">
+                      {new Intl.NumberFormat('vi-VN').format(step.value)}
+                    </div>
+                  </div>
+                  <div className="flex-1 flex items-center gap-3">
+                    <div className={`h-10 rounded-r-xl transition-all duration-1000 ease-out relative flex items-center shadow-md ${step.color}`} style={{ width: `${percentage}%` }}>
+                      <div className="absolute inset-0 opacity-20 bg-gradient-to-r from-transparent to-white rounded-r-xl"></div>
+                      <step.icon className="absolute left-3 w-4 h-4 text-white/90 drop-shadow-md" />
+                    </div>
+                    {convRate && (
+                      <span className="text-[10px] font-black text-slate-400 min-w-[40px]">
+                        {convRate}%
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {tab === 'funnel' && (
         <section className="grid gap-4 lg:grid-cols-5">
           <div className="lg:col-span-3 rounded-2xl border border-border-primary bg-bg-surface/70 p-5">

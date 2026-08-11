@@ -6,43 +6,45 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CircleDollarSign,
   ClipboardList,
-  Database,
   FileCheck2,
   FolderKanban,
   Menu,
+  Mic,
+  Moon,
   Rocket,
   Search,
   Settings,
+  Sun,
   UsersRound,
-  X,
-  Command,
   UserCircle,
-  Mic
+  X,
 } from 'lucide-react';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
 import WorkspaceRenderer from './WorkspaceRenderer';
-import { COMPANY_WORKSPACES, type TabType, type RoleType } from './companyNavigation';
+import { COMPANY_WORKSPACES, DEPARTMENTS, MODULES, type TabType, type RoleType } from './companyNavigation';
+import { IconMap } from './iconRegistry';
 import AgenticStatusBar from '../components/shared/AgenticStatusBar';
+import { useTheme } from '../hooks/useTheme';
 import { Suspense, lazy } from 'react';
+import { LanguageProvider, useLanguage } from '../context';
+
+export { IconMap };
 
 const GlobalCommandSpotlight = lazy(() => import('../components/shared/GlobalCommandSpotlight'));
 const NeuralNotificationCenter = lazy(() => import('../components/shared/NeuralNotificationCenter'));
+const SoloFounderNavigation = lazy(() => import('../components/SoloFounderNavigation'));
+const FastAICommandBar = lazy(() => import('../components/shared/FastAICommandBar'));
 
-const IconMap: Record<string, typeof Building2> = {
-  Building2,
-  BookOpen,
-  Database,
-  BarChart3,
-  UsersRound,
-  CircleDollarSign,
-  ClipboardList,
-  FileCheck2,
-  FolderKanban,
-  Rocket,
-  Bot,
-  Settings,
+
+// Màu group cho sidebar departments
+const DEPT_STYLES: Record<string, { label: string; color: string; bar: string; dot: string }> = {
+  operate: { label: 'OPERATE', color: 'text-cyan-400', bar: '#06b6d4', dot: 'bg-cyan-400' },
+  control: { label: 'CONTROL', color: 'text-emerald-400', bar: '#10b981', dot: 'bg-emerald-400' },
+  tools:   { label: 'PLATFORM', color: 'text-violet-400', bar: '#8b5cf6', dot: 'bg-violet-400' },
 };
 
 const REDIRECT_MAP: Record<string, { tab: TabType; subTab?: string }> = {
@@ -103,12 +105,30 @@ function tabFromHash(): TabType {
   return knownTabs.has(value as TabType) ? (value as TabType) : 'ceo_command';
 }
 
-export default function ErpApp() {
+function ErpAppContent() {
+  const { language, setLanguage, t } = useLanguage();
+  const [activeRole, setActiveRole] = useState<RoleType>(() => {
+    try {
+      return (localStorage.getItem('lf_active_role') as RoleType) || 'founder';
+    } catch {
+      return 'founder';
+    }
+  });
   const [activeTab, setActiveTab] = useState<TabType>(tabFromHash);
+  const [isSoloMode, setIsSoloMode] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem('lf_erp_sidebar_collapsed') === '1');
   const [query, setQuery] = useState('');
-  const activeRole: RoleType = 'all';
+  // Track which department groups are expanded
+  // 'tools' dept (Nền tảng) is collapsed by default — only agentops/devops need it open on load
+  const [collapsedDepts, setCollapsedDepts] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('lf_erp_collapsed_depts');
+    if (saved) {
+      try { return JSON.parse(saved); } catch { /* ignore */ }
+    }
+    return { tools: true }; // hide "Nền tảng" by default
+  });
+  const { theme, toggle: toggleTheme, isDark } = useTheme();
 
   useEffect(() => {
     const sync = () => setActiveTab(tabFromHash());
@@ -145,9 +165,22 @@ export default function ErpApp() {
       label: item.label,
       shortLabel: item.shortLabel,
       description: item.description,
+      dept: MODULES.find((m) => m.tab === item.tab)?.dept ?? 'tools',
       icon: IconMap[item.iconName] || Building2,
+      badgeColor: MODULES.find((m) => m.tab === item.tab)?.badgeColor,
     }));
   }, []);
+
+  // Group navigation by department
+  const groupedNavigation = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase('vi-VN');
+    return DEPARTMENTS.map((dept) => {
+      const items = navigation
+        .filter((item) => item.dept === dept.key)
+        .filter((item) => !normalized || `${item.label} ${item.description}`.toLocaleLowerCase('vi-VN').includes(normalized));
+      return { dept, items };
+    }).filter((group) => group.items.length > 0);
+  }, [query, navigation]);
 
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
@@ -155,15 +188,16 @@ export default function ErpApp() {
       label: 'Trung tâm Điều hành',
       shortLabel: 'Điều hành',
       description: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.',
+      dept: 'operate',
       icon: Building2,
     };
   }, [navigation, activeTab]);
 
-  const filteredNavigation = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase('vi-VN');
-    if (!normalized) return navigation;
-    return navigation.filter((item) => `${item.label} ${item.description}`.toLocaleLowerCase('vi-VN').includes(normalized));
-  }, [query, navigation]);
+  // Dynamic page title — updates on workspace change
+  useEffect(() => {
+    document.title = `${current.label} — LedgerFlow Studio`;
+    return () => { document.title = 'LedgerFlow Studio'; };
+  }, [current.label]);
 
   const navigate = (tab: TabType, subTab?: string) => {
     let resolvedTab = tab;
@@ -187,147 +221,327 @@ export default function ErpApp() {
     });
   };
 
+  const toggleDept = (key: string) => {
+    setCollapsedDepts((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('lf_erp_collapsed_depts', JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#09090b] text-slate-300 font-sans selection:bg-indigo-500/30 flex">
       <Suspense fallback={null}>
         <GlobalCommandSpotlight />
       </Suspense>
-      
+
       {/* Mobile Backdrop */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity" 
-          onClick={() => setSidebarOpen(false)} 
+        <div
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* SIDEBAR */}
-      <aside 
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#09090b] border-r border-white/5 transition-all duration-300
+      {/* ═══════════════════════════════════════════════════
+           SIDEBAR
+          ═══════════════════════════════════════════════════ */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col border-r border-white/5 transition-all duration-300
           ${collapsed ? 'w-[68px]' : 'w-[260px]'}
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}
+        style={{ background: 'linear-gradient(180deg, #0a0d14 0%, #09090b 100%)' }}
       >
-        {/* Brand Area */}
-        <div className={`flex items-center h-14 shrink-0 border-b border-white/5 px-4 ${collapsed ? 'justify-center' : 'justify-between'}`}>
-          <div className="flex items-center gap-3 truncate">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
-              <Command className="w-4 h-4" />
+        {/* ── Brand Area ── */}
+        <div className={`flex items-center h-14 shrink-0 border-b border-white/5 px-3 ${
+          collapsed ? 'justify-center' : 'justify-between'
+        }`}>
+          <div className="flex items-center gap-2.5 truncate">
+            {/* LF Monogram Logo */}
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 shadow-lg"
+              style={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
+                boxShadow: '0 0 12px rgba(99,102,241,0.35), 0 2px 8px rgba(0,0,0,0.4)',
+              }}
+            >
+              <span className="text-white font-black text-[13px] tracking-tight select-none">LF</span>
             </div>
             {!collapsed && (
               <div className="flex flex-col truncate">
-                <span className="text-sm font-semibold text-white tracking-tight leading-none">LedgerFlow</span>
-                <span className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">OS Enterprise</span>
+                <span
+                  className="text-sm font-bold tracking-tight leading-none"
+                  style={{
+                    background: 'linear-gradient(90deg, #ffffff 0%, #94a3b8 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  }}
+                >
+                  LedgerFlow
+                </span>
+                <span className="text-[10px] text-slate-600 uppercase tracking-[0.18em] mt-0.5 font-medium">
+                  OS Enterprise
+                </span>
               </div>
             )}
           </div>
           {!collapsed && (
-            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
+            <button
+              className="lg:hidden text-slate-500 hover:text-white transition-colors"
+              onClick={() => setSidebarOpen(false)}
+            >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
 
-        {/* Search Area */}
+        {/* ── Search Area ── */}
         {!collapsed && (
-          <div className="px-3 py-4">
+          <div className="px-3 pt-3 pb-1">
             <div className="relative group">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-              <input 
-                value={query} 
-                onChange={(e) => setQuery(e.target.value)} 
-                placeholder="Tìm không gian làm việc..." 
-                className="w-full bg-white/5 hover:bg-white/10 focus:bg-white/10 border border-white/5 focus:border-indigo-500/50 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none transition-all"
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-600 group-focus-within:text-indigo-400 transition-colors" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Tìm không gian..."
+                className="w-full border border-white/5 focus:border-indigo-500/40 rounded-lg pl-9 pr-14 py-2 text-xs text-white placeholder-slate-600 outline-none transition-all"
+                style={{ background: 'rgba(255,255,255,0.04)' }}
               />
+              <kbd
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold px-1.5 py-0.5 rounded select-none pointer-events-none"
+                style={{ background: 'rgba(255,255,255,0.06)', color: '#4b5563', border: '1px solid rgba(255,255,255,0.08)' }}
+              >
+                ⌃K
+              </kbd>
             </div>
           </div>
         )}
 
-        {/* Navigation */}
-        <div className="flex-1 overflow-y-auto px-2 space-y-0.5 mt-2 scrollbar-thin scrollbar-thumb-white/10">
-          {filteredNavigation.map((item) => {
-            const Icon = item.icon;
-            const active = item.tab === activeTab;
+        {/* ── Navigation (grouped by dept) ── */}
+        <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1 scrollbar-thin scrollbar-thumb-white/10">
+          {groupedNavigation.map(({ dept, items }) => {
+            const deptStyle = DEPT_STYLES[dept.key] ?? DEPT_STYLES.tools;
+            const isDeptCollapsed = collapsedDepts[dept.key] ?? false;
+
             return (
-              <button
-                key={item.tab}
-                onClick={() => navigate(item.tab)}
-                title={collapsed ? item.label : undefined}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all group
-                  ${active ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-              >
-                <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
+              <div key={dept.key} className="mb-1">
+                {/* Group Header */}
                 {!collapsed && (
-                  <div className="flex flex-col truncate">
-                    <span className="text-xs font-medium">{item.label}</span>
+                  <button
+                    onClick={() => toggleDept(dept.key)}
+                    className="w-full flex items-center justify-between px-2 py-1 mb-0.5 group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-1 h-3 rounded-full opacity-70"
+                        style={{ background: deptStyle.bar }}
+                      />
+                      <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${deptStyle.color} opacity-70 group-hover:opacity-100 transition-opacity`}>
+                        {deptStyle.label}
+                      </span>
+                    </div>
+                    {isDeptCollapsed
+                      ? <ChevronDown className={`w-3 h-3 ${deptStyle.color} opacity-50`} />
+                      : <ChevronUp className={`w-3 h-3 ${deptStyle.color} opacity-50`} />
+                    }
+                  </button>
+                )}
+
+                {/* Nav Items */}
+                {!isDeptCollapsed && (
+                  <div className="space-y-0.5">
+                    {items.map((item) => {
+                      const Icon = item.icon;
+                      const active = item.tab === activeTab;
+
+                      return (
+                        <button
+                          key={item.tab}
+                          onClick={() => {
+                            navigate(item.tab as TabType);
+                            setSidebarOpen(false);
+                          }}
+                          title={collapsed ? item.label : undefined}
+                          className={`relative w-full flex items-center gap-3 rounded-xl text-left transition-all group ${
+                            collapsed ? 'px-0 py-2.5 justify-center' : 'px-3 py-2'
+                          } ${
+                            active
+                              ? 'bg-gradient-to-r from-indigo-600/20 to-violet-600/10 text-white font-semibold border border-indigo-500/30 shadow-md shadow-indigo-500/10'
+                              : 'text-slate-400 hover:text-slate-200 hover:bg-white/5 border border-transparent'
+                          }`}
+                        >
+                          {/* Active indicator bar */}
+                          {active && (
+                            <div
+                              className="absolute left-0 top-2 bottom-2 w-1 rounded-r-full bg-indigo-500"
+                              style={{ boxShadow: '0 0 8px rgba(99,102,241,0.8)' }}
+                            />
+                          )}
+
+                          <Icon
+                            className={`relative w-4 h-4 shrink-0 transition-colors ${
+                              active
+                                ? 'text-indigo-400'
+                                : 'text-slate-600 group-hover:text-slate-300'
+                            }`}
+                          />
+                          {!collapsed && (
+                            <span className="relative text-xs font-medium truncate">{item.label}</span>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </div>
-
-        {/* Footer Area */}
-        <div className="mt-auto border-t border-white/5 p-2">
-          {!collapsed && (
-            <div className="px-3 py-2 flex items-center gap-3 mb-2 rounded-lg bg-white/[0.02] border border-white/5">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 font-medium">Local SQLite Sync</span>
-            </div>
-          )}
-          <button 
-            onClick={toggleCollapsed} 
-            className="w-full flex items-center justify-center p-2 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
-          >
-            {collapsed ? <ChevronRight className="w-4 h-4" /> : <div className="flex items-center gap-2"><ChevronLeft className="w-4 h-4" /><span className="text-xs font-medium">Thu gọn menu</span></div>}
-          </button>
-        </div>
       </aside>
 
-      {/* MAIN WORKSPACE */}
-      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${collapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]'}`}>
-        
-        {/* TOPBAR */}
-        <header className="h-14 shrink-0 bg-[#09090b]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 sticky top-0 z-30">
-          <div className="flex items-center gap-3">
-            <button className="lg:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(true)}>
+      {/* ═══════════════════════════════════════════════════
+           MAIN WORKSPACE
+          ═══════════════════════════════════════════════════ */}
+      <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+        collapsed ? 'lg:pl-[68px]' : 'lg:pl-[260px]'
+      }`}>
+
+        {/* ── TOPBAR ── */}
+        <header
+          className="h-16 shrink-0 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-4 sticky top-0 z-30"
+          style={{ background: 'rgba(9,9,11,0.85)' }}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              className="lg:hidden text-slate-500 hover:text-white transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
               <Menu className="w-5 h-5" />
             </button>
-            
-            <nav className="flex items-center gap-2 text-xs font-medium">
-              <span className="text-slate-500 hidden sm:inline-block">LedgerFlow OS</span>
-              <span className="text-slate-600 hidden sm:inline-block">/</span>
-              <span className="text-slate-400">{current.shortLabel}</span>
-              <span className="text-slate-600">/</span>
-              <span className="text-white">{current.label}</span>
-            </nav>
+
+            {/* Quick search button */}
+            <button
+              onClick={() => {
+                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
+                window.dispatchEvent(event);
+              }}
+              className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all text-xs font-medium"
+              style={{ background: 'rgba(255,255,255,0.03)' }}
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span>{t('action.search', 'Tìm kiếm lệnh hoặc tài liệu...')}</span>
+              <kbd className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-white/10 text-slate-500">
+                ⌃K
+              </kbd>
+            </button>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Language Switcher */}
+            <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-900/90 border border-white/10 text-[10px] font-bold shadow-sm">
+              <span className="text-slate-500 uppercase tracking-wider">🌐</span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as 'vi' | 'en')}
+                className="bg-transparent text-indigo-300 font-black outline-none cursor-pointer text-[11px]"
+              >
+                <option value="vi" className="bg-slate-950 text-slate-200">🇻🇳 Tiếng Việt</option>
+                <option value="en" className="bg-slate-950 text-slate-200">🇬🇧 English</option>
+              </select>
+            </div>
+
+            {/* Theme toggle */}
+            <button
+              onClick={toggleTheme}
+              className="hidden sm:flex items-center justify-center w-8 h-8 rounded-full border text-slate-500 hover:text-white transition-all"
+              style={{ background: 'rgba(255,255,255,0.04)', borderColor: 'rgba(255,255,255,0.08)' }}
+              title={isDark ? t('nav.theme.light') : t('nav.theme.dark')}
+              aria-label="Toggle theme"
+            >
+              {isDark
+                ? <Sun className="w-4 h-4 transition-transform duration-300 hover:rotate-12" />
+                : <Moon className="w-4 h-4 transition-transform duration-300 hover:-rotate-12" />
+              }
+            </button>
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-900/90 border border-white/10 text-[10px] font-bold shadow-sm">
+              <span className="text-slate-500 uppercase tracking-wider">{t('nav.role', 'Vai trò:')}</span>
+              <select
+                value={activeRole}
+                onChange={(e) => {
+                  const nextRole = e.target.value as RoleType;
+                  setActiveRole(nextRole);
+                  try { localStorage.setItem('lf_active_role', nextRole); } catch {}
+                }}
+                className="bg-transparent text-indigo-300 font-black outline-none cursor-pointer text-[11px]"
+              >
+                <option value="founder" className="bg-slate-950 text-slate-200">{t('nav.role.founder')}</option>
+                <option value="admin" className="bg-slate-950 text-slate-200">{t('nav.role.admin')}</option>
+                <option value="cfo" className="bg-slate-950 text-slate-200">{t('nav.role.cfo')}</option>
+                <option value="devops" className="bg-slate-950 text-slate-200">{t('nav.role.devops')}</option>
+                <option value="product_owner" className="bg-slate-950 text-slate-200">{t('nav.role.product_owner')}</option>
+                <option value="all" className="bg-slate-950 text-slate-200">{t('nav.role.all')}</option>
+              </select>
+            </div>
             <AgenticStatusBar />
             <div className="flex items-center gap-2">
-              <Suspense fallback={<div className="w-8 h-8 rounded-full bg-slate-900 border border-slate-700 animate-pulse" />}>
+              <Suspense
+                fallback={
+                  <div className="w-8 h-8 rounded-full bg-slate-900 border border-white/10 animate-pulse" />
+                }
+              >
                 <NeuralNotificationCenter />
               </Suspense>
-              <button className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-800 transition-colors shadow-inner" title="Giao tiếp Giọng nói với AI (Hold to speak)" onClick={() => alert('Đang lắng nghe: "Agent Marketing, báo cáo chiến dịch hôm nay"...')}>
+              <button
+                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 text-slate-500 hover:text-white hover:border-white/20 transition-colors"
+                style={{ background: 'rgba(255,255,255,0.04)' }}
+                title={t('nav.voice', 'Giao tiếp Giọng nói với AI (Hold to speak)')}
+                onClick={() => alert('Đang lắng nghe: "Agent Marketing, báo cáo chiến dịch hôm nay"...')}
+              >
                 <Mic className="w-4 h-4" />
               </button>
             </div>
-            <div className="h-6 w-[1px] bg-white/10 hidden sm:block"></div>
-            <button className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+
+            <div className="h-5 w-px bg-white/10 hidden sm:block" />
+
+            <button
+              className="flex items-center gap-2 text-slate-500 hover:text-white transition-colors"
+            >
               <UserCircle className="w-5 h-5" />
               <span className="text-xs font-medium hidden sm:block">Solopreneur</span>
             </button>
           </div>
         </header>
 
-        {/* CONTENT */}
-        <main className="flex-1 p-4 lg:p-8 overflow-x-hidden">
-          <div className="max-w-[1600px] mx-auto">
+        {/* ── Solo Founder Mode Navigation Bar ── */}
+        <Suspense fallback={<div className="h-10 bg-slate-900 border-b border-slate-800 animate-pulse" />}>
+          <SoloFounderNavigation
+            activeTab={activeTab}
+            onSelectTab={(tab) => navigate(tab)}
+            isSoloMode={isSoloMode}
+            onToggleSoloMode={(enabled) => setIsSoloMode(enabled)}
+          />
+        </Suspense>
+
+        {/* ── CONTENT ── */}
+        <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden">
+          <div className="max-w-[1600px] w-full mx-auto">
             <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
           </div>
         </main>
-
       </div>
+
+      <Suspense fallback={null}>
+        <GlobalCommandSpotlight />
+        <FastAICommandBar />
+      </Suspense>
     </div>
+  );
+}
+
+export default function ErpApp() {
+  return (
+    <LanguageProvider>
+      <ErpAppContent />
+    </LanguageProvider>
   );
 }

@@ -1,5 +1,6 @@
-import { Bot, Database, HardDrive, KeyRound, Palette, Shield } from 'lucide-react';
+import { Bot, Database, HardDrive, KeyRound, Palette, Shield, Globe, FileSpreadsheet } from 'lucide-react';
 import SimplePanelCard from '../../components/shared/SimplePanelCard';
+import { useLanguage } from '../../context';
 
 const settingGroups = [
   {
@@ -33,24 +34,78 @@ const settingGroups = [
 ];
 
 export default function SystemSettingsPanel() {
+  const { language, setLanguage, t } = useLanguage();
+
   return (
     <div className="space-y-5 text-left">
-      <section className="rounded-3xl border border-border-primary bg-bg-surface/70 p-6 shadow-xl shadow-black/20">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-indigo-950/20 p-6 shadow-2xl backdrop-blur-xl">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-indigo-500/10 blur-2xl" />
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between relative z-10">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">Quản trị hệ thống</p>
-            <h1 className="mt-2 text-2xl font-black text-text-primary">Quản trị hệ thống</h1>
-            <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">
-              Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành được gom vào một khu vực quản trị.
+            <div className="flex items-center gap-2 mb-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.7)]" />
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-300">Quản trị hệ thống</p>
+            </div>
+            <h1 className="text-2xl font-black text-white tracking-tight">{t('settings.title', 'Quản trị hệ thống & Cấu hình')}</h1>
+            <p className="mt-2.5 max-w-3xl text-xs font-semibold leading-6 text-slate-300/90">
+              Cấu hình, tích hợp, bảo mật, nhật ký kiểm soát và quy trình phát hành được gom gọn vào một khu vực quản trị an toàn.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-3 lg:w-[360px]">
-            {['An toàn', 'Đang theo dõi', 'Cần cấu hình'].map((label) => (
-              <div key={label} className="rounded-2xl border border-border-primary bg-slate-950/60 px-4 py-3 text-center text-[11px] font-black uppercase tracking-wide text-text-secondary">
-                {label}
+            {[
+              { label: 'An toàn', color: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' },
+              { label: 'Đang theo dõi', color: 'border-cyan-500/20 bg-cyan-500/10 text-cyan-300' },
+              { label: 'Cần cấu hình', color: 'border-indigo-500/20 bg-indigo-500/10 text-indigo-300' },
+            ].map((item) => (
+              <div key={item.label} className={`rounded-2xl border ${item.color} px-3 py-2.5 text-center text-[10px] font-black uppercase tracking-wider shadow-sm`}>
+                {item.label}
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="rounded-3xl border border-indigo-500/30 bg-slate-900/80 p-5 shadow-xl backdrop-blur-xl">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">
+              <Globe className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-white">{t('settings.language_title', '🌐 Cấu hình Ngôn ngữ / Language Settings')}</h3>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">{t('settings.language_desc', 'Lựa chọn ngôn ngữ hiển thị mặc định trên toàn bộ giao diện phần mềm.')}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <button
+              type="button"
+              onClick={() => setLanguage('vi')}
+              className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                language === 'vi'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400'
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-white/10'
+              }`}
+            >
+              🇻🇳 Tiếng Việt
+            </button>
+            <button
+              type="button"
+              onClick={() => setLanguage('en')}
+              className={`flex-1 md:flex-none px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                language === 'en'
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30 border border-indigo-400'
+                  : 'bg-slate-950 text-slate-400 hover:text-slate-200 border border-white/10'
+              }`}
+            >
+              🇬🇧 English
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-3 text-xs font-semibold text-emerald-400">
+          <FileSpreadsheet className="w-4 h-4 shrink-0" />
+          <span>{t('settings.office_precision', 'Định dạng Biểu mẫu Office Paper-Grade:')} {t('settings.office_enabled', 'Đã kích hoạt chuẩn in nét căng Office Excel/Word')}</span>
         </div>
       </section>
 

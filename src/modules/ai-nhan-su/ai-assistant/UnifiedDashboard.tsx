@@ -103,14 +103,14 @@ export default function UnifiedDashboard() {
       </div>
 
       {/* Recommendations */}
-      {overview.topRecommendations.length > 0 && (
+      {(overview.topRecommendations?.length ?? 0) > 0 && (
         <div className="rounded-xl border border-amber-800/30 bg-amber-950/10 p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <AlertTriangle className="h-3 w-3 text-amber-400" />
             <span className="text-[10px] font-bold text-amber-300">Recommendations</span>
           </div>
           <div className="space-y-1">
-            {overview.topRecommendations.map((rec, i) => (
+            {overview.topRecommendations?.map((rec, i) => (
               <div key={i} className="text-[9px] text-text-secondary">{rec}</div>
             ))}
           </div>
@@ -122,41 +122,41 @@ export default function UnifiedDashboard() {
         {/* Core AI */}
         <div className="rounded-xl border border-border-primary bg-slate-950/60 p-3">
           <div className="text-[9px] font-bold text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Cpu className="h-3 w-3" /> Core AI</div>
-          <MiniStat label="AI Cost (30d)" value={`$${overview.cost.total30d.toFixed(4)}`} icon={TrendingUp} />
-          <MiniStat label="Agents" value={`${overview.agents.completed} OK / ${overview.agents.failed} FAIL / ${overview.agents.running} RUN`} icon={Activity} />
-          <MiniStat label="Memory Records" value={overview.memory.totalRecords} icon={BookOpen} />
-          <MiniStat label="AI Gateway Reqs" value={overview.aiGateway.totalRequests} icon={Zap} />
-          <MiniStat label="Gateway Latency" value={overview.aiGateway.avgLatency} icon={Clock} />
+          <MiniStat label="AI Cost (30d)" value={`$${overview.cost?.total30d?.toFixed(4) || '0.0000'}`} icon={TrendingUp} />
+          <MiniStat label="Agents" value={`${overview.agents?.completed || 0} OK / ${overview.agents?.failed || 0} FAIL / ${overview.agents?.running || 0} RUN`} icon={Activity} />
+          <MiniStat label="Memory Records" value={overview.memory?.totalRecords || 0} icon={BookOpen} />
+          <MiniStat label="AI Gateway Reqs" value={overview.aiGateway?.totalRequests || 0} icon={Zap} />
+          <MiniStat label="Gateway Latency" value={overview.aiGateway?.avgLatency || '0ms'} icon={Clock} />
         </div>
 
         {/* Automation */}
         <div className="rounded-xl border border-border-primary bg-slate-950/60 p-3">
           <div className="text-[9px] font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Zap className="h-3 w-3" /> Automation</div>
-          <MiniStat label="RPA Scripts" value={overview.rpa.scripts} />
-          <MiniStat label="File Watchers" value={`${overview.watchers.active}/${overview.watchers.rules} active`} />
-          <MiniStat label="Workflows" value={`${overview.workflows.active}/${overview.workflows.total} active`} />
-          <MiniStat label="Prompt Templates" value={overview.prompts.totalTemplates} />
-          <MiniStat label="Notifications" value={overview.notifications.total} />
+          <MiniStat label="RPA Scripts" value={overview.rpa?.scripts || 0} />
+          <MiniStat label="File Watchers" value={`${overview.watchers?.active || 0}/${overview.watchers?.rules || 0} active`} />
+          <MiniStat label="Workflows" value={`${overview.workflows?.active || 0}/${overview.workflows?.total || 0} active`} />
+          <MiniStat label="Prompt Templates" value={overview.prompts?.totalTemplates || 0} />
+          <MiniStat label="Notifications" value={overview.notifications?.total || 0} />
         </div>
 
         {/* Quality */}
         <div className="rounded-xl border border-border-primary bg-slate-950/60 p-3">
           <div className="text-[9px] font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1"><Shield className="h-3 w-3" /> Quality</div>
-          <MiniStat label="SAST Score" value={`${overview.sast.avgScore}/100`} />
-          <MiniStat label="Code Review" value={`${overview.codeReview.total} reviews, ${overview.codeReview.approvedRate}% approved`} />
-          <MiniStat label="Dep Health" value={`${overview.deps.avgHealth}/100`} />
-          <MiniStat label="Config Drift" value={`${overview.configDrift.avgScore}/100`} />
-          <MiniStat label="Decision Confidence" value={`${(overview.decisions.avgConfidence * 100).toFixed(0)}%`} />
+          <MiniStat label="SAST Score" value={`${overview.sast?.avgScore || 0}/100`} />
+          <MiniStat label="Code Review" value={`${overview.codeReview?.total || 0} reviews, ${overview.codeReview?.approvedRate || 0}% approved`} />
+          <MiniStat label="Dep Health" value={`${overview.deps?.avgHealth || 0}/100`} />
+          <MiniStat label="Config Drift" value={`${overview.configDrift?.avgScore || 0}/100`} />
+          <MiniStat label="Decision Confidence" value={`${((overview.decisions?.avgConfidence || 0) * 100).toFixed(0)}%`} />
         </div>
 
         {/* Knowledge */}
         <div className="rounded-xl border border-border-primary bg-slate-950/60 p-3">
           <div className="text-[9px] font-bold text-violet-400 uppercase tracking-wider mb-2 flex items-center gap-1"><BookOpen className="h-3 w-3" /> Knowledge</div>
-          <MiniStat label="KB Articles" value={`${overview.knowledgeBase.totalArticles} (${overview.knowledgeBase.totalViews} views)`} />
-          <MiniStat label="Vector Docs" value={`${overview.vectorStore.totalDocs} in ${overview.vectorStore.namespaces} ns`} />
-          <MiniStat label="Fine-Tuning Pairs" value={`${overview.fineTuning.totalPairs} (${overview.fineTuning.goldPairs} gold)`} />
-          <MiniStat label="Plugins" value={`${overview.plugins.loaded}/${overview.plugins.total} loaded`} />
-          <MiniStat label="Prompt Runs" value={overview.prompts.totalRuns} />
+          <MiniStat label="KB Articles" value={`${overview.knowledgeBase?.totalArticles || 0} (${overview.knowledgeBase?.totalViews || 0} views)`} />
+          <MiniStat label="Vector Docs" value={`${overview.vectorStore?.totalDocs || 0} in ${overview.vectorStore?.namespaces || 0} ns`} />
+          <MiniStat label="Fine-Tuning Pairs" value={`${overview.fineTuning?.totalPairs || 0} (${overview.fineTuning?.goldPairs || 0} gold)`} />
+          <MiniStat label="Plugins" value={`${overview.plugins?.loaded || 0}/${overview.plugins?.total || 0} loaded`} />
+          <MiniStat label="Prompt Runs" value={overview.prompts?.totalRuns || 0} />
         </div>
       </div>
 
@@ -164,10 +164,10 @@ export default function UnifiedDashboard() {
       <div className="rounded-xl border border-border-primary bg-slate-950/60 p-3">
         <div className="text-[9px] font-bold text-text-secondary uppercase tracking-wider mb-2">Operations</div>
         <div className="grid grid-cols-4 gap-2">
-          <div className="text-center"><div className="text-sm font-bold text-emerald-400">{overview.jobQueue.completed}</div><div className="text-[8px] text-slate-600">Jobs Done</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-amber-400">{overview.jobQueue.running}</div><div className="text-[8px] text-slate-600">Jobs Running</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-rose-400">{overview.jobQueue.failed}</div><div className="text-[8px] text-slate-600">Jobs Failed</div></div>
-          <div className="text-center"><div className="text-sm font-bold text-cyan-400">{overview.snapshots.total}</div><div className="text-[8px] text-slate-600">Snapshots</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-emerald-400">{overview.jobQueue?.completed || 0}</div><div className="text-[8px] text-slate-600">Jobs Done</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-amber-400">{overview.jobQueue?.running || 0}</div><div className="text-[8px] text-slate-600">Jobs Running</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-rose-400">{overview.jobQueue?.failed || 0}</div><div className="text-[8px] text-slate-600">Jobs Failed</div></div>
+          <div className="text-center"><div className="text-sm font-bold text-cyan-400">{overview.snapshots?.total || 0}</div><div className="text-[8px] text-slate-600">Snapshots</div></div>
         </div>
       </div>
     </div>

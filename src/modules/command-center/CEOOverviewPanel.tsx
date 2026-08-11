@@ -22,16 +22,11 @@ import {
   COMMAND_CENTER_TODAY_PRIORITIES,
   COMMAND_CENTER_WORKFLOWS
 } from '../../data/commandCenterKnowledge';
+import MorningExecutiveBriefingCard from './components/MorningExecutiveBriefingCard';
+import CloudHybridWorkflowStatusPanel from '../../components/shared/CloudHybridWorkflowStatusPanel';
+import MasterSystemHealthDashboard from '../../components/shared/MasterSystemHealthDashboard';
 
 const money = (value: number) => new Intl.NumberFormat('vi-VN').format(value);
-
-type LogItem = {
-  id: string;
-  time: string;
-  agent: string;
-  action: string;
-  status: 'info' | 'success' | 'warn';
-};
 
 type DailyCommandSnapshot = {
   daemonOk: boolean;
@@ -46,15 +41,6 @@ type DailyCommandSnapshot = {
   loadedAt: string;
 };
 
-const AGENT_MOCK_ACTIONS = [
-  { agent: 'AI Chief of Staff', action: 'Rà soát độ lệch ngân sách quý 2 và cảnh báo dòng tiền.', status: 'info' as const },
-  { agent: 'AI Developer', action: 'Hoàn thành Patch #104 fix lỗi WASM SQLite sandbox, chuẩn bị merge.', status: 'success' as const },
-  { agent: 'AI Marketer', action: 'Đang giả lập 1,200 phản hồi từ khảo sát người dùng về game kế toán.', status: 'info' as const },
-  { agent: 'AI Accountant', action: 'Phát hiện 2 hóa đơn tiếp khách vượt định mức chi phí 15% trong COSO.', status: 'warn' as const },
-  { agent: 'AI Auditor', action: 'Xác nhận toàn bộ build CI/CD trên GitHub đã chuyển màu xanh.', status: 'success' as const },
-  { agent: 'AI Sales Agent', action: 'Đang huấn luyện kịch bản đàm phán với khách hàng B2B lớn mới.', status: 'info' as const },
-];
-
 function badgeForRuntime(ok: boolean | null) {
   if (ok === true) return 'success';
   if (ok === false) return 'warning';
@@ -64,42 +50,9 @@ function badgeForRuntime(ok: boolean | null) {
 export default function CEOOverviewPanel() {
   const [copied, setCopied] = useState<string | null>(null);
   const [quarter, setQuarter] = useState<'all' | 'q1' | 'q2'>('all');
-  const [logs, setLogs] = useState<LogItem[]>([]);
   const [dailySnapshot, setDailySnapshot] = useState<DailyCommandSnapshot | null>(null);
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyError, setDailyError] = useState('');
-
-  // Simulation: Append new AI logs over time
-  useEffect(() => {
-    // Initial logs
-    const initialLogs: LogItem[] = Array.from({ length: 4 }).map((_, idx) => {
-      const item = AGENT_MOCK_ACTIONS[idx % AGENT_MOCK_ACTIONS.length];
-      const time = new Date(Date.now() - (4 - idx) * 60000).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      return {
-        id: `log-${idx}-${Date.now()}`,
-        time,
-        agent: item.agent,
-        action: item.action,
-        status: item.status
-      };
-    });
-    setLogs(initialLogs);
-
-    const interval = setInterval(() => {
-      const randItem = AGENT_MOCK_ACTIONS[Math.floor(Math.random() * AGENT_MOCK_ACTIONS.length)];
-      const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      const newLog: LogItem = {
-        id: `log-${Date.now()}`,
-        time: nowStr,
-        agent: randItem.agent,
-        action: randItem.action,
-        status: randItem.status
-      };
-      setLogs((prev) => [newLog, ...prev.slice(0, 15)]);
-    }, 4500);
-
-    return () => clearInterval(interval);
-  }, []);
 
   const refreshDailySnapshot = async () => {
     setDailyLoading(true);
@@ -220,6 +173,15 @@ export default function CEOOverviewPanel() {
           </Button>
         </div>
       </section>
+
+      {/* Executive Morning Briefing */}
+      <MorningExecutiveBriefingCard />
+
+      {/* Master System Health Dashboard */}
+      <MasterSystemHealthDashboard />
+
+      {/* Cloud Hybrid Workflow Status & API Budget Monitor */}
+      <CloudHybridWorkflowStatusPanel />
 
       <Card padding="lg" className="text-left">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -365,23 +327,34 @@ export default function CEOOverviewPanel() {
           </div>
 
           <div className="flex-1 rounded-2xl bg-bg-elevated border border-border-primary p-3 h-[440px] overflow-y-auto space-y-2.5 scrollbar-thin">
-            {logs.map((log) => (
-              <div key={log.id} className="text-xs p-2.5 rounded-xl border border-border-primary bg-bg-surface space-y-1 hover:border-border-secondary transition">
-                <div className="flex justify-between items-center text-[10px] font-bold">
-                  <span className="flex items-center gap-1.5 text-accent-light">
-                    <Cpu className="w-3.5 h-3.5 text-accent-tertiary" />
-                    {log.agent}
-                  </span>
-                  <span className="text-text-muted">{log.time}</span>
-                </div>
-                <p className="text-text-secondary font-semibold leading-5 pl-5">{log.action}</p>
-                <div className="pl-5 flex justify-end">
-                  <Badge variant={log.status === 'success' ? 'success' : log.status === 'warn' ? 'warning' : 'info'}>
-                    {log.status}
-                  </Badge>
-                </div>
+            {!dailySnapshot ? (
+              <div className="text-center text-text-muted py-6 text-sm font-semibold animate-pulse">
+                Đang kết nối Assistant Daemon...
               </div>
-            ))}
+            ) : dailySnapshot.recentAudit.length === 0 ? (
+              <div className="text-center text-text-muted py-6 text-sm font-semibold">
+                Hệ thống chưa có Audit Log nào gần đây.
+              </div>
+            ) : (
+              dailySnapshot.recentAudit.map((log) => (
+                <div key={log.id} className="text-xs p-2.5 rounded-xl border border-border-primary bg-bg-surface space-y-1 hover:border-border-secondary transition">
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className="flex items-center gap-1.5 text-accent-light uppercase">
+                      <Cpu className="w-3.5 h-3.5 text-accent-tertiary" />
+                      {log.actor} - {log.workspace}
+                    </span>
+                    <span className="text-text-muted">{new Date(log.createdAt).toLocaleTimeString('vi-VN')}</span>
+                  </div>
+                  <p className="text-text-secondary font-semibold leading-5 pl-5">{log.summary}</p>
+                  <div className="pl-5 flex justify-between items-center mt-1">
+                    <span className="text-[9px] text-text-muted font-mono uppercase tracking-wider">{log.action}</span>
+                    <Badge variant={log.status === 'executed' || log.status === 'approved' ? 'success' : log.status === 'failed' || log.status === 'rejected' ? 'error' : 'info'}>
+                      {log.status}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </Card>
       </section>

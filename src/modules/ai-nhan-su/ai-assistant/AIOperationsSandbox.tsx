@@ -27,6 +27,10 @@ import {
   fetchWebAIProfiles,
   checkWebAIProfileSession,
   openWebAIProfileLogin,
+  fetchBrowserRunbooks,
+  fetchBrowserRunbookSummary,
+  recommendWebAITask,
+  fetchWebAIStats,
   type WebAIProfile,
   type AuditLogEntry,
   type AuditChainVerificationResult,
@@ -105,6 +109,36 @@ function getClientRAGMatches(
     .sort((a, b) => b.score - a.score)
     .slice(0, maxNotes);
 }
+
+interface SectionCardProps {
+  title: string;
+  icon: React.ReactNode;
+  description?: string;
+  children: React.ReactNode;
+  className?: string;
+}
+
+function SectionCard({ title, icon, description, children, className }: SectionCardProps) {
+  return (
+    <div className={`rounded-xl border border-border-primary bg-bg-primary/40 p-4 ${className || ''}`}>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between mb-4">
+        <div className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-text-secondary">
+          {icon}
+          <span>{title}</span>
+        </div>
+        {description && <div className="text-[10px] text-text-tertiary">{description}</div>}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+const SANDBOX_TABS: Array<{ id: 'guerrilla' | 'runtime' | 'memory' | 'robot'; label: string; icon: React.ReactNode }> = [
+  { id: 'guerrilla', label: 'Prompt Lab', icon: <Play className="h-3.5 w-3.5" /> },
+  { id: 'runtime', label: 'Agent Runtime', icon: <Layers className="h-3.5 w-3.5" /> },
+  { id: 'memory', label: 'Knowledge Vault', icon: <Database className="h-3.5 w-3.5" /> },
+  { id: 'robot', label: 'Robot Sim', icon: <Cpu className="h-3.5 w-3.5" /> },
+];
 
 export default function AIOperationsSandbox() {
   const [sandboxTab, setSandboxTab] = useState<'guerrilla' | 'runtime' | 'memory' | 'robot'>('guerrilla');
@@ -938,51 +972,21 @@ Chỉ trả về duy nhất khối JSON nằm trong thẻ \`\`\`json ... \`\`\`.
   return (
     <div className="p-4 space-y-4">
       {/* ── Tabbed View Selection ───────────────────────────────────── */}
-      <div className="flex border border-border-primary bg-slate-950 p-1.5 rounded-2xl shrink-0 gap-1.5">
-        <button
-          onClick={() => setSandboxTab('guerrilla')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-xl border transition-all ${
-            sandboxTab === 'guerrilla'
-              ? 'bg-violet-600/20 text-violet-300 border-violet-500/40 shadow-lg shadow-violet-500/5'
-              : 'text-text-secondary border-transparent hover:text-slate-200 hover:bg-bg-primary/40'
-          }`}
-        >
-          <Compass className="h-3.5 w-3.5" />
-          <span>Guerrilla Prompt Lab</span>
-        </button>
-        <button
-          onClick={() => setSandboxTab('runtime')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-xl border transition-all ${
-            sandboxTab === 'runtime'
-              ? 'bg-violet-600/20 text-violet-300 border-violet-500/40 shadow-lg shadow-violet-500/5'
-              : 'text-text-secondary border-transparent hover:text-slate-200 hover:bg-bg-primary/40'
-          }`}
-        >
-          <Cpu className="h-3.5 w-3.5" />
-          <span>AI Staff Runtime</span>
-        </button>
-        <button
-          onClick={() => setSandboxTab('memory')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-xl border transition-all ${
-            sandboxTab === 'memory'
-              ? 'bg-violet-600/20 text-violet-300 border-violet-500/40 shadow-lg shadow-violet-500/5'
-              : 'text-text-secondary border-transparent hover:text-slate-200 hover:bg-bg-primary/40'
-          }`}
-        >
-          <Database className="h-3.5 w-3.5" />
-          <span>AI Memory Vault</span>
-        </button>
-        <button
-          onClick={() => setSandboxTab('robot')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-black rounded-xl border transition-all ${
-            sandboxTab === 'robot'
-              ? 'bg-violet-600/20 text-violet-300 border-violet-500/40 shadow-lg shadow-violet-500/5'
-              : 'text-text-secondary border-transparent hover:text-slate-200 hover:bg-bg-primary/40'
-          }`}
-        >
-          <Sliders className="h-3.5 w-3.5" />
-          <span>Robot Control Room</span>
-        </button>
+      <div className="flex flex-wrap gap-2 px-3 pt-2 pb-1 border border-border-primary bg-slate-950/90 rounded-2xl shrink-0">
+        {SANDBOX_TABS.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => setSandboxTab(item.id)}
+            className={`flex items-center gap-2 px-3 py-2 text-xs font-black rounded-xl transition-all whitespace-nowrap ${
+              sandboxTab === item.id
+                ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20'
+                : 'bg-slate-950 text-text-secondary hover:text-slate-200 hover:bg-slate-900 border border-border-primary/50'
+            }`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </button>
+        ))}
       </div>
 
       {/* ── TAB 1: Guerrilla Prompt Lab ────────────────────────────── */}
@@ -1803,65 +1807,72 @@ Chỉ trả về duy nhất khối JSON nằm trong thẻ \`\`\`json ... \`\`\`.
                     {expandedRunId === run.id && (
                       <div className="border-t border-slate-900 pt-3 space-y-3">
                         <div className="text-[10px] font-black text-text-tertiary uppercase tracking-widest flex items-center justify-between">
-                          <span>Sơ đồ phân rã các bước ({run.steps.length} bước)</span>
+                          <span>Sơ đồ phân rã các bước ({run.steps?.length ?? 0} bước)</span>
                           <span className="font-mono text-[9px] text-slate-600">Planner: {run.planner}</span>
                         </div>
-                        
-                        <div className="space-y-2">
-                          {run.steps.map((step) => (
-                            <div key={step.id} className="bg-slate-950 border border-slate-900 rounded-xl p-3 space-y-2">
-                              <div className="flex items-center justify-between gap-2.5">
-                                <div className="flex items-center gap-2">
-                                  <span className="w-4 h-4 rounded-full bg-bg-primary border border-border-primary text-[9px] font-bold text-text-secondary flex items-center justify-center">
-                                    {step.index + 1}
+
+                        {!Array.isArray(run.steps) || run.steps.length === 0 ? (
+                          <div className="rounded-xl border border-slate-900 bg-slate-950/60 p-4 text-[10px] text-text-tertiary">
+                            Không có bước nào để hiển thị cho run này.
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {run.steps.map((step) => (
+                              <div key={step.id} className="bg-slate-950 border border-slate-900 rounded-xl p-3 space-y-2">
+                                <div className="flex items-center justify-between gap-2.5">
+                                  <div className="flex items-center gap-2">
+                                    <span className="w-4 h-4 rounded-full bg-bg-primary border border-border-primary text-[9px] font-bold text-text-secondary flex items-center justify-center">
+                                      {step.index + 1}
+                                    </span>
+                                    <span className="text-xs font-bold text-slate-200">{step.title}</span>
+                                  </div>
+                                  <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.2 rounded font-mono ${
+                                    step.status === 'completed' ? 'text-emerald-400 bg-emerald-950/30' :
+                                    step.status === 'failed' ? 'text-rose-400 bg-rose-950/30' :
+                                    step.status === 'waiting_approval' ? 'text-amber-400 bg-amber-950/30 animate-pulse' :
+                                    step.status === 'running' ? 'text-cyan-400 bg-cyan-950/30 animate-pulse' :
+                                    'text-text-tertiary bg-bg-primary/30'
+                                  }`}>
+                                    {step.status}
                                   </span>
-                                  <span className="text-xs font-bold text-slate-200">{step.title}</span>
                                 </div>
-                                <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.2 rounded font-mono ${
-                                  step.status === 'completed' ? 'text-emerald-400 bg-emerald-950/30' :
-                                  step.status === 'failed' ? 'text-rose-400 bg-rose-950/30' :
-                                  step.status === 'waiting_approval' ? 'text-amber-400 bg-amber-950/30 animate-pulse' :
-                                  step.status === 'running' ? 'text-cyan-400 bg-cyan-950/30 animate-pulse' :
-                                  'text-text-tertiary bg-bg-primary/30'
-                                }`}>
-                                  {step.status}
-                                </span>
-                              </div>
 
-                              <div className="text-[10px] leading-relaxed text-text-secondary">
-                                <strong>Tiêu chí xong:</strong> {step.successCriteria}
-                              </div>
-
-                              {step.observation && (
-                                <div className="text-[10px] bg-bg-primary/60 p-2 rounded-lg border border-slate-900 text-text-secondary font-mono">
-                                  <strong className="text-violet-400">Kết quả:</strong> {step.observation}
+                                <div className="text-[10px] leading-relaxed text-text-secondary">
+                                  <strong>Tiêu chí xong:</strong> {step.successCriteria}
                                 </div>
-                              )}
 
-                              {/* Approval Area */}
-                              {step.status === 'waiting_approval' && step.approvalFingerprint && (
-                                <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-3 space-y-2.5">
-                                  <div className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
-                                    <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
-                                    <span>Yêu cầu chữ ký của Founder để thực thi (High Risk Tool)</span>
+                                {step.observation && (
+                                  <div className="text-[10px] bg-bg-primary/60 p-2 rounded-lg border border-slate-900 text-text-secondary font-mono">
+                                    <strong className="text-violet-400">Kết quả:</strong> {step.observation}
                                   </div>
-                                  <div className="text-[9px] font-mono text-text-tertiary leading-normal break-all">
-                                    Fingerprint: {step.approvalFingerprint}
+                                )}
+
+                                {/* Approval Area */}
+                                {step.status === 'waiting_approval' && step.approvalFingerprint && (
+                                  <div className="rounded-xl border border-amber-900/40 bg-amber-950/20 p-3 space-y-2.5">
+                                    <div className="text-[10px] font-bold text-amber-400 flex items-center gap-1">
+                                      <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+                                      <span>Yêu cầu chữ ký của Founder để thực thi (High Risk Tool)</span>
+                                    </div>
+                                    <div className="text-[9px] font-mono text-text-tertiary leading-normal break-all">
+                                      Fingerprint: {step.approvalFingerprint}
+                                    </div>
+                                    <button
+                                      onClick={() => handleApproveStep(run.id, step.id, step.approvalFingerprint!)}
+                                      disabled={approvingStepIds[step.id] || runtimeMetrics?.emergencyStop}
+                                      className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-text-primary text-[10px] font-black rounded-lg transition-colors cursor-pointer"
+                                    >
+                                      {approvingStepIds[step.id] ? 'Đang duyệt ký...' : '✍️ Đăng ký chữ ký & Kích hoạt chạy (Approve Step)'}
+                                    </button>
                                   </div>
-                                  <button
-                                    onClick={() => handleApproveStep(run.id, step.id, step.approvalFingerprint!)}
-                                    disabled={approvingStepIds[step.id] || runtimeMetrics?.emergencyStop}
-                                    className="w-full py-1.5 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 text-text-primary text-[10px] font-black rounded-lg transition-colors cursor-pointer"
-                                  >
-                                    {approvingStepIds[step.id] ? 'Đang duyệt ký...' : '✍️ Đăng ký chữ ký & Kích hoạt chạy (Approve Step)'}
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     )}
+
                   </div>
                 ))}
               </div>

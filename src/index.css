@@ -156,3 +156,18 @@ button, input, select, textarea {
  *   Gradually move legacy styles below to the modular system
  *   Use CSS custom properties (--*) instead of hard-coded values
  */
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes drawSparkline {
+  0% {
+    stroke-dashoffset: 500;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}

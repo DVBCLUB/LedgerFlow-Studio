@@ -59,21 +59,21 @@ export default function AnalyticsDashboard() {
 
       {loading && <div className="text-center py-6 text-xs text-text-tertiary"><Loader2 className="h-4 w-4 animate-spin inline mr-1" />Loading...</div>}
 
-      {data && data.agentPerformance.length === 0 && !loading && (
+      {data && (data.agentPerformance?.length ?? 0) === 0 && !loading && (
         <div className="text-center py-6 text-xs text-text-tertiary">Chưa có dữ liệu analytics. Hãy chạy AI Fabric vài lần để tích lũy.</div>
       )}
 
-      {data && data.agentPerformance.length > 0 && (
+      {data && (data.agentPerformance?.length ?? 0) > 0 && (
         <>
           {/* Recommendations */}
-          {data.recommendations.length > 0 && (
+          {(data.recommendations?.length ?? 0) > 0 && (
             <div className="rounded-xl border border-amber-500/30 bg-amber-950/10 p-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-400" />
                 <span className="text-[10px] font-black uppercase text-amber-400">Recommendations</span>
               </div>
               <ul className="space-y-1">
-                {data.recommendations.map((r, i) => (
+                {data.recommendations?.map((r, i) => (
                   <li key={i} className="text-[10px] text-text-secondary flex gap-1.5">
                     <span className="text-amber-400 shrink-0">•</span> {r}
                   </li>
@@ -99,7 +99,7 @@ export default function AnalyticsDashboard() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.agentPerformance.map(ap => (
+                  {(data.agentPerformance || []).map(ap => (
                     <tr key={ap.agent} className="border-b border-border-primary/50 hover:bg-bg-primary/20">
                       <td className="px-3 py-1.5 font-bold text-text-secondary">{ap.agent}</td>
                       <td className="text-right px-2 py-1.5 text-text-secondary">{ap.totalCalls}</td>
@@ -124,7 +124,7 @@ export default function AnalyticsDashboard() {
           </div>
 
           {/* Model Comparison */}
-          {data.modelComparison.length > 0 && (
+          {(data.modelComparison?.length ?? 0) > 0 && (
             <div className="rounded-xl border border-border-primary bg-slate-950/60 overflow-hidden">
               <div className="px-3 py-2 bg-bg-primary/60 border-b border-border-primary text-[10px] font-black uppercase text-text-secondary">Model Comparison</div>
               <div className="overflow-x-auto">
@@ -139,7 +139,7 @@ export default function AnalyticsDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.modelComparison.map(m => (
+                    {(data.modelComparison || []).map(m => (
                       <tr key={m.model} className="border-b border-border-primary/50 hover:bg-bg-primary/20">
                         <td className="px-3 py-1.5 font-bold text-text-secondary">{m.model}</td>
                         <td className="text-right px-2 py-1.5 text-text-secondary">{m.calls}</td>
@@ -157,11 +157,11 @@ export default function AnalyticsDashboard() {
           )}
 
           {/* Failure Patterns */}
-          {data.failurePatterns.length > 0 && (
+          {(data.failurePatterns?.length ?? 0) > 0 && (
             <div className="rounded-xl border border-border-primary bg-slate-950/60 overflow-hidden">
               <div className="px-3 py-2 bg-bg-primary/60 border-b border-border-primary text-[10px] font-black uppercase text-rose-400">Failure Patterns</div>
               <div className="p-3 space-y-2">
-                {data.failurePatterns.map((fp, i) => (
+                {(data.failurePatterns || []).map((fp, i) => (
                   <div key={i} className="flex items-start gap-2 text-[10px] border-b border-border-primary/50 pb-2 last:border-0 last:pb-0">
                     <XCircle className="h-3 w-3 text-rose-400 mt-0.5 shrink-0" />
                     <div>

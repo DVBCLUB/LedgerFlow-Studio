@@ -19,6 +19,8 @@ import { appendAuditEvent } from './auditLog.ts';
 import { callAI } from './aiClient.ts';
 import { getAgentRole } from './agentRoles.ts';
 import { readSecureJson, writeSecureJson } from './secureJsonStore.ts';
+import { recordAgentOutcome } from './agentPerformanceLedger.ts';
+import { shareLearning } from './crossAgentLearning.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -430,12 +432,23 @@ async function executeSteps(workflow: AgentWorkflow, template: WorkflowTemplate,
       const groupOutputs: string[] = [];
       for (let gi2 = 0; gi2 < groupSteps.length; gi2++) {
         const gs = groupSteps[gi2];
+        const gsDef = groupDefs[gi2];
         const res = results[gi2];
+        const stepLatencyMs = gs.startedAt ? Date.now() - new Date(gs.startedAt).getTime() : 0;
         if (res.status === 'fulfilled') {
           gs.output = res.value; gs.status = 'completed'; gs.completedAt = new Date().toISOString();
           groupOutputs.push(res.value);
+          // Track performance
+          recordAgentOutcome(gs.agentRole, workflow.templateId, true, stepLatencyMs, {
+            taskTitle: `${workflow.name} — ${gs.name}`,
+          });
         } else {
           gs.status = 'failed'; gs.error = res.reason?.message || String(res.reason); gs.completedAt = new Date().toISOString();
+          // Track performance
+          recordAgentOutcome(gs.agentRole, workflow.templateId, false, stepLatencyMs, {
+            taskTitle: `${workflow.name} — ${gs.name}`,
+            errorSummary: gs.error,
+          });
         }
       }
 
@@ -458,8 +471,15 @@ async function executeSteps(workflow: AgentWorkflow, template: WorkflowTemplate,
     await mutate((store) => { store.workflows[workflow.id] = workflow; });
 
     try {
+      const stepStart = Date.now();
       const output = await executeAgentStep(step, workflow);
       step.output = output; prevOutputs.push(output);
+      const stepLatencyMs = Date.now() - stepStart;
+
+      // Track agent performance
+      recordAgentOutcome(step.agentRole, workflow.templateId, true, stepLatencyMs, {
+        taskTitle: `${workflow.name} — ${step.name}`,
+      });
 
       // ── Approval gate ──────────────────────────────────────────────────────
       if (step.requiresApproval) {
@@ -499,7 +519,13 @@ async function executeSteps(workflow: AgentWorkflow, template: WorkflowTemplate,
       workflow.updatedAt = new Date().toISOString();
       await mutate((store) => { store.workflows[workflow.id] = workflow; });
     } catch (err: unknown) {
-      step.status = 'failed'; step.error = err instanceof Error ? err.message : String(err); step.completedAt = new Date().toISOString();
+      const errMsg = err instanceof Error ? err.message : String(err);
+      step.status = 'failed'; step.error = errMsg; step.completedAt = new Date().toISOString();
+      // Track agent failure
+      recordAgentOutcome(step.agentRole, workflow.templateId, false, 0, {
+        taskTitle: `${workflow.name} — ${step.name}`,
+        errorSummary: errMsg,
+      });
       workflow.status = 'failed'; workflow.updatedAt = new Date().toISOString();
       await mutate((store) => { store.workflows[workflow.id] = workflow; }); return;
     }
@@ -510,6 +536,17 @@ async function executeSteps(workflow: AgentWorkflow, template: WorkflowTemplate,
   workflow.status = 'completed'; workflow.output = prevOutputs[prevOutputs.length - 1] || '';
   workflow.completedAt = new Date().toISOString(); workflow.updatedAt = new Date().toISOString();
   await mutate((store) => { store.workflows[workflow.id] = workflow; });
+
+  // Share workflow output as cross-agent learning so all agents benefit
+  shareLearning(
+    `workflow:${workflow.templateId}`,
+    workflow.templateId,
+    'success',
+    `Workflow "${workflow.name}" completed`,
+    (workflow.output || '').slice(0, 500),
+    0.75,
+    ['workflow', workflow.templateId],
+  ).catch(() => undefined);
 }
 
 // ─── Public API ───────────────────────────────────────────────────────────────

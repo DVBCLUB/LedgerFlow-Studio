@@ -178,7 +178,16 @@ function installApplicationMenu() {
     {
       label: 'LedgerFlow Hub',
       submenu: [
-        { label: 'Reload', accelerator: 'CmdOrCtrl+R', click: () => mainWindow?.reload() },
+        {
+          label: 'Reload (Hard Refresh)',
+          accelerator: 'CmdOrCtrl+R',
+          click: async () => {
+            if (mainWindow) {
+              await session.defaultSession.clearCache().catch(() => {});
+              mainWindow.webContents.reloadIgnoringCache();
+            }
+          }
+        },
         { type: 'separator' },
         { label: 'Exit', accelerator: process.platform === 'darwin' ? 'Cmd+Q' : 'Alt+F4', click: () => app.quit() }
       ]
@@ -493,7 +502,7 @@ async function createMainWindow() {
   });
 
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {
-    if (isMainFrame !== false) {
+    if (isMainFrame !== false && errorCode !== -3 && errorCode !== -2) {
       logDesktop(`Renderer failed to load ${validatedURL}: ${errorCode} ${errorDescription}`);
     }
   });
@@ -509,7 +518,13 @@ async function createMainWindow() {
   try {
     await waitForServer(APP_URL);
     logDesktop('Embedded server is ready. Loading app window.');
-    await mainWindow.loadURL(APP_URL);
+    await mainWindow.loadURL(APP_URL).catch((err) => {
+      if (err && (err.code === 'ERR_ABORTED' || String(err).includes('(-3)'))) {
+        logDesktop('Ignored splash navigation abort (-3).');
+        return;
+      }
+      throw err;
+    });
     const rendererState = await mainWindow.webContents.executeJavaScript(`({
       url: location.href,
       title: document.title,
@@ -520,7 +535,11 @@ async function createMainWindow() {
       logDesktop(`Renderer loaded: ${JSON.stringify(rendererState)}`);
     }
   } catch (error) {
-    showStartupError('LedgerFlow Hub startup error', error);
+    if (error && (error.code === 'ERR_ABORTED' || String(error.message || error).includes('(-3)'))) {
+      logDesktop('Ignored splash navigation abort error.');
+    } else {
+      showStartupError('LedgerFlow Hub startup error', error);
+    }
   }
 }
 

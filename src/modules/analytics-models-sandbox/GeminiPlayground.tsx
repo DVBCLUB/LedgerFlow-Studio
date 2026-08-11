@@ -862,6 +862,8 @@ def tinh_thue_tncn_bac_thang(thu_nhap_tinh_thue):
                 className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1 text-xs text-text-secondary font-bold outline-none cursor-pointer focus:border-purple-500"
               >
                 <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu tốc & thông minh)</option>
+                <option value="gemini-2.0-flash-live">Gemini 2.0 Live Voice & Vision Stream (&lt;300ms)</option>
+                <option value="gemini-2.0-flash-thinking-exp">Gemini 2.0 Flash Thinking (DeepMind CoT Reasoning)</option>
                 <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro Experimental (Thông thái)</option>
                 <option value="gemini-1.5-pro">Gemini 1.5 Pro (Phân tích chuyên sâu)</option>
               </select>

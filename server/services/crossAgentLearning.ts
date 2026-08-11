@@ -2,13 +2,20 @@
  * crossAgentLearning.ts
  * ============================================================
  * Cross-Agent Learning — agents học hỏi từ experience
- * của nhau thông qua compound memory. Khi một agent thành
- * công, pattern được chia sẻ cho các agent khác cùng domain.
+ * của nhau thông qua compound memory và vector semantic search.
+ * Khi một agent thành công, pattern được chia sẻ cho các agent
+ * khác cùng domain dưới dạng embedding để tìm kiếm theo nghĩa.
  */
-import { searchMemory, recordObservation, type MemorySearchResult } from './compoundMemory';
-import { dispatchTextThroughFabric } from './aiFabric';
-import fs from 'fs';
-import path from 'path';
+import { searchMemory, recordObservation, type MemorySearchResult } from './compoundMemory.ts';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import {
+  createNamespace,
+  insertDocument,
+  searchSimilar,
+  type VectorSearchResult,
+} from './vectorEmbeddingStore.ts';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface LearningEvent {
@@ -39,9 +46,13 @@ export interface LearningReport {
   domainInsights: Array<{ domain: string; insight: string; agents: string[] }>;
 }
 
-// ─── Storage ────────────────────────────────────────────────────────
+// ─── Storage ──────────────────────────────────────────────────────────────────────
 const FILE = path.join(process.cwd(), 'cross_learning_events.json');
 let events: LearningEvent[] = [];
+
+// Vector namespace for semantic search — persisted in runtime/vector_store/
+const VECTOR_NS = 'agent_learning';
+createNamespace(VECTOR_NS);
 
 async function load(): Promise<void> {
   try { if (fs.existsSync(FILE)) events = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { }
@@ -77,7 +88,7 @@ export async function shareLearning(
 
   events.push(event);
 
-  // Also record to compound memory for all agents to access
+  // Record to compound memory for all agents to access
   await recordObservation(
     domain,
     `[Shared] ${sourceAgent}: ${title}`,
@@ -86,6 +97,16 @@ export async function shareLearning(
     `cross-agent:${sourceAgent}`,
     kind === 'success',
   );
+
+  // Also embed into vector store for semantic similarity search
+  insertDocument(VECTOR_NS, `${title}\n${content}`, {
+    agent: sourceAgent,
+    domain,
+    kind,
+    confidence: String(confidence),
+    recordedAt: event.recordedAt,
+    tags: event.tags.join(','),
+  });
 
   save().catch(() => undefined);
   return event;
@@ -96,34 +117,46 @@ export async function discoverInsights(
   targetAgent: string,
   domain: string,
 ): Promise<CrossLearningResult> {
-  // Search for successful patterns from source agent
-  const sourceSuccesses = await searchMemory(`success ${domain}`, {
-    domain,
-    kinds: ['pattern'],
-    limit: 5,
-  });
+  // 1. Compound-memory keyword search (existing behaviour)
+  const [sourceSuccesses, sourceFailures] = await Promise.all([
+    searchMemory(`success ${domain}`, { domain, kinds: ['pattern'], limit: 5 }),
+    searchMemory(`failure ${domain}`, { domain, kinds: ['lesson'], limit: 3 }),
+  ]);
 
-  // Search for failures to avoid
-  const sourceFailures = await searchMemory(`failure ${domain}`, {
-    domain,
-    kinds: ['lesson'],
-    limit: 3,
-  });
+  // 2. Semantic vector search for richer recall
+  const vectorResults: VectorSearchResult[] = searchSimilar(
+    VECTOR_NS,
+    `${sourceAgent} ${domain} success pattern`,
+    8,
+    0.12,
+  ).filter((r) => r.document.metadata.agent === sourceAgent || r.document.metadata.domain === domain);
 
   const recommendations: string[] = [];
   let sharedPatterns = 0;
 
-  // Extract actionable insights
+  // Process compound-memory results
   for (const mem of sourceSuccesses) {
     if (mem.confidence >= 0.7) {
       recommendations.push(`Học từ ${sourceAgent}: ${mem.title} — ${mem.content.slice(0, 150)}`);
       sharedPatterns++;
     }
   }
-
   for (const mem of sourceFailures) {
     if (mem.confidence >= 0.5) {
       recommendations.push(`Tránh lỗi của ${sourceAgent}: ${mem.title} — ${mem.content.slice(0, 150)}`);
+    }
+  }
+
+  // Merge unique vector-search results (avoid duplicates)
+  const existingSnippets = new Set(recommendations.map((r) => r.slice(0, 60)));
+  for (const vr of vectorResults) {
+    if (vr.similarity >= 0.15) {
+      const snippet = `[semantic ${(vr.similarity * 100).toFixed(0)}%] ${vr.document.metadata.agent || sourceAgent}: ${vr.document.content.slice(0, 150)}`;
+      if (!existingSnippets.has(snippet.slice(0, 60))) {
+        recommendations.push(snippet);
+        existingSnippets.add(snippet.slice(0, 60));
+        sharedPatterns++;
+      }
     }
   }
 
@@ -212,14 +245,11 @@ export async function recommendBestAgent(
 ): Promise<{ agent: string; reason: string; confidence: number }> {
   if (availableAgents.length === 0) return { agent: 'general', reason: 'Fallback', confidence: 0.5 };
 
-  // Search memory for which agent handles this task best
-  const mems = await searchMemory(task, { domain, kinds: ['pattern'], limit: 10 });
-
   const agentScores = new Map<string, { score: number; reasons: string[] }>();
-  for (const agent of availableAgents) {
-    agentScores.set(agent, { score: 0, reasons: [] });
-  }
+  for (const agent of availableAgents) agentScores.set(agent, { score: 0, reasons: [] });
 
+  // 1. Compound-memory keyword match (existing)
+  const mems = await searchMemory(task, { domain, kinds: ['pattern'], limit: 10 });
   for (const mem of mems) {
     for (const agent of availableAgents) {
       if (mem.source.toLowerCase().includes(agent.toLowerCase())) {
@@ -230,9 +260,25 @@ export async function recommendBestAgent(
     }
   }
 
-  // Find best
+  // 2. Semantic vector search — find agents with similar successful patterns
+  const vectorHits = searchSimilar(VECTOR_NS, `${task} ${domain}`, 15, 0.1);
+  for (const vr of vectorHits) {
+    const hitAgent = vr.document.metadata.agent || '';
+    const hitKind = vr.document.metadata.kind || '';
+    for (const agent of availableAgents) {
+      if (hitAgent.toLowerCase().includes(agent.toLowerCase())) {
+        const entry = agentScores.get(agent)!;
+        // Weight successes positively, failures negatively
+        const weight = hitKind === 'success' ? vr.similarity : hitKind === 'failure' ? -vr.similarity * 0.5 : vr.similarity * 0.3;
+        entry.score += weight;
+        if (hitKind === 'success') entry.reasons.push(`[vec ${(vr.similarity * 100).toFixed(0)}%] ${vr.document.content.slice(0, 80)}`);
+      }
+    }
+  }
+
+  // Find best scoring agent
   let bestAgent = availableAgents[0];
-  let bestScore = 0;
+  let bestScore = -Infinity;
   let bestReasons: string[] = [];
 
   for (const [agent, data] of agentScores) {
@@ -244,12 +290,51 @@ export async function recommendBestAgent(
   }
 
   const reason = bestReasons.length > 0
-    ? `Dựa trên ${bestReasons.length} pattern đã học: ${bestReasons.slice(0, 2).join(', ')}.`
+    ? `Dựa trên ${bestReasons.length} pattern (keyword + semantic): ${bestReasons.slice(0, 2).join(', ')}.`
     : `Không có dữ liệu, dùng agent mặc định.`;
 
   return {
     agent: bestAgent,
     reason,
-    confidence: Math.min(1, bestReasons.length / 5),
+    confidence: Math.min(1, Math.max(0, bestScore / 5)),
   };
+}
+
+export function broadcastCrossAgentInsight(input: {
+  sourceAgent: string;
+  domain: string;
+  title: string;
+  content: string;
+  confidence?: number;
+  tags?: string[];
+}): LearningEvent {
+  const now = new Date().toISOString();
+  const event: LearningEvent = {
+    id: `evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+    sourceAgent: input.sourceAgent,
+    domain: input.domain,
+    kind: 'insight',
+    title: input.title,
+    content: input.content,
+    confidence: input.confidence ?? 0.9,
+    tags: input.tags || ['collective_learning'],
+    recordedAt: now,
+  };
+
+  events.push(event);
+  save().catch(() => undefined);
+
+  // Index into Vector Embedding Store for semantic search
+  insertDocument(VECTOR_NS, `${event.title} - ${event.content}`, {
+    agent: event.sourceAgent,
+    domain: event.domain,
+    kind: 'insight',
+  });
+
+  return event;
+}
+
+export function queryCollectiveAgentKnowledge(query: string, domain?: string, limit = 5): VectorSearchResult[] {
+  const searchQuery = domain ? `${query} ${domain}` : query;
+  return searchSimilar(VECTOR_NS, searchQuery, limit, 0.1);
 }

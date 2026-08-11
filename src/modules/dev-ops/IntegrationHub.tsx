@@ -50,19 +50,19 @@ export default function IntegrationHub() {
         actions={["Logs", "Terminal", "Diff"]}
       />
       <SimplePanelCard
-        eyebrow="Source control"
-        title="GitHub là nguồn chính"
-        description="Dự án vẫn nên lưu ở GitHub; Replit dùng để chạy và review. Khi ổn thì push/merge để giữ lịch sử sạch."
-        icon={Github}
-        status="Khuyến nghị"
-        tone="violet"
+        eyebrow="Giao thức chuẩn"
+        title="Model Context Protocol (MCP) Gateway"
+        description="Quản lý giao tiếp JSON-RPC 2.0 chuẩn MCP qua SSE và Stdio. Kết nối trực tiếp với Cursor, Claude Desktop và các MCP Server ngoài."
+        icon={Plug2}
+        status="Hoạt động"
+        tone="amber"
         items={[
-          'GitHub: nơi lưu code chính',
-          'Replit: nơi chạy thử và xem lỗi nhanh',
-          'Local: nơi dùng chính nếu chỉ một mình bạn',
-          'Deploy public chỉ dùng khi cần chia sẻ link',
+          'Server Endpoint: GET /api/mcp/sse (JSON-RPC 2.0)',
+          'External MCP Clients: Cursor, Claude Desktop, Windsurf',
+          'External MCP Servers: GitHub MCP, Postgres MCP, Brave Search',
+          'Bảo mật: Phân quyền theo Tool Manifest SHA-256 Fingerprint',
         ]}
-        actions={["Code", "Run", "Review"]}
+        actions={["MCP SSE", "Manifest Catalog", "Test Tool"]}
       />
     </div>
   );

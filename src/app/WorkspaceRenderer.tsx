@@ -51,6 +51,16 @@ const DataScienceEngineering = React.lazy(() => import('../modules/analytics-mod
 const DeployBusiness = React.lazy(() => import('../modules/analytics-models-sandbox/DeployBusiness'));
 const GeminiPlayground = React.lazy(() => import('../modules/analytics-models-sandbox/GeminiPlayground'));
 const MLApplied = React.lazy(() => import('../modules/analytics-models-sandbox/MLApplied'));
+const ABSimulationLab = React.lazy(() => import('../modules/analytics-models-sandbox/ABSimulationLab'));
+const ExperimentDashboard = React.lazy(() => import('../modules/analytics-models-sandbox/ExperimentDashboard'));
+const ExperimentDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ExperimentDecisionLog'));
+const CustomDataWorkbench = React.lazy(() => import('../modules/analytics-models-sandbox/CustomDataWorkbench'));
+const MultiIndustryCaseBank = React.lazy(() => import('../modules/analytics-models-sandbox/MultiIndustryCaseBank'));
+const N8nAutomationBlueprint = React.lazy(() => import('../modules/analytics-models-sandbox/N8nAutomationBlueprint'));
+const MoatDefensibilityTracker = React.lazy(() => import('../modules/analytics-models-sandbox/MoatDefensibilityTracker'));
+const MoRReadinessChecklist = React.lazy(() => import('../modules/analytics-models-sandbox/MoRReadinessChecklist'));
+const StartHereLab = React.lazy(() => import('../modules/analytics-models-sandbox/StartHereLab'));
+const StrategicLabsMini = React.lazy(() => import('../modules/analytics-models-sandbox/StrategicLabsMini'));
 const OperatingKnowledgeLayerPanel = React.lazy(() => import('../components/operating-knowledge/OperatingKnowledgePanels').then((module) => ({ default: module.OperatingKnowledgeLayerPanel })));
 const FounderLabsDock = React.lazy(() => import('../components/shared/FounderLabsDock'));
 const SystemSettingsPanel = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
@@ -76,6 +86,9 @@ const GitHubConnectorPanel = React.lazy(() => import('../modules/dev-ops/GitHubC
 const LocalToolsPanel = React.lazy(() => import('../modules/dev-ops/LocalToolsPanel'));
 const SecurityControlCenter = React.lazy(() => import('../modules/dev-ops/SecurityControlCenter'));
 const WebAiSyncPanel = React.lazy(() => import('../modules/dev-ops/WebAiSyncPanel'));
+const SystemOverviewDaemonPanel = React.lazy(() => import('../modules/dev-ops/SystemOverviewDaemonPanel'));
+const DevOpsReleaseHubPanel = React.lazy(() => import('../modules/dev-ops/DevOpsReleaseHubPanel'));
+const DeveloperIntelligenceHubPanel = React.lazy(() => import('../modules/dev-ops/DeveloperIntelligenceHubPanel'));
 const AIIntegrationHealthPanel = React.lazy(() => import('../modules/system-settings/AIIntegrationHealthPanel'));
 const ApiConnectionHealthMatrix = React.lazy(() => import('../modules/system-settings/components/ApiConnectionHealthMatrix'));
 const CEOOverviewPanel = React.lazy(() => import('../modules/command-center/CEOOverviewPanel'));
@@ -83,32 +96,24 @@ const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/
 const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
 const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
 const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
-const AIOperationsCenter = React.lazy(() => import('../modules/ai-nhan-su/AIOperationsCenter'));
+// ai-nhan-su — core panels (rendered in workspace)
 const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
-const AIWorkforceTaskBoard = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceTaskBoard'));
-const ModelDispatchMatrix = React.lazy(() => import('../modules/ai-nhan-su/ModelDispatchMatrix'));
 const AIAssistantPanel = React.lazy(() => import('../modules/ai-nhan-su/AIAssistantPanel'));
 const AICommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AICommandCenter'));
-const AdvancedAIEngine = React.lazy(() => import('../modules/ai-nhan-su/AdvancedAIEngine'));
 const AgentAssemblyBuilder = React.lazy(() => import('../modules/ai-nhan-su/AgentAssemblyBuilder'));
 const AIOperationsDaemonPanel = React.lazy(() => import('../modules/ai-nhan-su/AIOperationsDaemonPanel'));
-const AIMemoryRagPanel = React.lazy(() => import('../modules/ai-nhan-su/AIMemoryRagPanel'));
-const AIWorkforceMissionTrace = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTrace'));
-const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
-const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMobileCommandCenter'));
-const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
+// ai-nhan-su — internal/advanced panels (rendered under advanced sub-tab only)
+const AIWorkforceTaskBoard = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceTaskBoard'));
+const ModelDispatchMatrix = React.lazy(() => import('../modules/ai-nhan-su/ModelDispatchMatrix'));
 const AIWorkforceOpenClawReadiness = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceOpenClawReadiness'));
-const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
 const AIWorkforceSkillDirectory = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceSkillDirectory'));
-const AIWorkforceSkillInvocationPlanner = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceSkillInvocationPlanner'));
 const AISettingsManager = React.lazy(() => import('../modules/ai-nhan-su/AISettingsManager'));
 const AIVaultSecurityPanel = React.lazy(() => import('../modules/ai-nhan-su/AIVaultSecurityPanel'));
+const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceRobotAutomationBridge'));
+const AIWorkforcePatchReviewSessions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforcePatchReviewSessions'));
 const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionOperatorRunbookPanel'));
 const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReleaseGatePanel'));
-const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReviewNoteSavePanel'));
 const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionSnapshotExportPanel'));
-const RobotLabPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotLabPanel'));
-const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesHealthPanel'));
 const KnowledgeBaseTab = React.lazy(() => import('../modules/knowledge-library/KnowledgeBaseTab'));
 
 const WebAccountingRoadmap = React.lazy(() => import('../modules/product-studio/WebAccountingRoadmap'));
@@ -185,9 +190,9 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'reports', label: 'Báo cáo tài chính', icon: Calculator },
     { id: 'cashflow', label: 'Dòng tiền', icon: TrendingUp },
     { id: 'founder_control', label: 'Founder Control', icon: ClipboardList },
-    { id: 'audit', label: 'Kiểm toán nội bộ', icon: ShieldCheck },
-    { id: 'tax_simulator', label: 'Tax Simulator', icon: Calculator },
     { id: 'approval', label: 'Duyệt chi phí', icon: CheckCircle },
+    { id: 'audit', label: 'Kiểm toán nội bộ', icon: ShieldCheck },
+    { id: 'tax_simulator', label: 'Kịch bản Thuế & Audit', icon: Calculator },
   ],
   projects_delivery: [
     { id: 'portfolio', label: 'Danh mục dự án', icon: FolderKanban },
@@ -205,12 +210,14 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'automation', label: 'Tự động hóa & Robot', icon: Activity },
     { id: 'governance', label: 'Quản trị & Định tuyến', icon: ShieldCheck },
     { id: 'release', label: 'Phát hành & Chiến dịch', icon: Rocket },
+    { id: 'advanced', label: 'Nội bộ & Giám sát', icon: Code },
   ],
   analytics: [
     { id: 'dashboard', label: 'Báo cáo & Giám sát', icon: Activity },
     { id: 'simulations', label: 'Mô phỏng & Chiến lược', icon: Target },
     { id: 'data_engineering', label: 'Khai thác & Xử lý Dữ liệu', icon: Database },
-    { id: 'ai_sandbox', label: 'Phòng thí nghiệm AI', icon: TestTubeDiagonal },
+    { id: 'ai_sandbox', label: 'AI Playground', icon: TestTubeDiagonal },
+    { id: 'python_sandbox', label: 'Python Sandbox', icon: Code },
   ],
   system_settings: [
     { id: 'general', label: 'Hệ thống & Cấu hình', icon: Settings },
@@ -232,63 +239,63 @@ const DEFAULT_SUBTAB: Record<string, string> = Object.fromEntries(
 
 const STATIC_WORKSPACES: Partial<Record<TabType, StaticWorkspaceConfig>> = {
   ceo_command: {
-    title: 'Trung tâm Điều hành',
-    description: 'Toàn cảnh hôm nay, việc cần quyết định, rủi ro và hiệu suất vận hành.',
+    title: 'Executive Control Center',
+    description: 'Tổng quan chỉ số sức khỏe doanh nghiệp, danh mục phê duyệt và cảnh báo rủi ro vận hành.',
     chips: ['Tổng quan hôm nay', 'Cảnh báo rủi ro', 'Hộp phê duyệt'],
     compactNoticeOn: 'today',
     cards: [
-      { eyebrow: 'Tổng quan hôm nay', title: 'Việc cần quyết định', description: 'Tập trung vào các việc chặn tiến độ hoặc cần chủ doanh nghiệp chốt hướng.', icon: ClipboardList, tone: 'cyan', items: ['Quyết định sản phẩm', 'Việc cần duyệt', 'Ưu tiên tiếp theo'] },
-      { eyebrow: 'Sức khỏe doanh nghiệp', title: 'Dòng tiền & chi phí', description: 'Xem nhanh tình trạng tài chính và các khoản cần chú ý.', icon: TrendingUp, tone: 'emerald', items: ['Thu chi chính', 'Chi phí cần duyệt', 'Báo cáo cần xem'] },
-      { eyebrow: 'Nhiệm vụ AI đang chạy', title: 'Công việc đang theo dõi', description: 'Theo dõi các việc sản phẩm, dữ liệu và AI đang xử lý.', icon: FolderKanban, tone: 'violet', items: ['Việc đang làm', 'Kết quả cần duyệt', 'Nhiệm vụ tiếp theo'] },
-      { eyebrow: 'Cảnh báo rủi ro', title: 'Điểm cần xử lý', description: 'Chỉ hiển thị rủi ro thật sự ảnh hưởng đến vận hành.', icon: ShieldCheck, tone: 'amber', items: ['Có rủi ro', 'Cần xử lý', 'Chờ phê duyệt'] },
+      { eyebrow: 'Ưu tiên vận hành', title: 'Danh mục quyết định', description: 'Tập trung rà soát các điểm nghẽn tiến độ và phê duyệt ngân sách cấp cao.', icon: ClipboardList, tone: 'cyan', items: ['Quyết định sản phẩm', 'Duyệt khoản thu chi lớn', 'Ưu tiên chiến lược'] },
+      { eyebrow: 'Tài chính & Dòng tiền', title: 'Sức khỏe tài chính', description: 'Giám sát chỉ số dòng tiền thực thu, ngân sách dự án và cảnh báo vượt hạn mức.', icon: TrendingUp, tone: 'emerald', items: ['Dòng tiền thuần', 'Công nợ quá hạn', 'Báo cáo quản trị'] },
+      { eyebrow: 'Đội ngũ Agent AI', title: 'Nhiệm vụ đang thực thi', description: 'Giám sát tiến độ thực hiện nhiệm vụ tự trị của các agent AI toàn hệ thống.', icon: FolderKanban, tone: 'violet', items: ['Tác vụ đang chạy', 'Hàng đợi phê duyệt', 'Bằng chứng thực thi'] },
+      { eyebrow: 'Quản trị rủi ro', title: 'Điểm kiểm soát', description: 'Cảnh báo tự động các rủi ro phát sinh về pháp lý, chứng từ và hạn mức.', icon: ShieldCheck, tone: 'amber', items: ['Kiểm soát chứng từ', 'Cảnh báo ngân sách', 'Dừng khẩn cấp'] },
     ],
   },
   product_studio: {
-    title: 'Xưởng Sản phẩm',
-    description: 'Quản lý sản phẩm, lộ trình phát triển, lỗi, phản hồi và phát hành.',
+    title: 'Product Studio Workspace',
+    description: 'Quản lý danh mục sản phẩm, lộ trình tính năng, phát hành và phản hồi khách hàng.',
     chips: ['Danh mục sản phẩm', 'Lộ trình phát triển', 'Bản phát hành'],
     compactNoticeOn: 'release',
     cards: [
-      { eyebrow: 'Danh mục sản phẩm', title: 'Sản phẩm đang làm', description: 'Danh sách gọn các sản phẩm và module cần ưu tiên.', icon: FolderKanban, tone: 'cyan', items: ['LedgerFlow OS', 'Tài chính - Kế toán', 'Trợ lý AI theo việc'] },
-      { eyebrow: 'Lộ trình phát triển', title: 'Việc đang làm', description: 'Mỗi lần ưu tiên một module để dễ kiểm thử và phát hành.', icon: Target, tone: 'emerald', items: ['Làm rõ giao diện', 'Giữ chức năng chính', 'Ẩn phần nội bộ'] },
-      { eyebrow: 'Phản hồi & lỗi', title: 'Tiêu chí đạt', description: 'Màn hình dễ đọc, có trạng thái rõ và hành động cụ thể.', icon: FileCheck2, tone: 'violet', items: ['Không lộ prompt nội bộ', 'Có nút hành động rõ', 'Build ổn định'] },
-      { eyebrow: 'Bản phát hành', title: 'Phát hành nội bộ', description: 'Xem trước trên môi trường local trước khi chia sẻ rộng hơn.', icon: Rocket, tone: 'amber', items: ['Hoàn tất', 'Đang theo dõi', 'Cần xử lý'] },
+      { eyebrow: 'Danh mục', title: 'Sản phẩm chủ lực', description: 'Theo dõi tiến độ phát triển các gói sản phẩm và tính năng chính.', icon: FolderKanban, tone: 'cyan', items: ['LedgerFlow OS', 'Phân hệ Kế toán VAS', 'Agent Assistant AI'] },
+      { eyebrow: 'Lộ trình phát triển', title: 'Roadmap Sprint', description: 'Tập trung triển khai và kiểm thử dứt điểm từng cột mốc tính năng.', icon: Target, tone: 'emerald', items: ['Tối ưu UI/UX', 'Hoàn thiện API Gate', 'Kiểm thử khép kín'] },
+      { eyebrow: 'Chất lượng & QC', title: 'Tiêu chuẩn phát hành', description: 'Đảm bảo giao diện chuẩn mực, tối ưu hiệu năng và an toàn mã nguồn.', icon: FileCheck2, tone: 'violet', items: ['Build ổn định 100%', 'Giao diện trực quan', 'Bảo mật kho khóa'] },
+      { eyebrow: 'Phát hành', title: 'Release Center', description: 'Quản lý các bản phát hành nội bộ và môi trường thử nghiệm.', icon: Rocket, tone: 'amber', items: ['Local Preview', 'Bản phát hành chốt', 'Nhật ký thay đổi'] },
     ],
   },
   marketing_growth: {
-    title: 'Tăng trưởng',
-    description: 'Điều phối marketing, nội dung, thử nghiệm tăng trưởng và hiệu quả kênh.',
-    chips: ['Chiến dịch', 'Lịch nội dung', 'Hiệu quả kênh'],
+    title: 'Marketing & Growth Engine',
+    description: 'Điều phối chiến dịch tiếp thị, lịch sản xuất nội dung và đo lường phễu chuyển đổi.',
+    chips: ['Chiến dịch tiếp thị', 'Lịch nội dung', 'Phễu chuyển đổi'],
     compactNoticeOn: 'content',
     cards: [
-      { eyebrow: 'Chiến dịch', title: 'Kế hoạch đang chạy', description: 'Theo dõi mục tiêu, kênh và trạng thái triển khai.', icon: Rocket, tone: 'cyan', items: ['Kênh chính', 'Thông điệp', 'Việc cần làm'] },
-      { eyebrow: 'Lịch nội dung', title: 'Nội dung cần sản xuất', description: 'Theo dõi danh sách nội dung, kênh đăng và trạng thái hoàn tất.', icon: Mail, tone: 'violet', items: ['Bài viết', 'Video ngắn', 'Trang giới thiệu'] },
-      { eyebrow: 'Tăng trưởng', title: 'Tín hiệu cần xem', description: 'Tập trung dữ liệu phản hồi thật, tránh dashboard giả quá nhiều chữ.', icon: TrendingUp, tone: 'emerald', items: ['Lead mới', 'Conversion', 'Feedback'] },
-      { eyebrow: 'Ý tưởng tăng trưởng', title: 'Dọn nội dung', description: 'Các ý tưởng và bản nháp dài nằm ở công cụ riêng, màn hình chính giữ việc cần làm.', icon: ShieldCheck, tone: 'amber', items: ['Ẩn prompt', 'Giữ lời kêu gọi hành động', 'Giữ số liệu'] },
+      { eyebrow: 'Chiến dịch', title: 'Chiến dịch đang chạy', description: 'Theo dõi mục tiêu tiếp thị, thông điệp truyền thông và tiến độ triển khai.', icon: Rocket, tone: 'cyan', items: ['Kênh truyền thông', 'Thông điệp cốt lõi', 'Chỉ số KPI'] },
+      { eyebrow: 'Nội dung', title: 'Lịch biên tập nội dung', description: 'Quản lý danh mục bài viết, tài liệu sản phẩm và bài đăng đa kênh.', icon: Mail, tone: 'violet', items: ['Bài viết chuyên sâu', 'Video giới thiệu', 'Trang Landing Page'] },
+      { eyebrow: 'Tăng trưởng', title: 'Chỉ số chuyển đổi', description: 'Đo lường hiệu quả thu hút khách hàng tiềm năng và tỷ lệ chuyển đổi thực tế.', icon: TrendingUp, tone: 'emerald', items: ['Leads mới', 'Tỷ lệ chuyển đổi', 'Phản hồi người dùng'] },
+      { eyebrow: 'Chiến lược', title: 'Tối ưu hóa tiếp thị', description: 'Loại bỏ nội dung thừa, tập trung vào các thông điệp có tỷ lệ phản hồi cao nhất.', icon: ShieldCheck, tone: 'amber', items: ['Đo lường A/B', 'Tối ưu Call-to-Action', 'Phân tích ROI'] },
     ],
   },
   sales_crm: {
-    title: 'Bán hàng & Khách hàng',
-    description: 'Theo dõi lead, cơ hội bán hàng, báo giá, chăm sóc và quan hệ khách hàng.',
-    chips: ['Cơ hội bán hàng', 'Khách hàng', 'Việc cần chăm sóc'],
+    title: 'Sales, Video Marketing & CRM Intelligence',
+    description: 'Theo dõi cơ hội bán hàng, phễu chuyển đổi Lead, Video Tiếp thị Đa nền tảng (TikTok, Reels, YouTube), Quảng cáo Sản phẩm/Game nội bộ và Affiliate Marketing.',
+    chips: ['Phễu bán hàng', 'Video Marketing (TikTok/Reels/Shorts)', 'Affiliate Revenue', 'Quảng cáo Sản phẩm/Game'],
     compactNoticeOn: 'followup',
     cards: [
-      { eyebrow: 'Cơ hội bán hàng', title: 'Cơ hội đang theo dõi', description: 'Tổng quan lead và cơ hội theo trạng thái.', icon: BarChart3, tone: 'cyan', items: ['Lead mới', 'Đang tư vấn', 'Chốt hoặc không chốt'] },
-      { eyebrow: 'Việc cần chăm sóc', title: 'Lịch chăm sóc', description: 'Việc cần nhắc lại và lịch chăm sóc khách hàng.', icon: UsersRound, tone: 'emerald', items: ['Gọi lại', 'Gửi báo giá', 'Nhắc thanh toán'] },
-      { eyebrow: 'Báo giá', title: 'Bảng giá & đề xuất', description: 'Giữ bảng giá và đề xuất ở dạng dễ gửi cho khách.', icon: Target, tone: 'violet', items: ['Gói cơ bản', 'Gói mở rộng', 'Ưu đãi'] },
-      { eyebrow: 'Lịch sử trao đổi', title: 'Dữ liệu khách hàng sạch', description: 'Giao diện chính ưu tiên thông tin thật cần hành động.', icon: ShieldCheck, tone: 'amber', items: ['Không prompt mẫu dài', 'Không bảng giả thừa', 'Ưu tiên lead thật'] },
+      { eyebrow: 'Phễu bán hàng', title: 'Cơ hội kinh doanh', description: 'Phân loại và giám sát các cơ hội bán hàng theo từng giai đoạn phễu.', icon: BarChart3, tone: 'cyan', items: ['Leads tiềm năng', 'Đang đàm phán', 'Hợp đồng chốt'] },
+      { eyebrow: 'Video & Affiliate', title: 'Tiếp thị Video Đa kênh', description: 'Đăng Video kiếm tiền AdSense/Creator Fund + kéo traffic dùng phần mềm & game + hoa hồng Affiliate.', icon: Rocket, tone: 'violet', items: ['Video TikTok / Reels / Shorts', 'Leads phần mềm & game nội bộ', 'Doanh thu Affiliate Marketing'] },
+      { eyebrow: 'Chăm sóc', title: 'Lịch tương tác', description: 'Lịch hẹn nhắc nhở tư vấn, gửi báo giá và theo dõi phản hồi của khách hàng.', icon: UsersRound, tone: 'emerald', items: ['Lịch gọi tư vấn', 'Gửi báo giá bổ sung', 'Theo dõi thanh toán'] },
+      { eyebrow: 'Dữ liệu CRM', title: 'Hồ sơ khách hàng sạch', description: 'Quản lý lịch sử tương tác và ghi chú giao dịch tập trung, chuẩn hóa.', icon: ShieldCheck, tone: 'amber', items: ['Lịch sử giao dịch', 'Ghi chú nhu cầu', 'Trạng thái tài khoản'] },
     ],
   },
   ai_factory: {
-    title: 'Đội ngũ AI',
-    description: 'Giao việc, theo dõi và kiểm soát các agent AI vận hành doanh nghiệp.',
-    chips: ['Nhân sự AI', 'Giao việc cho AI', 'Chờ phê duyệt'],
+    title: 'AI Workforce Command Center',
+    description: 'Điều phối, phân công và kiểm soát vận hành tự động của đội ngũ trợ lý AI.',
+    chips: ['Đội ngũ Agent', 'Hàng đợi nhiệm vụ', 'Hệ thống an toàn'],
     compactNoticeOn: 'automation',
     cards: [
-      { eyebrow: 'Nhân sự AI', title: 'Trợ lý theo yêu cầu', description: 'Dùng cho việc cụ thể: tóm tắt, kiểm tra lỗi, viết nháp hoặc phân tích.', icon: Bot, tone: 'violet', items: ['Nhập yêu cầu ngắn', 'Xem kết quả', 'Duyệt thủ công'] },
-      { eyebrow: 'An toàn & dừng khẩn cấp', title: 'Không tự hành động nguy hiểm', description: 'AI không tự xóa dữ liệu, gửi email, đẩy code hoặc sửa lan rộng nếu chưa được duyệt.', icon: ShieldCheck, tone: 'emerald', items: ['An toàn', 'Chờ phê duyệt', 'Không lộ khóa'] },
-      { eyebrow: 'Hàng đợi nhiệm vụ', title: 'Chạy ngầm khi cần', description: 'Tác vụ định kỳ chạy ở backend hoặc tự động hóa, UI chỉ hiện trạng thái.', icon: Sparkles, tone: 'cyan', items: ['Đang chạy', 'Hoàn tất', 'Cần xử lý'] },
-      { eyebrow: 'Bằng chứng thực thi', title: 'Ẩn prompt nội bộ', description: 'Hướng dẫn hệ thống và prompt dài nằm trong code/backend, không hiển thị cho người dùng cuối.', icon: FileCheck2, tone: 'amber', items: ['Ẩn hướng dẫn nội bộ', 'Ẩn quy trình nội bộ', 'Giữ nút hành động'] },
+      { eyebrow: 'Đội ngũ Agent', title: 'Danh mục Trợ lý AI', description: 'Phân công nhiệm vụ chuyên biệt cho từng Agent: Phân tích, Kiểm soát, Soạn thảo.', icon: Bot, tone: 'violet', items: ['Phân công tác vụ', 'Theo dõi kết quả', 'Phê duyệt đầu ra'] },
+      { eyebrow: 'Bảo mật & Safe-guard', title: 'Lớp kiểm soát an toàn', description: 'Đảm bảo các hành động quan trọng (xóa dữ liệu, gửi email, đẩy code) phải qua phê duyệt.', icon: ShieldCheck, tone: 'emerald', items: ['Duyệt trước khi thực thi', 'Dừng khẩn cấp', 'Mã hóa khóa API'] },
+      { eyebrow: 'Hàng đợi', title: 'Tiến trình chạy ngầm', description: 'Theo dõi các tác vụ xử lý dữ liệu và tự động hóa đang vận hành ở backend.', icon: Sparkles, tone: 'cyan', items: ['Tiến trình đang chạy', 'Tác vụ hoàn thành', 'Xử lý ngoại lệ'] },
+      { eyebrow: 'Minh bạch', title: 'Nhật ký thực thi', description: 'Lưu trữ nhật ký hoạt động và bằng chứng thực thi chi tiết của các Agent.', icon: FileCheck2, tone: 'amber', items: ['Nhật ký Audit Log', 'Bằng chứng thực thi', 'Minh bạch quy trình'] },
     ],
   },
 };
@@ -299,15 +306,28 @@ function LoadingFallback() {
 
 function WorkspaceHero({ title, description, chips = [] }: { title: string; description: string; chips?: string[] }) {
   return (
-    <section className="rounded-3xl border border-slate-800 bg-slate-900/70 p-6 text-left shadow-xl shadow-black/20">
-      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">LedgerFlow workspace</p>
-      <h1 className="mt-2 text-2xl font-black text-white">{title}</h1>
-      <p className="mt-3 max-w-3xl text-sm font-semibold leading-6 text-slate-400">{description}</p>
-      {chips.length > 0 && (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {chips.map((chip) => <span key={chip} className="rounded-full border border-slate-700 bg-slate-950/60 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-300">{chip}</span>)}
+    <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-indigo-950/20 p-6 text-left shadow-2xl shadow-black/40 backdrop-blur-xl transition-all">
+      {/* Dual ambient radial glows */}
+      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gradient-to-br from-indigo-500/15 to-purple-500/0 blur-2xl" />
+      <div className="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-2xl" />
+      
+      <div className="relative z-10">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
+          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">LedgerFlow OS Enterprise</p>
         </div>
-      )}
+        <h1 className="text-2xl font-black tracking-tight text-white">{title}</h1>
+        <p className="mt-2.5 max-w-3xl text-xs font-semibold leading-6 text-slate-300/90">{description}</p>
+        {chips.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {chips.map((chip) => (
+              <span key={chip} className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300 shadow-sm transition-transform hover:scale-105">
+                {chip}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
     </section>
   );
 }
@@ -362,6 +382,7 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
       <div className="space-y-5">
         <OnboardingGuide />
         <FounderBurnoutMonitor />
+        <FounderLabsDock />
       </div>
     );
   }
@@ -414,97 +435,242 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
   return <LedgerAccountingWorkspace />;
 }
 
-function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'builder') {
-    return (
-      <div className="space-y-5">
-        <AgentAssemblyBuilder />
-        <AIWorkforceSkillDirectory />
-        <AIWorkforceSkillInvocationPlanner />
-        <AIWorkforceToolCatalog />
-        <AIMemoryRagPanel />
-      </div>
-    );
-  }
-  if (subtab === 'automation') {
-    return (
-      <div className="space-y-5">
-        <AutomationRulesPanel />
-        <AutomationRulesHealthPanel />
-        <RobotLabPanel />
-      </div>
-    );
-  }
-  if (subtab === 'governance') {
-    return (
-      <div className="space-y-5">
-        <AICommandCenter />
-        <AdvancedAIEngine />
-        <AIWorkforceOpenClawReadiness />
-        <ModelDispatchMatrix />
-        <AIWorkforceMissionTrace />
-      </div>
-    );
-  }
-  if (subtab === 'release') {
-    return (
-      <div className="space-y-5">
-        <AIOperationsDaemonPanel />
-        <AIWorkforceNextBackendActions />
-        <AIWorkforceMissionTemplates />
-        <MissionOperatorRunbookPanel />
-        <MissionReleaseGatePanel />
-        <MissionReviewNoteSavePanel />
-        <MissionSnapshotExportPanel />
-        <AIWorkforceMobileCommandCenter />
-      </div>
-    );
-  }
-  // command is default
+
+function AIWorkforceAdvancedWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'tasks' | 'release' | 'robot' | 'patch'>('tasks');
+
   return (
     <div className="space-y-5">
-      <AIAssistantPanel />
-      <AIWorkforceTaskBoard />
-      <AIOperationsCenter />
+      {/* Streamlined Group Switcher */}
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('tasks')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'tasks'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>📋 Nhiệm vụ & Routing</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveGroup('release')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'release'
+              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🛡️ Phê duyệt & Release Gate</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveGroup('robot')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'robot'
+              ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🤖 Skill & Robot Automation</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveGroup('patch')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'patch'
+              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔍 Audit & Patch Log</span>
+        </button>
+      </div>
+
+      {/* Active Panel Group Content */}
+      {activeGroup === 'tasks' && (
+        <div className="space-y-5 animate-fade-in">
+          <AIWorkforceTaskBoard />
+          <ModelDispatchMatrix />
+        </div>
+      )}
+
+      {activeGroup === 'release' && (
+        <div className="space-y-5 animate-fade-in">
+          <MissionReleaseGatePanel />
+          <MissionOperatorRunbookPanel />
+          <MissionSnapshotExportPanel />
+        </div>
+      )}
+
+      {activeGroup === 'robot' && (
+        <div className="space-y-5 animate-fade-in">
+          <AIWorkforceSkillDirectory />
+          <AIWorkforceOpenClawReadiness />
+          <AIWorkforceRobotAutomationBridge />
+        </div>
+      )}
+
+      {activeGroup === 'patch' && (
+        <div className="space-y-5 animate-fade-in">
+          <AIWorkforcePatchReviewSessions />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'builder') return <AgentAssemblyBuilder />;
+  if (subtab === 'automation') return <AutomationRulesPanel />;
+  if (subtab === 'governance') return <AICommandCenter />;
+  if (subtab === 'release') return <AIOperationsDaemonPanel />;
+  if (subtab === 'advanced') return <AIWorkforceAdvancedWorkspace />;
+  // command is default
+  return <AIAssistantPanel />;
+}
+
+function AnalyticsSimulationsWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'market' | 'experiments' | 'deploy'>('market');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('market')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'market'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>📊 Mô phỏng Thị trường & A/B</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('experiments')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'experiments'
+              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🧪 Thí nghiệm & Quyết định</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('deploy')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'deploy'
+              ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🚀 Dự toán & Triển khai</span>
+        </button>
+      </div>
+
+      {activeGroup === 'market' && (
+        <div className="space-y-5 animate-fade-in">
+          <BusinessSimulationEngine />
+          <ABSimulationLab />
+          <MarketSurveySimulator />
+        </div>
+      )}
+      {activeGroup === 'experiments' && (
+        <div className="space-y-5 animate-fade-in">
+          <ExperimentDashboard />
+          <ExperimentDecisionLog />
+          <MoatDefensibilityTracker />
+        </div>
+      )}
+      {activeGroup === 'deploy' && (
+        <div className="space-y-5 animate-fade-in">
+          <MoRReadinessChecklist />
+          <N8nAutomationBlueprint />
+          <StrategicLabsMini />
+          <DeployBusiness />
+          <BrowserSimulationPlanner />
+          <FounderLabsDock embedded />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AnalyticsDataEngineeringWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'workbench' | 'science'>('workbench');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('workbench')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'workbench'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>💾 Workbench & Kỹ thuật Dữ liệu</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('science')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'science'
+              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>📈 Dữ liệu Tài chính & ML</span>
+        </button>
+      </div>
+
+      {activeGroup === 'workbench' && (
+        <div className="space-y-5 animate-fade-in">
+          <CustomDataWorkbench />
+          <DataScienceEngineering />
+        </div>
+      )}
+      {activeGroup === 'science' && (
+        <div className="space-y-5 animate-fade-in">
+          <FinancialDataScienceLab />
+          <MultiIndustryCaseBank />
+          <MLApplied />
+        </div>
+      )}
     </div>
   );
 }
 
 function AnalyticsWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'simulations') {
-    return (
-      <div className="space-y-5">
-        <BusinessSimulationEngine />
-        <MarketSurveySimulator />
-        <DeployBusiness />
-        <BrowserSimulationPlanner />
-        <FounderLabsDock embedded />
-      </div>
-    );
-  }
-  if (subtab === 'data_engineering') {
-    return (
-      <div className="space-y-5">
-        <DataScienceEngineering />
-        <FinancialDataScienceLab />
-        <MLApplied />
-      </div>
-    );
-  }
+  if (subtab === 'simulations') return <AnalyticsSimulationsWorkspace />;
+  if (subtab === 'data_engineering') return <AnalyticsDataEngineeringWorkspace />;
   if (subtab === 'ai_sandbox') {
     return (
       <div className="space-y-5">
         <PromptPlayground />
         <GeminiPlayground />
-        <PythonSandbox />
         <Analytics3DLab />
         <AIEcosystemArchitecture />
       </div>
     );
   }
+  if (subtab === 'python_sandbox') {
+    return <PythonSandbox />;
+  }
   // dashboard is default
   return (
     <div className="space-y-5">
+      <StartHereLab />
       <FinancialChartsModelPanel />
       <AIObservabilityDashboard />
       <ProjectMemoryDecisionLog />
@@ -512,59 +678,224 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
   );
 }
 
+function SettingsDevOpsWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'hub' | 'merge' | 'artifacts'>('hub');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('hub')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'hub'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🚀 Hub Phát hành & CI Doctor</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('merge')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'merge'
+              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔀 Merge & Control PR</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('artifacts')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'artifacts'
+              ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>📦 Artifacts & Dev Handoff</span>
+        </button>
+      </div>
+
+      {activeGroup === 'hub' && (
+        <div className="space-y-5 animate-fade-in">
+          <DevOpsReleaseHubPanel />
+          <DeveloperIntelligenceHubPanel />
+          <BuildMonitorPanel />
+          <GitHubCIDoctorLauncher />
+        </div>
+      )}
+      {activeGroup === 'merge' && (
+        <div className="space-y-5 animate-fade-in">
+          <MergeReadinessCenter />
+          <PRControlCenter />
+          <ApprovedPrPanel />
+          <GitAssistantDaemonPanel />
+        </div>
+      )}
+      {activeGroup === 'artifacts' && (
+        <div className="space-y-5 animate-fade-in">
+          <ReleaseArtifactCenter />
+          <ArtifactInspectorPanel />
+          <DevHandoffCenter />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SettingsConnectorsWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'hub' | 'contracts'>('hub');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('hub')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'hub'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔌 Integration Hub & Connectors</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('contracts')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'contracts'
+              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🌐 Web AI & Connector Contracts</span>
+        </button>
+      </div>
+
+      {activeGroup === 'hub' && (
+        <div className="space-y-5 animate-fade-in">
+          <IntegrationHub />
+          <GitHubConnectorPanel />
+          <LocalToolsPanel />
+        </div>
+      )}
+      {activeGroup === 'contracts' && (
+        <div className="space-y-5 animate-fade-in">
+          <WebAiSyncPanel />
+          <ConnectorContractPanel />
+          <ConfigHealthMonitor />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SettingsSecurityWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'vault' | 'audit'>('vault');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('vault')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'vault'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔐 Key Vault & Cấu hình AI</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('audit')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'audit'
+              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🛡️ Bảo mật & Audit Trail</span>
+        </button>
+      </div>
+
+      {activeGroup === 'vault' && (
+        <div className="space-y-5 animate-fade-in">
+          <AISettingsManager />
+          <AIVaultSecurityPanel />
+        </div>
+      )}
+      {activeGroup === 'audit' && (
+        <div className="space-y-5 animate-fade-in">
+          <SecurityControlCenter />
+          <AuditTrailPanel />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SettingsRecoveryWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'diff' | 'rollback'>('diff');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('diff')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'diff'
+              ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🩹 So sánh Diff & Patch Workspace</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('rollback')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'rollback'
+              ? 'bg-rose-500/20 text-rose-200 border border-rose-500/40 shadow-sm shadow-rose-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔄 Rollback & Khôi phục CI</span>
+        </button>
+      </div>
+
+      {activeGroup === 'diff' && (
+        <div className="space-y-5 animate-fade-in">
+          <PatchDiffReviewCenter />
+          <SandboxPatchWorkspace />
+        </div>
+      )}
+      {activeGroup === 'rollback' && (
+        <div className="space-y-5 animate-fade-in">
+          <RollbackCenter />
+          <CIRecoveryQueue />
+          <CIRunInspectorPanel />
+        </div>
+      )}
+    </div>
+  );
+}
 
 function SettingsWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'security') {
-    return (
-      <div className="space-y-5">
-        <AISettingsManager />
-        <AIVaultSecurityPanel />
-        <SecurityControlCenter />
-        <AuditTrailPanel />
-      </div>
-    );
-  }
-  if (subtab === 'connectors') {
-    return (
-      <div className="space-y-5">
-        <IntegrationHub />
-        <GitHubConnectorPanel />
-        <LocalToolsPanel />
-        <WebAiSyncPanel />
-        <ConnectorContractPanel />
-        <ConfigHealthMonitor />
-      </div>
-    );
-  }
-  if (subtab === 'dev_ops') {
-    return (
-      <div className="space-y-5">
-        <BuildMonitorPanel />
-        <MergeReadinessCenter />
-        <PRControlCenter />
-        <GitHubCIDoctorLauncher />
-        <GitAssistantDaemonPanel />
-        <ApprovedPrPanel />
-        <ReleaseArtifactCenter />
-        <ArtifactInspectorPanel />
-        <DevHandoffCenter />
-      </div>
-    );
-  }
-  if (subtab === 'recovery_ops') {
-    return (
-      <div className="space-y-5">
-        <PatchDiffReviewCenter />
-        <SandboxPatchWorkspace />
-        <RollbackCenter />
-        <CIRecoveryQueue />
-        <CIRunInspectorPanel />
-      </div>
-    );
-  }
+  if (subtab === 'security') return <SettingsSecurityWorkspace />;
+  if (subtab === 'connectors') return <SettingsConnectorsWorkspace />;
+  if (subtab === 'dev_ops') return <SettingsDevOpsWorkspace />;
+  if (subtab === 'recovery_ops') return <SettingsRecoveryWorkspace />;
   // general is default
   return (
     <div className="space-y-5">
+      <SystemOverviewDaemonPanel />
       <SystemSettingsPanel />
       <AIIntegrationHealthPanel />
       <ApiConnectionHealthMatrix />
@@ -590,8 +921,8 @@ function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
     return (
       <div className="space-y-5">
         <WorkspaceHero
-          title="Mẫu ngành & Delivery"
-          description="Các template theo ngành được đặt dưới dự án/delivery, không còn là danh tính sản phẩm toàn cục."
+          title="Industry Templates Library"
+          description="Thư viện mẫu phân hệ theo ngành (Xây dựng, Dịch vụ, Thương mại, Sản xuất) đóng gói chuẩn VAS."
           chips={['Construction', 'Service', 'Trading', 'Manufacturing']}
         />
         <ProjectPortfolioPanel />
@@ -603,9 +934,9 @@ function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
     return (
       <div className="space-y-5">
         <WorkspaceHero
-          title="Admin Ops theo dự án"
-          description="Theo dõi hành chính vận hành, nhân sự triển khai và chi phí hỗ trợ delivery."
-          chips={['Admin', 'Delivery', 'Internal Ops']}
+          title="Admin Ops & HR Operations"
+          description="Giám sát vận hành hành chính, nhân sự triển khai dự án và quản lý tổ đội thuê ngoài."
+          chips={['HR & Admin', 'Project Delivery', 'Labor Management']}
         />
         <HRAdminPanel />
       </div>
@@ -614,9 +945,9 @@ function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
   return (
     <div className="space-y-5">
       <WorkspaceHero
-        title="Dự án & Delivery"
-        description="Theo dõi dự án sản phẩm, triển khai khách hàng, milestone, ngân sách, rủi ro và gói template theo ngành."
-        chips={['Sản phẩm', 'Triển khai', 'Mẫu ngành']}
+        title="Project Portfolio & Delivery"
+        description="Quản lý dự án phát triển sản phẩm, lộ trình triển khai khách hàng, ngân sách dự toán và rủi ro tiến độ."
+        chips={['Project Portfolio', 'Delivery Milestone', 'Budget Tracking']}
       />
       <ProjectPortfolioPanel />
     </div>
@@ -679,9 +1010,28 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => ({ ...DEFAULT_SUBTAB }));
   const subTabs = useMemo(() => {
     const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
+    const isTechRole = ['devops', 'agentops'].includes(activeRole);
+    const isPowerUser = ['all', 'founder', 'admin'].includes(activeRole);
+    const isFinanceRole = ['cfo', 'accountant', 'finance'].includes(activeRole);
     return rawSubTabs.filter((tab) => {
-      if (activeRole === 'all' || activeRole === 'founder' || activeRole === 'admin') return true;
-      if (activeSegment === 'system_settings' && tab.id === 'devops') return ['devops', 'agentops'].includes(activeRole);
+      // system_settings: hide dev_ops and recovery_ops from non-tech roles
+      if (activeSegment === 'system_settings') {
+        if (tab.id === 'dev_ops' || tab.id === 'recovery_ops') {
+          return isPowerUser || isTechRole;
+        }
+      }
+      // ai_factory: hide governance and advanced sub-tabs from non-power users
+      if (activeSegment === 'ai_factory' && (tab.id === 'governance' || tab.id === 'advanced')) {
+        return isPowerUser || isTechRole;
+      }
+      // product_studio: hide smoke_test from general non-tech/non-product roles
+      if (activeSegment === 'product_studio' && tab.id === 'smoke_test') {
+        return isPowerUser || isTechRole || activeRole === 'product_owner';
+      }
+      // finance_accounting: hide tax_simulator and audit from general non-finance roles
+      if (activeSegment === 'finance_accounting' && (tab.id === 'tax_simulator' || tab.id === 'audit')) {
+        return isPowerUser || isFinanceRole;
+      }
       return true;
     });
   }, [activeSegment, activeRole]);
@@ -705,7 +1055,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
   const staticConfig = STATIC_WORKSPACES[activeSegment];
 
   return (
-    <div className="space-y-6">
+    <div key={`${activeSegment}-${currentSubTabId}`} className="space-y-6 animate-fade-in transition-all duration-300">
       {subTabs.length > 1 && <WorkspaceSubNavigation tabs={subTabs} activeTab={currentSubTabId} onChange={handleSubTabChange} />}
       <Suspense fallback={<LoadingFallback />}>
         {staticConfig && !['ceo_command', 'ai_factory', 'marketing_growth', 'sales_crm', 'product_studio'].includes(activeSegment) && <StaticWorkspace config={staticConfig} subtab={currentSubTabId} />}

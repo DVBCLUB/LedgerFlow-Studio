@@ -7,6 +7,7 @@
  * ═════════════════════════════════════════════════════════════════
  */
 
+import React, { useMemo } from 'react';
 import { Activity, Bot, CheckCircle2, Clock, RefreshCw, ShieldAlert, Wifi, WifiOff, Users, RotateCw } from 'lucide-react';
 import { useAIWorkforce } from '../../context/AIWorkforceContext';
 
@@ -182,6 +183,3 @@ export default function AIWorkforceStatusBar() {
     </div>
   );
 }
-
-// Helper hook cho useMemo
-import { useMemo } from 'react';

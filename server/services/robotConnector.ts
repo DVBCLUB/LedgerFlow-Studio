@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { emitTelemetryEvent } from './agentTelemetryStream.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -106,6 +107,14 @@ function recordTelemetry(): RobotTelemetrySnapshot {
   };
   const history = [snapshot, ...state.telemetryHistory].slice(0, ENVELOPE.maxTelemetryHistory);
   state = { ...state, telemetryHistory: history };
+  emitTelemetryEvent({
+    category: 'robot',
+    eventType: 'telemetry_snapshot',
+    severity: snapshot.collisionDetected ? 'error' : 'info',
+    source: 'robot_connector',
+    summary: `Robot pose: (${snapshot.position.x}, ${snapshot.position.y}, ${snapshot.position.z}) | Bat: ${snapshot.batteryPercent.toFixed(1)}%`,
+    payload: { snapshotId: snapshot.snapshotId, position: snapshot.position, gripperState: snapshot.gripperState },
+  });
   return snapshot;
 }
 

@@ -47,6 +47,22 @@ function countBy(resources: PlatformAccountResource[], predicate: (resource: Pla
   return resources.filter(predicate).length;
 }
 
+function SummaryCard({ title, value, tone }: { title: string; value: string | number; tone?: 'primary' | 'success' | 'info' | 'warning' | 'error' }) {
+  const classes = {
+    primary: 'border-violet-500/40 bg-violet-950/20 text-violet-200',
+    success: 'border-emerald-900/60 bg-emerald-950/20 text-emerald-200',
+    info: 'border-cyan-900/60 bg-cyan-950/20 text-cyan-200',
+    warning: 'border-amber-900/60 bg-amber-950/20 text-amber-200',
+    error: 'border-rose-900/60 bg-rose-950/20 text-rose-200',
+  };
+  return (
+    <div className={`rounded-xl border p-3 ${classes[tone || 'primary']}`}>
+      <div className="text-[10px] uppercase tracking-widest font-black text-text-tertiary">{title}</div>
+      <div className="mt-1 text-2xl font-black">{value}</div>
+    </div>
+  );
+}
+
 export default function ControlPlaneTab({
   selectedProfileId,
   setSelectedProfileId,
@@ -208,7 +224,7 @@ export default function ControlPlaneTab({
         handoffTarget: cpAutoHandoff ? 'vscode' : undefined,
       });
       setCpRun(run);
-      pushNotice(run.status === 'completed' ? 'success' : run.status === 'waiting_handoff' ? 'success' : 'error', `Control Plane: ${run.status} (${run.steps.length} steps)`);
+      pushNotice(run.status === 'completed' ? 'success' : run.status === 'waiting_handoff' ? 'success' : 'error', `Control Plane: ${run.status} (${run.steps?.length || 0} steps)`);
     } catch (err: any) {
       setCpError(err.message);
       pushNotice('error', `Control Plane thất bại: ${err.message}`);
@@ -244,22 +260,10 @@ export default function ControlPlaneTab({
         </div>
 
         <div className="grid gap-3 md:grid-cols-4">
-          <div className="rounded-xl border border-border-primary bg-slate-950/70 p-3">
-            <div className="text-[10px] uppercase tracking-widest text-text-tertiary font-black">Tổng tài nguyên</div>
-            <div className="mt-1 text-2xl font-black text-text-primary">{resources.length}</div>
-          </div>
-          <div className="rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-black">Ready</div>
-            <div className="mt-1 text-2xl font-black text-emerald-200">{countBy(resources, (item) => item.status === 'ready')}</div>
-          </div>
-          <div className="rounded-xl border border-cyan-900/60 bg-cyan-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-widest text-cyan-400 font-black">Leased</div>
-            <div className="mt-1 text-2xl font-black text-cyan-200">{leases.filter((lease) => lease.status === 'active').length}</div>
-          </div>
-          <div className="rounded-xl border border-rose-900/60 bg-rose-950/20 p-3">
-            <div className="text-[10px] uppercase tracking-widest text-rose-400 font-black">Cần login / lỗi</div>
-            <div className="mt-1 text-2xl font-black text-rose-200">{countBy(resources, (item) => ['login_required', 'error'].includes(item.status))}</div>
-          </div>
+          <SummaryCard title="Tổng tài nguyên" value={resources.length} tone="primary" />
+          <SummaryCard title="Ready" value={countBy(resources, (item) => item.status === 'ready')} tone="success" />
+          <SummaryCard title="Leased" value={leases.filter((lease) => lease.status === 'active').length} tone="info" />
+          <SummaryCard title="Login / Error" value={countBy(resources, (item) => ['login_required', 'error'].includes(item.status))} tone="error" />
         </div>
 
         <div className="grid gap-3 lg:grid-cols-[1.2fr,1fr,1fr,120px,160px]">
@@ -494,10 +498,10 @@ export default function ControlPlaneTab({
           <div className="rounded-xl border border-border-primary bg-slate-950 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black text-text-primary">{fabricResult.status === 'completed' ? '✅' : '❌'} {fabricResult.modelUsed || 'N/A'}</span>
-              <span className="text-[10px] text-text-tertiary">{fabricResult.totalLatencyMs}ms · {fabricResult.steps.length} step(s)</span>
+              <span className="text-[10px] text-text-tertiary">{fabricResult.totalLatencyMs}ms · {(fabricResult.steps?.length || 0)} step(s)</span>
             </div>
             <div className="flex flex-wrap gap-1.5">
-              {fabricResult.steps.map((step, i) => (
+              {(fabricResult.steps || []).map((step, i) => (
                 <span key={i} className={`rounded-full border px-2 py-0.5 text-[9px] font-black ${step.status === 'success' ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-200' : 'border-rose-500/30 bg-rose-950/30 text-rose-200'}`}>
                   {step.route}: {step.status}
                 </span>

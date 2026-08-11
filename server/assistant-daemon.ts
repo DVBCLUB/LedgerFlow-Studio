@@ -20,6 +20,12 @@
  * ============================================================
  */
 
+// Polyfill for esbuild __name helper (required by esbuild keepNames)
+(globalThis as any).__name = function __name(target: any, value: string) {
+  Object.defineProperty(target, "name", { value, configurable: true });
+  return target;
+};
+
 import express, { Request as ExpressRequest, Response, NextFunction } from "express";
 
 type Request<P = Record<string, string>, ResBody = any, ReqBody = any, ReqQuery = any, Loc extends Record<string, any> = Record<string, any>> = ExpressRequest<P, ResBody, ReqBody, ReqQuery, Loc>;
@@ -54,9 +60,10 @@ import type { PendingSuggestion } from "./services/assistant-daemon.types";
 import { buildSearchIndex, searchCodebase } from "./services/localSearchService";
 import { runAutoRepairLoop, activeRepairProgress } from "./services/autoRepairEngine";
 import { getAgentRole, listAgentRoles, updateAgentRolePrompt } from "./services/agentRoles";
-import { executeWebAIAutomation, profileStatusForWebAIError, WebAIError, checkWebAISession, openWebAISessionForLogin } from "./services/webAiAutomator";
+import { executeWebAIAutomation, profileStatusForWebAIError, WebAIError, checkWebAISession, openWebAISessionForLogin, BrowserPoolManager } from "./services/webAiAutomator";
 import { WebAiSessionManager } from "./services/webAiSessionManager";
 import { WebAiTaskRouter } from "./services/webAiTaskRouter";
+import { getReliabilityStats, listAllProfileHealth } from "./services/webAiReliability";
 import { approveWebAIExecution, consumeWebAIExecution, createWebAIExecutionPreview } from "./services/webAiDataGuard";
 import { appendAuditEvent, readAuditEvents, verifyAuditChain } from "./services/auditLog";
 import { PlatformAccountBroker } from "./services/platformAccountBroker";
@@ -90,7 +97,6 @@ import {
 } from "./services/robotConnector";
 import { listMissionTraces } from "./services/aiWorkforceMissionTraceLedger";
 import { checkWorldClassReadiness } from "./services/aiWorkforceWorldClassReadiness";
-import { listAllProfileHealth } from "./services/webAiReliability";
 import { preflightRobotPlan, executeRobotPlan } from "./services/openClawWebRobotOperator";
 import {
   createAutomationRule,
@@ -102,7 +108,7 @@ import {
 import { dispatchTextThroughFabric, checkFabricHealth, type FabricRun } from "./services/aiFabric";
 import { executeControlPlaneRun, getControlPlaneRun, listControlPlaneRuns, getControlPlaneMetrics, type AgentControlPlaneOptions } from "./services/agentControlPlane";
 import { acceptRobotCommand, getAdapterState, getRunbook, replayRunbook, setEmergencyStop, updateEnvelope, type RobotCommand } from "./services/robotAdapterBoundary";
-import { startBrowserSession, completeBrowserSession, getRunbookHistory, getBrowserRunbookSummary, addRunbookStep, type BrowserRunbookAction } from "./services/browserRunbookEngine";
+import { startBrowserSession, completeBrowserSession, getRunbookHistory, getBrowserRunbookSummary, addRunbookStep, replayBrowserSession, type BrowserRunbookAction } from "./services/browserRunbookEngine";
 import { runAgenticLoop, stopAgenticLoop, getAgenticLoopRun, listAgenticLoopRuns, getAgenticLoopMetrics, type AgenticLoopOptions } from "./services/agenticLoopEngine";
 import { addSessionMemory, searchMemory, recordObservation, promoteToLongTerm, getStats as getCompoundMemoryStats, cleanExpiredShortTerm, createMemoryRecord, type MemoryRecord } from "./services/compoundMemory";
 import { agenticRetrieve, dispatchWithRag, type AgenticRagResult } from "./services/agenticRagRouter";
@@ -118,6 +124,7 @@ import { runCurator, startAutoCurator, stopAutoCurator, getLastCuratorRun, isCur
 import { searchEverything, searchWithRagContext } from "./services/unifiedSearchEngine";
 import { getStats as getKnowledgeStats } from "./services/knowledgeGraph";
 import { runABTest, getABTestRun, listABTestRuns, getDefaultConfig } from "./services/modelAbEvaluator";
+import { checkIDE, checkAllIDEs, openIDE, IDE_TARGETS, type IDETarget } from "./services/ideBridge";
 import { submitFeedback, getFeedbackStats, listFeedback, generateImprovementSuggestions, resolveFeedback } from "./services/feedbackCollector";
 import { scanTargets, generateSingleDoc, generateAllDocs, getLastDocRun, listGeneratedDocs } from "./services/autoDocGenerator";
 import { generateAnalyticsReport } from "./services/agentAnalytics";
@@ -933,7 +940,8 @@ app.post("/api/web-ai/profiles/:id/check", async (req: Request, res: Response) =
     });
     res.json({ ok: true, ...(checkResult as any) });
   } catch (err: any) {
-    res.status(500).json({ ok: false, error: err.message });
+    const statusCode = err instanceof WebAIError || /Web AI profile/.test(err?.message || '') ? 400 : 500;
+    res.status(statusCode).json({ ok: false, error: err.message });
   }
 });
 
@@ -953,6 +961,67 @@ app.post("/api/web-ai/profiles/:id/login", async (req: Request, res: Response) =
       error: checkResult.error,
     });
     res.json({ ok: true, ...(checkResult as any) });
+  } catch (err: any) {
+    const statusCode = err instanceof WebAIError || /Web AI profile/.test(err?.message || '') ? 400 : 500;
+    res.status(statusCode).json({ ok: false, error: err.message });
+  }
+});
+/** GET /api/web-ai/pool/status — List active reusable browser pool keys */
+app.get("/api/web-ai/pool/status", (_req: Request, res: Response) => {
+  res.json({ ok: true, activePoolKeys: BrowserPoolManager.getActiveKeys() });
+});
+
+/** POST /api/web-ai/pool/close — Close a browser pool session */
+app.post("/api/web-ai/pool/close", (req: Request, res: Response) => {
+  const { poolKey } = req.body as { poolKey?: string };
+  if (poolKey) {
+    BrowserPoolManager.closeKey(poolKey);
+  } else {
+    BrowserPoolManager.closeAll();
+  }
+  res.json({ ok: true, message: poolKey ? `Closed browser pool for ${poolKey}` : 'Closed all browser pool sessions' });
+});
+
+// ─── IDE Bridge Routes ────────────────────────────────────────────────────────
+
+/** GET /api/ide/targets — List all supported IDE targets */
+app.get("/api/ide/targets", (_req: Request, res: Response) => {
+  res.json({ ok: true, targets: IDE_TARGETS });
+});
+
+/** GET /api/ide/check-all — Check availability of all IDEs */
+app.get("/api/ide/check-all", (_req: Request, res: Response) => {
+  try {
+    const results = checkAllIDEs();
+    res.json({ ok: true, results });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/** GET /api/ide/check/:target — Check availability of a specific IDE */
+app.get("/api/ide/check/:target", (req: Request, res: Response) => {
+  const { target } = req.params;
+  if (!target || !IDE_TARGETS.includes(target as IDETarget)) {
+    return res.status(400).json({ ok: false, error: `Unsupported IDE target: ${target}. Supported: ${IDE_TARGETS.join(', ')}` });
+  }
+  try {
+    const result = checkIDE(target as IDETarget);
+    res.json({ ok: true, result });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/** POST /api/ide/open — Open project in IDE */
+app.post("/api/ide/open", (req: Request, res: Response) => {
+  const { target, filePath } = req.body as { target?: string; filePath?: string };
+  if (!target || !IDE_TARGETS.includes(target as IDETarget)) {
+    return res.status(400).json({ ok: false, error: `Missing or unsupported 'target'. Supported: ${IDE_TARGETS.join(', ')}` });
+  }
+  try {
+    const result = openIDE(target as IDETarget, filePath);
+    res.json({ ok: result.ok, result });
   } catch (err: any) {
     res.status(500).json({ ok: false, error: err.message });
   }
@@ -999,8 +1068,113 @@ app.post("/api/web-ai/approve", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/api/web-ai/stats", async (_req: Request, res: Response) => {
+  try {
+    const poolStats = BrowserPoolManager.getPoolStats();
+    const reliabilityStats = getReliabilityStats();
+    const profilesHealth = listAllProfileHealth();
+    res.json({
+      ok: true,
+      pool: poolStats,
+      reliability: reliabilityStats,
+      profiles: profilesHealth,
+    });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Runbook History & Playback routes
+app.get("/api/web-ai/runbooks", async (req: Request, res: Response) => {
+  try {
+    const limit = Number(req.query.limit) || 50;
+    const history = await getRunbookHistory(limit);
+    res.json({ ok: true, runbooks: history });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/api/web-ai/runbooks/:id", async (req: Request, res: Response) => {
+  try {
+    const session = await replayBrowserSession(req.params.id);
+    if (!session) return res.status(404).json({ ok: false, error: "Runbook session not found." });
+    res.json({ ok: true, session });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get("/api/web-ai/runbook-summary", async (_req: Request, res: Response) => {
+  try {
+    const summary = await getBrowserRunbookSummary();
+    res.json({ ok: true, summary });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Task Router Recommendation route
+app.post("/api/web-ai/recommend", async (req: Request, res: Response) => {
+  const { prompt } = req.body as { prompt?: string };
+  if (!prompt?.trim()) return res.status(400).json({ ok: false, error: "Missing prompt" });
+  try {
+    const recommendation = await WebAiTaskRouter.recommend(prompt);
+    res.json({ ok: true, ...recommendation });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// OpenClaw Web Robot Operator routes
+app.post("/api/openclaw/web-robot/preflight", async (req: Request, res: Response) => {
+  try {
+    const check = await preflightRobotPlan(req.body);
+    res.json({ ok: true, check });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+app.post("/api/openclaw/web-robot/execute", async (req: Request, res: Response) => {
+  try {
+    const result = await executeRobotPlan(req.body);
+    res.json({ ok: true, result });
+  } catch (err: any) {
+    res.status(400).json({ ok: false, error: err.message });
+  }
+});
+
+// AI Output Validation route
+app.post("/api/ai/validate-output", async (req: Request, res: Response) => {
+  const { input, output } = req.body as { input?: string; output?: string };
+  if (!input || !output) return res.status(400).json({ ok: false, error: "Missing input or output" });
+  try {
+    const validation = validateAIOutput(input, output);
+    res.json({ ok: true, validation });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Security Auditor route
+app.post("/api/security/audit", async (req: Request, res: Response) => {
+  const { file, files } = req.body as { file?: string; files?: string[] };
+  try {
+    if (files && Array.isArray(files)) {
+      const results = await Promise.all(files.map(f => auditWithSummary(f)));
+      return res.json({ ok: true, results });
+    }
+    if (!file) return res.status(400).json({ ok: false, error: "Missing file or files parameter" });
+    const summary = await auditWithSummary(file);
+    res.json({ ok: true, summary });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
-  const { prompt, platform, file, profileId, headless, allowProfileFallback, previewId, approvalToken, captureScreenshot, screenshotPath, filesToUpload } = req.body as {
+  const { prompt, platform, file, profileId, headless, allowProfileFallback, previewId, approvalToken, captureScreenshot, screenshotPath, filesToUpload, newConversation } = req.body as {
     prompt: string;
     platform: string;
     file?: string | string[];
@@ -1012,6 +1186,7 @@ app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
     captureScreenshot?: boolean;
     screenshotPath?: string;
     filesToUpload?: string[];
+    newConversation?: boolean;
   };
 
   if (!prompt?.trim()) {
@@ -1032,25 +1207,51 @@ app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
 
   // Start browser runbook session for this execution
   const runbookSession = await startBrowserSession(platform, prompt, profileId).catch(() => null);
+  const attempts: Array<{ profileId?: string; status: string; error?: string }> = [];
   try {
-    const transmission = consumeWebAIExecution({
-      previewId: previewId || "",
-      prompt,
-      platform,
-      profileId,
-      approvalToken,
-    });
-    const candidates = profileId
-      ? (allowProfileFallback
-          ? await WebAiSessionManager.listAvailableProfiles(platform, profileId)
-          : [await WebAiSessionManager.getProfileForPlatform(profileId, platform)])
-      : [];
-    if (profileId && candidates.length === 0) {
-      if (runbookSession) await completeBrowserSession(runbookSession.id, false, undefined, "No available profile").catch(() => undefined);
-      throw new Error(`No available ${platform} profile. Review login or quota status first.`);
+    // Attempt to consume the pre-created preview. If no previewId was supplied or
+    // the preview has expired (TTL), automatically create a fresh one so the
+    // execution can proceed without a 500 "preview required" error.
+    let transmission: ReturnType<typeof consumeWebAIExecution>;
+    try {
+      transmission = consumeWebAIExecution({
+        previewId: previewId || "",
+        prompt,
+        platform,
+        profileId,
+        approvalToken,
+      });
+    } catch (previewErr: any) {
+      // Auto-preview path: either previewId was missing or the preview expired.
+      // Create a fresh preview now and proceed if the risk is LOW.
+      // BLOCKED (secrets) still throws immediately.
+      const freshPreview = createWebAIExecutionPreview({ prompt, platform, profileId });
+      if (freshPreview.blocked) {
+        const types = freshPreview.findings.map((f) => f.type).join(", ");
+        throw new WebAIError(`Blocked: the prompt contains secrets (${types}). Remove them before using Web AI.`, 'automation_error', false);
+      }
+      if (freshPreview.requiresApproval) {
+        // HIGH-risk data requires explicit user approval — cannot auto-approve.
+        throw new WebAIError(`Web AI preview expired. Please re-submit your message (sensitive data requires a fresh approval).`, 'automation_error', false);
+      }
+      // LOW risk — consume the fresh preview immediately without approval.
+      transmission = consumeWebAIExecution({
+        previewId: freshPreview.id,
+        prompt,
+        platform,
+        profileId,
+        approvalToken: undefined,
+      });
     }
+    const effectiveProfileId = profileId || 'default';
+    const candidateProfile = await WebAiSessionManager.getProfileForPlatform(effectiveProfileId, platform).catch(() => null);
+    if (profileId && !candidateProfile) {
+      throw new WebAIError(`Web AI profile not found: ${profileId}`, 'automation_error', false);
+    }
+    const candidates = allowProfileFallback && profileId
+      ? await WebAiSessionManager.listAvailableProfiles(platform, effectiveProfileId)
+      : (candidateProfile ? [candidateProfile] : []);
 
-    const attempts: Array<{ profileId?: string; status: string; error?: string }> = [];
     let result: Awaited<ReturnType<typeof executeWebAIAutomation>> | undefined;
     let profileUsed: string | undefined;
     const runCandidates = candidates.length > 0 ? candidates : [undefined];
@@ -1066,7 +1267,8 @@ app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
           headless,
           captureScreenshot,
           screenshotPath,
-          filesToUpload
+          filesToUpload,
+          newConversation,
         });
         profileUsed = candidate?.id;
         attempts.push({ profileId: candidate?.id, status: "ready" });
@@ -1093,7 +1295,7 @@ app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
     }
     if (!result) {
       if (runbookSession) await completeBrowserSession(runbookSession.id, false, undefined, "All profiles exhausted").catch(() => undefined);
-      throw new Error(`All available ${platform} profiles failed.`);
+      throw new WebAIError(`All available ${platform} profiles failed.`, 'automation_error', false);
     }
 
     // Complete runbook session with success
@@ -1157,14 +1359,48 @@ app.post("/api/web-ai/execute", async (req: Request, res: Response) => {
       connectorId: "web-ai", evidence: { previewId, error: err.message },
     }).catch(() => undefined);
     
+    let gatewayFallbackError: string | undefined;
+    // Auto-Fallback to API Gateway: Seamless recovery so user never gets a hard 500 error
+    try {
+      console.log(`[Web AI Fallback] Web AI execution failed (${err.message}). Attempting automatic API Gateway fallback...`);
+      const fallbackResult = await callAI([
+        { role: "system", content: "You are an expert AI assistant for LedgerFlow Studio." },
+        { role: "user", content: prompt }
+      ]);
+      if (fallbackResult?.text) {
+        const codeBlocks = parseAICodeResponse(fallbackResult.text).codeBlocks || [];
+        return res.json({
+          ok: true,
+          text: fallbackResult.text,
+          codeBlocks,
+          modelUsed: fallbackResult.modelUsed || `api-gateway-fallback/${platform}`,
+          hasPendingSuggestion: codeBlocks.length > 0,
+          wasFallback: true,
+          fallbackNotice: `⚡ Robot Web AI (${platform}) gặp gián đoạn: ${err.message || 'Lỗi kết nối Web'}. Hệ thống đã tự động chuyển sang AI Gateway để trả lời ngay lập tức.`,
+          attempts,
+        });
+      }
+    } catch (fallbackErr: any) {
+      gatewayFallbackError = fallbackErr.message || String(fallbackErr);
+      console.error('[Web AI Fallback] API Gateway fallback failed:', gatewayFallbackError);
+    }
+
     let fallbackProfile: any = null;
     if (err instanceof WebAIError && err.code === "quota" && profileId) {
-      fallbackProfile = await WebAiTaskRouter.getFallbackProfile(profileId, platform);
+      fallbackProfile = await WebAiTaskRouter.getFallbackProfile(profileId, profileId).catch(() => null);
     }
     
-    res.status(500).json({ 
+    // Always use HTTP 400 for application/automation execution failures (never raw 500)
+    // so Express/Vite proxy passes clean structured JSON back to client
+    const friendlyErrorMessage = gatewayFallbackError
+      ? `Không thể kết nối Robot Web AI (${platform}): ${err.message || 'Lỗi trình duyệt'}. Đồng thời AI Gateway fallback cũng không khả dụng (${gatewayFallbackError}). Vui lòng kiểm tra đăng nhập Chrome hoặc bổ sung API Key.`
+      : `Lỗi Robot Web AI (${platform}): ${err.message || 'Lỗi trình duyệt'}. Vui lòng kiểm tra trạng thái đăng nhập hoặc chuyển sang chế độ API Gateway.`;
+
+    res.status(400).json({ 
       ok: false, 
-      error: err.message, 
+      error: friendlyErrorMessage,
+      webError: err.message || String(err),
+      gatewayError: gatewayFallbackError,
       isQuotaError: err instanceof WebAIError && err.code === "quota",
       fallbackProfile
     });

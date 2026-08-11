@@ -9,6 +9,7 @@ import { publish } from './agentEventBus.ts';
 import { appendAIWorkforceRuntimeRecord } from './aiWorkforceRuntimeStore.ts';
 import { recordRuntimeCoreMission, type RuntimeCoreMissionStatus } from './agentRuntimeCore.ts';
 import { resolveRuntimePathFromEnv } from './runtimePaths.ts';
+import { emitTelemetryEvent } from './agentTelemetryStream.ts';
 
 export type AgentRunStatus = 'planned' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
 export type AgentRunStepStatus = 'queued' | 'running' | 'waiting_approval' | 'completed' | 'failed' | 'stopped' | 'rejected';
@@ -102,6 +103,15 @@ async function recordAgentRunSnapshot(run: AgentRun, event: string) {
       },
     }),
   ]).catch(() => undefined);
+
+  emitTelemetryEvent({
+    category: 'agent_runtime',
+    eventType: event,
+    severity: run.status === 'failed' || run.status === 'rejected' ? 'error' : 'info',
+    source: `agent_runtime:${run.id}`,
+    summary: `Agent Run ${run.id} (${run.goal.slice(0, 40)}): ${event} [${run.status}]`,
+    payload: { runId: run.id, status: run.status, goal: run.goal, planner: run.planner },
+  });
 }
 
 export async function createAgentRun(input: { goal: string; requestedBy?: string; requestedTools?: AgentToolId[]; toolInputs?: Partial<Record<AgentToolId, Record<string, unknown>>>; maxSteps?: number; maxRuntimeMs?: number; plannerMode?: 'auto' | 'ai' | 'deterministic'; sourceType?: AgentRun['sourceType']; sourceId?: string }) {

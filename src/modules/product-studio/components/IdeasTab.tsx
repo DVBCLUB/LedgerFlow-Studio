@@ -82,6 +82,7 @@ export default function IdeasTab() {
   const [loadingAI, setLoadingAI] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const [viewMode, setViewMode] = useState<'markdown' | 'canvas'>('markdown');
+  const [showSimulator, setShowSimulator] = useState<boolean>(false);
 
   // Custom interactive weights for weighted dynamic Scoring formula
   const [weightAlpha, setWeightAlpha] = useState<number>(0.4);
@@ -626,9 +627,27 @@ Vui lòng viết súc tích, đanh thép bằng tiếng Việt, có chèn bình 
   const currentIdea = ideas.find(item => item.id === selectedIdeaId);
 
   return (
-    <>
-      {/* SECTION B: GUERILLA SIMULATOR (HIGH VOLUME, LOW PRICE, ZERO-OPERATING COST) */}
-      <Simulator />
+    <div className="space-y-6 text-left">
+      {/* OPTIONAL SIMULATOR COLLAPSIBLE CARD */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-4 text-left shadow-lg">
+        <button
+          onClick={() => setShowSimulator(!showSimulator)}
+          className="w-full flex items-center justify-between text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer"
+        >
+          <span className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+            📊 Mô phỏng Mô hình Vận hành & Dự toán Chi phí (Optional Simulator)
+          </span>
+          <span className="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+            {showSimulator ? 'Ẩn mô phỏng ▲' : 'Mở rộng mô phỏng ▼'}
+          </span>
+        </button>
+        {showSimulator && (
+          <div className="mt-4 pt-4 border-t border-slate-850">
+            <Simulator />
+          </div>
+        )}
+      </div>
 
       {/* CORE WORKSPACE: IDEAS HUB & RAPID BLUEPRINTEER */}
       <div className="grid lg:grid-cols-12 gap-6 items-stretch">
@@ -1688,6 +1707,6 @@ ${currentIdea.aiBlueprint || 'Chưa được khởi tạo bản thiết kế AI.
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

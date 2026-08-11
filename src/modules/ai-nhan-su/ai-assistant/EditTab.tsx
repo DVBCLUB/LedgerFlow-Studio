@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Wand2, Loader2, RefreshCw, Info, BookOpen, FileCode2, CheckCircle2, X, RotateCcw } from 'lucide-react';
-import { type EditResult, type WebAIProfile } from '../../../utils/assistantApi';
+import { Wand2, Loader2, RefreshCw, Info, BookOpen, FileCode2, CheckCircle2, X, RotateCcw, LogIn } from 'lucide-react';
+import { openWebAIProfileLogin, type EditResult, type WebAIProfile } from '../../../utils/assistantApi';
 import CodeBlock from './CodeBlock';
 
 interface LintErrorHighlight {
@@ -124,7 +124,27 @@ export default function EditTab({
   applyResult,
   rolePromptNotifyRef,
 }: EditTabProps) {
+  const [quickLoginLoading, setQuickLoginLoading] = useState(false);
+  const [loginNotice, setLoginNotice] = useState<string | null>(null);
   const [expandedRepairStep, setExpandedRepairStep] = useState<number | null>(null);
+
+  const handleQuickLogin = async () => {
+    setQuickLoginLoading(true);
+    setLoginNotice(`Đang mở Chrome để đăng nhập ${webPlatform.toUpperCase()}... Hãy đăng nhập trên trình duyệt vừa mở và ĐÓNG nó lại khi hoàn tất!`);
+    try {
+      const id = selectedProfileId || 'default';
+      const res = await openWebAIProfileLogin(id, webPlatform);
+      if (res.ok) {
+        setLoginNotice(`✓ Đã lưu session đăng nhập cho ${webPlatform.toUpperCase()}. Bạn có thể chạy Edit File ngay!`);
+      } else {
+        setLoginNotice(`❌ Lỗi đăng nhập: ${res.error || 'Chưa hoàn tất đăng nhập.'}`);
+      }
+    } catch (err: any) {
+      setLoginNotice(`❌ Không mở được Chrome: ${err.message}`);
+    } finally {
+      setQuickLoginLoading(false);
+    }
+  };
 
   const parsedErrors = (() => {
     if (!applyResult) return [];
@@ -145,11 +165,12 @@ export default function EditTab({
           <span className="font-bold text-text-secondary">Chế độ xử lý đề xuất:</span>
           <select
             value={engineMode}
-            onChange={e => setEngineMode(e.target.value as 'api' | 'web_automation')}
+            onChange={e => setEngineMode(e.target.value as any)}
             className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1.5 text-xs text-text-secondary outline-none font-bold focus:border-violet-500"
           >
             <option value="api">API Local (AI Gateway)</option>
             <option value="web_automation">Browser Automation (Web AI)</option>
+            <option value="fabric">⚡ AI Fabric (API → Web → Local)</option>
           </select>
         </div>
 
@@ -172,21 +193,33 @@ export default function EditTab({
             </div>
             <div className="flex items-center justify-between gap-2 text-xs pt-2 border-t border-border-primary/60">
               <span className="font-bold text-text-secondary">Tài khoản (Profile):</span>
-              <select
-                value={selectedProfileId}
-                onChange={e => setSelectedProfileId(e.target.value)}
-                className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1.5 text-xs text-text-secondary outline-none font-bold focus:border-violet-500"
-              >
-                <option value="">-- Mặc định --</option>
-                {webAIProfiles
-                  .filter(p => p.platform === webPlatform.toLowerCase())
-                  .map(p => (
-                    <option key={p.id} value={p.id} disabled={!p.enabled || p.status === 'quota'}>
-                      {p.name} ({p.status})
-                    </option>
-                  ))
-                }
-              </select>
+              <div className="flex items-center gap-1.5">
+                <select
+                  value={selectedProfileId}
+                  onChange={e => setSelectedProfileId(e.target.value)}
+                  className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1.5 text-xs text-text-secondary outline-none font-bold focus:border-violet-500"
+                >
+                  <option value="">-- Mặc định --</option>
+                  {(webAIProfiles || [])
+                    .filter(p => p.platform === (webPlatform || '').toLowerCase())
+                    .map(p => (
+                      <option key={p.id} value={p.id} disabled={!p.enabled || p.status === 'quota'}>
+                        {p.name} ({p.status})
+                      </option>
+                    ))
+                  }
+                </select>
+                <button
+                  type="button"
+                  onClick={handleQuickLogin}
+                  disabled={quickLoginLoading}
+                  className="flex items-center gap-1 px-2.5 py-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-text-primary text-xs font-bold rounded-xl transition-colors"
+                  title="Mở cửa sổ Chrome để đăng nhập tài khoản Web AI một lần"
+                >
+                  {quickLoginLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <LogIn className="h-3.5 w-3.5" />}
+                  <span>🔑 Đăng nhập Chrome</span>
+                </button>
+              </div>
             </div>
             <div className="flex items-center justify-between gap-2 text-xs pt-2 border-t border-border-primary/60">
               <span className="font-bold text-text-secondary">Chạy ẩn (Headless Mode):</span>
@@ -204,9 +237,16 @@ export default function EditTab({
         )}
       </div>
 
+      {loginNotice && (
+        <div className="rounded-xl border border-violet-500/40 bg-violet-950/40 p-3 text-xs leading-6 text-violet-200 font-semibold flex items-center justify-between gap-2">
+          <span>{loginNotice}</span>
+          <button onClick={() => setLoginNotice(null)} className="text-violet-400 hover:text-white font-bold">✕</button>
+        </div>
+      )}
+
       {engineMode === 'web_automation' && (
         <div className="rounded-xl border border-violet-500/20 bg-violet-950/20 p-3 text-xs leading-6 text-violet-300 font-semibold">
-          ⚠️ <b>Chế độ trình duyệt:</b> {selectedProfileId ? 'Đang chạy với Profile được chọn.' : 'Đang chạy với Profile mặc định.'} Cửa sổ Chrome tự động mở. Nếu chưa đăng nhập, vui lòng hoàn tất đăng nhập một lần để lưu session cookies.
+          ⚠️ <b>Chế độ trình duyệt:</b> {selectedProfileId ? 'Đang chạy với Profile được chọn.' : 'Đang chạy với Profile mặc định.'} Nếu chưa đăng nhập, bấm nút <b>🔑 Đăng nhập Chrome</b> ở trên để mở trình duyệt đăng nhập 1 lần.
         </div>
       )}
 
@@ -227,7 +267,7 @@ export default function EditTab({
             className="w-full bg-bg-primary border border-border-secondary rounded-xl px-3 py-2 text-xs text-slate-200 focus:border-violet-500/60 outline-none font-bold"
           >
             <option value="">-- Mặc định (AI Dev) --</option>
-            {roles.map(r => (
+            {(roles || []).map(r => (
               <option key={r.id} value={r.id}>
                 {r.emoji} {r.id} ({r.group})
               </option>

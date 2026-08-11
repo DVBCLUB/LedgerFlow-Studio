@@ -38,12 +38,12 @@ const TEMPLATES: Record<ProductType, {
     ]
   },
   academy: {
-    title: 'Học viện & Case Study Hub',
-    desc: 'Tập trung vào kết quả học tập thực tế và sự lan tỏa kiến thức.',
+    title: 'Kiểm soát Vận hành & Quy trình Doanh nghiệp',
+    desc: 'Tập trung vào tỷ lệ soát xét chứng từ thực tế và hiệu quả vận hành tự động.',
     metrics: [
-      { id: 'completion_rate', label: 'Tỷ lệ hoàn thành Case Study', why: 'Đo lường độ hữu ích của case học tập đối với người học.', danger: 'Người học có thể bấm hoàn thành nhanh mà chưa thực sự tiếp thu kiến thức.', defaultVal: 75, unit: '%', formula: 'Số học viên hoàn thành hết quiz / Tổng số học viên bắt đầu × 100' },
-      { id: 'prompt_runs', label: 'Lượt chạy Prompt giả lập thành công', why: 'Đo mức độ thực hành và ứng dụng AI agent của học viên.', danger: 'Chạy nhiều nhưng không đúc rút được lý thuyết vận hành.', defaultVal: 2400, unit: 'lượt', formula: 'Tổng số request được gửi đến AI Gateway học tập' },
-      { id: 'nps', label: 'Chỉ số đo lường sự hài lòng (NPS)', why: 'Chứng minh học viên sẵn sàng giới thiệu khóa học/lab cho người khác.', danger: 'Tập mẫu phản hồi quá nhỏ có thể gây sai lệch kết quả.', defaultVal: 8, unit: '/10', formula: '(Tỷ lệ người thích - Tỷ lệ người ghét)' }
+      { id: 'completion_rate', label: 'Tỷ lệ hoàn thành Quy trình Soát xét', why: 'Đo lường độ hữu ích và mức độ tuân thủ quy trình kiểm soát rủi ro.', danger: 'Người dùng có thể thao tác nhanh mà chưa thực sự kiểm tra chứng từ gốc.', defaultVal: 85, unit: '%', formula: 'Số chứng từ soát xét đạt / Tổng số chứng từ cần xử lý × 100' },
+      { id: 'prompt_runs', label: 'Lượt xử lý AI Gateway tự động', why: 'Đo mức độ ứng dụng và hiệu suất của Đội ngũ Agent AI.', danger: 'Chạy nhiều tác vụ nhưng chưa tối ưu hạn mức Token.', defaultVal: 3200, unit: 'lượt', formula: 'Tổng số request được xử lý an toàn qua AI Gateway' },
+      { id: 'nps', label: 'Chỉ số đo lường sự hài lòng (NPS)', why: 'Chứng minh người dùng nội bộ đánh giá cao độ chính xác của hệ thống.', danger: 'Tập mẫu phản hồi nhỏ có thể chưa phản ánh toàn diện.', defaultVal: 9, unit: '/10', formula: '(Tỷ lệ đánh giá tích cực - Tỷ lệ đánh giá chưa hài lòng)' }
     ]
   }
 };

@@ -32,7 +32,7 @@ export default function CampaignsLab() {
               activeTab === 'ad' ? 'bg-accent text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-bg-primary text-text-secondary hover:bg-bg-surface'
             }`}
           >
-            <TrendingUp className="w-4 h-4" /> Ads Simulator
+            <TrendingUp className="w-4 h-4" /> Dự toán Ads
           </button>
           <button
             onClick={() => setActiveTab('launch')}

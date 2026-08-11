@@ -2,6 +2,7 @@ import { inspectWebAIData } from "./webAiDataGuard.ts";
 import { WebAiSessionManager, type WebAIProfile } from "./webAiSessionManager.ts";
 import { executeWebAIAutomation, WebAIError } from "./webAiAutomator.ts";
 import { callAIWithFallback } from "./aiRouter.ts";
+import { listAllProfileHealth, getProfileHealth, type WebAIProfileHealth } from "./webAiReliability.ts";
 
 export type TaskDomain = "coding" | "finance" | "marketing" | "sales" | "general";
 
@@ -157,6 +158,8 @@ export class WebAiTaskRouter {
       platform: string;
       displayName: string;
       score: number;
+      rawScore: number;
+      healthScore: number;
       isRecommended: boolean;
       profiles: WebAIProfile[];
       details: PlatformAdapterDetails;
@@ -165,25 +168,49 @@ export class WebAiTaskRouter {
     const domain = await this.classifyTaskSemantic(prompt);
     const privacy = inspectWebAIData(prompt);
     const allProfiles = await WebAiSessionManager.listProfiles();
+    const allHealth = listAllProfileHealth();
+    const healthMap = new Map<string, WebAIProfileHealth>(allHealth.map(h => [h.profileId, h]));
     
     const recommendations = Object.keys(PLATFORM_SCORES).map((platform) => {
-      const score = PLATFORM_SCORES[platform][domain];
-      const details = PLATFORM_ADAPTERS[platform];
+      const rawScore = PLATFORM_SCORES[platform][domain];
+      const details = { ...PLATFORM_ADAPTERS[platform] };
       const profiles = allProfiles.filter(p => p.platform === platform && p.enabled);
       
+      // Calculate platform average health score across its active profiles
+      let avgHealth = 100;
+      if (profiles.length > 0) {
+        const healths = profiles.map(p => healthMap.get(p.id)?.healthScore ?? 100);
+        avgHealth = Math.round(healths.reduce((a, b) => a + b, 0) / healths.length);
+        
+        // If all active profiles have an open circuit breaker, mark platform health as down/unstable
+        const hasOpenCircuit = profiles.every(p => healthMap.get(p.id)?.circuitState === 'open');
+        if (hasOpenCircuit) {
+          details.health = "down";
+        } else if (avgHealth < 70) {
+          details.health = "unstable";
+        }
+      }
+
+      // Dynamic score calculation: Capability Score * (Health Score / 100)
+      // Open circuit platforms get penalized significantly
+      const healthFactor = details.health === "down" ? 0.1 : avgHealth / 100;
+      const score = Math.round(rawScore * healthFactor * 10) / 10;
+
       return {
         platform,
         displayName: details.name,
         score,
+        rawScore,
+        healthScore: avgHealth,
         isRecommended: false,
         profiles,
         details,
       };
     });
 
-    // Sort by capability score descending
+    // Sort by adjusted capability score descending
     recommendations.sort((a, b) => b.score - a.score);
-    if (recommendations.length > 0) {
+    if (recommendations.length > 0 && recommendations[0].score > 0) {
       recommendations[0].isRecommended = true;
     }
 
@@ -199,8 +226,12 @@ export class WebAiTaskRouter {
    */
   public static async getFallbackProfile(failedProfileId: string, platform: string): Promise<WebAIProfile | null> {
     const candidates = await WebAiSessionManager.listAvailableProfiles(platform, failedProfileId);
-    // Find first ready profile that is not the failed one
-    const fallback = candidates.find(c => c.id !== failedProfileId && c.status !== "quota");
+    // Find first ready profile that is not the failed one and circuit is not open
+    const fallback = candidates.find(c => {
+      if (c.id === failedProfileId || c.status === "quota") return false;
+      const health = getProfileHealth(c.id);
+      return !health || health.circuitState !== 'open';
+    });
     return fallback || null;
   }
 }

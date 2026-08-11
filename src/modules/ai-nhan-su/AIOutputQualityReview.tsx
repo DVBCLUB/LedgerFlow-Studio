@@ -42,14 +42,14 @@ const demoItems: ReviewItem[] = [
     title: 'Giải thích kế toán / kiểm toán đa ngành',
     outputType: 'Accounting / audit explanation',
     aiSource: 'ChatGPT / Claude',
-    intendedUse: 'Dùng làm bài học hoặc case mô phỏng, không dùng như tư vấn pháp lý chính thức.',
+    intendedUse: 'Dùng cho quy trình kiểm soát nội bộ, rà soát chứng từ kế toán doanh nghiệp.',
     factualCheck: 7,
     logicCheck: 8,
     safetyCheck: 8,
     businessFit: 9,
-    evidence: 'Có disclaimer, có red flags, có câu hỏi kiểm toán và hướng kiểm tra chứng từ.',
-    risks: 'Có thể thiếu cập nhật luật/thuế mới hoặc thiếu chứng từ thực tế.',
-    requiredFix: 'Gắn nhãn học tập/mô phỏng, yêu cầu kế toán thật rà trước khi áp dụng thực tế.',
+    evidence: 'Có quy trình kiểm soát rủi ro, bút toán hạch toán VAS và điểm soát xét chứng từ.',
+    risks: 'Cần kiểm tra văn bản chính sách thuế hiện hành trước khi chốt kỳ kế toán.',
+    requiredFix: 'Yêu cầu Trưởng phòng Kế toán duyệt chứng từ trước khi hạch toán chính thức.',
     founderDecision: 'Needs review'
   }
 ];

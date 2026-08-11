@@ -2,6 +2,72 @@ import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type Decry
 import type { CallAIOptions, CallAIResult, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
 import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog.ts";
 
+// ─── Circuit Breaker ─────────────────────────────────────────────────────────
+// Prevents hammering a failed provider on every request.
+// State machine: closed → open (after N failures) → half-open (after cooldown) → closed
+
+type CircuitState = 'closed' | 'open' | 'half-open';
+
+interface CircuitBreakerEntry {
+  state: CircuitState;
+  failures: number;
+  lastFailureAt: number;
+  openedAt?: number;
+  halfOpenSuccesses: number;
+}
+
+const CIRCUIT_FAILURE_THRESHOLD = Number(process.env.CIRCUIT_FAILURE_THRESHOLD ?? 3);
+const CIRCUIT_COOLDOWN_MS = Number(process.env.CIRCUIT_COOLDOWN_MS ?? 60_000);
+
+const circuitBreakers = new Map<string, CircuitBreakerEntry>();
+
+function getCircuit(providerKey: string): CircuitBreakerEntry {
+  if (!circuitBreakers.has(providerKey)) {
+    circuitBreakers.set(providerKey, { state: 'closed', failures: 0, lastFailureAt: 0, halfOpenSuccesses: 0 });
+  }
+  return circuitBreakers.get(providerKey)!;
+}
+
+function circuitAllows(providerKey: string): boolean {
+  const cb = getCircuit(providerKey);
+  if (cb.state === 'closed') return true;
+  if (cb.state === 'open') {
+    if (Date.now() - (cb.openedAt ?? 0) >= CIRCUIT_COOLDOWN_MS) {
+      cb.state = 'half-open'; // allow one trial request
+      return true;
+    }
+    return false; // still open — skip this provider
+  }
+  // half-open: allow through
+  return true;
+}
+
+function onCircuitSuccess(providerKey: string): void {
+  const cb = getCircuit(providerKey);
+  cb.failures = 0;
+  cb.halfOpenSuccesses = 0;
+  cb.state = 'closed';
+}
+
+function onCircuitFailure(providerKey: string): void {
+  const cb = getCircuit(providerKey);
+  cb.failures += 1;
+  cb.lastFailureAt = Date.now();
+  if (cb.state === 'half-open' || cb.failures >= CIRCUIT_FAILURE_THRESHOLD) {
+    cb.state = 'open';
+    cb.openedAt = Date.now();
+  }
+}
+
+export function getCircuitBreakerStatus(): Record<string, { state: CircuitState; failures: number; openedAt?: number; lastFailureAt: number }> {
+  const out: Record<string, { state: CircuitState; failures: number; openedAt?: number; lastFailureAt: number }> = {};
+  for (const [key, cb] of circuitBreakers) {
+    out[key] = { state: cb.state, failures: cb.failures, openedAt: cb.openedAt, lastFailureAt: cb.lastFailureAt };
+  }
+  return out;
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 interface ProviderCallResult { content: string; modelUsed?: string; raw: unknown; toolCalls?: NormalizedToolCall[] }
 export interface AIRouterDiagnosticItem { provider: AIProviderName | "litellm-proxy"; label: string; model?: string; status: "ok" | "quota" | "error" | "skipped"; latencyMs?: number; message?: string }
 export interface AIRouterDiagnostics { ok: boolean; checkedAt: string; totalEnabledKeys: number; results: AIRouterDiagnosticItem[] }
@@ -128,16 +194,24 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
   const entries = await getEnabledAIKeyEntries();
   const orderedEntries = orderEntriesByPolicy(entries, options);
   const errors: string[] = [];
+  const skipped: string[] = [];
   const promptChars = countPromptChars(messages);
 
   for (const entry of orderedEntries) {
+    const circuitKey = `${entry.provider}:${entry.id}`;
+    if (!circuitAllows(circuitKey)) {
+      skipped.push(`${entry.provider}:${entry.label} (circuit open)`);
+      continue;
+    }
     const started = Date.now();
     try {
       const result = await callProvider(entry, messages, options);
+      onCircuitSuccess(circuitKey);
       await setAIKeyStatus(entry.id, "ok");
       await logEntry(entry, "call", "ok", started, result.modelUsed || entry.model, promptChars, result.content.length);
       return { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw, toolCalls: result.toolCalls || [] };
     } catch (err: any) {
+      onCircuitFailure(circuitKey);
       const isQuota = isQuotaLikeError(err);
       await setAIKeyStatus(entry.id, isQuota ? "quota" : "error", err.message || String(err));
       await logEntry(entry, "call", isQuota ? "quota" : "error", started, entry.model, promptChars, 0, err.message || String(err));
@@ -158,16 +232,23 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
     }
   }
 
-  throw new ProviderError(`Không còn provider/key AI khả dụng. Chi tiết: ${errors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors });
+  const allErrors = [...errors, ...skipped.map(s => `[skipped] ${s}`)];
+  throw new ProviderError(`Không còn provider/key AI khả dụng. Chi tiết: ${allErrors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors, skipped });
 }
 
 export async function* streamAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): AsyncGenerator<string, void, unknown> {
   const entries = await getEnabledAIKeyEntries();
   const orderedEntries = orderEntriesByPolicy(entries, options);
   const errors: string[] = [];
+  const skipped: string[] = [];
   const promptChars = countPromptChars(messages);
 
   for (const entry of orderedEntries) {
+    const circuitKey = `${entry.provider}:${entry.id}`;
+    if (!circuitAllows(circuitKey)) {
+      skipped.push(`${entry.provider}:${entry.label} (circuit open)`);
+      continue;
+    }
     let yielded = false;
     let outputChars = 0;
     const started = Date.now();
@@ -177,10 +258,12 @@ export async function* streamAIWithFallback(messages: ChatMessage[], options: Ca
         outputChars += chunk.length;
         yield chunk;
       }
+      onCircuitSuccess(circuitKey);
       await setAIKeyStatus(entry.id, "ok");
       await logEntry(entry, "stream", "ok", started, entry.model, promptChars, outputChars);
       return;
     } catch (err: any) {
+      onCircuitFailure(circuitKey);
       const isQuota = isQuotaLikeError(err);
       await setAIKeyStatus(entry.id, isQuota ? "quota" : "error", err.message || String(err));
       await logEntry(entry, "stream", isQuota ? "quota" : "error", started, entry.model, promptChars, outputChars, err.message || String(err));
@@ -206,7 +289,8 @@ export async function* streamAIWithFallback(messages: ChatMessage[], options: Ca
     }
   }
 
-  throw new ProviderError(`Không còn provider/key AI stream khả dụng. Chi tiết: ${errors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors });
+  const allErrors = [...errors, ...skipped.map(s => `[skipped] ${s}`)];
+  throw new ProviderError(`Không còn provider/key AI stream khả dụng. Chi tiết: ${allErrors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors, skipped });
 }
 
 export async function checkAIRouterHealth(): Promise<boolean> {

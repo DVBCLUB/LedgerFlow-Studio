@@ -396,8 +396,8 @@ try {
   const gatewayHealth = await fetchOptionalJson('/api/gateway/health');
   if (gatewayHealth.response.status === 404) {
     console.warn('Skipping gateway health endpoint smoke assertion because dist assistant daemon artifact is missing /api/gateway/health route (rebuild dist daemon to validate runtime route surface).');
-  } else if (!gatewayHealth.response.ok || gatewayHealth.json?.ok !== true || gatewayHealth.json?.providers === undefined || gatewayHealth.json?.stats === undefined) {
-    throw new Error('/api/gateway/health did not return providers/stats snapshots.');
+  } else if (!gatewayHealth.response.ok || gatewayHealth.json?.ok !== true || gatewayHealth.json?.health === undefined || gatewayHealth.json?.stats === undefined) {
+    throw new Error('/api/gateway/health did not return providers/stats snapshots: ' + JSON.stringify(gatewayHealth.json));
   }
 
   const finalDashboard = await fetchJson(DAEMON_URL, '/api/ai-workforce/runtime');
