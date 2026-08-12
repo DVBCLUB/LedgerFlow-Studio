@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Bot, Sparkles, Mic, Video, Image, Play, CheckCircle2, RefreshCw, Wand2, ArrowRight, Sliders, ExternalLink, Zap, Layers, FileText, Copy, Check } from 'lucide-react';
+import RealAIVideoExecutionHub from '../../marketing-growth/components/RealAIVideoExecutionHub';
 
 interface AIPlatform {
   id: string;
@@ -29,15 +30,63 @@ export default function AIVideoFactoryPanel() {
 
   const [aiPlatforms] = useState<AIPlatform[]>([
     {
-      id: 'plat-1',
-      name: 'ElevenLabs AI Voice',
-      category: 'Voice',
+      id: 'plat-midjourney',
+      name: 'Midjourney v6.1 Cloud Bridge',
+      category: 'Image',
       status: 'connected',
-      models: ['Multilingual v2', 'Turbo v2.5'],
-      latency: '240ms',
+      models: ['v6.1 RAW', 'Niji v6'],
+      latency: '1.2s',
     },
     {
-      id: 'plat-2',
+      id: 'plat-leonardo',
+      name: 'Leonardo.ai Motion & Alchemy',
+      category: 'Image',
+      status: 'connected',
+      models: ['Alchemy XL', 'Kino XL'],
+      latency: '900ms',
+    },
+    {
+      id: 'plat-flux1',
+      name: 'Flux.1 (Black Forest Labs)',
+      category: 'Image',
+      status: 'connected',
+      models: ['Flux.1 Pro 1.1', 'Flux.1 Schnell'],
+      latency: '800ms',
+    },
+    {
+      id: 'plat-kling',
+      name: 'Kling AI 1.5 (Kuaishou)',
+      category: 'Video',
+      status: 'connected',
+      models: ['Kling 1.5 HD 60fps'],
+      latency: '3.5s/sec',
+    },
+    {
+      id: 'plat-sora',
+      name: 'Sora (OpenAI Video)',
+      category: 'Video',
+      status: 'connected',
+      models: ['Sora Ultra HD 1.0'],
+      latency: '4.0s/sec',
+    },
+    {
+      id: 'plat-pika',
+      name: 'Pika Labs 2.0 Video',
+      category: 'Video',
+      status: 'connected',
+      models: ['Pika 2.0 LipSync'],
+      latency: '2.8s/sec',
+    },
+    {
+      id: 'plat-hailuo',
+      name: 'Hailuo AI (Minimax)',
+      category: 'Video',
+      status: 'connected',
+      models: ['Hailuo Face v1'],
+      latency: '3.1s/sec',
+    },
+    {
+      id: 'plat-runway',
       name: 'Runway Gen-3 Alpha',
       category: 'Video',
       status: 'connected',
@@ -45,7 +94,7 @@ export default function AIVideoFactoryPanel() {
       latency: '4.2s/frame',
     },
     {
-      id: 'plat-3',
+      id: 'plat-luma',
       name: 'Luma Dream Machine',
       category: 'Video',
       status: 'connected',
@@ -53,20 +102,12 @@ export default function AIVideoFactoryPanel() {
       latency: '3.8s/frame',
     },
     {
-      id: 'plat-4',
-      name: 'HeyGen Digital Twin Avatar',
-      category: 'Avatar',
-      status: 'configured',
-      models: ['Avatar IV 4K'],
-      latency: '1.2s/sec',
-    },
-    {
-      id: 'plat-5',
-      name: 'Flux.1 Pro / Midjourney',
-      category: 'Image',
+      id: 'plat-elevenlabs',
+      name: 'ElevenLabs AI Voice',
+      category: 'Voice',
       status: 'connected',
-      models: ['Flux.1 Schnell', 'Flux.1 Pro'],
-      latency: '800ms',
+      models: ['Multilingual v2', 'Turbo v2.5'],
+      latency: '240ms',
     },
   ]);
 
@@ -160,6 +201,9 @@ export default function AIVideoFactoryPanel() {
           </div>
         ))}
       </div>
+
+      {/* Real AI Video Execution & Web Robot Automator */}
+      <RealAIVideoExecutionHub />
 
       {/* Script Generator & Prompt Studio */}
       <div className="grid gap-6 xl:grid-cols-3">

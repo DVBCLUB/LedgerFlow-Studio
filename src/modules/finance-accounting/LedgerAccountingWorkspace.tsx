@@ -3,13 +3,15 @@ import AccountingVietnam from './AccountingVietnam';
 import AccountingVietnamDeepDivePanel from './AccountingVietnamDeepDivePanel';
 import CustomDataWorkbench from '../analytics-models-sandbox/CustomDataWorkbench';
 import InvoiceSplitViewDemo from './components/InvoiceSplitViewDemo';
-import { Beaker, BookOpen, Database, ScanLine } from 'lucide-react';
+import RealVoucherApprovalCenter from './components/RealVoucherApprovalCenter';
+import { Beaker, BookOpen, Database, ScanLine, FileCheck2 } from 'lucide-react';
 
 export default function LedgerAccountingWorkspace() {
-  const [activeTab, setActiveTab] = useState<'invoice' | 'deepdive' | 'workbench' | 'lab'>('invoice');
+  const [activeTab, setActiveTab] = useState<'voucher' | 'invoice' | 'deepdive' | 'workbench' | 'lab'>('voucher');
 
   const tabs = [
-    { id: 'invoice' as const, label: 'Xử lý Chứng từ AI', icon: ScanLine, desc: 'Split view AI OCR đối chiếu hóa đơn gốc.' },
+    { id: 'voucher' as const, label: 'Trung tâm Hạch toán & Phê duyệt', icon: FileCheck2, desc: 'Lập chứng từ Nợ/Có kép VAS 200/133 & Luồng phê duyệt 6 bước.' },
+    { id: 'invoice' as const, label: 'Xử lý Chứng từ AI OCR', icon: ScanLine, desc: 'Split view AI OCR đối chiếu hóa đơn gốc.' },
     { id: 'deepdive' as const, label: 'Chế độ Kế toán VAS', icon: BookOpen, desc: 'Quy định Thông tư 200/133, thuế suất VAT và hàng tồn kho.' },
     { id: 'workbench' as const, label: 'Bàn làm việc dữ liệu', icon: Database, desc: 'Công cụ làm việc và phân tích dữ liệu tùy biến.' },
     { id: 'lab' as const, label: 'Phòng Lab & Mô phỏng', icon: Beaker, desc: 'Mô phỏng tài chính, what-if và chấm điểm ý tưởng.' }
@@ -41,6 +43,12 @@ export default function LedgerAccountingWorkspace() {
 
       {/* Renders */}
       <div className="transition-all duration-300">
+        {activeTab === 'voucher' && (
+          <div className="animate-fade-in">
+            <RealVoucherApprovalCenter />
+          </div>
+        )}
+
         {activeTab === 'lab' && (
           <div className="animate-fade-in">
             <AccountingVietnam />

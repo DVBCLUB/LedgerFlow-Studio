@@ -49,6 +49,7 @@ import { localOfficeRoutes } from "./server/services/localOfficeRoutes";
 import { registerAgentSystemRoutes } from "./server/services/agentSystemRoutes";
 import { registerMCPHttpRoutes } from "./server/services/mcpHttpRoutes";
 import { hydrateExternalMCPServerCatalog } from "./server/services/mcpClientGateway";
+import { registerDormantServicesRoutes } from "./server/services/dormantServicesRouter";
 
 // ── Core Module Loader (Modular Monolith Setup) ─────────────────────
 import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
@@ -800,9 +801,10 @@ async function startServer() {
   });
 
   // ═══════════════════════════════════════════════════════════════════
-  // Agent System Routes — Loop Jobs, Circuit Breaker, Performance Ledger
+  // Agent System Routes & Dormant Services Router (100% Code Activation)
   // ═══════════════════════════════════════════════════════════════════
   registerAgentSystemRoutes(app);
+  registerDormantServicesRoutes(app);
 
   // ═══════════════════════════════════════════════════════════════════
   // Cost Observability — theo dõi chi phí token/$

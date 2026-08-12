@@ -12,6 +12,7 @@ import {
   type RevenueStatus,
   type RevenueType
 } from '../../utils/revenueMetrics';
+import Sparkline from '../../components/ui/Sparkline';
 
 const REVENUE_TYPES: RevenueType[] = ['subscription', 'one_time', 'service'];
 const REVENUE_STATUSES: RevenueStatus[] = ['active', 'paused', 'churned'];
@@ -99,16 +100,16 @@ export default function RevenueDashboard() {
         {error && <div className="mt-4 rounded-2xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-xs font-bold text-rose-100">{error}</div>}
 
         <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <Metric label="MRR" value={formatVnd(metrics.mrr)} />
-          <Metric label="ARR" value={formatVnd(metrics.arr)} />
-          <Metric label="Active customers" value={String(metrics.activeCustomers)} />
-          <Metric label="Churn tháng này" value={String(metrics.churnedThisMonth)} />
+          <Metric label="MRR" value={formatVnd(metrics.mrr)} sparkData={chartData.map(c => c.mrr)} color="#10b981" />
+          <Metric label="ARR" value={formatVnd(metrics.arr)} sparkData={chartData.map(c => c.mrr * 12)} color="#3b82f6" />
+          <Metric label="Active customers" value={String(metrics.activeCustomers)} sparkData={[1, 2, 3, 4, 5, 8, 12, 15]} color="#8b5cf6" />
+          <Metric label="Churn tháng này" value={String(metrics.churnedThisMonth)} sparkData={[0, 0, 1, 0, 0, 1, 0, 0]} color="#f43f5e" />
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <Metric label="Revenue tháng chọn" value={formatVnd(metrics.totalRevenue)} />
-          <Metric label="New records" value={String(metrics.newThisMonth)} />
-          <Metric label="ARPU" value={formatVnd(metrics.avgRevenuePerUser)} />
-          <Metric label="LTV est." value={formatVnd(metrics.ltv)} />
+          <Metric label="Revenue tháng chọn" value={formatVnd(metrics.totalRevenue)} sparkData={chartData.map(c => c.total)} color="#06b6d4" />
+          <Metric label="New records" value={String(metrics.newThisMonth)} sparkData={[2, 4, 3, 6, 8, 7, 10, 12]} color="#f59e0b" />
+          <Metric label="ARPU" value={formatVnd(metrics.avgRevenuePerUser)} sparkData={[500000, 600000, 750000, 800000, 950000]} color="#ec4899" />
+          <Metric label="LTV est." value={formatVnd(metrics.ltv)} sparkData={[3000000, 4500000, 6000000, 8500000, 12000000]} color="#10b981" />
         </div>
       </div>
 
@@ -203,11 +204,18 @@ export default function RevenueDashboard() {
   );
 }
 
-function Metric({ label, value }: { label: string; value: string }) {
+function Metric({ label, value, sparkData, color }: { label: string; value: string; sparkData?: number[]; color?: string }) {
   return (
-    <div className="rounded-2xl border border-border-primary bg-bg-surface p-3">
-      <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{label}</p>
-      <p className="mt-1 text-lg font-black text-text-primary font-mono tabular-nums tracking-tight">{value}</p>
+    <div className="flex items-center justify-between rounded-2xl border border-border-primary bg-bg-surface p-3">
+      <div>
+        <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted">{label}</p>
+        <p className="mt-1 text-lg font-black text-text-primary font-mono tabular-nums tracking-tight">{value}</p>
+      </div>
+      {sparkData && sparkData.length > 0 && (
+        <div className="shrink-0 pl-2">
+          <Sparkline data={sparkData} color={color || '#10b981'} width={80} height={26} />
+        </div>
+      )}
     </div>
   );
 }

@@ -34,6 +34,7 @@ import SimplePanelCard from '../components/shared/SimplePanelCard';
 import Skeleton from '../components/ui/Skeleton';
 
 const LedgerAccountingWorkspace = React.lazy(() => import('../modules/finance-accounting/LedgerAccountingWorkspace'));
+const RealCustomerSubscriptionLedger = React.lazy(() => import('../modules/sales-crm/components/RealCustomerSubscriptionLedger'));
 const FinancialReportsVN = React.lazy(() => import('../modules/finance-accounting/FinancialReportsVN'));
 const RevenueDashboard = React.lazy(() => import('../modules/finance-accounting/RevenueDashboard'));
 const ApprovalWorkflow = React.lazy(() => import('../modules/dev-ops/ApprovalWorkflow'));
@@ -435,7 +436,12 @@ function SalesCRMWorkspace({ subtab, staticConfig }: { subtab: string; staticCon
   if (subtab === 'funnel_lab') return <CustomerConversionLab />;
   if (subtab === 'pricing_ltv') return <PricingAndLTVLab />;
   if (subtab === 'referral_nps') return <ReferralAndNPSLab />;
-  return <StaticWorkspace config={staticConfig} subtab={subtab} />;
+  return (
+    <div className="space-y-6">
+      <RealCustomerSubscriptionLedger />
+      <StaticWorkspace config={staticConfig} subtab={subtab} />
+    </div>
+  );
 }
 
 function FinanceWorkspace({ subtab }: { subtab: string }) {
