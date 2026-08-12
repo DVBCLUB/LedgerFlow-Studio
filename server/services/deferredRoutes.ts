@@ -267,6 +267,10 @@ const localToolOpenSchema = z.object({
   tool: z.enum(["vscode", "cursor", "github", "actions"])
 });
 
+function validationError(res: any, error: any) {
+  return res.status(400).json({ success: false, error: error.issues.map((issue: any) => issue.message).join(', ') });
+}
+
 // ==========================================================================
 // HELPER FUNCTIONS (moved from server.ts)
 // ==========================================================================
@@ -462,6 +466,178 @@ export async function registerDeferredRoutes(app: Express): Promise<void> {
       res.status(400).json({ success: false, error: err.message || "Failed to create AI key." });
     }
   });
+
+  // -------------------------
+  // GitHub Integration Routes
+  // -------------------------
+  const githubConnector = await getGitHubConnectorModule();
+  const githubArtifacts = await getGitHubArtifactsModule();
+
+  app.get('/api/integrations/github/summary', async (req, res) => {
+    try {
+      const parsed = z.object({ repo: z.string().optional() }).safeParse(req.query);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const summary = await githubConnector.getGitHubSummary(parsed.data.repo);
+      res.json({ success: true, summary });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to load GitHub summary.' });
+    }
+  });
+
+  app.get('/api/integrations/github/runs/:runId/jobs', async (req, res) => {
+    try {
+      const runId = Number(req.params.runId);
+      if (!Number.isFinite(runId) || runId <= 0) return res.status(400).json({ success: false, error: 'Invalid run id' });
+      const parsed = z.object({ repo: z.string().optional() }).safeParse(req.query);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const result = await githubConnector.getGitHubWorkflowRunJobs(parsed.data.repo, runId);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to load workflow jobs.' });
+    }
+  });
+
+  app.get('/api/integrations/github/runs/:runId/artifacts', async (req, res) => {
+    try {
+      const runId = Number(req.params.runId);
+      if (!Number.isFinite(runId) || runId <= 0) return res.status(400).json({ success: false, error: 'Invalid run id' });
+      const parsed = z.object({ repo: z.string().optional() }).safeParse(req.query);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const result = await githubArtifacts.getGitHubWorkflowRunArtifacts(parsed.data.repo, runId);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to load artifacts.' });
+    }
+  });
+
+  app.get('/api/integrations/github/pulls/:pullNumber/digest', async (req, res) => {
+    try {
+      const pullNumber = Number(req.params.pullNumber);
+      if (!Number.isFinite(pullNumber) || pullNumber <= 0) return res.status(400).json({ success: false, error: 'Invalid pull number' });
+      const parsed = z.object({ repo: z.string().optional() }).safeParse(req.query);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const digest = await githubConnector.getGitHubPullRequestDigest(parsed.data.repo, pullNumber);
+      res.json({ success: true, digest });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to load pull request digest.' });
+    }
+  });
+
+  app.get('/api/integrations/github/prs/:pullNumber/digest', async (req, res) => {
+    try {
+      const pullNumber = Number(req.params.pullNumber);
+      if (!Number.isFinite(pullNumber) || pullNumber <= 0) return res.status(400).json({ success: false, error: 'Invalid pull number' });
+      const parsed = z.object({ repo: z.string().optional() }).safeParse(req.query);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const digest = await githubConnector.getGitHubPullRequestDigest(parsed.data.repo, pullNumber);
+      res.json({ success: true, digest });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to load pull request digest.' });
+    }
+  });
+
+  app.post('/api/integrations/github/issues', async (req, res) => {
+    try {
+      const parsed = githubIssueSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const issue = await githubConnector.createGitHubIssue(parsed.data);
+      res.json({ success: true, issue });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to create issue.' });
+    }
+  });
+
+  app.post('/api/integrations/github/approved-change', async (req, res) => {
+    try {
+      const parsed = githubApprovedChangeSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const result = await githubConnector.createApprovedGitHubChangeRequest(parsed.data);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to create approved change request.' });
+    }
+  });
+
+  app.post('/api/integrations/github/approved-change-request', async (req, res) => {
+    try {
+      const parsed = githubApprovedChangeSchema.safeParse(req.body);
+      if (!parsed.success) return validationError(res, parsed.error);
+      const result = await githubConnector.createApprovedGitHubChangeRequest(parsed.data);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to create approved change request.' });
+    }
+  });
+
+  app.post('/api/integrations/github/pulls/:pullNumber/close', async (req, res) => {
+    try {
+      const pullNumberParam = Number(req.params.pullNumber);
+      const parsedBody = githubClosePullRequestSchema.safeParse(req.body);
+      if (!parsedBody.success) return validationError(res, parsedBody.error);
+      const pullNumber = Number.isFinite(pullNumberParam) && pullNumberParam > 0 ? pullNumberParam : (req.body.pullNumber ? Number(req.body.pullNumber) : null);
+      if (!pullNumber) return res.status(400).json({ success: false, error: 'Pull number required' });
+      const input = { ...parsedBody.data, pullNumber } as any;
+      const result = await githubConnector.requestCloseGitHubPullRequest(input);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to request PR close.' });
+    }
+  });
+
+  app.post('/api/integrations/github/pulls/:pullNumber/request-close', async (req, res) => {
+    try {
+      const pullNumberParam = Number(req.params.pullNumber);
+      const parsedBody = githubClosePullRequestSchema.safeParse(req.body);
+      if (!parsedBody.success) return validationError(res, parsedBody.error);
+      const pullNumber = Number.isFinite(pullNumberParam) && pullNumberParam > 0 ? pullNumberParam : (req.body.pullNumber ? Number(req.body.pullNumber) : null);
+      if (!pullNumber) return res.status(400).json({ success: false, error: 'Pull number required' });
+      const input = { ...parsedBody.data, pullNumber } as any;
+      const result = await githubConnector.requestCloseGitHubPullRequest(input);
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to request PR close.' });
+    }
+  });
+
+  // Local git helpers
+  app.get('/api/integrations/github/git/status', async (_req, res) => {
+    try {
+      const status = await githubConnector.getGitLocalStatus();
+      res.json({ success: true, status });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to get local git status.' });
+    }
+  });
+
+  app.get('/api/integrations/git/status', async (_req, res) => {
+    try {
+      const status = await githubConnector.getGitLocalStatus();
+      res.json({ success: true, status });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Failed to get local git status.' });
+    }
+  });
+
+  app.post('/api/integrations/github/git/pull', async (_req, res) => {
+    try {
+      const result = await githubConnector.gitPullLocal();
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Git pull failed.' });
+    }
+  });
+
+
+
+  app.post('/api/integrations/git/push', async (_req, res) => {
+    try {
+      const result = await githubConnector.gitPushLocal();
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Git push failed.' });
+    }
+  });
+
   
   // More AI routes can be added here...
   

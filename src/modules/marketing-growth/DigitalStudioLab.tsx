@@ -4,9 +4,10 @@ import AIContentVideoLab from './components/AIContentVideoLab';
 import ContentRepurposeBoard from './components/ContentRepurposeBoard';
 import VideoMakerPanel from '../video-maker/ui/index';
 import AIVideoFactoryPanel from '../sales-crm/components/AIVideoFactoryPanel';
+import AutonomousMediaFactoryPanel from './AutonomousMediaFactoryPanel';
 
 export default function DigitalStudioLab() {
-  const [activeTab, setActiveTab] = useState<'video' | 'ai_video' | 'repurpose'>('video');
+  const [activeTab, setActiveTab] = useState<'video' | 'ai_video' | 'autonomous_media' | 'repurpose'>('video');
 
   return (
     <div className="flex flex-col h-full space-y-6 text-left select-none animate-fade-in">
@@ -36,6 +37,14 @@ export default function DigitalStudioLab() {
             <Wand2 className="w-3.5 h-3.5" /> AI Video Factory
           </button>
           <button
+            onClick={() => setActiveTab('autonomous_media')}
+            className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+              activeTab === 'autonomous_media' ? 'bg-fuchsia-600 text-white shadow-[0_0_15px_rgba(192,38,211,0.5)]' : 'bg-slate-900/80 border border-white/10 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Media Factory
+          </button>
+          <button
             onClick={() => setActiveTab('repurpose')}
             className={`flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black transition-all cursor-pointer ${
               activeTab === 'repurpose' ? 'bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-slate-900/80 border border-white/10 text-slate-400 hover:text-white'
@@ -56,6 +65,11 @@ export default function DigitalStudioLab() {
         {activeTab === 'ai_video' && (
           <div className="p-6">
             <AIVideoFactoryPanel />
+          </div>
+        )}
+        {activeTab === 'autonomous_media' && (
+          <div className="p-6">
+            <AutonomousMediaFactoryPanel />
           </div>
         )}
         {activeTab === 'repurpose' && (

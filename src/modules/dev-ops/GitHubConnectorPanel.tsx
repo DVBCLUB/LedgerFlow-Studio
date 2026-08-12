@@ -140,8 +140,8 @@ export default function GitHubConnectorPanel({ repoUrl, onChanged }: GitHubConne
     <section className="rounded-3xl border border-border-primary bg-slate-950/80 p-5 shadow-xl shadow-slate-950/30">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-border-secondary bg-bg-primary px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-text-secondary">
-            <Github className="h-4 w-4" /> GitHub Connector v1
+            <div className="inline-flex items-center gap-2 rounded-full border border-border-secondary bg-bg-primary px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-text-secondary">
+            <Github className="h-4 w-4" /> GitHub — Native Connector
           </div>
           <h2 className="mt-3 text-xl font-black text-text-primary">Điều phối repo, CI, issue và PR</h2>
           <p className="mt-2 max-w-3xl text-xs font-semibold leading-6 text-text-secondary">

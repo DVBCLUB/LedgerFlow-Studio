@@ -180,6 +180,19 @@ export function assessMCPToolHealth(manifest: MCPToolManifest, signals: MCPToolR
     reasons.push('Connector credential scope requires explicit configuration.');
   }
 
+  // Check GitHub token presence for GitHub-related connector tools to reflect runtime health
+  try {
+    if (manifest.execution === 'connector' && manifest.id.toLowerCase().includes('github')) {
+      const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
+      if (!hasToken) {
+        score -= 30;
+        reasons.push('Missing GitHub token (GITHUB_TOKEN or GH_TOKEN). Configure in server env or Vault.');
+      }
+    }
+  } catch (e) {
+    // ignore env access errors
+  }
+
   score = Math.max(0, Math.min(100, score));
   const health: MCPManifestHealth = manifest.risk === 'blocked' || score < 45 ? 'blocked' : score < 75 ? 'degraded' : 'healthy';
   return { toolId: manifest.id, health, score, lastRunAt, failures, averageLatencyMs, reasons };

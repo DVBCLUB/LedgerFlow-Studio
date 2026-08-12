@@ -231,6 +231,51 @@ export async function createGitHubConnectorIssue(input: {
   return data.issue;
 }
 
+export async function createGitHubApprovedChangeRequest(input: {
+  repo?: string;
+  title: string;
+  summary: string;
+  files: { path: string; content: string }[];
+  approvalPhrase: string;
+  baseBranch?: string;
+  branchName?: string;
+  draft?: boolean;
+}): Promise<{ repo: string; branch: string; base: string; commitMessages: string[]; pullRequest: { number: number; title: string; state: string; htmlUrl: string; branch: string; base: string; draft: boolean } }> {
+  const data = await readJson<{ success: true; result: any }>(
+    await fetch('/api/integrations/github/approved-change-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  );
+  return data.result;
+}
+
+export async function closeGitHubPullRequest(input: {
+  repo?: string;
+  pullNumber: number;
+  reason: string;
+  rollbackNote: string;
+  approvalPhrase: string;
+}): Promise<{ repo: string; pullRequest: GitHubPullRequestSummary; closedAt: string; reason: string; rollbackNote: string }> {
+  const data = await readJson<{ success: true; result: any }>(
+    await fetch(`/api/integrations/github/pulls/${encodeURIComponent(String(input.pullNumber))}/request-close`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    }),
+  );
+  return data.result;
+}
+
+export async function fetchGitHubPullRequestDigest(repo: string | undefined, pullNumber: number): Promise<GitHubPullRequestDigest> {
+  const query = repo ? `?repo=${encodeURIComponent(repo)}` : '';
+  const data = await readJson<{ success: true; digest: GitHubPullRequestDigest }>(
+    await fetch(`/api/integrations/github/pulls/${encodeURIComponent(String(pullNumber))}/digest${query}`),
+  );
+  return data.digest;
+}
+
 export async function fetchLocalToolSummary(): Promise<LocalToolSummary> {
   const data = await readJson<{ success: true; summary: LocalToolSummary }>(await fetch('/api/integrations/local-tools/summary'));
   return data.summary;

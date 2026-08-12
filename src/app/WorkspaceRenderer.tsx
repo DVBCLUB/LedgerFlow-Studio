@@ -114,6 +114,20 @@ const AIWorkforcePatchReviewSessions = React.lazy(() => import('../modules/ai-nh
 const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionOperatorRunbookPanel'));
 const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReleaseGatePanel'));
 const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionSnapshotExportPanel'));
+const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
+const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMobileCommandCenter'));
+const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
+const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
+const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesHealthPanel'));
+const Level6RobotSynthesizerPanel = React.lazy(() => import('../modules/ai-nhan-su/Level6RobotSynthesizerPanel'));
+const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReviewNoteSavePanel'));
+const MultiPlatformRobotSwarmPanel = React.lazy(() => import('../modules/ai-nhan-su/MultiPlatformRobotSwarmPanel'));
+const OpenClawWebRobotPanel = React.lazy(() => import('../modules/ai-nhan-su/OpenClawWebRobotPanel').then((module) => ({ default: module.OpenClawWebRobotPanel })));
+const RobotFleetAnalyticsPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotFleetAnalyticsPanel'));
+const RobotLabPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotLabPanel'));
+const WorldClassReadinessPanel = React.lazy(() => import('../modules/ai-nhan-su/WorldClassReadinessPanel').then((module) => ({ default: module.WorldClassReadinessPanel })));
+const SystemStatusPage = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/SystemStatusPage'));
+const WebAISchedulerPanel = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/WebAISchedulerPanel').then((module) => ({ default: module.WebAISchedulerPanel })));
 const KnowledgeBaseTab = React.lazy(() => import('../modules/knowledge-library/KnowledgeBaseTab'));
 
 const WebAccountingRoadmap = React.lazy(() => import('../modules/product-studio/WebAccountingRoadmap'));
@@ -437,7 +451,7 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
 
 
 function AIWorkforceAdvancedWorkspace() {
-  const [activeGroup, setActiveGroup] = useState<'tasks' | 'release' | 'robot' | 'patch'>('tasks');
+  const [activeGroup, setActiveGroup] = useState<'tasks' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
 
   return (
     <div className="space-y-5">
@@ -490,13 +504,27 @@ function AIWorkforceAdvancedWorkspace() {
         >
           <span>🔍 Audit & Patch Log</span>
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('health')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'health'
+              ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>Health & Readiness</span>
+        </button>
       </div>
-
       {/* Active Panel Group Content */}
       {activeGroup === 'tasks' && (
         <div className="space-y-5 animate-fade-in">
           <AIWorkforceTaskBoard />
           <ModelDispatchMatrix />
+          <AIWorkforceMissionTemplates />
+          <AIWorkforceToolCatalog />
+          <AIWorkforceNextBackendActions />
+          <AIWorkforceMobileCommandCenter />
         </div>
       )}
 
@@ -505,6 +533,7 @@ function AIWorkforceAdvancedWorkspace() {
           <MissionReleaseGatePanel />
           <MissionOperatorRunbookPanel />
           <MissionSnapshotExportPanel />
+          <MissionReviewNoteSavePanel />
         </div>
       )}
 
@@ -513,6 +542,11 @@ function AIWorkforceAdvancedWorkspace() {
           <AIWorkforceSkillDirectory />
           <AIWorkforceOpenClawReadiness />
           <AIWorkforceRobotAutomationBridge />
+          <Level6RobotSynthesizerPanel />
+          <MultiPlatformRobotSwarmPanel />
+          <RobotFleetAnalyticsPanel />
+          <RobotLabPanel />
+          <OpenClawWebRobotPanel />
         </div>
       )}
 
@@ -521,13 +555,22 @@ function AIWorkforceAdvancedWorkspace() {
           <AIWorkforcePatchReviewSessions />
         </div>
       )}
+
+      {activeGroup === 'health' && (
+        <div className="space-y-5 animate-fade-in">
+          <WorldClassReadinessPanel />
+          <AutomationRulesHealthPanel />
+          <SystemStatusPage />
+          <WebAISchedulerPanel />
+        </div>
+      )}
     </div>
   );
 }
 
 function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'builder') return <AgentAssemblyBuilder />;
-  if (subtab === 'automation') return <AutomationRulesPanel />;
+  if (subtab === 'automation') return <div className="space-y-5"><AutomationRulesPanel /><AutomationRulesHealthPanel /></div>;
   if (subtab === 'governance') return <AICommandCenter />;
   if (subtab === 'release') return <AIOperationsDaemonPanel />;
   if (subtab === 'advanced') return <AIWorkforceAdvancedWorkspace />;

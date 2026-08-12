@@ -7,12 +7,12 @@ export default function IntegrationHub() {
       <SimplePanelCard
         eyebrow="Tích hợp"
         title="Kết nối đang dùng"
-        description="Tập trung vào các kết nối thật sự cần cho một người dùng: GitHub/Replit để sửa code, local tools để chạy app, AI key để hỗ trợ."
+        description="Tập trung vào các kết nối thật sự cần cho một người dùng: GitHub (native connector) / Replit để sửa code, local tools để chạy app, AI key để hỗ trợ."
         icon={Plug2}
         status="Tối giản"
         tone="cyan"
         items={[
-          'GitHub: lưu code và review diff',
+          'GitHub (native connector): lưu code, review diff, CI, PR control',
           'Replit/local: chạy preview và xem terminal',
           'AI Provider: cấu hình trong AI Gateway khi cần',
           'Không dàn toàn bộ connector thí nghiệm ra màn hình chính',

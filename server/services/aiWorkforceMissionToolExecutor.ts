@@ -210,6 +210,56 @@ export async function executeMissionStepToolConnector(queue: MissionExecutionQue
       const payload = ((step as any).payload || {}) as Record<string, unknown>;
       const res = await gitPullLocal();
       evidenceStr = `Pulled successfully. Log: ${res.log.slice(0, 100)}`;
+    } else if (adapterToolId === 'github_create_issue') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const issue = await (async () => {
+        const title = (payload.title as string) || `AI Issue: ${step.title}`;
+        const body = (payload.body as string) || `Created by AI Workforce step ${step.id}`;
+        const labels = Array.isArray(payload.labels) ? (payload.labels as string[]) : undefined;
+        return await createGitHubIssue({ title, body, labels });
+      })();
+      evidenceStr = `Created issue #${issue.number}: ${issue.title}`;
+    } else if (adapterToolId === 'github_get_summary') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const repo = (payload.repo as string) || undefined;
+      const summary = await (async () => {
+        return await (await import('./githubConnector')).getGitHubSummary(repo);
+      })();
+      evidenceStr = `Read repo summary: ${summary.repository?.fullName || summary.repo}`;
+    } else if (adapterToolId === 'github_get_run_jobs') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const runId = Number(payload.runId || payload.run || 0);
+      const repo = (payload.repo as string) || undefined;
+      const jobs = await (async () => {
+        return await (await import('./githubConnector')).getGitHubWorkflowRunJobs(repo, runId);
+      })();
+      evidenceStr = `Loaded jobs for run ${jobs.runId}, failures: ${jobs.failedJobs.length}`;
+    } else if (adapterToolId === 'github_get_pr_digest') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const prNumber = Number(payload.prNumber || payload.pullNumber || 0);
+      const repo = (payload.repo as string) || undefined;
+      const digest = await (async () => {
+        return await (await import('./githubConnector')).getGitHubPullRequestDigest(repo, prNumber);
+      })();
+      evidenceStr = `PR #${digest.pullRequest.number} digest: ${digest.safety.reviewNotes.slice(0, 3).join('; ')}`;
+    } else if (adapterToolId === 'github_get_artifacts') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const runId = Number(payload.runId || payload.run || 0);
+      const repo = (payload.repo as string) || undefined;
+      const artifacts = await (async () => {
+        return await (await import('./githubArtifacts')).getGitHubWorkflowRunArtifacts(repo, runId);
+      })();
+      evidenceStr = `Found ${artifacts.artifacts.length} artifacts for run ${artifacts.runId}`;
+    } else if (adapterToolId === 'github_close_pr') {
+      const payload = ((step as any).payload || {}) as Record<string, unknown>;
+      const prNumber = Number(payload.pullNumber || payload.prNumber || 0);
+      const repo = (payload.repo as string) || undefined;
+      const reason = (payload.reason as string) || 'Closed by AI Workforce';
+      const rollbackNote = (payload.rollbackNote as string) || 'Rollback note not provided';
+      const res = await (async () => {
+        return await (await import('./githubConnector')).requestCloseGitHubPullRequest({ repo, pullNumber: prNumber, reason, rollbackNote, approvalPhrase: 'APPROVE AI GITHUB CLOSE' });
+      })();
+      evidenceStr = `Closed PR #${res.pullRequest.number}`;
     } else {
       throw new Error(`Connector for tool ${adapterToolId} is not implemented.`);
     }

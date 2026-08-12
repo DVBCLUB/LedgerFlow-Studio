@@ -127,6 +127,18 @@ export function createAgentToolExecutionPreview(input: AgentToolExecutionInput):
   const tool = getAgentToolContract(input.toolId);
   if (!tool || tool.risk === 'blocked') throw new Error('Tool is not registered or is blocked.');
   if (input.executionMode !== 'simulation' && input.executionMode !== 'connector') throw new Error('Only simulation or connector execution is enabled in this release.');
+
+  // Credential pre-checks for connector tools that require external tokens (GitHub)
+  try {
+    if (tool.execution === 'connector' && (tool.permission.startsWith('github') || tool.id.toLowerCase().includes('github'))) {
+      const hasToken = Boolean(process.env.GITHUB_TOKEN || process.env.GH_TOKEN);
+      if (!hasToken) {
+        throw new Error('GitHub token is not configured on server. Set GITHUB_TOKEN or GH_TOKEN in environment or configure credentials in Integration Hub.');
+      }
+    }
+  } catch (e) {
+    throw e;
+  }
   const id = `tool_preview_${Date.now()}_${randomBytes(6).toString('hex')}`;
   const safetyPlan = buildSafetyPlan(input, tool, id);
   const safetyDecision = validateAutomationSafetyEnvelope(safetyPlan);
