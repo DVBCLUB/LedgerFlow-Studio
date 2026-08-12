@@ -31,8 +31,11 @@ for (const relativePath of requiredFiles) {
 const renderer = fs.existsSync(rendererPath) ? fs.readFileSync(rendererPath, 'utf8') : '';
 const navigation = fs.existsSync(navigationPath) ? fs.readFileSync(navigationPath, 'utf8') : '';
 const registry = fs.existsSync(registryPath) ? fs.readFileSync(registryPath, 'utf8') : '';
+const registeredFeatures = [...registry.matchAll(/\{\s*id:\s*'([^']+)'[\s\S]*?component:\s*'([^']+)'[\s\S]*?status:\s*'(active|internal|planned)'[\s\S]*?source:\s*'([^']+)'[\s\S]*?\}/g)]
+  .map((match) => ({ id: match[1], component: match[2], status: match[3], source: match[4] }));
 
 if (!registry) failures.push('Feature Registry is missing: src/app/featureRegistry.ts');
+if (!registeredFeatures.length) failures.push('Feature Registry has no parseable registrations.');
 
 for (const panel of restoredPanels) {
   if (!renderer.includes(panel)) failures.push(`Restored panel is not wired into WorkspaceRenderer: ${panel}`);
@@ -45,8 +48,18 @@ for (const workspace of ['ai_factory', 'marketing_growth', 'analytics', 'product
 if (!renderer.includes('FounderLabsDock')) failures.push('FounderLabsDock is not reachable from the workspace renderer.');
 if (!renderer.includes('Skeleton')) failures.push('Workspace lazy-loading fallback does not use the shared Skeleton component.');
 
-for (const component of [...registry.matchAll(/component:\s*'([^']+)'/g)].map((match) => match[1]).filter((name) => !name.includes('*'))) {
-  if (!renderer.includes(component)) failures.push(`Active registry component is not referenced by WorkspaceRenderer: ${component}`);
+const duplicateIds = registeredFeatures.filter((feature, index) => registeredFeatures.findIndex((candidate) => candidate.id === feature.id) !== index);
+for (const feature of duplicateIds) failures.push(`Feature Registry has duplicate id: ${feature.id}`);
+
+for (const feature of registeredFeatures) {
+  if (!feature.source.includes('*') && !fs.existsSync(path.join(root, feature.source.replaceAll('/', path.sep)))) {
+    failures.push(`Feature Registry source file is missing: ${feature.source}`);
+  }
+  if (feature.status === 'active' && !feature.component.includes('*')) {
+    const isLazyLoaded = renderer.includes(`const ${feature.component} = React.lazy(`);
+    const isRendered = renderer.includes(`<${feature.component}`);
+    if (!isLazyLoaded || !isRendered) failures.push(`Active registry component is not fully wired into WorkspaceRenderer: ${feature.component}`);
+  }
 }
 
 if (failures.length) {
