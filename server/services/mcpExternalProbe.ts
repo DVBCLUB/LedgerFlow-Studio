@@ -65,7 +65,7 @@ export async function probeExternalMCPHttpServer(endpoint: string, options: MCPE
       }, controller.signal, normalizedOptions.authorization);
       const tools = Array.isArray(listed.tools) ? listed.tools
         .filter((tool: unknown): tool is { name: string; description?: string } => Boolean(tool && typeof tool === 'object' && typeof (tool as any).name === 'string'))
-        .map((tool) => ({ name: tool.name, description: tool.description })) : [];
+        .map((tool: { name: string; description?: string }) => ({ name: tool.name, description: tool.description })) : [];
       return { ok: true, endpoint: parsedEndpoint.toString(), protocolVersion: initialized.protocolVersion, serverInfo: initialized.serverInfo, tools, latencyMs: Date.now() - startedAt };
     } finally {
       clearTimeout(timer);

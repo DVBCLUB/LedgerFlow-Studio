@@ -180,11 +180,10 @@ export async function executeSoftwareRobotWorkflow(
       let evidence = `Action ${action.name} executed cleanly.`;
 
       if (action.type === 'rpa_script') {
-        const rpaActions: RPAAction[] = Array.isArray(action.payload.rpaActions)
-          ? (action.payload.rpaActions as RPAAction[])
-          : [{ id: `act_${action.id}`, type: 'wait', durationMs: 100 }];
-        const rpaResult = await executeScript(action.name, rpaActions);
-        evidence = `RPA script executed: ${rpaResult.completedActions}/${rpaResult.totalActions} steps passed.`;
+        const rpaScriptId = typeof action.payload.scriptId === 'string' ? action.payload.scriptId : action.name;
+        const rpaResult = await executeScript(rpaScriptId);
+        const completedActions = rpaResult.results.filter((result) => result.status === 'completed').length;
+        evidence = `RPA script executed: ${completedActions}/${rpaResult.results.length} steps passed.`;
       } else if (action.type === 'browser_scrape' || action.type === 'browser_form_fill') {
         evidence = `Browser automation checkpoint captured for URL ${action.payload.url || 'local'}.`;
       } else if (action.type === 'office_file_process') {

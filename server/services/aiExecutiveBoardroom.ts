@@ -64,7 +64,7 @@ export async function conductExecutiveBoardroomSession(topic = 'Q3 Software Comp
   const startedAt = new Date().toISOString();
 
   // 1. Fetch current business digital twin simulation snapshot
-  const digitalTwin = runBusinessDigitalTwinSimulation({
+  const digitalTwin = await runBusinessDigitalTwinSimulation({
     iterations: 500,
     timeframeDays: 60,
     currentCashUSD: 150_000,
@@ -79,9 +79,8 @@ export async function conductExecutiveBoardroomSession(topic = 'Q3 Software Comp
       topic,
       domain: 'general',
       agentRoles: BOARD_MEMBERS.map((m) => m.name),
-      maxRounds: 2,
     });
-    debateSummary = debate.consensusSummary || debateSummary;
+    debateSummary = debate.rounds.at(-1)?.summary || debateSummary;
   } catch {
     debateSummary = 'Executive Boardroom debate conducted via offline consensus rules.';
   }

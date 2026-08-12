@@ -24,7 +24,7 @@ export interface OSTelemetrySnapshot {
     heapTotal: number;
     heapUsed: number;
   };
-  circuitBreakerHealth: Record<string, { state: string; failureCount: number }>;
+  circuitBreakerHealth: Record<string, { state: string; failures: number; openedAt?: number; lastFailureAt: number }>;
   backgroundLoopJobs: {
     running: number;
     queued: number;

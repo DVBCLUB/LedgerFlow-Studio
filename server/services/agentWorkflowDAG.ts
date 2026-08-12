@@ -305,7 +305,7 @@ export async function advanceDAGWorkflow(workflowId: string): Promise<DAGWorkflo
   // Re-check terminal condition
   const updatedValues = Object.values(wf.nodes);
   const allDone = updatedValues.every((n) => ['completed', 'skipped', 'failed'].includes(n.status));
-  if (allDone && wf.status !== 'stopped') {
+  if (allDone) {
     const anyFailed = updatedValues.some((n) => n.status === 'failed');
     wf.status = anyFailed ? 'failed' : 'completed';
     wf.completedAt = new Date().toISOString();

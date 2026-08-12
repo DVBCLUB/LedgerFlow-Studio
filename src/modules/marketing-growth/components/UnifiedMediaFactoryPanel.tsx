@@ -115,7 +115,7 @@ export default function UnifiedMediaFactoryPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-purple-950/40 text-purple-300 border-purple-500/30 text-xs">
+          <Badge variant="default" className="bg-purple-950/40 text-purple-300 border-purple-500/30 text-xs">
             🤖 AI Voice + Motion Engine Ready
           </Badge>
         </div>

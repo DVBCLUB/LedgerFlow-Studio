@@ -47,7 +47,7 @@ export default function OutboundBattleCardsPanel() {
   const [error, setError] = useState('');
 
   const prompt = useMemo(
-    () => AI_OUTBOUND_MESSAGE_PROMPT({ persona, pain, currentTool, proofAsset, cta }),
+    () => AI_OUTBOUND_MESSAGE_PROMPT.replace('{{persona}}', persona).replace('{{pain}}', pain).replace('{{currentTool}}', currentTool).replace('{{proofAsset}}', proofAsset).replace('{{cta}}', cta),
     [persona, pain, currentTool, proofAsset, cta]
   );
 
@@ -107,13 +107,13 @@ export default function OutboundBattleCardsPanel() {
               </div>
             </div>
             <div className="mt-4 space-y-3 text-sm font-semibold leading-6 text-text-secondary">
-              <p><span className="font-black text-emerald-300">Mạnh:</span> {card.theirStrength}</p>
-              <p><span className="font-black text-amber-300">Điểm yếu:</span> {card.weakSpot}</p>
-              <p><span className="font-black text-indigo-300">Góc LedgerFlow:</span> {card.ledgerFlowAngle}</p>
+              <p><span className="font-black text-emerald-300">Thông điệp:</span> {card.talkTrack}</p>
+              <p><span className="font-black text-amber-300">Điểm yếu:</span> {card.weakness}</p>
+              <p><span className="font-black text-indigo-300">Góc LedgerFlow:</span> {card.ourAdvantage}</p>
             </div>
             <div className="mt-4 rounded-2xl border border-border-primary bg-bg-primary/40 p-3">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-tertiary">Message hook</p>
-              <p className="mt-1 text-sm font-bold leading-6 text-slate-200">{card.messageHook}</p>
+              <p className="mt-1 text-sm font-bold leading-6 text-slate-200">{card.talkTrack}</p>
             </div>
           </article>
         ))}
@@ -145,7 +145,7 @@ export default function OutboundBattleCardsPanel() {
                   }}
                   className="mt-2 w-full rounded-xl border border-border-primary bg-slate-950 p-3 text-sm font-bold text-text-primary outline-none focus:border-indigo-400"
                 />
-                <p className="mt-2 text-xs font-semibold leading-5 text-text-tertiary">{variable.guidance}</p>
+                <p className="mt-2 text-xs font-semibold leading-5 text-text-tertiary">{variable.placeholder}</p>
               </label>
             ))}
           </div>

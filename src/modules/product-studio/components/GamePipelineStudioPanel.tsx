@@ -85,7 +85,7 @@ export default function GamePipelineStudioPanel() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="bg-cyan-950/40 text-cyan-300 border-cyan-500/30 text-xs">
+          <Badge variant="default" className="bg-cyan-950/40 text-cyan-300 border-cyan-500/30 text-xs">
             🎮 2 Tựa Game Live on Steam & Stores
           </Badge>
         </div>

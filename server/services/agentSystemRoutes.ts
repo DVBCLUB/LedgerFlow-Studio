@@ -10,6 +10,7 @@
  */
 import type { Express, Request, Response } from 'express';
 import { z } from 'zod';
+const routeParam = (value: string | string[]) => Array.isArray(value) ? value[0] ?? '' : value;
 import {
   enqueueAgentLoopJob,
   getAgentLoopJobStatus,
@@ -171,7 +172,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get the status of a specific agent loop job.
    */
   app.get('/api/agent/loop/job/:id', (req: Request, res: Response) => {
-    const status = getAgentLoopJobStatus(req.params.id);
+    const status = getAgentLoopJobStatus(routeParam(req.params.id));
     if (!status) {
       return res.status(404).json({ success: false, error: 'Job not found or not an agent_loop job.' });
     }
@@ -196,7 +197,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Retry a failed or dead-letter agent loop job.
    */
   app.post('/api/agent/loop/job/:id/retry', (req: Request, res: Response) => {
-    const ok = retryJob(req.params.id);
+    const ok = retryJob(routeParam(req.params.id));
     if (!ok) return res.status(404).json({ success: false, error: 'Job not found.' });
     res.json({ success: true, message: 'Job re-queued.' });
   });
@@ -206,7 +207,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Purge (delete) a job from the queue.
    */
   app.delete('/api/agent/loop/job/:id', (req: Request, res: Response) => {
-    const ok = purgeJob(req.params.id);
+    const ok = purgeJob(routeParam(req.params.id));
     if (!ok) return res.status(404).json({ success: false, error: 'Job not found.' });
     res.json({ success: true });
   });
@@ -269,7 +270,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    */
   app.get('/api/agent/performance/:role', (req: Request, res: Response) => {
     const domain = req.query.domain as string | undefined;
-    const records = getAgentPerformanceStats(req.params.role, domain);
+    const records = getAgentPerformanceStats(routeParam(req.params.role), domain);
     res.json({ success: true, records });
   });
 
@@ -327,7 +328,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get status of an auto-repair session.
    */
   app.get('/api/agent/auto-repair/session/:id', (req: Request, res: Response) => {
-    const session = getAutoRepairSession(req.params.id);
+    const session = getAutoRepairSession(routeParam(req.params.id));
     if (!session) return res.status(404).json({ success: false, error: 'Auto-repair session not found.' });
     res.json({ success: true, session });
   });
@@ -435,7 +436,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get simulation result by ID.
    */
   app.get('/api/simulation/digital-twin/session/:id', (req: Request, res: Response) => {
-    const sim = getDigitalTwinSimulation(req.params.id);
+    const sim = getDigitalTwinSimulation(routeParam(req.params.id));
     if (!sim) return res.status(404).json({ success: false, error: 'Simulation result not found.' });
     res.json({ success: true, simulation: sim });
   });
@@ -488,7 +489,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get status and visual checkpoints of a software robot workflow.
    */
   app.get('/api/robot/software/workflow/:id', (req: Request, res: Response) => {
-    const workflow = getSoftwareRobotWorkflow(req.params.id);
+    const workflow = getSoftwareRobotWorkflow(routeParam(req.params.id));
     if (!workflow) return res.status(404).json({ success: false, error: 'Software robot workflow not found.' });
     res.json({ success: true, workflow });
   });
@@ -577,7 +578,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get details of a published release package.
    */
   app.get('/api/release/handoff/package/:id', (req: Request, res: Response) => {
-    const pkg = getReleaseHandoffPackage(req.params.id);
+    const pkg = getReleaseHandoffPackage(routeParam(req.params.id));
     if (!pkg) return res.status(404).json({ success: false, error: 'Release package not found.' });
     res.json({ success: true, releasePackage: pkg });
   });
@@ -623,7 +624,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get status of a swarm execution.
    */
   app.get('/api/agent/swarm/execution/:id', (req: Request, res: Response) => {
-    const swarm = getSwarmExecution(req.params.id);
+    const swarm = getSwarmExecution(routeParam(req.params.id));
     if (!swarm) return res.status(404).json({ success: false, error: 'Swarm execution not found.' });
     res.json({ success: true, swarm });
   });
@@ -666,7 +667,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get details of a synthetic feedback report.
    */
   app.get('/api/simulation/synthetic-feedback/report/:id', (req: Request, res: Response) => {
-    const report = getSyntheticFeedbackReport(req.params.id);
+    const report = getSyntheticFeedbackReport(routeParam(req.params.id));
     if (!report) return res.status(404).json({ success: false, error: 'Feedback report not found.' });
     res.json({ success: true, report });
   });
@@ -986,7 +987,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get specific Boardroom session minutes & resolution details.
    */
   app.get('/api/simulation/boardroom/session/:id', (req: Request, res: Response) => {
-    const session = getExecutiveBoardroomSession(req.params.id);
+    const session = getExecutiveBoardroomSession(routeParam(req.params.id));
     if (!session) {
       return res.status(404).json({ success: false, error: 'Session not found' });
     }
@@ -1092,7 +1093,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    * Get specific multi-platform RPA mission details.
    */
   app.get('/api/robot/multi-platform/mission/:id', (req: Request, res: Response) => {
-    const mission = getMultiPlatformRobotMission(req.params.id);
+    const mission = getMultiPlatformRobotMission(routeParam(req.params.id));
     if (!mission) {
       return res.status(404).json({ success: false, error: 'Mission not found' });
     }
@@ -1191,7 +1192,7 @@ export function registerAgentSystemRoutes(app: Express): void {
    */
   app.post('/api/robot/cron/trigger/:id', async (req: Request, res: Response) => {
     try {
-      const mission = await triggerRobotCronJobNow(req.params.id);
+      const mission = await triggerRobotCronJobNow(routeParam(req.params.id));
       res.json({ success: true, mission });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message });

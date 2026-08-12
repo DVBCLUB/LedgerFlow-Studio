@@ -64,7 +64,7 @@ export async function generateGroundedResponse(
   const sources: GroundingSource[] = [];
 
   try {
-    const res = await callAI(messages, { model: 'gemini' });
+    const res = await callAI(messages, { model: 'ai-assistant' });
     rawAnswer = (res.content || res.text || '').trim();
     modelUsed = res.modelUsed || modelUsed;
   } catch (err: any) {

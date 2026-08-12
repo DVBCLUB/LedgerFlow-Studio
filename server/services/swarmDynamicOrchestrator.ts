@@ -156,8 +156,8 @@ export async function dispatchAgentSwarm(options: DispatchSwarmOptions): Promise
     let activeRole = node.assignedRole;
     try {
       const best = getBestAgentForDomain(domain, [node.assignedRole, 'general', 'code']);
-      if (best.bestAgent && best.bestAgent !== activeRole) {
-        activeRole = best.bestAgent;
+      if (best.agent && best.agent !== activeRole) {
+        activeRole = best.agent;
       }
     } catch {
       // Keep assigned

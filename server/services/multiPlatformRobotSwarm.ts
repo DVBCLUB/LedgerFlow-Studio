@@ -73,8 +73,8 @@ export async function dispatchMultiPlatformRobotMission(input: {
   // Execute desktop software robot workflow for verification
   try {
     executeSoftwareRobotWorkflow({
-      workflowName: `Cross-Platform Workflow: ${input.title}`,
-      actions: [{ id: 'act_1', type: 'inspect', payload: { target: 'windows://system/runtime-check' } }],
+      name: `Cross-Platform Workflow: ${input.title}`,
+      actions: [{ id: 'act_1', type: 'browser_scrape', name: 'Inspect runtime checkpoint', payload: { target: 'windows://system/runtime-check' } }],
     });
   } catch {
     // Graceful fallback for simulator

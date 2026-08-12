@@ -65,6 +65,8 @@ const StrategicLabsMini = React.lazy(() => import('../modules/analytics-models-s
 const OperatingKnowledgeLayerPanel = React.lazy(() => import('../components/operating-knowledge/OperatingKnowledgePanels').then((module) => ({ default: module.OperatingKnowledgeLayerPanel })));
 const FounderLabsDock = React.lazy(() => import('../components/shared/FounderLabsDock'));
 const SystemSettingsPanel = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
+const FeatureRegistryPanel = React.lazy(() => import('../modules/system-settings/FeatureRegistryPanel'));
+const SoftwareFactoryCatalogPanel = React.lazy(() => import('../modules/ai-nhan-su/SoftwareFactoryCatalogPanel'));
 const IntegrationHub = React.lazy(() => import('../modules/dev-ops/IntegrationHub'));
 const BuildMonitorPanel = React.lazy(() => import('../modules/dev-ops/BuildMonitorPanel'));
 const MergeReadinessCenter = React.lazy(() => import('../modules/dev-ops/MergeReadinessCenter'));
@@ -455,7 +457,7 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
 
 
 function AIWorkforceAdvancedWorkspace() {
-  const [activeGroup, setActiveGroup] = useState<'tasks' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
+  const [activeGroup, setActiveGroup] = useState<'tasks' | 'factory' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
 
   return (
     <div className="space-y-5">
@@ -471,6 +473,18 @@ function AIWorkforceAdvancedWorkspace() {
           }`}
         >
           <span>📋 Nhiệm vụ & Routing</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveGroup('factory')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'factory'
+              ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>Software Factory</span>
         </button>
 
         <button
@@ -538,6 +552,12 @@ function AIWorkforceAdvancedWorkspace() {
           <MissionOperatorRunbookPanel />
           <MissionSnapshotExportPanel />
           <MissionReviewNoteSavePanel />
+        </div>
+      )}
+
+      {activeGroup === 'factory' && (
+        <div className="space-y-5 animate-fade-in">
+          <SoftwareFactoryCatalogPanel />
         </div>
       )}
 
@@ -946,6 +966,7 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
       <SystemSettingsPanel />
       <AIIntegrationHealthPanel />
       <ApiConnectionHealthMatrix />
+      <FeatureRegistryPanel />
     </div>
   );
 }

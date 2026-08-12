@@ -19,5 +19,7 @@ export const FEATURE_REGISTRY: readonly FeatureRegistration[] = [
   { id: 'synthetic-market', workspace: 'marketing_growth', surface: 'campaigns', component: 'SyntheticMarketSimulatorPanel', status: 'active', source: 'src/modules/marketing-growth/SyntheticMarketSimulatorPanel.tsx' },
   { id: 'project-memory', workspace: 'analytics', surface: 'dashboard', component: 'ProjectMemoryDecisionLog', status: 'active', source: 'src/modules/analytics-models-sandbox/ProjectMemoryDecisionLog.tsx' },
   { id: 'security-control', workspace: 'system_settings', surface: 'security/audit', component: 'SecurityControlCenter', status: 'active', source: 'src/modules/dev-ops/SecurityControlCenter.tsx' },
+  { id: 'feature-registry', workspace: 'system_settings', surface: 'general', component: 'FeatureRegistryPanel', status: 'active', source: 'src/modules/system-settings/FeatureRegistryPanel.tsx' },
+  { id: 'software-factory-catalog', workspace: 'ai_factory', surface: 'advanced/factory', component: 'SoftwareFactoryCatalogPanel', status: 'active', source: 'src/modules/ai-nhan-su/SoftwareFactoryCatalogPanel.tsx' },
   { id: 'factory-catalogs', workspace: 'ai_factory', surface: 'internal', component: 'factory*Catalog', status: 'internal', source: 'src/modules/ai-nhan-su/factory*Catalog.ts' },
 ] as const;

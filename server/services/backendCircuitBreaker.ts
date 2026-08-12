@@ -122,7 +122,7 @@ export async function executeWithCircuitBreaker<T>(
     metrics.failureCount += 1;
     metrics.lastFailureTime = now;
 
-    if (metrics.failureCount >= config.failureThreshold && metrics.state !== 'OPEN') {
+    if (metrics.failureCount >= config.failureThreshold) {
       metrics.state = 'OPEN';
       metrics.lastStateChange = new Date().toISOString();
 

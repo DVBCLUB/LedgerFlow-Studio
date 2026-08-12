@@ -1,6 +1,6 @@
 export type IndustryCase = {
   id: string;
-  industry: 'Thương mại' | 'Sản xuất' | 'Dịch vụ' | 'Xây dựng / Dự án';
+  industry: 'Thương mại' | 'Sản xuất' | 'Dịch vụ' | 'Xây dựng / Dự án' | 'Phần mềm / Game Studio';
   title: string;
   scenario: string;
   documents: string[];

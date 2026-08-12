@@ -207,9 +207,9 @@ export async function handleMCPJSONRPCRequest(request: JSONRPCRequest): Promise<
         if (!preview.requiresApproval) {
           const result = consumeAgentToolExecution({ ...executionInput, previewId: preview.id });
           const latencyMs = Date.now() - startTime;
-          recordMCPToolRun({ toolId: toolName, ok: result.ok, latencyMs, createdAt: new Date().toISOString() });
+          recordMCPToolRun({ toolId: toolName, ok: result.safetyDecision.approved, latencyMs, createdAt: new Date().toISOString() });
 
-          broadcastMCPEvent('mcp_tool_executed', { toolId: toolName, ok: result.ok, latencyMs });
+          broadcastMCPEvent('mcp_tool_executed', { toolId: toolName, ok: result.safetyDecision.approved, latencyMs });
 
           return {
             jsonrpc: '2.0',
@@ -221,7 +221,7 @@ export async function handleMCPJSONRPCRequest(request: JSONRPCRequest): Promise<
                   text: JSON.stringify(result, null, 2),
                 },
               ],
-              isError: !result.ok,
+              isError: !result.safetyDecision.approved,
             },
           };
         } else {
