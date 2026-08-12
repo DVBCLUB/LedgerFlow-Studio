@@ -85,7 +85,6 @@ const ConfigHealthMonitor = React.lazy(() => import('../modules/dev-ops/ConfigHe
 const ConnectorContractPanel = React.lazy(() => import('../modules/dev-ops/ConnectorContractPanel'));
 const GitHubConnectorPanel = React.lazy(() => import('../modules/dev-ops/GitHubConnectorPanel'));
 const LocalToolsPanel = React.lazy(() => import('../modules/dev-ops/LocalToolsPanel'));
-const SecurityControlCenter = React.lazy(() => import('../modules/dev-ops/SecurityControlCenter'));
 const WebAiSyncPanel = React.lazy(() => import('../modules/dev-ops/WebAiSyncPanel'));
 const SystemOverviewDaemonPanel = React.lazy(() => import('../modules/dev-ops/SystemOverviewDaemonPanel'));
 const DevOpsReleaseHubPanel = React.lazy(() => import('../modules/dev-ops/DevOpsReleaseHubPanel'));
@@ -97,6 +96,7 @@ const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/
 const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
 const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
 const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
+const ExecutiveBoardroomPanel = React.lazy(() => import('../modules/analytics-models-sandbox/ExecutiveBoardroomPanel'));
 // ai-nhan-su — core panels (rendered in workspace)
 const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
 const AIAssistantPanel = React.lazy(() => import('../modules/ai-nhan-su/AIAssistantPanel'));
@@ -148,6 +148,8 @@ const HRAdminPanel = React.lazy(() => import('../components/operations/Operation
 const CampaignsLab = React.lazy(() => import('../modules/marketing-growth/CampaignsLab'));
 const ContentLab = React.lazy(() => import('../modules/marketing-growth/ContentLab'));
 const DigitalStudioLab = React.lazy(() => import('../modules/marketing-growth/DigitalStudioLab'));
+const SyntheticMarketSimulatorPanel = React.lazy(() => import('../modules/marketing-growth/SyntheticMarketSimulatorPanel'));
+const SecurityControlCenter = React.lazy(() => import('../modules/dev-ops/SecurityControlCenter'));
 
 const CustomerConversionLab = React.lazy(() => import('../modules/sales-crm/CustomerConversionLab'));
 const PricingAndLTVLab = React.lazy(() => import('../modules/sales-crm/PricingAndLTVLab'));
@@ -389,6 +391,7 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
       <div className="space-y-5">
         <AiAgentControlCenter />
         <NorthStarMetricBuilder />
+        <ExecutiveBoardroomPanel />
       </div>
     );
   }
@@ -419,7 +422,7 @@ function KnowledgeWorkspace({ subtab }: { subtab: string }) {
 }
 
 function MarketingWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
-  if (subtab === 'campaigns') return <CampaignsLab />;
+  if (subtab === 'campaigns') return <div className="space-y-5"><CampaignsLab /><SyntheticMarketSimulatorPanel /></div>;
   if (subtab === 'content') return <ContentLab />;
   if (subtab === 'video_studio') return <DigitalStudioLab />;
   return <StaticWorkspace config={staticConfig} subtab={subtab} />;

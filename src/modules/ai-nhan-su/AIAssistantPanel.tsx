@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
 import { Bot, FileSearch, Activity, Loader2, RefreshCw, CircleDot, User, HardDrive, Users, Code2, Clock, GitCommit, Shield, Terminal, Zap, ArrowRight, Settings, ChevronDown, ChevronUp, DollarSign, FlaskConical, TrendingUp } from 'lucide-react';
 import {
   checkDaemonHealth, editFile, applyEdit, rollbackFile, getApplyStatus,
@@ -17,17 +17,17 @@ import ChatTab, { type ChatMessage } from './ai-assistant/ChatTab';
 import EditTab from './ai-assistant/EditTab';
 import ProfilesTab from './ai-assistant/ProfilesTab';
 import DiffViewer from './ai-assistant/DiffViewer';
-import AIOperationsSandbox from './ai-assistant/AIOperationsSandbox';
-import ControlPlaneTab from './ai-assistant/ControlPlaneTab';
-import BrowserRunbookTab from './ai-assistant/BrowserRunbookTab';
-import AgentLoopMonitor from './ai-assistant/AgentLoopMonitor';
-import MultiAgentMonitor from './ai-assistant/MultiAgentMonitor';
-import CostDashboard from './ai-assistant/CostDashboard';
-import ABTestPanel from './ai-assistant/ABTestPanel';
-import AnalyticsDashboard from './ai-assistant/AnalyticsDashboard';
-import AiPipelineViz from './ai-assistant/AiPipelineViz';
-import AgentLiveTerminal from './ai-assistant/AgentLiveTerminal';
-import UnifiedDashboard from './ai-assistant/UnifiedDashboard';
+const AIOperationsSandbox = lazy(() => import('./ai-assistant/AIOperationsSandbox'));
+const ControlPlaneTab = lazy(() => import('./ai-assistant/ControlPlaneTab'));
+const BrowserRunbookTab = lazy(() => import('./ai-assistant/BrowserRunbookTab'));
+const AgentLoopMonitor = lazy(() => import('./ai-assistant/AgentLoopMonitor'));
+const MultiAgentMonitor = lazy(() => import('./ai-assistant/MultiAgentMonitor'));
+const CostDashboard = lazy(() => import('./ai-assistant/CostDashboard'));
+const ABTestPanel = lazy(() => import('./ai-assistant/ABTestPanel'));
+const AnalyticsDashboard = lazy(() => import('./ai-assistant/AnalyticsDashboard'));
+const AiPipelineViz = lazy(() => import('./ai-assistant/AiPipelineViz'));
+const AgentLiveTerminal = lazy(() => import('./ai-assistant/AgentLiveTerminal'));
+const UnifiedDashboard = lazy(() => import('./ai-assistant/UnifiedDashboard'));
 
 type PanelTab = 'chat' | 'edit' | 'diff' | 'backups' | 'status' | 'search' | 'profiles' | 'sandbox' | 'runbook' | 'agent_loop' | 'multi_agent' | 'cost' | 'ab_test' | 'analytics' | 'pipeline' | 'terminal' | 'control' | 'overview';
 type EngineMode = 'api' | 'web_automation' | 'fabric';
@@ -1252,7 +1252,9 @@ export default function AIAssistantPanel() {
           </div>
         )}
 
-        {renderTabContent()}
+        <Suspense fallback={<div className="m-4 h-48 animate-pulse rounded-2xl border border-border-primary bg-slate-900/60" />}>
+          {renderTabContent()}
+        </Suspense>
 
         {/* Custom Glassmorphic Confirmation Modal */}
         {activeModal && (
