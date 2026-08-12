@@ -305,6 +305,7 @@ function AICommandLauncher() {
       {message && <p className="mt-3 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs font-bold text-emerald-100">{message}</p>}
       {error && <p className="mt-3 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-200">{error}</p>}
     </section>
+    </div>
   );
 }
 
@@ -383,7 +384,6 @@ export default function AIOperationsCenter() {
           <AIWorkforceSkillInvocationPlanner />
         </div>
       </details>
-      </div>
       </div>
     </Suspense>
   );

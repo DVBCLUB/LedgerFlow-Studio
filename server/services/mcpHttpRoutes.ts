@@ -52,7 +52,7 @@ export function registerMCPHttpRoutes(app: Express) {
   });
 
   app.put('/api/mcp/external/config/:id', async (req: Request, res: Response) => {
-    const id = req.params.id.trim().toLowerCase();
+    const id = (typeof req.params.id === 'string' ? req.params.id : '').trim().toLowerCase();
     const body = req.body || {};
     if (!/^[a-z0-9_]{3,64}$/.test(id) || typeof body.name !== 'string' || typeof body.endpoint !== 'string' || !['streamable-http', 'sse', 'stdio'].includes(body.transport)) {
       return res.status(400).json({ success: false, error: 'Invalid MCP server configuration.' });

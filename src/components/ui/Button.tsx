@@ -2,7 +2,7 @@ import React from 'react';
 import { twMerge } from 'tailwind-merge';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'outline';
   size?: 'xs' | 'sm' | 'md' | 'lg';
   glow?: boolean;
 }
@@ -23,6 +23,7 @@ export function Button({
       glow ? 'shadow-[0_0_0_1px_rgba(99,102,241,0.3),0_4px_12px_rgba(99,102,241,0.2)] hover:shadow-[0_0_0_1px_rgba(99,102,241,0.5),0_4px_20px_rgba(99,102,241,0.35)]' : 'shadow-sm',
     ].join(' '),
     secondary: 'bg-bg-elevated border border-border-secondary text-text-primary hover:bg-bg-tertiary hover:border-border-primary shadow-sm',
+    outline: 'border border-border-secondary bg-transparent text-text-primary hover:bg-bg-elevated hover:border-border-primary',
     ghost: 'bg-transparent text-text-secondary hover:bg-bg-elevated hover:text-text-primary',
     danger: [
       'bg-error-bg text-error hover:bg-error/15 border border-error/20',

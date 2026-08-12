@@ -125,11 +125,14 @@ export type RoleType =
   | 'all'
   | 'founder'
   | 'admin'
+  | 'cfo'
+  | 'accountant'
   | 'finance'
   | 'operations'
   | 'agentops'
   | 'devops'
   | 'marketing'
+  | 'product_owner'
   | 'auditor'
   | 'viewer';
 

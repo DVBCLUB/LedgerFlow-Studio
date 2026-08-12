@@ -64,7 +64,8 @@ export async function* streamAICompletion(
   let modelUsed = options.model || 'fabric';
 
   try {
-    const response = await callAI(messages, { model: options.model });
+    const model = options.model === 'ai-assistant' || options.model === 'ai-assistant-pro' ? options.model : undefined;
+    const response = await callAI(messages, { model });
     fullText = (response.content || response.text || '').trim();
     modelUsed = response.modelUsed || modelUsed;
   } catch (err: any) {
@@ -101,6 +102,7 @@ export async function* streamAICompletion(
   recordUsage({
     agent: source,
     model: modelUsed,
+    route: source,
     domain,
     completionText: fullText.slice(0, 200),
     latencyMs: durationMs,

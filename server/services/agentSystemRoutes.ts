@@ -122,7 +122,7 @@ const enqueueLoopSchema = z.object({
   maxRepairAttempts: z.number().int().min(0).max(5).optional().default(3),
   autoRepair: z.boolean().optional().default(false),
   stopOnFirstError: z.boolean().optional().default(true),
-  sandboxMode: z.string().optional(),
+  sandboxMode: z.enum(['dry_run', 'local', 'docker']).optional(),
   testCommand: z.string().optional(),
   systemInstruction: z.string().optional(),
   timeoutMs: z.number().int().min(30_000).max(60 * 60 * 1000).optional(),
@@ -155,7 +155,7 @@ export function registerAgentSystemRoutes(app: Express): void {
         });
       }
       const { timeoutMs, priority, ...loopOptions } = parsed.data;
-      const requestedBy = (req.headers['x-user-id'] as string) || 'api';
+      const requestedBy = typeof req.headers['x-user-id'] === 'string' ? req.headers['x-user-id'] : 'api';
       const jobId = enqueueAgentLoopJob(
         { ...loopOptions, requestedBy },
         { timeoutMs, priority },

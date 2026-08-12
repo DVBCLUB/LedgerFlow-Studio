@@ -51,6 +51,32 @@ export interface GitHubIssueSummary {
   isPullRequest: boolean;
 }
 
+export interface GitHubPullRequestSummary {
+  number: number;
+  title: string;
+  state: string;
+  htmlUrl: string;
+  branch: string;
+  base: string;
+  draft: boolean;
+}
+
+export interface GitHubPullRequestDigest {
+  repo: string;
+  pullRequest: GitHubPullRequestSummary & {
+    mergeable: boolean | null;
+    mergeableState: string | null;
+    changedFiles: number;
+    additions: number;
+    deletions: number;
+    commits: number;
+    headSha: string;
+  };
+  files: Array<{ filename: string; status: string; additions: number; deletions: number; changes: number; patchPreview: string | null }>;
+  safety: { touchesBlockedPath: boolean; largeChange: boolean; hasDeletes: boolean; reviewNotes: string[] };
+  lastCheckedAt: string;
+}
+
 export interface GitHubConnectorSummary {
   repo: string;
   tokenConfigured: boolean;

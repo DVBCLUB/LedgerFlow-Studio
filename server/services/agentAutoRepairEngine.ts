@@ -203,7 +203,7 @@ export async function triggerAutoRepairSession(request: AutoRepairRequest): Prom
         maxLoops: 4,
         autoRepair: true,
         stopOnFirstError: true,
-        sandboxMode: 'isolated',
+        sandboxMode: 'dry_run',
         testCommand: 'npm test',
         systemInstruction: `Suggested Fix: ${diagnosis.suggestedFix}\nRoot Cause: ${diagnosis.rootCause}`,
         requestedBy: `auto-repair:${sessionId}`,

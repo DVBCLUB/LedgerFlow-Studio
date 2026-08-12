@@ -12,7 +12,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { appendAuditEvent } from './auditLog.ts';
-import { safeWriteFile, safeReadFile } from './safeFileManager.ts';
+import { backupAndWrite } from './safeFileManager.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -167,7 +167,7 @@ export function applyAcceptedDiff(session: FileDiffSession): string {
 
 export async function writeDiffToFile(session: FileDiffSession): Promise<{ success: boolean; path: string }> {
   const finalContent = applyAcceptedDiff(session);
-  await safeWriteFile(session.targetFilePath, finalContent);
+  await backupAndWrite(session.targetFilePath, finalContent);
 
   session.status = 'applied';
   session.updatedAt = new Date().toISOString();

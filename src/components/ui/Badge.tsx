@@ -2,7 +2,7 @@ import React from 'react';
 import { twMerge } from 'tailwind-merge';
 
 interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'brand';
+  variant?: 'default' | 'success' | 'warning' | 'error' | 'info' | 'brand' | 'cyan' | 'purple' | 'danger';
 }
 
 export function Badge({
@@ -18,6 +18,9 @@ export function Badge({
     error: 'bg-error-bg text-error border border-error/20',
     info: 'bg-info-bg text-info border border-info/20',
     brand: 'bg-brand-light text-brand border border-brand/20',
+    cyan: 'bg-cyan-500/10 text-cyan-200 border border-cyan-400/20',
+    purple: 'bg-violet-500/10 text-violet-200 border border-violet-400/20',
+    danger: 'bg-error-bg text-error border border-error/20',
   };
 
   return (

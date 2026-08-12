@@ -9,7 +9,7 @@ import {
 import { getAgentToolContract, type AgentToolContract } from './agentToolRegistry.ts';
 import type { MissionExecutionQueue, MissionExecutionQueueStep } from './aiWorkforceMissionExecutionQueue.ts';
 import { buildMissionEvidenceReplayArtifact, type MissionEvidenceReplayArtifact } from './aiWorkforceMissionEvidenceReplay.ts';
-import { createApprovedGitHubChangeRequest, gitPullLocal } from './githubConnector.ts';
+import { createApprovedGitHubChangeRequest, createGitHubIssue, gitPullLocal } from './githubConnector.ts';
 
 export type MissionToolExecutionMode = 'dry_run' | 'simulation' | 'connector';
 export type MissionToolExecutionStatus = 'preview_ready' | 'approval_required' | 'executed' | 'blocked';

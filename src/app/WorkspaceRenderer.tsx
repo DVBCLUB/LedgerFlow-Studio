@@ -31,6 +31,7 @@ import { TabType, RoleType } from './companyNavigation';
 import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
 import WorkspaceSubNavigation from '../components/shared/WorkspaceSubNavigation';
 import SimplePanelCard from '../components/shared/SimplePanelCard';
+import Skeleton from '../components/ui/Skeleton';
 
 const LedgerAccountingWorkspace = React.lazy(() => import('../modules/finance-accounting/LedgerAccountingWorkspace'));
 const FinancialReportsVN = React.lazy(() => import('../modules/finance-accounting/FinancialReportsVN'));
@@ -315,7 +316,7 @@ const STATIC_WORKSPACES: Partial<Record<TabType, StaticWorkspaceConfig>> = {
 };
 
 function LoadingFallback() {
-  return <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 text-sm font-semibold text-slate-400">Đang tải module...</div>;
+  return <div className="space-y-3 rounded-2xl border border-slate-800 bg-slate-900/60 p-6" aria-label="Đang tải module"><Skeleton className="h-5 w-44" variant="text" /><Skeleton className="h-4 w-full" variant="text" /><Skeleton className="h-4 w-4/5" variant="text" /></div>;
 }
 
 function WorkspaceHero({ title, description, chips = [] }: { title: string; description: string; chips?: string[] }) {
