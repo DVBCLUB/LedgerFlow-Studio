@@ -5,6 +5,7 @@ const root = process.cwd();
 const errors = [];
 const warnings = [];
 const releaseRisks = [];
+const integrationReferences = [];
 
 const sourceDirs = ['src', 'public'];
 const sourceExtensions = new Set(['.ts', '.tsx', '.js', '.jsx', '.html', '.css', '.json', '.svg']);
@@ -54,8 +55,11 @@ for (const file of files) {
     const externalMatches = [...content.matchAll(/https?:\/\/[^\s"'`)<>]+/g)].map((match) => match[0]);
     for (const url of externalMatches) {
       const isAllowed = allowedExternalMarkers.some((marker) => url.includes(marker));
-      if (!isAllowed) {
+      const isRuntimeAsset = /\.(?:mp4|mp3|webm|png|jpe?g|gif|svg|woff2?)(?:[?#]|$)/i.test(url) || /cdn\.|transparenttextures/i.test(url);
+      if (!isAllowed && isRuntimeAsset) {
         warnings.push(`${relative} references external URL: ${url}`);
+      } else if (!isAllowed) {
+        integrationReferences.push(`${relative} references user-initiated external integration: ${url}`);
       }
     }
   }
@@ -102,6 +106,10 @@ if (errors.length > 0) {
   }
   console.error('\nFix missing desktop offline support files before shipping desktop builds.\n');
   process.exit(1);
+}
+
+if (integrationReferences.length > 0) {
+  console.log(`Offline note: ${integrationReferences.length} user-initiated external integration references were found; they do not make local desktop assets remote-dependent.`);
 }
 
 console.log(`LedgerFlow desktop offline readiness check passed with warnings allowed: ${files.length} source/public files scanned.`);

@@ -27,14 +27,14 @@ export default function CloudHybridWorkflowStatusPanel() {
       id: 'wh_evt_001',
       provider: 'Runway ML Video API',
       title: 'TikTok Promo Video 30s Review Bàn phím Cơ',
-      artifactUrl: 'https://cdn.runwayml.com/renders/v2_shorts_88912.mp4',
+      artifactUrl: 'runtime://media/shorts_88912.mp4',
       receivedAt: '2 phút trước',
     },
     {
       id: 'wh_evt_002',
       provider: 'ElevenLabs Voice API',
       title: 'Giọng đọc AI Voiceover Tiếng Việt Kịch bản Phim ngắn',
-      artifactUrl: 'https://api.elevenlabs.io/v1/audio/stream_77182.mp3',
+      artifactUrl: 'runtime://media/voiceover_77182.mp3',
       receivedAt: '10 phút trước',
     },
     {
@@ -81,7 +81,7 @@ export default function CloudHybridWorkflowStatusPanel() {
       id: newId,
       provider: 'Runway ML Video API',
       title: 'Shorts 15s AI Movie Teaser (4K Render)',
-      artifactUrl: `https://cdn.runwayml.com/renders/v2_teaser_${Date.now()}.mp4`,
+      artifactUrl: `runtime://media/teaser_${Date.now()}.mp4`,
       receivedAt: 'Vừa xong',
     };
     setCallbacks((prev) => [newItem, ...prev]);
@@ -148,14 +148,7 @@ export default function CloudHybridWorkflowStatusPanel() {
                   <span className="text-[10px] text-slate-400 font-mono block">Nhận lúc: {cb.receivedAt}</span>
                 </div>
 
-                <a
-                  href={cb.artifactUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-cyan-300 border border-slate-800 text-xs flex items-center gap-1 font-semibold"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" /> File
-                </a>
+                {cb.artifactUrl.startsWith('http') ? <a href={cb.artifactUrl} target="_blank" rel="noreferrer" className="p-2 rounded-lg bg-slate-900 text-slate-400 hover:text-cyan-300 border border-slate-800 text-xs flex items-center gap-1 font-semibold"><ExternalLink className="w-3.5 h-3.5" /> File</a> : <span className="p-2 rounded-lg bg-slate-900 text-cyan-300 border border-slate-800 text-xs flex items-center gap-1 font-semibold"><Film className="w-3.5 h-3.5" /> Local artifact</span>}
               </div>
             ))}
           </div>

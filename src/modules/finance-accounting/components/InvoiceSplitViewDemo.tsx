@@ -54,7 +54,7 @@ export default function InvoiceSplitViewDemo() {
             <button className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><ZoomOut className="w-4 h-4" /></button>
             <button className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400"><RotateCw className="w-4 h-4" /></button>
           </div>
-          <div className="flex-1 p-6 flex justify-center overflow-auto bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')]">
+          <div className="flex-1 p-6 flex justify-center overflow-auto bg-[radial-gradient(circle_at_1px_1px,rgba(148,163,184,0.14)_1px,transparent_0)] bg-[length:16px_16px]">
             {/* Mock Invoice Paper */}
             <div className="bg-white text-slate-900 w-[400px] h-fit p-6 shadow-xl border border-slate-200 font-serif">
               <div className="text-center border-b-2 border-slate-900 pb-4 mb-4">

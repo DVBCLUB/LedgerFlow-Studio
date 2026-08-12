@@ -66,6 +66,7 @@ const OperatingKnowledgeLayerPanel = React.lazy(() => import('../components/oper
 const FounderLabsDock = React.lazy(() => import('../components/shared/FounderLabsDock'));
 const SystemSettingsPanel = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
 const FeatureRegistryPanel = React.lazy(() => import('../modules/system-settings/FeatureRegistryPanel'));
+const ReleaseReadinessPanel = React.lazy(() => import('../modules/system-settings/ReleaseReadinessPanel'));
 const SoftwareFactoryCatalogPanel = React.lazy(() => import('../modules/ai-nhan-su/SoftwareFactoryCatalogPanel'));
 const IntegrationHub = React.lazy(() => import('../modules/dev-ops/IntegrationHub'));
 const BuildMonitorPanel = React.lazy(() => import('../modules/dev-ops/BuildMonitorPanel'));
@@ -966,6 +967,7 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
       <SystemSettingsPanel />
       <AIIntegrationHealthPanel />
       <ApiConnectionHealthMatrix />
+      <ReleaseReadinessPanel />
       <FeatureRegistryPanel />
     </div>
   );

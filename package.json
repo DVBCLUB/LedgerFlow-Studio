@@ -51,6 +51,7 @@
     "check:runtime": "node scripts/check-runtime-api.mjs && node scripts/check-ai-workforce-runtime-routes.mjs && node scripts/check-ai-workforce-mission-execution-queue.mjs",
     "check:runtime-side-effects": "node scripts/check-runtime-side-effects.mjs",
     "check:offline": "node scripts/check-offline-readiness.mjs",
+    "check:text-encoding": "node scripts/check-text-encoding.mjs",
     "check:offline-vendor-assets": "node scripts/check-offline-vendor-assets.mjs",
     "check:green": "npm run check:codemap && npm run lint && npm run check:runtime-side-effects && npm run build:web",
     "check:green:strict": "npm run check:codemap && npm run lint:strict && npm run check:runtime-side-effects && npm run build:web",
