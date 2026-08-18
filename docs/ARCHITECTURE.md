@@ -88,8 +88,7 @@ ledgerflow-studio/
 // Central registry mapping all knowledge by domain
 export const KNOWLEDGE_REGISTRY = {
   accounting: {
-    models: ['accountingDataModels'],
-    vietnam: ['accountingVietnamDeepDive', 'taxKnowledgeVietnam', 'payrollVietnam'],
+    vietnam: ['accountingVietnamDeepDive', 'taxKnowledgeVietnam'],
     // ...
   },
   audit: {

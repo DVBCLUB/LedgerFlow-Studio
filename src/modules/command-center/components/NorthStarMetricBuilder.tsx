@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { Target, Sparkles, Check, HelpCircle, ArrowRight } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
+import { ExcelNumberInput } from '../../../components/ui/ExcelNumberInput';
+import { formatMoneyVN, formatNumberVN } from '../../../utils/excelFormatters';
 
 type ProductType = 'saas' | 'game' | 'academy';
 
@@ -49,9 +51,30 @@ const TEMPLATES: Record<ProductType, {
 };
 
 export default function NorthStarMetricBuilder() {
-  const [productType, setProductType] = useState<ProductType>('saas');
-  const [selectedMetricId, setSelectedMetricId] = useState<string>('mrr');
-  const [customTarget, setCustomTarget] = useState<number>(100);
+  const [productType, setProductType] = useState<ProductType>(() => {
+    try {
+      return (localStorage.getItem('lf_north_star_type') as ProductType) || 'saas';
+    } catch {
+      return 'saas';
+    }
+  });
+  const [selectedMetricId, setSelectedMetricId] = useState<string>(() => {
+    try {
+      return localStorage.getItem('lf_north_star_metric_id') || 'mrr';
+    } catch {
+      return 'mrr';
+    }
+  });
+  const [customTarget, setCustomTarget] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('lf_north_star_target');
+      return saved ? Number(saved) : 50000000;
+    } catch {
+      return 50000000;
+    }
+  });
+
+  const [isSaved, setIsSaved] = useState<boolean>(false);
 
   const activeTemplate = TEMPLATES[productType];
 
@@ -64,6 +87,19 @@ export default function NorthStarMetricBuilder() {
     const defaultMetric = TEMPLATES[type].metrics[0];
     setSelectedMetricId(defaultMetric.id);
     setCustomTarget(defaultMetric.defaultVal);
+    setIsSaved(false);
+  };
+
+  const handleSaveNorthStar = () => {
+    try {
+      localStorage.setItem('lf_north_star_type', productType);
+      localStorage.setItem('lf_north_star_metric_id', selectedMetricId);
+      localStorage.setItem('lf_north_star_target', String(customTarget));
+      localStorage.setItem('lf_north_star_label', activeMetric.label);
+      localStorage.setItem('lf_north_star_unit', activeMetric.unit);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 3000);
+    } catch (_) {}
   };
 
   const formattedVal = (val: number, unit: string) => {
@@ -155,11 +191,10 @@ export default function NorthStarMetricBuilder() {
             <div>
               <label className="block">
                 <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block mb-1">Mục tiêu kỳ vọng (Target)</span>
-                <input
-                  type="number"
+                <ExcelNumberInput
                   value={customTarget}
-                  onChange={(e) => setCustomTarget(Number(e.target.value) || 0)}
-                  className="w-full rounded-xl border border-border-primary bg-bg-surface px-3 py-2 text-sm font-bold text-text-primary outline-none focus:border-indigo-400"
+                  onValueChange={(val) => setCustomTarget(val)}
+                  suffix={activeMetric.unit}
                 />
               </label>
             </div>
@@ -174,9 +209,23 @@ export default function NorthStarMetricBuilder() {
             <div className="rounded-xl border border-border-primary bg-bg-primary p-3 text-center">
               <span className="text-[10px] text-text-muted font-bold uppercase tracking-wider block">Mục tiêu của bạn</span>
               <p className="text-xl font-bold text-accent-tertiary font-mono mt-1.5">
-                {formattedVal(customTarget, activeMetric.unit)}
+                {activeMetric.unit === 'đ' ? formatMoneyVN(customTarget, 'đ') : `${formatNumberVN(customTarget, 0)} ${activeMetric.unit}`}
               </p>
+              {isSaved && (
+                <span className="mt-1 inline-block text-[9px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                  ✓ Đã lưu làm North Star toàn cục
+                </span>
+              )}
             </div>
+
+            <button
+              type="button"
+              onClick={handleSaveNorthStar}
+              className="mt-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md shadow-indigo-600/20"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              {isSaved ? 'Đã cập nhật North Star Metric' : 'Chốt & Lưu North Star Metric'}
+            </button>
           </div>
 
           <div className="mt-4 flex items-center gap-1.5 text-[9px] font-bold text-accent-tertiary/90 border border-accent-tertiary/10 bg-accent-tertiary/5 p-2 rounded-lg">

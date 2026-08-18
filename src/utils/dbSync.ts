@@ -81,3 +81,52 @@ export async function saveDatabaseToServer(): Promise<boolean> {
     return false;
   }
 }
+
+export interface HybridEngineStatus {
+  mode: "local_only" | "hybrid_synced" | "hybrid_degraded";
+  supabaseConfigured: boolean;
+  supabaseConnected: boolean;
+  localStoragePath: string;
+  lastLocalSyncAt: string | null;
+  lastCloudSyncAt: string | null;
+  keysCount: number;
+  lastError?: string;
+}
+
+/**
+ * Lấy trạng thái lưu trữ Dual-Engine (Local PC File + Supabase Free Tier)
+ */
+export async function fetchHybridStorageStatus(): Promise<HybridEngineStatus | null> {
+  try {
+    const res = await fetch('/api/db/status');
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.success && data.status) {
+      return data.status as HybridEngineStatus;
+    }
+  } catch (err) {
+    console.warn("Could not fetch hybrid storage status:", err);
+  }
+  return null;
+}
+
+/**
+ * Kích hoạt đồng bộ tức thì giữa Local và Supabase
+ */
+export async function triggerDualEngineSync(): Promise<boolean> {
+  try {
+    // 1. Lưu state hiện tại của client lên server trước
+    await saveDatabaseToServer();
+    // 2. Kích hoạt sync 2 chiều server ↔ Supabase
+    const res = await fetch('/api/db/sync', { method: 'POST' });
+    if (!res.ok) return false;
+    const data = await res.json();
+    // 3. Tải lại dữ liệu mới nhất
+    await loadDatabaseFromServer();
+    return !!data.success;
+  } catch (err) {
+    console.error("Failed to trigger dual-engine sync:", err);
+    return false;
+  }
+}
+

@@ -35,7 +35,13 @@
         }).catch(function(){});
       };
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="LedgerFlow" />
+    <link rel="apple-touch-icon" href="/ledgerflow-icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
     <title>LedgerFlow Hub</title>
     <link rel="icon" type="image/svg+xml" href="/ledgerflow-icon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -44,8 +50,15 @@
       href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <script>
+      if ('serviceWorker' in navigator && window.location.protocol === 'https:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </head>
-  <body>
+  <body class="bg-[#090d16] text-slate-100 antialiased selection:bg-cyan-500/20 selection:text-cyan-200">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

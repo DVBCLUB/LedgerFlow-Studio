@@ -1183,12 +1183,12 @@ export default function AIAssistantPanel() {
           <button
             type="button"
             onClick={() => setShowDevTabs(prev => !prev)}
-            className="px-3 py-1.5 rounded-full border border-border-primary/60 text-xs font-bold text-text-secondary bg-slate-950/80 hover:bg-slate-900/90 transition"
+            className="px-3.5 py-1.5 rounded-full border border-indigo-500/35 text-xs font-black text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/60 transition cursor-pointer shadow-sm"
           >
-            {showDevTabs ? 'Ẩn công cụ nâng cao' : 'Hiện công cụ nâng cao'}
+            {showDevTabs ? '⚙️ Chế độ Khoang lái Đơn giản' : '⚙️ Chế độ Kỹ thuật (Dev Tools)'}
           </button>
-          <span className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-            <CircleDot className="h-2.5 w-2.5 animate-pulse" /> LIVE ENGINE
+          <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full shadow-sm" title="AI Gateway Router • DOM Vision Self-Healer • Swarm Relay Bus • Audit Log">
+            <CircleDot className="h-2.5 w-2.5 animate-pulse text-emerald-400" /> 🟢 4/4 Daemons Ngầm Online
           </span>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { FEATURE_REGISTRY, type FeatureStatus } from '../../app/featureRegistry';
+import FeatureFlagMatrixPanel from './FeatureFlagMatrixPanel';
 
 const statusLabel: Record<FeatureStatus, string> = {
   active: 'Đang hiển thị',
@@ -32,7 +33,9 @@ export default function FeatureRegistryPanel() {
     : FEATURE_REGISTRY.filter((feature) => feature.status === filter);
 
   return (
-    <section className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/25 via-slate-950 to-slate-950 p-5 shadow-xl shadow-cyan-950/10">
+    <div className="space-y-6">
+      <FeatureFlagMatrixPanel />
+      <section className="rounded-3xl border border-cyan-400/20 bg-gradient-to-br from-cyan-950/25 via-slate-950 to-slate-950 p-5 shadow-xl shadow-cyan-950/10">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">System Settings · Read only</p>
@@ -68,5 +71,6 @@ export default function FeatureRegistryPanel() {
         ))}
       </div>
     </section>
+    </div>
   );
 }

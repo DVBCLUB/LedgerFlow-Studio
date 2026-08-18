@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { beforeEach } from "node:test";
 import {
   clearLocalSession,
   createLocalSession,
@@ -7,6 +7,12 @@ import {
   requireLocalAuth,
   setLocalSessionCookie,
 } from "./localAuth.ts";
+import { resetUserAccountsForTest } from "./userAccounts.ts";
+
+beforeEach(() => {
+  // Test không được phụ thuộc runtime state (tài khoản owner thật).
+  resetUserAccountsForTest();
+});
 
 function responseStub() {
   const headers = new Map<string, string>();

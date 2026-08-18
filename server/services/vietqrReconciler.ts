@@ -142,6 +142,8 @@ export function reconcileStatement(transactions: BankTransaction[]): {
   };
 }
 
+export const reconcileBankTransactions = reconcileStatement;
+
 export async function aiClassifyUnknown(
   transactions: BankTransaction[],
   callAI: (prompt: string) => Promise<string>,

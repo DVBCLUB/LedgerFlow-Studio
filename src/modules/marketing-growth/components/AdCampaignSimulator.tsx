@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { BarChart3, TrendingUp, Sparkles, AlertCircle, RefreshCw, Send, DollarSign } from 'lucide-react';
+import { upsertBusinessEntity } from '../../../utils/businessApi';
 
 type ChannelType = 'facebook' | 'google' | 'tiktok';
 type AudienceType = 'developers' | 'founders' | 'accountants';
@@ -11,6 +12,7 @@ export default function AdCampaignSimulator() {
   const [headline, setHeadline] = useState<string>('');
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [hasRun, setHasRun] = useState<boolean>(false);
+  const [runId, setRunId] = useState<number>(0);
 
   // Active campaigns mock data
   const [activeCampaigns, setActiveCampaigns] = useState([
@@ -112,11 +114,41 @@ export default function AdCampaignSimulator() {
   const handleSimulate = () => {
     setIsRunning(true);
     setHasRun(false);
+    setRunId((n) => n + 1);
     setTimeout(() => {
       setIsRunning(false);
       setHasRun(true);
     }, 1000);
   };
+
+  // Mirror kết quả mô phỏng chiến dịch lên Business API để Marketing dữ liệu về 1 mối.
+  const lastMirroredRun = useRef(0);
+  useEffect(() => {
+    if (!hasRun || !simulationResults) return;
+    if (lastMirroredRun.current === runId) return;
+    lastMirroredRun.current = runId;
+    void upsertBusinessEntity({
+      type: 'campaign',
+      data: {
+        name: headline.trim() || `Chiến dịch ${channel} - ${audience}`,
+        channel,
+        audience,
+        budgetDailyVnd: budget,
+        ctrPct: simulationResults.ctr,
+        cpcVnd: simulationResults.cpc,
+        clicks: simulationResults.clicks,
+        conversions: simulationResults.conversions,
+        totalSpentVnd: simulationResults.totalSpent,
+        revenueVnd: simulationResults.revenue,
+        roiPct: simulationResults.roi,
+        cacVnd: simulationResults.cac,
+        simulatedAt: new Date().toISOString(),
+      },
+      source: 'user',
+    }).catch(() => {
+      // offline → bỏ qua, không chặn mô phỏng.
+    });
+  }, [hasRun, simulationResults, runId, headline, channel, audience, budget]);
 
   return (
     <div className="rounded-3xl border border-sky-500/25 bg-slate-950/70 p-5 text-slate-100 space-y-6">

@@ -223,6 +223,7 @@ export default function PythonSandbox() {
   const [isInitializing, setIsInitializing] = useState<boolean>(false);
   const [code, setCode] = useState<string>(PY_TEMPLATES.benford);
   const [stdout, setStdout] = useState<string>('>>> Nhấp "Xử Lý & Chạy Python" để thực thi mã nguồn 100% cục bộ ở đây...');
+  const [isCompactMode, setIsCompactMode] = useState<boolean>(true);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [sysLogs, setSysLogs] = useState<string[]>([]);
 
@@ -302,6 +303,10 @@ export default function PythonSandbox() {
 
   useEffect(() => {
     initPyodide();
+    return () => {
+      // Unmount cleanup to prevent CPU/memory leak
+      setIsInitializing(false);
+    };
   }, []);
 
   const selectTemplate = (key: keyof typeof PY_TEMPLATES) => {
@@ -334,43 +339,62 @@ export default function PythonSandbox() {
   };
 
   return (
-    <div className="space-y-6">
-      
-      {/* HEADER BLOCK */}
-      <section className="bg-slate-950 border border-slate-900 p-6 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 select-text">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-orange-600/10 border border-orange-500/20 flex items-center justify-center text-orange-400">
-            <Code2 className="w-6 h-6 shrink-0" />
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Cockpit Header */}
+      <section className="bg-gradient-to-br from-slate-950 via-slate-900/90 to-amber-950/20 border border-border-primary p-5 rounded-3xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 backdrop-blur-xl shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="p-3 bg-orange-600/15 border border-orange-500/30 rounded-2xl shrink-0 text-orange-400">
+            <Code2 className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-text-primary flex items-center gap-2">
-              Sandbox dữ liệu Python
-              <span className="bg-orange-600/15 border border-orange-500/25 text-orange-450 text-[9px] font-black px-2 py-0.5 rounded tracking-wide">Python 3.12 cục bộ</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-orange-500/20 text-orange-300 border border-orange-500/30">
+                Data Science Sandbox
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Sandbox Execution Node Active
+              </span>
+              <span className="text-xs font-bold text-slate-400">| Python 3.12 WebAssembly VM</span>
+            </div>
+            <h1 className="text-xl font-black text-text-primary flex items-center gap-2 mt-1">
+              Sandbox Dữ Liệu Python 3.12 &amp; Giả Lập Thuật Toán
             </h1>
-            <p className="text-xs text-text-secondary mt-1 font-semibold leading-relaxed">
-              Môi trường Python chạy cục bộ trong trình duyệt để dọn dữ liệu sao kê, tính điểm rủi ro Altman và kiểm tra Benford.
-            </p>
+            {!isCompactMode && (
+              <p className="text-xs text-text-secondary mt-1 font-semibold leading-relaxed max-w-3xl">
+                Môi trường Python chạy cục bộ trong trình duyệt để dọn dữ liệu sao kê, tính điểm rủi ro Altman và kiểm tra Benford.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Status engine display */}
-        <div className="flex items-center gap-2 bg-bg-primary/90 border border-border-primary p-2.5 rounded-xl text-xs font-bold leading-none shrink-0 self-start md:self-center">
-          {pyodideLoaded ? (
-            <span className="text-emerald-400 flex items-center gap-1.5 font-mono">
-              <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse inline-block"></span>
-              PYODIDE ĐÃ SẴN SÀNG
-            </span>
-          ) : isInitializing ? (
-            <span className="text-amber-400 flex items-center gap-1.5 font-mono">
-              <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-455" />
-              ĐANG NẠP PYODIDE...
-            </span>
-          ) : (
-            <span className="text-slate-405 flex items-center gap-1.5 font-sans">
-              <AlertCircle className="w-4 h-4 text-text-tertiary" />
-              CHỜ KHỞI ĐỘNG
-            </span>
-          )}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsCompactMode(!isCompactMode)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/80 text-slate-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+          >
+            {isCompactMode ? '⚡ Khoang lái CEO (Thu gọn)' : '📜 Chế độ Kỹ thuật (Đầy đủ)'}
+          </button>
+
+          <div className="flex items-center gap-2 bg-slate-950 border border-border-primary p-2 rounded-xl text-xs font-bold leading-none shrink-0">
+            {pyodideLoaded ? (
+              <span className="text-emerald-400 flex items-center gap-1.5 font-mono">
+                <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse inline-block"></span>
+                PYODIDE ĐÃ SẴN SÀNG
+              </span>
+            ) : isInitializing ? (
+              <span className="text-amber-400 flex items-center gap-1.5 font-mono">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-455" />
+                ĐANG NẠP PYODIDE...
+              </span>
+            ) : (
+              <span className="text-slate-405 flex items-center gap-1.5 font-sans">
+                <AlertCircle className="w-4 h-4 text-text-tertiary" />
+                CHỜ KHỞI ĐỘNG
+              </span>
+            )}
+          </div>
         </div>
       </section>
 

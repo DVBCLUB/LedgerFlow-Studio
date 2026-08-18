@@ -14,7 +14,7 @@ export interface PendingApprovalItem {
 }
 
 export default function MorningExecutiveBriefingCard() {
-  const [approvals, setApprovals] = useState<PendingApprovalItem[]>([
+  const [approvals, setApprovals] = useState<PendingApprovalItem[]>(() => [
     {
       id: 'appr_1',
       type: 'video_render',
@@ -41,15 +41,39 @@ export default function MorningExecutiveBriefingCard() {
     },
   ]);
 
-  const [approvedIds, setApprovedIds] = useState<string[]>([]);
+  const [approvedIds, setApprovedIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('lf_morning_briefing_approved');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   const handleApprove = (id: string) => {
-    setApprovedIds((prev) => [...prev, id]);
+    setApprovedIds((prev) => {
+      const next = prev.includes(id) ? prev : [...prev, id];
+      localStorage.setItem('lf_morning_briefing_approved', JSON.stringify(next));
+      return next;
+    });
   };
+
+  const handleApproveAll = () => {
+    const allIds = approvals.map((a) => a.id);
+    setApprovedIds(allIds);
+    localStorage.setItem('lf_morning_briefing_approved', JSON.stringify(allIds));
+  };
+
+  const handleResetApprovals = () => {
+    setApprovedIds([]);
+    localStorage.removeItem('lf_morning_briefing_approved');
+  };
+
+  const pendingCount = approvals.length - approvedIds.length;
 
   return (
     <Card className="bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-950/40 border-indigo-500/20 shadow-xl overflow-hidden mb-6">
-      <div className="p-5">
+      <div className="p-5 text-left">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
           <div className="flex items-center gap-3">
@@ -84,11 +108,27 @@ export default function MorningExecutiveBriefingCard() {
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5">
               <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              Hàng chờ Phê duyệt Sáng nay ({approvals.length - approvedIds.length} mục cần duyệt)
+              Hàng chờ Phê duyệt Sáng nay ({pendingCount} mục cần duyệt)
             </span>
-            <span className="text-[11px] text-indigo-400 hover:underline cursor-pointer font-medium">
-              Duyệt tất cả bằng 1-Click
-            </span>
+            <div className="flex items-center gap-3">
+              {pendingCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleApproveAll}
+                  className="text-[11px] font-bold text-indigo-400 hover:text-indigo-300 hover:underline cursor-pointer bg-indigo-500/10 border border-indigo-500/30 px-2.5 py-1 rounded-lg transition-all"
+                >
+                  ⚡ Duyệt tất cả 1-Click
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleResetApprovals}
+                  className="text-[10px] font-semibold text-slate-400 hover:text-slate-200 cursor-pointer"
+                >
+                  Reset trạng thái
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="space-y-2.5">
@@ -99,7 +139,7 @@ export default function MorningExecutiveBriefingCard() {
                   key={item.id}
                   className={`p-3 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                     isApproved
-                      ? 'bg-emerald-950/20 border-emerald-500/30 opacity-75'
+                      ? 'bg-emerald-950/20 border-emerald-500/30 opacity-85'
                       : 'bg-slate-950/40 border-slate-800 hover:border-slate-700'
                   }`}
                 >
@@ -108,7 +148,7 @@ export default function MorningExecutiveBriefingCard() {
                       {isApproved ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                       ) : (
-                        <Sparkles className="w-4 h-4 text-indigo-400" />
+                        <Sparkles className="w-4 h-4 text-indigo-400 animate-pulse" />
                       )}
                     </div>
                     <div>
@@ -125,14 +165,14 @@ export default function MorningExecutiveBriefingCard() {
 
                   <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                     {isApproved ? (
-                      <Badge variant="success" className="text-[11px]">
-                        Đã duyệt ✓
+                      <Badge variant="success" className="text-[11px] gap-1 px-2.5 py-1">
+                        <Check className="w-3 h-3" /> Đã duyệt
                       </Badge>
                     ) : (
                       <Button
                         size="sm"
                         onClick={() => handleApprove(item.id)}
-                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1 rounded-lg"
+                        className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3 py-1 rounded-lg cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5 mr-1" />
                         Duyệt ngay

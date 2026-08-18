@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AlertTriangle, Clipboard, GitBranch, Package, RefreshCw, Rocket, ShieldCheck, Stethoscope } from 'lucide-react';
 import { daemonFetch } from '../../utils/assistantApi';
+import SelfHealingPatchGatePanel from './SelfHealingPatchGatePanel';
 
 type GitStatus = Record<string, unknown>;
 type GitDiff = Record<string, unknown>;
@@ -120,15 +121,42 @@ export default function DevOpsReleaseHubPanel() {
 
   const ciTone = data.ci?.selectedRun?.conclusion === 'success' ? 'green' : data.ci?.selectedRun?.conclusion ? 'rose' : 'amber';
 
-  return <div className="space-y-5 text-slate-100">
-    <section className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/30 p-5 shadow-2xl shadow-slate-950/30">
+  const [isCompactMode, setIsCompactMode] = useState<boolean>(true);
+
+  return <div className="space-y-5 text-slate-100 text-left animate-fade-in">
+    <section className="rounded-[2rem] border border-cyan-400/20 bg-gradient-to-br from-slate-950 via-slate-950 to-cyan-950/30 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-200"><Rocket className="mr-2 inline h-4 w-4" />Phát hành & Khôi phục</p>
-          <h2 className="mt-2 text-2xl font-black text-text-primary">Kiểm tra → Đóng gói → Phát hành → Khôi phục</h2>
-          <p className="mt-2 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">Một màn gọn để xem thay đổi mã nguồn, kiểm thử, lịch sử phát hành và điểm khôi phục an toàn.</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+              DevOps &amp; CI/CD Gate
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              GitHub &amp; CI/CD Daemons Online
+            </span>
+            <span className="text-xs font-bold text-slate-400">| Handoff &amp; Desktop Packaging</span>
+          </div>
+          <h2 className="mt-1.5 text-xl font-black text-text-primary flex items-center gap-2">
+            <Rocket className="h-5 w-5 text-cyan-400" />
+            Kiểm Tra → Đóng Gói → Phát Hành → Khôi Phục An Toàn
+          </h2>
+          {!isCompactMode && (
+            <p className="mt-1.5 max-w-3xl text-xs font-semibold leading-5 text-text-secondary">
+              Một màn gọn để xem thay đổi mã nguồn, kiểm thử, lịch sử phát hành và điểm khôi phục an toàn.
+            </p>
+          )}
         </div>
-        <button onClick={() => void load()} disabled={loading} className="rounded-2xl bg-cyan-300 px-4 py-2 text-xs font-black text-slate-950 disabled:opacity-60"><RefreshCw className="mr-2 inline h-4 w-4" />{loading ? 'Đang tải...' : 'Làm mới'}</button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setIsCompactMode(!isCompactMode)}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/80 text-slate-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+          >
+            {isCompactMode ? '⚡ Khoang lái CEO (Thu gọn)' : '📜 Chế độ Kỹ thuật (Đầy đủ)'}
+          </button>
+          <button onClick={() => void load()} disabled={loading} className="rounded-xl bg-cyan-400 px-3.5 py-1.5 text-xs font-bold text-slate-950 disabled:opacity-60 hover:bg-cyan-300 transition-all cursor-pointer"><RefreshCw className="mr-1.5 inline h-3.5 w-3.5" />{loading ? 'Đang tải...' : 'Làm mới'}</button>
+        </div>
       </div>
       {message && <p className="mt-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-xs font-bold text-cyan-100">{message}</p>}
       {error && <p className="mt-4 rounded-2xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-200"><AlertTriangle className="mr-2 inline h-4 w-4" />{error}</p>}
@@ -140,6 +168,9 @@ export default function DevOpsReleaseHubPanel() {
       <StatCard label="Cấu hình phát hành" value={data.deployConfigs.length} hint="đích phát hành đã lưu" />
       <StatCard label="Điểm khôi phục" value={data.snapshots.length} hint="mốc có thể khôi phục" />
     </section>
+
+    {/* Autonomous Code Self-Healing & PR Gate */}
+    <SelfHealingPatchGatePanel />
 
     <section className="grid gap-4 xl:grid-cols-2">
       <Section title="Trợ lý mã nguồn" icon={<GitBranch className="h-4 w-4 text-emerald-300" />}>

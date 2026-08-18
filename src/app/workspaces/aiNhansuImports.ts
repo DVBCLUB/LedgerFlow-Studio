@@ -1,0 +1,22 @@
+import React from 'react';
+
+export const SoftwareFactoryCatalogPanel = React.lazy(() => import('../../modules/ai-nhan-su/SoftwareFactoryCatalogPanel'));
+export const RobotDOMVisionPanel = React.lazy(() => import('../../modules/ai-nhan-su/RobotDOMVisionPanel'));
+export const PeopleTab = React.lazy(() => import('../../modules/ai-nhan-su/PeopleTab'));
+export const LocalAiApprenticeLabPanel = React.lazy(() => import('../../modules/ai-nhan-su/LocalAiApprenticeLabPanel'));
+export const AiRobotUniversalCockpit = React.lazy(() => import('../../modules/ai-nhan-su/AiRobotUniversalCockpit'));
+export const AutonomousFlywheelCockpit = React.lazy(() => import('../../modules/ai-nhan-su/AutonomousFlywheelCockpit'));
+export const AIAssistantPanel = React.lazy(() => import('../../modules/ai-nhan-su/AIAssistantPanel'));
+export const AIWorkforceCommandCenter = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceCommandCenter'));
+export const AIWorkforceMissionControl = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceMissionControl'));
+export const AIWorkforceRuntimePanel = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceRuntimePanel'));
+export const AIDispatchPanel = React.lazy(() => import('../../modules/ai-nhan-su/AIDispatchPanel'));
+export const WorkflowPanel = React.lazy(() => import('../../modules/ai-nhan-su/WorkflowPanel'));
+export const A2AMailboxPanel = React.lazy(() => import('../../modules/ai-nhan-su/A2AMailboxPanel'));
+export const AIWorkforcePluginSecurityGuard = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforcePluginSecurityGuard'));
+export const AIWorkforceSkillDirectory = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceSkillDirectory'));
+export const AIWorkforcePatchReviewSessions = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforcePatchReviewSessions'));
+export const AICommandCenterHubPanel = React.lazy(() => import('../../modules/ai-nhan-su/AICommandCenterHubPanel'));
+export const AutonomousSweAgentLoopPanel = React.lazy(() => import('../../modules/ai-nhan-su/AutonomousSweAgentLoopPanel'));
+export const AIOutputQualityReview = React.lazy(() => import('../../modules/ai-nhan-su/AIOutputQualityReview'));
+export const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceRobotAutomationBridge'));

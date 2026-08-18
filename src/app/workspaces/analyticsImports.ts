@@ -1,0 +1,23 @@
+import React from 'react';
+
+export const PythonSandbox = React.lazy(() => import('../../modules/analytics-models-sandbox/PythonSandbox'));
+export const BusinessSimulationEngine = React.lazy(() => import('../../modules/analytics-models-sandbox/BusinessSimulationEngine'));
+export const AIEcosystemArchitecture = React.lazy(() => import('../../modules/analytics-models-sandbox/AIEcosystemArchitecture'));
+export const MarketSurveySimulator = React.lazy(() => import('../../modules/analytics-models-sandbox/MarketSurveySimulator'));
+export const FinancialDataScienceLab = React.lazy(() => import('../../modules/analytics-models-sandbox/FinancialDataScienceLab'));
+export const PromptPlayground = React.lazy(() => import('../../modules/analytics-models-sandbox/PromptPlayground'));
+export const BrowserSimulationPlanner = React.lazy(() => import('../../modules/analytics-models-sandbox/BrowserSimulationPlanner'));
+export const DataScienceEngineering = React.lazy(() => import('../../modules/analytics-models-sandbox/DataScienceEngineering'));
+export const DeployBusiness = React.lazy(() => import('../../modules/analytics-models-sandbox/DeployBusiness'));
+export const GeminiPlayground = React.lazy(() => import('../../modules/analytics-models-sandbox/GeminiPlayground'));
+export const MLApplied = React.lazy(() => import('../../modules/analytics-models-sandbox/MLApplied'));
+export const ABSimulationLab = React.lazy(() => import('../../modules/analytics-models-sandbox/ABSimulationLab'));
+export const ExperimentDashboard = React.lazy(() => import('../../modules/analytics-models-sandbox/ExperimentDashboard'));
+export const ExperimentDecisionLog = React.lazy(() => import('../../modules/analytics-models-sandbox/ExperimentDecisionLog'));
+export const CustomDataWorkbench = React.lazy(() => import('../../modules/analytics-models-sandbox/CustomDataWorkbench'));
+export const MultiIndustryCaseBank = React.lazy(() => import('../../modules/analytics-models-sandbox/MultiIndustryCaseBank'));
+export const N8nAutomationBlueprint = React.lazy(() => import('../../modules/analytics-models-sandbox/N8nAutomationBlueprint'));
+export const MoatDefensibilityTracker = React.lazy(() => import('../../modules/analytics-models-sandbox/MoatDefensibilityTracker'));
+export const MoRReadinessChecklist = React.lazy(() => import('../../modules/analytics-models-sandbox/MoRReadinessChecklist'));
+export const StrategicLabsMini = React.lazy(() => import('../../modules/analytics-models-sandbox/StrategicLabsMini'));
+export const ExecutiveBoardroomPanel = React.lazy(() => import('../../modules/analytics-models-sandbox/ExecutiveBoardroomPanel'));

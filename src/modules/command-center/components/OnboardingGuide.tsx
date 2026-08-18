@@ -67,7 +67,7 @@ export default function OnboardingGuide() {
             </p>
           </div>
           <a 
-            href="#/advisory" 
+            href="#/finance_accounting?subtab=founder_control" 
             className="mt-3.5 inline-flex items-center gap-1.5 text-[10.5px] font-bold text-brand hover:text-purple-300 transition-colors"
           >
             <span>Xem cố vấn</span>
@@ -93,7 +93,7 @@ export default function OnboardingGuide() {
             </p>
           </div>
           <a 
-            href="#/architecture" 
+            href="#/analytics?subtab=ai_sandbox" 
             className="mt-3.5 inline-flex items-center gap-1.5 text-[10.5px] font-bold text-brand hover:text-purple-300 transition-colors"
           >
             <span>Vẽ hạ tầng</span>
@@ -119,7 +119,7 @@ export default function OnboardingGuide() {
             </p>
           </div>
           <a 
-            href="#/video_lab" 
+            href="#/marketing_growth?subtab=video_studio" 
             className="mt-3.5 inline-flex items-center gap-1.5 text-[10.5px] font-bold text-brand hover:text-purple-300 transition-colors"
           >
             <span>Vào Video Lab</span>
@@ -145,7 +145,7 @@ export default function OnboardingGuide() {
             </p>
           </div>
           <a 
-            href="#/marketing_growth_v2" 
+            href="#/marketing_growth?subtab=campaigns" 
             className="mt-3.5 inline-flex items-center gap-1.5 text-[10.5px] font-bold text-brand hover:text-purple-300 transition-colors"
           >
             <span>Tăng trưởng</span>
@@ -171,7 +171,7 @@ export default function OnboardingGuide() {
             </p>
           </div>
           <a 
-            href="#/accounting_vn" 
+            href="#/finance_accounting?subtab=ledger" 
             className="mt-3.5 inline-flex items-center gap-1.5 text-[10.5px] font-bold text-brand hover:text-purple-300 transition-colors"
           >
             <span>Vào Kế toán</span>

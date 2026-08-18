@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "crypto";
 import type { NextFunction, Request, Response } from "express";
+import { verifyUser, listUsers } from './userAccounts.ts';
 
 const SESSION_COOKIE = "ledgerflow_session";
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
@@ -108,22 +109,39 @@ function cookieValue(token: string, maxAgeSeconds: number): string {
   ].filter(Boolean).join("; ");
 }
 
-export function createLocalSession(email: string, password: string) {
-  const auth = configuredPassword();
-  if (!auth) throw new Error("LOCAL_AUTH_DEV_PASSWORD must be configured for a hosted production runtime.");
-  if (!sameSecret(password, auth.password)) return null;
-  const ownerEmail = (firstNonEmptyEnv(["LOCAL_AUTH_OWNER_EMAIL", "LOCAL_AUTH_EMAIL", "ADMIN_EMAIL"]) || "").toLowerCase();
-  if (ownerEmail && email.trim().toLowerCase() !== ownerEmail) return null;
-  const stored = { email, role: "owner" as const, loggedInAt: new Date().toISOString(), expiresAt: Date.now() + SESSION_TTL_MS };
+function issueSession(email: string, role: LocalRole, usesDevPassword: boolean) {
+  const stored = { email, role, loggedInAt: new Date().toISOString(), expiresAt: Date.now() + SESSION_TTL_MS };
   const token = createSignedToken(stored);
-
-  // Legacy in-memory store kept for desktop/dev compatibility and smooth migration.
   sessions.set(token, stored);
   return {
     token,
     session: { email: stored.email, role: stored.role, loggedInAt: stored.loggedInAt },
-    usesDevPassword: auth.usesDevPassword,
+    usesDevPassword,
   };
+}
+
+export function createLocalSession(email: string, password: string) {
+  const auth = configuredPassword();
+  if (!auth) throw new Error("LOCAL_AUTH_DEV_PASSWORD must be configured for a hosted production runtime.");
+  const cleanEmail = email.trim().toLowerCase();
+
+  // 1) Đa người dùng: email khớp tài khoản local → xác thực bằng mật khẩu riêng.
+  const localRole = verifyUser(cleanEmail, password);
+  if (localRole) return issueSession(cleanEmail, localRole, false);
+
+  // 2) Chưa có tài khoản owner → giữ bootstrap bằng mật khẩu dev chung (chống tự khóa).
+  const hasOwner = listUsers().some((u) => u.role === 'owner');
+  if (!hasOwner) {
+    if (sameSecret(password, auth.password)) {
+      const ownerEmail = (firstNonEmptyEnv(["LOCAL_AUTH_OWNER_EMAIL", "LOCAL_AUTH_EMAIL", "ADMIN_EMAIL"]) || "").toLowerCase();
+      if (!ownerEmail || cleanEmail === ownerEmail) {
+        return issueSession(cleanEmail, "owner", auth.usesDevPassword);
+      }
+    }
+  }
+
+  // 3) Đã có tài khoản owner → mật khẩu dev chung không còn được dùng.
+  return null;
 }
 
 export function setLocalSessionCookie(res: Response, token: string) {

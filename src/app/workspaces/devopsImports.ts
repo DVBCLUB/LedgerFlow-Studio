@@ -1,0 +1,28 @@
+import React from 'react';
+
+export const IntegrationHub = React.lazy(() => import('../../modules/dev-ops/IntegrationHub'));
+export const BuildMonitorPanel = React.lazy(() => import('../../modules/dev-ops/BuildMonitorPanel'));
+export const MergeReadinessCenter = React.lazy(() => import('../../modules/dev-ops/MergeReadinessCenter'));
+export const PRControlCenter = React.lazy(() => import('../../modules/dev-ops/PRControlCenter'));
+export const GitHubCIDoctorLauncher = React.lazy(() => import('../../modules/dev-ops/GitHubCIDoctorLauncher'));
+export const DevHandoffCenter = React.lazy(() => import('../../modules/dev-ops/DevHandoffCenter'));
+export const ApprovedPrPanel = React.lazy(() => import('../../modules/dev-ops/ApprovedPrPanel'));
+export const GitAssistantDaemonPanel = React.lazy(() => import('../../modules/dev-ops/GitAssistantDaemonPanel'));
+export const PatchDiffReviewCenter = React.lazy(() => import('../../modules/dev-ops/PatchDiffReviewCenter'));
+export const ReleaseArtifactCenter = React.lazy(() => import('../../modules/dev-ops/ReleaseArtifactCenter'));
+export const RollbackCenter = React.lazy(() => import('../../modules/dev-ops/RollbackCenter'));
+export const SandboxPatchWorkspace = React.lazy(() => import('../../modules/dev-ops/SandboxPatchWorkspace'));
+export const AuditTrailPanel = React.lazy(() => import('../../modules/dev-ops/AuditTrailPanel'));
+export const ArtifactInspectorPanel = React.lazy(() => import('../../modules/dev-ops/ArtifactInspectorPanel'));
+export const CIRecoveryQueue = React.lazy(() => import('../../modules/dev-ops/CIRecoveryQueue'));
+export const CIRunInspectorPanel = React.lazy(() => import('../../modules/dev-ops/CIRunInspectorPanel'));
+export const ConfigHealthMonitor = React.lazy(() => import('../../modules/dev-ops/ConfigHealthMonitor'));
+export const ConnectorContractPanel = React.lazy(() => import('../../modules/dev-ops/ConnectorContractPanel'));
+export const GitHubConnectorPanel = React.lazy(() => import('../../modules/dev-ops/GitHubConnectorPanel'));
+export const LocalToolsPanel = React.lazy(() => import('../../modules/dev-ops/LocalToolsPanel'));
+export const WebAiSyncPanel = React.lazy(() => import('../../modules/dev-ops/WebAiSyncPanel'));
+export const SystemOverviewDaemonPanel = React.lazy(() => import('../../modules/dev-ops/SystemOverviewDaemonPanel'));
+export const DevOpsReleaseHubPanel = React.lazy(() => import('../../modules/dev-ops/DevOpsReleaseHubPanel'));
+export const DeveloperIntelligenceHubPanel = React.lazy(() => import('../../modules/dev-ops/DeveloperIntelligenceHubPanel'));
+export const ApprovalWorkflow = React.lazy(() => import('../../modules/dev-ops/ApprovalWorkflow'));
+export const SelfHealingPatchGatePanel = React.lazy(() => import('../../modules/dev-ops/SelfHealingPatchGatePanel'));

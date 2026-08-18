@@ -29,7 +29,7 @@ const INTEGRATED_HUB_LABELS: Record<string, { label: string; badge?: string }> =
   security: { label: 'Security & System Health', badge: 'Hub' },
 };
 
-export default function WorkspaceSubNavigation<T extends string = string>({
+const WorkspaceSubNavigation = React.memo(function WorkspaceSubNavigation<T extends string = string>({
   tabs,
   activeTab,
   onChange,
@@ -108,4 +108,6 @@ export default function WorkspaceSubNavigation<T extends string = string>({
       </div>
     </header>
   );
-}
+});
+
+export default WorkspaceSubNavigation;

@@ -1,4 +1,4 @@
-const { app, BrowserWindow, shell, dialog, Menu, session } = require('electron');
+const { app, BrowserWindow, shell, dialog, Menu, session, globalShortcut } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
@@ -599,6 +599,21 @@ app.whenReady().then(async () => {
     startEmbeddedServer();
   }
 
+  // Register Global Hotkey (Ctrl+Shift+K / Cmd+Shift+K)
+  try {
+    globalShortcut.register('CommandOrControl+Shift+K', () => {
+      if (mainWindow) {
+        if (mainWindow.isMinimized()) mainWindow.restore();
+        mainWindow.show();
+        mainWindow.focus();
+        mainWindow.webContents.send('open-ceo-command-palette');
+      }
+    });
+    logDesktop('Registered global shortcut CommandOrControl+Shift+K');
+  } catch (err) {
+    logDesktop('Could not register global shortcut', err);
+  }
+
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createMainWindow();
@@ -606,8 +621,13 @@ app.whenReady().then(async () => {
   });
 });
 
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll();
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
+

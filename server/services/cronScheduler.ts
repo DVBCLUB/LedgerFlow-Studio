@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { callAIWithFallback } from "./aiRouter";
 import { cancelDurableJob, claimDueJob, completeDurableJob, enqueueDurableJob, failDurableJob, getDurableQueueSummary, pruneDurableJobs, retryDeadLetterJob } from "./durableJobQueue";
 
-type CronJobName = "daily_brief" | "weekly_report" | "monthly_close_reminder" | "competitor_scan" | "ai_health_check" | "auto_backup_memory" | "product_kpi_snapshot";
+type CronJobName = "daily_brief" | "weekly_report" | "monthly_close_reminder" | "competitor_scan" | "ai_health_check" | "auto_backup_memory" | "product_kpi_snapshot" | "ai_lessons_sync";
 type CronJobStatus = "ok" | "error" | "skipped";
 type DailyCard = { title?: string; status?: string; risk?: string; ai_staff?: string };
 type AgentTaskRow = { agent_role?: string; status?: string; created_at?: string };
@@ -46,6 +46,7 @@ export const JOB_REGISTRY: CronJobDefinition[] = [
   { name: "ai_health_check", schedule: "*/30 * * * *", description: "Kiểm tra AI Gateway health và ghi observability metrics mỗi 30 phút", enabled: true },
   { name: "auto_backup_memory", schedule: "0 2 * * *", description: "Backup agent memory store lúc 2:00 SA mỗi ngày", enabled: true },
   { name: "product_kpi_snapshot", schedule: "0 9 * * 5", description: "AI Analyst chụp snapshot KPI sản phẩm mỗi thứ Sáu lúc 9:00 SA", enabled: true },
+  { name: "ai_lessons_sync", schedule: "0 3 * * *", description: "Đồng bộ tri thức AI lên Supabase + prune local lúc 3:00 SA", enabled: true },
 ];
 
 function supabaseAdmin() {
@@ -136,6 +137,16 @@ async function runAutoBackupMemory(): Promise<void> {
   }
 }
 
+async function runAiLessonsSync(): Promise<void> {
+  try {
+    const { pruneLocalLessons } = await import('./localLearningStore.ts');
+    const result = await pruneLocalLessons(200);
+    console.log(`[Cron][ai_lessons_sync] cloud.synced=${result.cloud.synced} local.pruned=${result.pruned}`);
+  } catch (err) {
+    console.error('[Cron][ai_lessons_sync] Error:', err);
+  }
+}
+
 async function runProductKpiSnapshot(userId: string): Promise<void> {
   try {
     const { getAIMetricsSummary } = await import('./aiObservabilityService.ts');
@@ -160,6 +171,7 @@ async function runJobForUser(jobName: CronJobName, userId: string) {
   if (jobName === "monthly_close_reminder") return runMonthlyCloseReminder(userId);
   if (jobName === "ai_health_check") return runAiHealthCheck();
   if (jobName === "auto_backup_memory") return runAutoBackupMemory();
+  if (jobName === "ai_lessons_sync") return runAiLessonsSync();
   if (jobName === "product_kpi_snapshot") return runProductKpiSnapshot(userId);
   throw new Error(`Unknown or disabled job: ${jobName}`);
 }

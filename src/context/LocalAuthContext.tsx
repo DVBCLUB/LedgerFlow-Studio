@@ -27,7 +27,7 @@ const LocalAuthContext = createContext<LocalAuthContextValue | null>(null);
 
 class BackendAuthError extends Error {}
 
-export function readLocalSession(): LocalSession {
+export function readLocalSession(): LocalSession | null {
   try {
     const raw = localStorage.getItem(SESSION_KEY);
     if (raw) {
@@ -35,13 +35,9 @@ export function readLocalSession(): LocalSession {
       if (parsed?.email && parsed?.loggedInAt) return parsed;
     }
   } catch {
-    // Ignore storage parse error and return default session
+    // Ignore storage parse error
   }
-  return {
-    email: 'admin@ledgerflow.local',
-    loggedInAt: new Date().toISOString(),
-    role: 'admin',
-  };
+  return null;
 }
 
 async function requestLocalSession(email: string, password: string): Promise<{ session: LocalSession; usesDevPassword: boolean }> {

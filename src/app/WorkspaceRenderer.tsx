@@ -22,142 +22,170 @@ import {
   Target,
   TestTubeDiagonal,
   TrendingUp,
+  Users,
   UsersRound,
   Film,
   Gamepad2,
   Lightbulb,
+  GraduationCap,
+  Scale,
+  Zap,
 } from 'lucide-react';
 import { TabType, RoleType } from './companyNavigation';
 import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
 import WorkspaceSubNavigation from '../components/shared/WorkspaceSubNavigation';
 import SimplePanelCard from '../components/shared/SimplePanelCard';
 import Skeleton from '../components/ui/Skeleton';
+import { useLanguage } from '../context/LanguageContext';
 
-const LedgerAccountingWorkspace = React.lazy(() => import('../modules/finance-accounting/LedgerAccountingWorkspace'));
-const RealCustomerSubscriptionLedger = React.lazy(() => import('../modules/sales-crm/components/RealCustomerSubscriptionLedger'));
-const FinancialReportsVN = React.lazy(() => import('../modules/finance-accounting/FinancialReportsVN'));
-const RevenueDashboard = React.lazy(() => import('../modules/finance-accounting/RevenueDashboard'));
-const ApprovalWorkflow = React.lazy(() => import('../modules/dev-ops/ApprovalWorkflow'));
-const PythonSandbox = React.lazy(() => import('../modules/analytics-models-sandbox/PythonSandbox'));
-const Analytics3DLab = React.lazy(() => import('../modules/analytics-models-sandbox/Analytics3DLab'));
-const BusinessSimulationEngine = React.lazy(() => import('../modules/analytics-models-sandbox/BusinessSimulationEngine'));
-const FinancialChartsModelPanel = React.lazy(() => import('../components/analytics/FinancialChartsModelPanel'));
-const AIObservabilityDashboard = React.lazy(() => import('../modules/analytics-models-sandbox/AIObservabilityDashboard'));
-const AIEcosystemArchitecture = React.lazy(() => import('../modules/analytics-models-sandbox/AIEcosystemArchitecture'));
-const MarketSurveySimulator = React.lazy(() => import('../modules/analytics-models-sandbox/MarketSurveySimulator'));
-const FinancialDataScienceLab = React.lazy(() => import('../modules/analytics-models-sandbox/FinancialDataScienceLab'));
-const PromptPlayground = React.lazy(() => import('../modules/analytics-models-sandbox/PromptPlayground'));
-const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ProjectMemoryDecisionLog'));
-const BrowserSimulationPlanner = React.lazy(() => import('../modules/analytics-models-sandbox/BrowserSimulationPlanner'));
-const DataScienceEngineering = React.lazy(() => import('../modules/analytics-models-sandbox/DataScienceEngineering'));
-const DeployBusiness = React.lazy(() => import('../modules/analytics-models-sandbox/DeployBusiness'));
-const GeminiPlayground = React.lazy(() => import('../modules/analytics-models-sandbox/GeminiPlayground'));
-const MLApplied = React.lazy(() => import('../modules/analytics-models-sandbox/MLApplied'));
-const ABSimulationLab = React.lazy(() => import('../modules/analytics-models-sandbox/ABSimulationLab'));
-const ExperimentDashboard = React.lazy(() => import('../modules/analytics-models-sandbox/ExperimentDashboard'));
-const ExperimentDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ExperimentDecisionLog'));
-const CustomDataWorkbench = React.lazy(() => import('../modules/analytics-models-sandbox/CustomDataWorkbench'));
-const MultiIndustryCaseBank = React.lazy(() => import('../modules/analytics-models-sandbox/MultiIndustryCaseBank'));
-const N8nAutomationBlueprint = React.lazy(() => import('../modules/analytics-models-sandbox/N8nAutomationBlueprint'));
-const MoatDefensibilityTracker = React.lazy(() => import('../modules/analytics-models-sandbox/MoatDefensibilityTracker'));
-const MoRReadinessChecklist = React.lazy(() => import('../modules/analytics-models-sandbox/MoRReadinessChecklist'));
-const StartHereLab = React.lazy(() => import('../modules/analytics-models-sandbox/StartHereLab'));
-const StrategicLabsMini = React.lazy(() => import('../modules/analytics-models-sandbox/StrategicLabsMini'));
-const OperatingKnowledgeLayerPanel = React.lazy(() => import('../components/operating-knowledge/OperatingKnowledgePanels').then((module) => ({ default: module.OperatingKnowledgeLayerPanel })));
-const FounderLabsDock = React.lazy(() => import('../components/shared/FounderLabsDock'));
-const SystemSettingsPanel = React.lazy(() => import('../modules/system-settings/SystemSettingsPanel'));
-const FeatureRegistryPanel = React.lazy(() => import('../modules/system-settings/FeatureRegistryPanel'));
-const ReleaseReadinessPanel = React.lazy(() => import('../modules/system-settings/ReleaseReadinessPanel'));
-const SoftwareFactoryCatalogPanel = React.lazy(() => import('../modules/ai-nhan-su/SoftwareFactoryCatalogPanel'));
-const IntegrationHub = React.lazy(() => import('../modules/dev-ops/IntegrationHub'));
-const BuildMonitorPanel = React.lazy(() => import('../modules/dev-ops/BuildMonitorPanel'));
-const MergeReadinessCenter = React.lazy(() => import('../modules/dev-ops/MergeReadinessCenter'));
-const PRControlCenter = React.lazy(() => import('../modules/dev-ops/PRControlCenter'));
-const GitHubCIDoctorLauncher = React.lazy(() => import('../modules/dev-ops/GitHubCIDoctorLauncher'));
-const DevHandoffCenter = React.lazy(() => import('../modules/dev-ops/DevHandoffCenter'));
-const ApprovedPrPanel = React.lazy(() => import('../modules/dev-ops/ApprovedPrPanel'));
-const GitAssistantDaemonPanel = React.lazy(() => import('../modules/dev-ops/GitAssistantDaemonPanel'));
-const PatchDiffReviewCenter = React.lazy(() => import('../modules/dev-ops/PatchDiffReviewCenter'));
-const ReleaseArtifactCenter = React.lazy(() => import('../modules/dev-ops/ReleaseArtifactCenter'));
-const RollbackCenter = React.lazy(() => import('../modules/dev-ops/RollbackCenter'));
-const SandboxPatchWorkspace = React.lazy(() => import('../modules/dev-ops/SandboxPatchWorkspace'));
-const AuditTrailPanel = React.lazy(() => import('../modules/dev-ops/AuditTrailPanel'));
-const ArtifactInspectorPanel = React.lazy(() => import('../modules/dev-ops/ArtifactInspectorPanel'));
-const CIRecoveryQueue = React.lazy(() => import('../modules/dev-ops/CIRecoveryQueue'));
-const CIRunInspectorPanel = React.lazy(() => import('../modules/dev-ops/CIRunInspectorPanel'));
-const ConfigHealthMonitor = React.lazy(() => import('../modules/dev-ops/ConfigHealthMonitor'));
-const ConnectorContractPanel = React.lazy(() => import('../modules/dev-ops/ConnectorContractPanel'));
-const GitHubConnectorPanel = React.lazy(() => import('../modules/dev-ops/GitHubConnectorPanel'));
-const LocalToolsPanel = React.lazy(() => import('../modules/dev-ops/LocalToolsPanel'));
-const WebAiSyncPanel = React.lazy(() => import('../modules/dev-ops/WebAiSyncPanel'));
-const SystemOverviewDaemonPanel = React.lazy(() => import('../modules/dev-ops/SystemOverviewDaemonPanel'));
-const DevOpsReleaseHubPanel = React.lazy(() => import('../modules/dev-ops/DevOpsReleaseHubPanel'));
-const DeveloperIntelligenceHubPanel = React.lazy(() => import('../modules/dev-ops/DeveloperIntelligenceHubPanel'));
-const AIIntegrationHealthPanel = React.lazy(() => import('../modules/system-settings/AIIntegrationHealthPanel'));
-const ApiConnectionHealthMatrix = React.lazy(() => import('../modules/system-settings/components/ApiConnectionHealthMatrix'));
-const CEOOverviewPanel = React.lazy(() => import('../modules/command-center/CEOOverviewPanel'));
-const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/components/AiAgentControlCenter'));
-const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
-const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
-const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
-const ExecutiveBoardroomPanel = React.lazy(() => import('../modules/analytics-models-sandbox/ExecutiveBoardroomPanel'));
-// ai-nhan-su — core panels (rendered in workspace)
-const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
-const AIAssistantPanel = React.lazy(() => import('../modules/ai-nhan-su/AIAssistantPanel'));
-const AICommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AICommandCenter'));
-const AgentAssemblyBuilder = React.lazy(() => import('../modules/ai-nhan-su/AgentAssemblyBuilder'));
-const AIOperationsDaemonPanel = React.lazy(() => import('../modules/ai-nhan-su/AIOperationsDaemonPanel'));
-// ai-nhan-su — internal/advanced panels (rendered under advanced sub-tab only)
-const AIWorkforceTaskBoard = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceTaskBoard'));
-const ModelDispatchMatrix = React.lazy(() => import('../modules/ai-nhan-su/ModelDispatchMatrix'));
-const AIWorkforceOpenClawReadiness = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceOpenClawReadiness'));
-const AIWorkforceSkillDirectory = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceSkillDirectory'));
-const AISettingsManager = React.lazy(() => import('../modules/ai-nhan-su/AISettingsManager'));
-const AIVaultSecurityPanel = React.lazy(() => import('../modules/ai-nhan-su/AIVaultSecurityPanel'));
-const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceRobotAutomationBridge'));
-const AIWorkforcePatchReviewSessions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforcePatchReviewSessions'));
-const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionOperatorRunbookPanel'));
-const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReleaseGatePanel'));
-const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionSnapshotExportPanel'));
-const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
-const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMobileCommandCenter'));
-const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
-const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
-const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesHealthPanel'));
-const Level6RobotSynthesizerPanel = React.lazy(() => import('../modules/ai-nhan-su/Level6RobotSynthesizerPanel'));
-const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReviewNoteSavePanel'));
-const MultiPlatformRobotSwarmPanel = React.lazy(() => import('../modules/ai-nhan-su/MultiPlatformRobotSwarmPanel'));
+import * as WS from './workspaces';
+
+// Specialized inline dynamic imports with custom named resolutions
 const OpenClawWebRobotPanel = React.lazy(() => import('../modules/ai-nhan-su/OpenClawWebRobotPanel').then((module) => ({ default: module.OpenClawWebRobotPanel })));
-const RobotFleetAnalyticsPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotFleetAnalyticsPanel'));
-const RobotLabPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotLabPanel'));
 const WorldClassReadinessPanel = React.lazy(() => import('../modules/ai-nhan-su/WorldClassReadinessPanel').then((module) => ({ default: module.WorldClassReadinessPanel })));
-const SystemStatusPage = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/SystemStatusPage'));
-const WebAISchedulerPanel = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/WebAISchedulerPanel').then((module) => ({ default: module.WebAISchedulerPanel })));
-const KnowledgeBaseTab = React.lazy(() => import('../modules/knowledge-library/KnowledgeBaseTab'));
-
-const WebAccountingRoadmap = React.lazy(() => import('../modules/product-studio/WebAccountingRoadmap'));
-const ProductIdeationLab = React.lazy(() => import('../modules/product-studio/ProductIdeationLab'));
-const GameAndMLWorkbench = React.lazy(() => import('../modules/product-studio/GameAndMLWorkbench'));
-const GameStudioBuilder = React.lazy(() => import('../modules/product-studio/GameStudioBuilder'));
-const VaporwareSmokeTester = React.lazy(() => import('../modules/product-studio/components/VaporwareSmokeTester'));
-
-const InternalAuditWorkspace = React.lazy(() => import('../modules/finance-accounting/InternalAuditWorkspace'));
-const TaxAuditSimulator = React.lazy(() => import('../modules/finance-accounting/TaxAuditSimulator'));
-const AdvisoryBoardReport = React.lazy(() => import('../modules/finance-accounting/AdvisoryBoardReport'));
-const FounderReviewChecklist = React.lazy(() => import('../modules/finance-accounting/FounderReviewChecklist'));
 const ProjectPortfolioPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.ProjectPortfolioPanel })));
 const ProcurementLogisticsPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.ProcurementLogisticsPanel })));
 const HRAdminPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.HRAdminPanel })));
 
-const CampaignsLab = React.lazy(() => import('../modules/marketing-growth/CampaignsLab'));
-const ContentLab = React.lazy(() => import('../modules/marketing-growth/ContentLab'));
-const DigitalStudioLab = React.lazy(() => import('../modules/marketing-growth/DigitalStudioLab'));
-const SyntheticMarketSimulatorPanel = React.lazy(() => import('../modules/marketing-growth/SyntheticMarketSimulatorPanel'));
-const SecurityControlCenter = React.lazy(() => import('../modules/dev-ops/SecurityControlCenter'));
+const {
+  LedgerAccountingWorkspace,
+  RealCustomerSubscriptionLedger,
+  RevenueDashboard,
+  ApprovalWorkflow,
+  PythonSandbox,
+  BusinessSimulationEngine,
+  AIEcosystemArchitecture,
+  MarketSurveySimulator,
+  FinancialDataScienceLab,
+  PromptPlayground,
+  BrowserSimulationPlanner,
+  DataScienceEngineering,
+  DeployBusiness,
+  GeminiPlayground,
+  MLApplied,
+  ABSimulationLab,
+  ExperimentDashboard,
+  ExperimentDecisionLog,
+  CustomDataWorkbench,
+  MultiIndustryCaseBank,
+  N8nAutomationBlueprint,
+  MoatDefensibilityTracker,
+  MoRReadinessChecklist,
+  StrategicLabsMini,
+  FounderLabsDock,
+  SystemSettingsPanel,
+  SystemSOPRunbookPanel,
+  AdvancedDelegationMatrixPanel,
+  FeatureRegistryPanel,
+  ReleaseReadinessPanel,
+  SoftwareFactoryCatalogPanel,
+  RobotDOMVisionPanel,
+  PeopleTab,
+  LocalAiApprenticeLabPanel,
+  AiRobotUniversalCockpit,
+  AutonomousFlywheelCockpit,
+  UniversalProjectRobotDock,
+  IntegrationHub,
+  BuildMonitorPanel,
+  MergeReadinessCenter,
+  PRControlCenter,
+  GitHubCIDoctorLauncher,
+  DevHandoffCenter,
+  ApprovedPrPanel,
+  GitAssistantDaemonPanel,
+  PatchDiffReviewCenter,
+  ReleaseArtifactCenter,
+  RollbackCenter,
+  SandboxPatchWorkspace,
+  AuditTrailPanel,
+  ArtifactInspectorPanel,
+  CIRecoveryQueue,
+  CIRunInspectorPanel,
+  ConfigHealthMonitor,
+  ConnectorContractPanel,
+  GitHubConnectorPanel,
+  LocalToolsPanel,
+  WebAiSyncPanel,
+  SystemOverviewDaemonPanel,
+  DevOpsReleaseHubPanel,
+  DeveloperIntelligenceHubPanel,
+  AIIntegrationHealthPanel,
+  CEOOverviewPanel,
+  ExecutiveBoardroomPanel,
+  BusinessHubPanel,
+  AIAssistantPanel,
+  AIWorkforceSkillDirectory,
+  InterAgentProtocolPanel,
+  SwarmRelayOrchestratorPanel,
+  AIWorkforceRobotAutomationBridge,
+  AIWorkforcePatchReviewSessions,
+  KnowledgeBaseTab,
+  WebAccountingRoadmap,
+  ProductIdeationLab,
+  GameAndMLWorkbench,
+  GameAssetStudioPanel,
+  TaxAuditSimulator,
+  CampaignsLab,
+  ContentLab,
+  DigitalStudioLab,
+  SecurityControlCenter,
+  CustomerConversionLab,
+  PricingAndLTVLab,
+  ReferralAndNPSLab,
+} = WS;
 
-const CustomerConversionLab = React.lazy(() => import('../modules/sales-crm/CustomerConversionLab'));
-const PricingAndLTVLab = React.lazy(() => import('../modules/sales-crm/PricingAndLTVLab'));
-const ReferralAndNPSLab = React.lazy(() => import('../modules/sales-crm/ReferralAndNPSLab'));
+// Sub-components remaining
+const ApiConnectionHealthMatrix = React.lazy(() => import('../modules/system-settings/components/ApiConnectionHealthMatrix'));
+const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/components/AiAgentControlCenter'));
+const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
+const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
+const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
+const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
+const AIOperationsCenter = React.lazy(() => import('../modules/ai-nhan-su/AIOperationsCenter'));
+const AdvancedAIEngine = React.lazy(() => import('../modules/ai-nhan-su/AdvancedAIEngine'));
+const AIWorkforceMissionTrace = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTrace'));
+const A2AMailboxPanel = React.lazy(() => import('../modules/ai-nhan-su/A2AMailboxPanel'));
+const AIDispatchPanel = React.lazy(() => import('../modules/ai-nhan-su/AIDispatchPanel'));
+const WorkflowPanel = React.lazy(() => import('../modules/ai-nhan-su/WorkflowPanel'));
+const AgentAssemblyBuilder = React.lazy(() => import('../modules/ai-nhan-su/AgentAssemblyBuilder'));
+const AIWorkforceTaskBoard = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceTaskBoard'));
+const ModelDispatchMatrix = React.lazy(() => import('../modules/ai-nhan-su/ModelDispatchMatrix'));
+const AISettingsManager = React.lazy(() => import('../modules/ai-nhan-su/AISettingsManager'));
+const AIVaultSecurityPanel = React.lazy(() => import('../modules/ai-nhan-su/AIVaultSecurityPanel'));
+const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionOperatorRunbookPanel'));
+const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReleaseGatePanel'));
+const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionSnapshotExportPanel'));
+const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
+const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
+const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
+const AutomationRulesHealthPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesHealthPanel'));
+const Level6RobotSynthesizerPanel = React.lazy(() => import('../modules/ai-nhan-su/Level6RobotSynthesizerPanel'));
+const MultiPlatformRobotSwarmPanel = React.lazy(() => import('../modules/ai-nhan-su/MultiPlatformRobotSwarmPanel'));
+const RobotFleetAnalyticsPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotFleetAnalyticsPanel'));
+const SystemStatusPage = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/SystemStatusPage'));
+const GameStudioBuilder = React.lazy(() => import('../modules/product-studio/GameStudioBuilder'));
+const VaporwareSmokeTester = React.lazy(() => import('../modules/product-studio/components/VaporwareSmokeTester'));
+const InternalAuditWorkspace = React.lazy(() => import('../modules/finance-accounting/InternalAuditWorkspace'));
+const SyntheticMarketSimulatorPanel = React.lazy(() => import('../modules/marketing-growth/SyntheticMarketSimulatorPanel'));
+const RealCustomerSubscriptionLedgerSub = React.lazy(() => import('../modules/sales-crm/components/RealCustomerSubscriptionLedger'));
+const DistributionLeadBoard = React.lazy(() => import('../modules/sales-crm/components/DistributionLeadBoard'));
+const PricingOfferBuilder = React.lazy(() => import('../modules/sales-crm/components/PricingOfferBuilder'));
+const AccountingVietnam = React.lazy(() => import('../modules/finance-accounting/AccountingVietnam'));
+const CostDashboard = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/CostDashboard'));
+const ProductLaunchChecklist = React.lazy(() => import('../modules/marketing-growth/components/ProductLaunchChecklist'));
+const AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceCommandCenter'));
+const AIWorkforceMissionControl = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionControl'));
+const AIWorkforceRuntimePanel = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceRuntimePanel'));
+const AICommandCenterHubPanel = React.lazy(() => import('../modules/ai-nhan-su/AICommandCenterHubPanel'));
+const AutonomousSweAgentLoopPanel = React.lazy(() => import('../modules/ai-nhan-su/AutonomousSweAgentLoopPanel'));
+const AIOutputQualityReview = React.lazy(() => import('../modules/ai-nhan-su/AIOutputQualityReview'));
+const AIWorkforcePluginSecurityGuard = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforcePluginSecurityGuard'));
+const SelfHealingPatchGatePanel = React.lazy(() => import('../modules/dev-ops/SelfHealingPatchGatePanel'));
+const SyntheticSurveyBuilder = React.lazy(() => import('../modules/marketing-growth/components/SyntheticSurveyBuilder'));
+const AIVideoFactoryPanel = React.lazy(() => import('../modules/sales-crm/components/AIVideoFactoryPanel'));
+const VideoMakerRoot = React.lazy(() => import('../modules/video-maker/ui/index'));
+const EnterpriseControlCenterPanel = React.lazy(() => import('../components/enterprise/EnterpriseControlCenterPanel'));
+
 
 type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
 type WorkspaceSubtab = { id: string; label: string; icon?: LucideIcon };
@@ -185,35 +213,34 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'standup_rhythm', label: 'Founder Rhythm', icon: ClipboardList },
   ],
   knowledge_library: [
-    { id: 'library', label: 'Kho tri thức', icon: BookOpen },
-    { id: 'rag_simulator', label: 'RAG Sandbox', icon: Database },
-    { id: 'operating_layer', label: 'Operating Layer', icon: Network },
+    { id: 'library', label: 'Kho tri thức Gốc & SOP', icon: BookOpen },
+    { id: 'rag_simulator', label: 'RAG Sandbox & Live Chat', icon: Database },
+    { id: 'operating_layer', label: 'Operating Layer & Case Bank', icon: Network },
+    { id: 'inter_agent_protocol', label: '💬 Inter-Agent Chat', icon: UsersRound },
+    { id: 'swarm_orchestrator', label: '🤖 Swarm Relay & Robot Node', icon: Bot },
   ],
   product_studio: [
-    { id: 'portfolio', label: 'Danh mục sản phẩm', icon: FolderKanban },
-    { id: 'ideation', label: 'Phòng ý tưởng', icon: Lightbulb },
-    { id: 'games_ml', label: 'Studio Game & ML', icon: Gamepad2 },
-    { id: 'game_builder', label: 'Game Builder', icon: Gamepad2 },
-    { id: 'smoke_test', label: 'Smoke Test', icon: TestTubeDiagonal },
+    { id: 'portfolio', label: '🗺️ Lộ trình SaaS & Product Roadmap', icon: FolderKanban },
+    { id: 'ideation', label: '💡 Studio Ý tưởng & AI Feasibility', icon: Lightbulb },
+    { id: 'games_ml', label: '🎮 Studio Game & ML Workbench', icon: Gamepad2 },
+    { id: 'game_builder', label: '🛠️ Game Studio Builder', icon: Sparkles },
+    { id: 'game_assets', label: '🎨 Xưởng Tài Sản Game AI (5-in-1)', icon: Sparkles },
+    { id: 'smoke_test', label: '🧪 Vaporware & Smoke Test Lab', icon: TestTubeDiagonal },
   ],
   marketing_growth: [
-    { id: 'campaigns', label: 'Chiến dịch', icon: Rocket },
-    { id: 'content', label: 'Nội dung', icon: Mail },
-    { id: 'video_studio', label: 'Studio Kỹ thuật số', icon: Film },
+    { id: 'campaigns', label: '🚀 1. Chiến Dịch & Phễu Chuyển Đổi', icon: Rocket },
+    { id: 'content', label: '✍️ 2. Nội Dung & SEO AI', icon: Mail },
+    { id: 'video_studio', label: '🎬 3. Studio Video & Xuất Bản', icon: Film },
   ],
   sales_crm: [
-    { id: 'funnel_lab', label: 'Phễu khách hàng', icon: Target },
-    { id: 'pricing_ltv', label: 'Báo giá & LTV', icon: BarChart3 },
-    { id: 'referral_nps', label: 'Đại lý & NPS', icon: UsersRound },
+    { id: 'funnel_lab', label: '🎯 1. Phễu Khách Hàng & Lead Scoring', icon: Target },
+    { id: 'pricing_ltv', label: '💰 2. Báo Giá, Gói Đăng Ký & LTV', icon: BarChart3 },
+    { id: 'referral_nps', label: '🤝 3. Đại Lý, Affiliate & NPS', icon: UsersRound },
   ],
   finance_accounting: [
-    { id: 'ledger', label: 'Sổ kế toán', icon: Database },
-    { id: 'reports', label: 'Báo cáo tài chính', icon: Calculator },
-    { id: 'cashflow', label: 'Dòng tiền', icon: TrendingUp },
-    { id: 'founder_control', label: 'Founder Control', icon: ClipboardList },
-    { id: 'approval', label: 'Duyệt chi phí', icon: CheckCircle },
-    { id: 'audit', label: 'Kiểm toán nội bộ', icon: ShieldCheck },
-    { id: 'tax_simulator', label: 'Kịch bản Thuế & Audit', icon: Calculator },
+    { id: 'cashflow', label: '📈 1. Doanh Thu, Dòng Tiền & VietQR', icon: TrendingUp },
+    { id: 'ledger', label: '📊 2. Sổ Cái & Báo Cáo VAS 200/133', icon: Database },
+    { id: 'tax_simulator', label: '🛡️ 3. Quản Trị Thuế & Duyệt Chi Phí', icon: ShieldCheck },
   ],
   projects_delivery: [
     { id: 'portfolio', label: 'Danh mục dự án', icon: FolderKanban },
@@ -226,21 +253,21 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'evidence', label: 'Audit trail', icon: FileCheck2 },
   ],
   ai_factory: [
-    { id: 'command', label: 'Trung tâm Điều hành', icon: Bot },
-    { id: 'builder', label: 'Lắp ráp & Năng lực', icon: Sparkles },
-    { id: 'automation', label: 'Tự động hóa & Robot', icon: Activity },
-    { id: 'governance', label: 'Quản trị & Định tuyến', icon: ShieldCheck },
-    { id: 'release', label: 'Phát hành & Chiến dịch', icon: Rocket },
-    { id: 'advanced', label: 'Nội bộ & Giám sát', icon: Code },
+    { id: 'autonomous_flywheel', label: '🚀 Vòng Lặp Tự Vận Hành', icon: Zap },
+    { id: 'nexus_cockpit', label: '⚡ AI-Robot Nexus & Studio', icon: Activity },
+    { id: 'command', label: '🤖 Trợ lý CEO & Đội ngũ AI', icon: Bot },
+    { id: 'apprentice_lab', label: '🎓 Học Việc Local AI & Mẫu Vàng', icon: GraduationCap },
+    { id: 'automation', label: '🦾 Robot Tự Động Hóa & DOM Vision', icon: Activity },
+    { id: 'governance', label: '🛡️ Quản Trị, Chat Liên AI & Giám Sát', icon: ShieldCheck },
   ],
   analytics: [
-    { id: 'dashboard', label: 'Báo cáo & Giám sát', icon: Activity },
-    { id: 'simulations', label: 'Mô phỏng & Chiến lược', icon: Target },
-    { id: 'data_engineering', label: 'Khai thác & Xử lý Dữ liệu', icon: Database },
-    { id: 'ai_sandbox', label: 'AI Playground', icon: TestTubeDiagonal },
-    { id: 'python_sandbox', label: 'Python Sandbox', icon: Code },
+    { id: 'python_sandbox', label: '🧪 1. Python & SQL Sandbox AI', icon: Code },
+    { id: 'ai_sandbox', label: '🤖 2. Gemini Reasoning & Prompt Lab', icon: TestTubeDiagonal },
+    { id: 'simulations', label: '📈 3. Mô Phỏng Doanh Nghiệp & A/B Test', icon: Target },
   ],
   system_settings: [
+    { id: 'delegation_matrix', label: '⚖️ Phân Quyền & Giải Quyết Xung Đột AI', icon: Scale },
+    { id: 'sop_runbook', label: '📖 Quy Trình Vận Hành (SOP)', icon: BookOpen },
     { id: 'general', label: 'Hệ thống & Cấu hình', icon: Settings },
     { id: 'security', label: 'Bảo mật & Phân quyền', icon: ShieldCheck },
     { id: 'connectors', label: 'Tích hợp & Kết nối', icon: Network },
@@ -389,7 +416,14 @@ function StaticWorkspace({ config, subtab }: { config: StaticWorkspaceConfig; su
 }
 
 function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
-  if (subtab === 'overview') return <CEOOverviewPanel />;
+  if (subtab === 'overview') {
+    return (
+      <div className="space-y-5">
+        <BusinessHubPanel />
+        <CEOOverviewPanel />
+      </div>
+    );
+  }
   if (subtab === 'autonomous_command') {
     return (
       <div className="space-y-5">
@@ -416,13 +450,22 @@ function ProductStudioWorkspace({ subtab, staticConfig }: { subtab: string; stat
   if (subtab === 'ideation') return <ProductIdeationLab />;
   if (subtab === 'games_ml') return <GameAndMLWorkbench />;
   if (subtab === 'game_builder') return <GameStudioBuilder />;
+  if (subtab === 'game_assets') return <GameAssetStudioPanel />;
   if (subtab === 'smoke_test') return <VaporwareSmokeTester />;
   return <StaticWorkspace config={staticConfig} subtab={subtab} />;
 }
 
 function KnowledgeWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'operating_layer') return <OperatingKnowledgeLayerPanel />;
-  return <KnowledgeBaseTab initialSubTab={subtab === 'rag_simulator' ? 'rag_simulator' : 'library'} />;
+  const mode = subtab === 'rag_simulator'
+    ? 'rag_simulator'
+    : subtab === 'operating_layer'
+    ? 'operating_layer'
+    : subtab === 'inter_agent_protocol'
+    ? 'inter_agent_protocol'
+    : subtab === 'swarm_orchestrator'
+    ? 'swarm_orchestrator'
+    : 'library';
+  return <KnowledgeBaseTab initialSubTab={mode} />;
 }
 
 function MarketingWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
@@ -445,41 +488,32 @@ function SalesCRMWorkspace({ subtab, staticConfig }: { subtab: string; staticCon
 }
 
 function FinanceWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'ledger') return <LedgerAccountingWorkspace />;
-  if (subtab === 'reports') return <FinancialReportsVN />;
   if (subtab === 'cashflow') return <RevenueDashboard />;
-  if (subtab === 'founder_control') {
-    return (
-      <div className="space-y-5">
-        <AdvisoryBoardReport />
-        <FounderReviewChecklist />
-      </div>
-    );
-  }
-  if (subtab === 'audit') return <InternalAuditWorkspace />;
+  if (subtab === 'ledger') return <LedgerAccountingWorkspace />;
   if (subtab === 'tax_simulator') return <TaxAuditSimulator />;
-  if (subtab === 'approval') return <ApprovalWorkflow />;
-  return <LedgerAccountingWorkspace />;
+  return <RevenueDashboard />;
 }
 
 
 function AIWorkforceAdvancedWorkspace() {
   const [activeGroup, setActiveGroup] = useState<'tasks' | 'factory' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
+  const [robotSubtab, setRobotSubtab] = useState<'skills' | 'bridge' | 'web_robot'>('bridge');
+  const [tasksSubtab, setTasksSubtab] = useState<'board' | 'routing' | 'catalog'>('board');
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 text-left">
       {/* Streamlined Group Switcher */}
-      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-slate-800 backdrop-blur-xl">
         <button
           type="button"
           onClick={() => setActiveGroup('tasks')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'tasks'
               ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>📋 Nhiệm vụ & Routing</span>
+          <span>📋 Nhiệm vụ &amp; Routing</span>
         </button>
 
         <button
@@ -488,7 +522,7 @@ function AIWorkforceAdvancedWorkspace() {
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'factory'
               ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
           <span>Software Factory</span>
@@ -500,10 +534,10 @@ function AIWorkforceAdvancedWorkspace() {
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'release'
               ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>🛡️ Phê duyệt & Release Gate</span>
+          <span>🛡️ Phê duyệt &amp; Release Gate</span>
         </button>
 
         <button
@@ -511,11 +545,11 @@ function AIWorkforceAdvancedWorkspace() {
           onClick={() => setActiveGroup('robot')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'robot'
-              ? 'bg-violet-500/20 text-violet-200 border border-violet-500/40 shadow-sm shadow-violet-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>🤖 Skill & Robot Automation</span>
+          <span>🤖 Skill &amp; Robot Suite</span>
         </button>
 
         <button
@@ -523,42 +557,65 @@ function AIWorkforceAdvancedWorkspace() {
           onClick={() => setActiveGroup('patch')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'patch'
-              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-500/10'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>🔍 Audit & Patch Log</span>
+          <span>🔍 Audit &amp; Patch Log</span>
         </button>
+
         <button
           type="button"
           onClick={() => setActiveGroup('health')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'health'
               ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
-              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+              : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>Health & Readiness</span>
+          <span>Health &amp; Readiness</span>
         </button>
       </div>
+
       {/* Active Panel Group Content */}
       {activeGroup === 'tasks' && (
-        <div className="space-y-5 animate-fade-in">
-          <AIWorkforceTaskBoard />
-          <ModelDispatchMatrix />
-          <AIWorkforceMissionTemplates />
-          <AIWorkforceToolCatalog />
-          <AIWorkforceNextBackendActions />
-          <AIWorkforceMobileCommandCenter />
-        </div>
-      )}
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex gap-2 border-b border-slate-800 pb-2">
+            <button
+              onClick={() => setTasksSubtab('board')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'board' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              Bảng Nhiệm vụ Agent
+            </button>
+            <button
+              onClick={() => setTasksSubtab('routing')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'routing' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              Ma trận Định tuyến Model
+            </button>
+            <button
+              onClick={() => setTasksSubtab('catalog')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'catalog' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              Danh mục Công cụ &amp; Actions
+            </button>
+          </div>
 
-      {activeGroup === 'release' && (
-        <div className="space-y-5 animate-fade-in">
-          <MissionReleaseGatePanel />
-          <MissionOperatorRunbookPanel />
-          <MissionSnapshotExportPanel />
-          <MissionReviewNoteSavePanel />
+          {tasksSubtab === 'board' && <AIWorkforceTaskBoard />}
+          {tasksSubtab === 'routing' && <ModelDispatchMatrix />}
+          {tasksSubtab === 'catalog' && (
+            <div className="space-y-4">
+              <AIWorkforceMissionTemplates />
+              <AIWorkforceToolCatalog />
+              <AIWorkforceNextBackendActions />
+            </div>
+          )}
         </div>
       )}
 
@@ -568,16 +625,62 @@ function AIWorkforceAdvancedWorkspace() {
         </div>
       )}
 
-      {activeGroup === 'robot' && (
+      {activeGroup === 'release' && (
         <div className="space-y-5 animate-fade-in">
-          <AIWorkforceSkillDirectory />
-          <AIWorkforceOpenClawReadiness />
-          <AIWorkforceRobotAutomationBridge />
-          <Level6RobotSynthesizerPanel />
-          <MultiPlatformRobotSwarmPanel />
-          <RobotFleetAnalyticsPanel />
-          <RobotLabPanel />
-          <OpenClawWebRobotPanel />
+          <MissionReleaseGatePanel />
+          <MissionOperatorRunbookPanel />
+          <MissionSnapshotExportPanel />
+          <AIWorkforceMissionTrace />
+        </div>
+      )}
+
+      {activeGroup === 'robot' && (
+        <div className="space-y-4 animate-fade-in">
+          <div className="flex gap-2 border-b border-slate-800 pb-2">
+            <button
+              onClick={() => setRobotSubtab('bridge')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                robotSubtab === 'bridge' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              ⚡ Robot Automation Bridge &amp; Synthesizer
+            </button>
+            <button
+              onClick={() => setRobotSubtab('skills')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                robotSubtab === 'skills' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              📚 Thư viện Kỹ năng &amp; Fleet Analytics
+            </button>
+            <button
+              onClick={() => setRobotSubtab('web_robot')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                robotSubtab === 'web_robot' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              🌐 OpenClaw Web Robot &amp; Multi-Platform
+            </button>
+          </div>
+
+          {robotSubtab === 'bridge' && (
+            <div className="space-y-4">
+              <AIWorkforceRobotAutomationBridge />
+              <Level6RobotSynthesizerPanel />
+            </div>
+          )}
+          {robotSubtab === 'skills' && (
+            <div className="space-y-4">
+              <AIWorkforceSkillDirectory />
+              <RobotFleetAnalyticsPanel />
+            </div>
+          )}
+          {robotSubtab === 'web_robot' && (
+            <div className="space-y-4">
+              <OpenClawWebRobotPanel />
+              <MultiPlatformRobotSwarmPanel />
+            </div>
+          )}
         </div>
       )}
 
@@ -592,7 +695,7 @@ function AIWorkforceAdvancedWorkspace() {
           <WorldClassReadinessPanel />
           <AutomationRulesHealthPanel />
           <SystemStatusPage />
-          <WebAISchedulerPanel />
+          <AdvancedAIEngine />
         </div>
       )}
     </div>
@@ -600,13 +703,99 @@ function AIWorkforceAdvancedWorkspace() {
 }
 
 function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'builder') return <AgentAssemblyBuilder />;
-  if (subtab === 'automation') return <div className="space-y-5"><AutomationRulesPanel /><AutomationRulesHealthPanel /></div>;
-  if (subtab === 'governance') return <AICommandCenter />;
-  if (subtab === 'release') return <AIOperationsDaemonPanel />;
-  if (subtab === 'advanced') return <AIWorkforceAdvancedWorkspace />;
-  // command is default
-  return <AIAssistantPanel />;
+  const [commandSubtab, setCommandSubtab] = useState<'assistant' | 'staff' | 'builder' | 'ops'>('assistant');
+
+  if (subtab === 'autonomous_flywheel') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AutonomousFlywheelCockpit />
+      </div>
+    );
+  }
+
+  if (subtab === 'nexus_cockpit') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AiRobotUniversalCockpit />
+      </div>
+    );
+  }
+
+  if (subtab === 'apprentice_lab') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <LocalAiApprenticeLabPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'automation') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <RobotDOMVisionPanel />
+        <UniversalProjectRobotDock />
+        <AutomationRulesPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'governance' || subtab === 'inter_agent_chat' || subtab === 'swarm_relay' || subtab === 'release' || subtab === 'advanced') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <WorkflowPanel />
+        <AIDispatchPanel />
+        <A2AMailboxPanel />
+        <InterAgentProtocolPanel />
+        <SwarmRelayOrchestratorPanel />
+        <AIWorkforceAdvancedWorkspace />
+      </div>
+    );
+  }
+
+  // command (Default)
+  return (
+    <div className="space-y-4 animate-fade-in text-left">
+      <div className="flex gap-2 p-1.5 rounded-2xl bg-slate-950/80 border border-slate-800 w-fit backdrop-blur-xl">
+        <button
+          onClick={() => setCommandSubtab('assistant')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            commandSubtab === 'assistant' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white bg-transparent'
+          }`}
+        >
+          🤖 Trợ lý CEO &amp; Prompt Runner
+        </button>
+        <button
+          onClick={() => setCommandSubtab('staff')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            commandSubtab === 'staff' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white bg-transparent'
+          }`}
+        >
+          👥 Danh mục Đội ngũ AI Staff (PeopleTab)
+        </button>
+        <button
+          onClick={() => setCommandSubtab('builder')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            commandSubtab === 'builder' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white bg-transparent'
+          }`}
+        >
+          ⚙️ Lắp ráp Agent &amp; Cấu hình
+        </button>
+        <button
+          onClick={() => setCommandSubtab('ops')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+            commandSubtab === 'ops' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white bg-transparent'
+          }`}
+        >
+          🧭 Trung tâm Vận hành
+        </button>
+      </div>
+
+      {commandSubtab === 'assistant' && <AIAssistantPanel />}
+      {commandSubtab === 'staff' && <PeopleTab />}
+      {commandSubtab === 'builder' && <AgentAssemblyBuilder />}
+      {commandSubtab === 'ops' && <AIOperationsCenter />}
+    </div>
+  );
 }
 
 function AnalyticsSimulationsWorkspace() {
@@ -726,28 +915,21 @@ function AnalyticsDataEngineeringWorkspace() {
 }
 
 function AnalyticsWorkspace({ subtab }: { subtab: string }) {
-  if (subtab === 'simulations') return <AnalyticsSimulationsWorkspace />;
-  if (subtab === 'data_engineering') return <AnalyticsDataEngineeringWorkspace />;
   if (subtab === 'ai_sandbox') {
     return (
-      <div className="space-y-5">
-        <PromptPlayground />
+      <div className="space-y-5 animate-fade-in text-left">
         <GeminiPlayground />
-        <Analytics3DLab />
+        <PromptPlayground />
         <AIEcosystemArchitecture />
       </div>
     );
   }
-  if (subtab === 'python_sandbox') {
-    return <PythonSandbox />;
-  }
-  // dashboard is default
+  if (subtab === 'simulations') return <AnalyticsSimulationsWorkspace />;
+  // python_sandbox is default
   return (
-    <div className="space-y-5">
-      <StartHereLab />
-      <FinancialChartsModelPanel />
-      <AIObservabilityDashboard />
-      <ProjectMemoryDecisionLog />
+    <div className="space-y-5 animate-fade-in text-left">
+      <PythonSandbox />
+      <CustomDataWorkbench />
     </div>
   );
 }
@@ -869,11 +1051,22 @@ function SettingsConnectorsWorkspace() {
 }
 
 function SettingsSecurityWorkspace() {
-  const [activeGroup, setActiveGroup] = useState<'vault' | 'audit'>('vault');
+  const [activeGroup, setActiveGroup] = useState<'doctor' | 'vault' | 'ollama' | 'audit'>('doctor');
 
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('doctor')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'doctor'
+              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🩺 Master System Doctor</span>
+        </button>
         <button
           type="button"
           onClick={() => setActiveGroup('vault')}
@@ -887,10 +1080,21 @@ function SettingsSecurityWorkspace() {
         </button>
         <button
           type="button"
+          onClick={() => setActiveGroup('ollama')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'ollama'
+              ? 'bg-purple-500/20 text-purple-200 border border-purple-500/40 shadow-sm shadow-purple-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🦙 Ollama Offline Hub ($0)</span>
+        </button>
+        <button
+          type="button"
           onClick={() => setActiveGroup('audit')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'audit'
-              ? 'bg-emerald-500/20 text-emerald-200 border border-emerald-500/40 shadow-sm shadow-emerald-500/10'
+              ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
               : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
           }`}
         >
@@ -898,10 +1102,20 @@ function SettingsSecurityWorkspace() {
         </button>
       </div>
 
+      {activeGroup === 'doctor' && (
+        <div className="space-y-5 animate-fade-in">
+          <WS.MasterSystemDoctorDashboard />
+        </div>
+      )}
       {activeGroup === 'vault' && (
         <div className="space-y-5 animate-fade-in">
           <AISettingsManager />
           <AIVaultSecurityPanel />
+        </div>
+      )}
+      {activeGroup === 'ollama' && (
+        <div className="space-y-5 animate-fade-in">
+          <WS.OllamaLocalModelHubPanel />
         </div>
       )}
       {activeGroup === 'audit' && (
@@ -962,6 +1176,8 @@ function SettingsRecoveryWorkspace() {
 }
 
 function SettingsWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'delegation_matrix') return <AdvancedDelegationMatrixPanel />;
+  if (subtab === 'sop_runbook') return <SystemSOPRunbookPanel />;
   if (subtab === 'security') return <SettingsSecurityWorkspace />;
   if (subtab === 'connectors') return <SettingsConnectorsWorkspace />;
   if (subtab === 'dev_ops') return <SettingsDevOpsWorkspace />;
@@ -1083,34 +1299,40 @@ interface WorkspaceRendererProps {
 }
 
 export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }: WorkspaceRendererProps) {
+  const { t } = useLanguage();
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => ({ ...DEFAULT_SUBTAB }));
   const subTabs = useMemo(() => {
     const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
     const isTechRole = ['devops', 'agentops'].includes(activeRole);
     const isPowerUser = ['all', 'founder', 'admin'].includes(activeRole);
     const isFinanceRole = ['cfo', 'accountant', 'finance'].includes(activeRole);
-    return rawSubTabs.filter((tab) => {
-      // system_settings: hide dev_ops and recovery_ops from non-tech roles
-      if (activeSegment === 'system_settings') {
-        if (tab.id === 'dev_ops' || tab.id === 'recovery_ops') {
+    return rawSubTabs
+      .filter((tab) => {
+        // system_settings: hide dev_ops and recovery_ops from non-tech roles
+        if (activeSegment === 'system_settings') {
+          if (tab.id === 'dev_ops' || tab.id === 'recovery_ops') {
+            return isPowerUser || isTechRole;
+          }
+        }
+        // ai_factory: hide governance and advanced sub-tabs from non-power users
+        if (activeSegment === 'ai_factory' && (tab.id === 'governance' || tab.id === 'advanced')) {
           return isPowerUser || isTechRole;
         }
-      }
-      // ai_factory: hide governance and advanced sub-tabs from non-power users
-      if (activeSegment === 'ai_factory' && (tab.id === 'governance' || tab.id === 'advanced')) {
-        return isPowerUser || isTechRole;
-      }
-      // product_studio: hide smoke_test from general non-tech/non-product roles
-      if (activeSegment === 'product_studio' && tab.id === 'smoke_test') {
-        return isPowerUser || isTechRole || activeRole === 'product_owner';
-      }
-      // finance_accounting: hide tax_simulator and audit from general non-finance roles
-      if (activeSegment === 'finance_accounting' && (tab.id === 'tax_simulator' || tab.id === 'audit')) {
-        return isPowerUser || isFinanceRole;
-      }
-      return true;
-    });
-  }, [activeSegment, activeRole]);
+        // product_studio: hide smoke_test from general non-tech/non-product roles
+        if (activeSegment === 'product_studio' && tab.id === 'smoke_test') {
+          return isPowerUser || isTechRole || activeRole === 'product_owner';
+        }
+        // finance_accounting: hide tax_simulator and audit from general non-finance roles
+        if (activeSegment === 'finance_accounting' && (tab.id === 'tax_simulator' || tab.id === 'audit')) {
+          return isPowerUser || isFinanceRole;
+        }
+        return true;
+      })
+      .map((tab) => {
+        const translatedLabel = t(`subtab.${activeSegment}.${tab.id}`, tab.label);
+        return { ...tab, label: translatedLabel };
+      });
+  }, [activeSegment, activeRole, t]);
   const validSubTabIds = useMemo(() => subTabs.map((tab) => tab.id), [subTabs]);
   const currentSubTabId = resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds) || subTabs[0]?.id || '';
 
@@ -1122,9 +1344,13 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
     setActiveSubTabs((prev) => (prev[activeSegment] === normalized ? prev : { ...prev, [activeSegment]: normalized }));
   }, [activeSegment, validSubTabIds]);
 
+  const [, startTransition] = React.useTransition();
+
   const handleSubTabChange = (newSubTabId: string) => {
     const normalized = resolveWorkspaceSubTab(activeSegment, newSubTabId, validSubTabIds) || newSubTabId;
-    setActiveSubTabs((prev) => ({ ...prev, [activeSegment]: normalized }));
+    startTransition(() => {
+      setActiveSubTabs((prev) => ({ ...prev, [activeSegment]: normalized }));
+    });
     window.location.hash = `/${activeSegment}?subtab=${normalized}`;
   };
 

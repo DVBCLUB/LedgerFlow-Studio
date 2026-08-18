@@ -20,6 +20,7 @@
  * ============================================================
  */
 
+import fs from "node:fs";
 import type { PendingSuggestion } from "./assistant-daemon.types";
 import { callAI } from "./aiClient";
 import { diagnoseAIRouter } from "./aiRouter";
@@ -37,11 +38,10 @@ import {
   parseAICodeResponse,
   detectTaskFromInstruction,
 } from "./codingContext";
-import path from "path";
-import fs from "fs";
 import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands";
 import { subscribe } from "./agentEventBus.ts";
 import { getAgentRun, approveAgentRunStep, rejectAgentRunStep } from "./agentRuntime.ts";
+import { respondToApprovalRequest, type ApprovalRequest } from "./humanApprovalGateway.ts";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -136,6 +136,23 @@ export function createTelegramHandler(ctx: TelegramHandlerContext) {
           }
         } catch (err: any) {
           await sendMessage(chatId, `❌ *Lỗi thực thi phê duyệt:* ${err.message}`);
+        }
+      }
+
+      if (data.startsWith("approve_apr:") || data.startsWith("reject_apr:")) {
+        const parts = data.split(":");
+        const action = parts[0];
+        const requestId = parts[1];
+        try {
+          if (action === "approve_apr") {
+            respondToApprovalRequest(requestId, 'APPROVED', 'Solo Founder (Telegram)', 'Duyệt 1-click qua Telegram');
+            await sendMessage(chatId, `✅ *Đã duyệt thành công* yêu cầu \`${requestId}\` từ điện thoại.`);
+          } else {
+            respondToApprovalRequest(requestId, 'REJECTED', 'Solo Founder (Telegram)', 'Từ chối qua Telegram');
+            await sendMessage(chatId, `❌ *Đã từ chối* yêu cầu \`${requestId}\`.`);
+          }
+        } catch (err: any) {
+          await sendMessage(chatId, `❌ *Lỗi duyệt:* ${err.message}`);
         }
       }
 
@@ -655,3 +672,31 @@ subscribe("agent.step.approval_required" as any, async (event) => {
     console.error("[Telegram Approval Sub Error]", err);
   }
 });
+
+export async function notifyApprovalRequest(req: {
+  requestId: string;
+  title: string;
+  description: string;
+  riskLevel: string;
+  requesterRoleId: string;
+}): Promise<void> {
+  await sendTelegramNotification(
+    `🚨 *YÊU CẦU DUYỆT HÀNH ĐỘNG AI (${req.riskLevel})*\n\n` +
+    `🤖 *Role:* \`${req.requesterRoleId}\`\n` +
+    `📌 *Tiêu đề:* *${req.title}*\n` +
+    `📝 *Chi tiết:* ${req.description}\n` +
+    `🆔 *ID:* \`${req.requestId}\`\n\n` +
+    `Solo Founder vui lòng chọn hành động phê duyệt:`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "✅ DUYỆT NGAY", callback_data: `approve_apr:${req.requestId}` },
+            { text: "❌ TỪ CHỐI", callback_data: `reject_apr:${req.requestId}` }
+          ]
+        ]
+      }
+    }
+  );
+}
+

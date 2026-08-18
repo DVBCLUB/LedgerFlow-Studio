@@ -55,6 +55,8 @@ export default defineConfig(() => {
           '**/*.db',
           '**/*.sqlite',
           '**/*.log',
+          '**/release/**',
+          '**/dist/**',
         ]
       },
     },

@@ -3,7 +3,7 @@ import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import { getAgentToolContract, listAgentToolContracts } from './agentToolRegistry';
 
-export type CompanyOsSource = 'founder' | 'n8n' | 'telegram' | 'openclaw' | 'dashboard' | 'system';
+export type CompanyOsSource = 'founder' | 'n8n' | 'telegram' | 'openclaw' | 'dashboard' | 'system' | 'accounting' | 'documents';
 export type CompanyOsRisk = 'low' | 'medium' | 'high' | 'blocked';
 export type CompanyOsTaskStatus = 'inbox' | 'planning' | 'waiting_approval' | 'ready' | 'done' | 'blocked';
 

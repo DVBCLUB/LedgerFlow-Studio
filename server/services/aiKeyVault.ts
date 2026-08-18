@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths.ts";
 
-export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek" | "mistral" | "together" | "perplexity" | "xai" | "runway" | "luma" | "leonardo" | "elevenlabs" | "replicate";
+export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek" | "mistral" | "together" | "perplexity" | "xai" | "runway" | "luma" | "leonardo" | "elevenlabs" | "replicate" | "midjourney" | "flux1" | "kling" | "sora" | "pika" | "hailuo";
 
 export interface AIProviderDefinition {
   id: AIProviderName;

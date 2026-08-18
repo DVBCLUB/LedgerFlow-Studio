@@ -1340,9 +1340,9 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
       </div>
 
       {/* ── RIGHT MAIN PANEL (Split-Pane Architecture) ── */}
-      <div className="lg:col-span-3 grid lg:grid-cols-2 gap-4 h-[calc(100vh-6rem)]">
-        {/* PANEL 1: Workspace Execution (Trái) */}
-        <div className="space-y-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 h-full relative">
+      <div className="lg:col-span-3 grid lg:grid-cols-12 gap-4 h-[calc(100vh-6rem)]">
+        {/* PANEL 1: Workspace Execution (Trái - 5/12) */}
+        <div className="lg:col-span-5 space-y-4 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 h-full relative">
         {/* DRAG AND DROP OVERLAY FEEDBACK */}
         {isDragging && (
           <div className="absolute inset-0 bg-purple-950/80 backdrop-blur-sm z-30 flex flex-col items-center justify-center border-2 border-dashed border-purple-500 rounded-xl animate-fade-in">
@@ -1828,10 +1828,10 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
         )}
         </div>
 
-        {/* PANEL 2: Chat AI Client (Phải) */}
-        <div className="h-full overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 flex flex-col">
+        {/* PANEL 2: Chat AI Client (Phải - 7/12) */}
+        <div className="lg:col-span-7 h-full min-w-0 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-850 flex flex-col">
           {/* State B: General multi-turn chat client active */}
-          <div className="bg-bg-primary/60 border border-border-primary rounded-2xl p-5 flex-1 flex flex-col justify-between relative min-h-[600px]">
+          <div className="bg-bg-primary/60 border border-border-primary rounded-2xl p-5 flex-1 flex flex-col justify-between relative min-h-[600px] min-w-0 overflow-hidden">
             
             {/* Scrapbook toast success indicator */}
             <div id="scrapbook-toast" className="opacity-0 transition-opacity duration-300 pointer-events-none absolute right-12 top-24 bg-emerald-500/20 text-emerald-450 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-emerald-500/30 shadow-lg z-50 flex items-center gap-2">
@@ -1840,38 +1840,33 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
             </div>
 
             {/* Workspace Ribbon Menu */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-850 pb-3">
-              <div className="space-y-1">
-                <span className="text-xs font-black text-slate-100 uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse"></span>
-                  Không gian hội thoại Multi-turn Streaming
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-850 pb-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-500 animate-pulse shrink-0"></span>
+                <span className="text-xs font-black text-slate-100 uppercase tracking-wider whitespace-nowrap">
+                  💬 Chat AI Streaming
                 </span>
                 {keyStatus && (
-                  <div className="flex items-center gap-1.5 pt-0.5">
-                    <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-black tracking-tight border ${
-                      keyStatus.usingCustomKey 
-                        ? 'bg-emerald-500/15 border-emerald-500/25 text-emerald-400' 
-                        : 'bg-amber-500/15 border-amber-500/25 text-amber-400'
-                    }`}>
-                      {keyStatus.usingCustomKey ? '🟢 Pro Quota Active' : '🟡 Free Shared Quota'}
-                    </span>
-                    <span className="text-[9px] text-slate-550 font-bold">
-                      {keyStatus.usingCustomKey ? 'Sử dụng quota chất lượng cao từ tài khoản Pro của bạn' : 'Bị giới hạn quota dùng thử, có thể nâng cấp ở Secrets'}
-                    </span>
-                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[9px] uppercase font-black tracking-tight border shrink-0 ${
+                    keyStatus.usingCustomKey 
+                      ? 'bg-emerald-500/15 border-emerald-500/25 text-emerald-400' 
+                      : 'bg-amber-500/15 border-amber-500/25 text-amber-400'
+                  }`}>
+                    {keyStatus.usingCustomKey ? '🟢 Pro Quota' : '🟡 Free Quota'}
+                  </span>
                 )}
               </div>
               
-              <div className="flex items-center gap-2.5 w-full md:w-auto self-stretch md:self-auto justify-between md:justify-end">
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end shrink-0">
                 {/* Model Selector dropdown */}
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] font-bold text-text-tertiary uppercase font-mono">Model:</span>
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className="text-[10px] font-bold text-text-tertiary uppercase font-mono shrink-0">Model:</span>
                   <select
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1 text-xs text-slate-350 font-bold outline-none cursor-pointer focus:border-purple-500"
+                    className="bg-slate-950 border border-border-primary rounded-xl px-2.5 py-1.5 text-xs text-slate-200 font-bold outline-none cursor-pointer focus:border-purple-500 max-w-[200px] truncate"
                   >
-                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu tốc & thông minh)</option>
+                    <option value="gemini-2.0-flash">Gemini 2.0 Flash (Siêu tốc)</option>
                     <option value="gemini-2.0-pro-exp-02-05">Gemini 2.0 Pro Exp (Thông thái)</option>
                     <option value="gemini-1.5-pro">Gemini 1.5 Pro (Phân tích sâu)</option>
                   </select>
@@ -1879,10 +1874,10 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
 
                 <button 
                   onClick={handleNewChat}
-                  className="flex items-center gap-1.5 px-3 py-1 bg-slate-950 border border-border-primary rounded-xl text-slate-450 hover:text-text-primary hover:border-border-secondary transition-all text-xs font-bold cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 border border-border-primary rounded-xl text-slate-400 hover:text-text-primary hover:border-border-secondary transition-all text-xs font-bold cursor-pointer shrink-0"
                 >
                   <RotateCcw className="w-3.5 h-3.5 text-purple-400" />
-                  Reset chat
+                  <span>Reset</span>
                 </button>
               </div>
             </div>
@@ -1939,8 +1934,9 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
               <div ref={chatEndRef} />
             </div>
 
-            {/* Quick Presets row */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 my-3">
+            {/* Quick Presets Horizontal Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto py-2 my-2 scrollbar-none min-w-0">
+              <span className="text-[10px] font-black text-purple-400 uppercase font-mono tracking-wider shrink-0">⚡ Mẫu nhanh:</span>
               {preSets.map((preset, idx) => (
                 <button
                   key={idx}
@@ -1949,10 +1945,10 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
                     handleSend(preset.prompt);
                   }}
                   disabled={loading}
-                  className="p-3 bg-slate-950/80 hover:bg-slate-950 text-slate-350 hover:text-text-primary border border-slate-850 hover:border-purple-500/20 rounded-xl text-left text-xs font-black transition-all cursor-pointer block"
+                  className="px-3 py-1.5 bg-slate-950/80 hover:bg-slate-900 text-slate-300 hover:text-white border border-slate-800 hover:border-purple-500/30 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-sm"
                 >
-                  <span className="text-[9px] uppercase font-mono text-purple-400 tracking-wider block mb-1">Preset #{idx+1}</span>
-                  <span className="block truncate text-slate-200 font-semibold">{preset.title}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-purple-400"></span>
+                  <span>{preset.title}</span>
                 </button>
               ))}
             </div>
@@ -1972,10 +1968,12 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
             )}
 
             {/* Chat Input form area */}
-            <div className="border-t border-slate-850 pt-4.5 flex flex-col sm:flex-row gap-2">
-              <label className="flex items-center justify-center gap-2 px-4 py-3 bg-slate-950 hover:bg-bg-primary border border-slate-850 hover:border-border-secondary transition-colors rounded-xl text-xs text-text-secondary font-black cursor-pointer shrink-0">
-                <Paperclip className="w-4 h-4 text-purple-400" />
-                <span>Đính kèm</span>
+            <div className="border-t border-slate-850 pt-3 flex items-center gap-2 min-w-0">
+              <label 
+                className="flex items-center justify-center p-3 bg-slate-950 hover:bg-bg-primary border border-slate-850 hover:border-border-secondary transition-colors rounded-xl text-xs text-text-secondary font-black cursor-pointer shrink-0"
+                title="Đính kèm tệp CSV/PDF"
+              >
+                <Paperclip className="w-4.5 h-4.5 text-purple-400" />
                 <input
                   type="file"
                   accept=".csv,.pdf"
@@ -1989,15 +1987,15 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
                 value={userInput}
                 onChange={e => setUserInput(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleSend(userInput); }}
-                placeholder={uploadedFile ? `Bấm gửi hoặc viết thêm ghi chú cho tệp ${uploadedFile.name}...` : "Ví dụ: Thiết kế schema bảng hóa đơn VAT..."}
+                placeholder={uploadedFile ? `Bấm gửi hoặc viết thêm ghi chú cho tệp ${uploadedFile.name}...` : "Nhập câu hỏi hoặc yêu cầu cho AI (Ví dụ: Thiết kế schema hóa đơn VAT...)"}
                 disabled={loading}
-                className="flex-1 bg-slate-950 border border-slate-850 px-4 py-3.5 rounded-xl text-xs text-text-primary placeholder-slate-650 focus:outline-none focus:border-purple-500 font-semibold"
+                className="flex-1 min-w-0 bg-slate-950 border border-slate-850 px-4 py-3 rounded-xl text-xs text-text-primary placeholder-slate-600 focus:outline-none focus:border-purple-500 font-semibold shadow-inner"
               />
               
               {isStreaming ? (
                 <button
                   onClick={() => abortController?.abort()}
-                  className="px-5 bg-rose-600 hover:bg-rose-500 text-text-primary rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-rose-500/20 py-3.5 cursor-pointer animate-pulse shrink-0"
+                  className="px-4 py-3 bg-rose-600 hover:bg-rose-500 text-text-primary rounded-xl text-xs font-black flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-rose-500/20 cursor-pointer animate-pulse shrink-0"
                 >
                   <span className="w-2.5 h-2.5 bg-white rounded-xs shrink-0"></span>
                   <span>Dừng</span>
@@ -2006,7 +2004,7 @@ print(df.groupby('danh_muc')['so_tien_sach'].sum())
                 <button
                   onClick={() => handleSend(userInput)}
                   disabled={loading || (!userInput.trim() && !uploadedFile)}
-                  className="px-5 bg-purple-600 hover:bg-purple-500 disabled:bg-bg-surface disabled:text-slate-600 text-text-primary rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 py-3.5 cursor-pointer shrink-0"
+                  className="px-5 py-3 bg-purple-600 hover:bg-purple-500 disabled:bg-bg-surface disabled:text-slate-600 text-text-primary rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/20 cursor-pointer shrink-0"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Gửi</span>

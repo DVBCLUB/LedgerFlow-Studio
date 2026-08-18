@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { BarChart2, FileText, Download, RefreshCw, TrendingUp, TrendingDown, DollarSign, Package, Users, Building2, ChevronDown, ChevronRight, Info, AlertTriangle, CheckCircle2, Scale, Layers, ArrowRightLeft } from 'lucide-react';
+import { listBusinessEntities } from '../../utils/businessApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ReportTab = 'b01' | 'b02' | 'b03' | 'analysis';
@@ -360,10 +361,39 @@ function AnalysisTab({ balances }: { balances: AccountBalance[] }) {
 export default function FinancialReportsVN() {
   const [tab, setTab] = useState<ReportTab>('b01');
   const [balances, setBalances] = useState<AccountBalance[]>(loadBalances);
+  const [apiReceivables, setApiReceivables] = useState<number | null>(null);
   const [period, setPeriod] = useState(() => {
     const now = new Date();
     return `Kỳ kế toán: Năm ${now.getFullYear()} (tính đến ${now.toLocaleDateString('vi-VN')})`;
   });
+
+  // Công nợ phải thu TK 131 thật, đọc từ Business API (Sales ghi invoice khi "Nhắc nợ").
+  useEffect(() => {
+    let cancelled = false;
+    listBusinessEntities('invoice', 500)
+      .then((entities) => {
+        if (cancelled) return;
+        const total = entities.reduce((sum, e) => {
+          const d = e.data as Record<string, unknown>;
+          const account = String(d.accountCode ?? '');
+          const amount = Number(d.amountVnd ?? 0);
+          return account === '131' ? sum + amount : sum;
+        }, 0);
+        setApiReceivables(total);
+      })
+      .catch(() => {
+        if (!cancelled) setApiReceivables(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Ưu tiên số công nợ thật từ Business API; nếu chưa có thì giữ số demo Sổ Cái.
+  const effectiveBalances = useMemo(() => {
+    if (apiReceivables === null) return balances;
+    return balances.map((b) => (b.code === '131' ? { ...b, debit: apiReceivables } : b));
+  }, [balances, apiReceivables]);
 
   const handleRefresh = () => {
     setBalances(loadBalances());
@@ -427,14 +457,14 @@ export default function FinancialReportsVN() {
       {/* Report notice */}
       <div className="bg-blue-950/20 border border-blue-900/30 rounded-xl p-3 flex items-start gap-2 text-xs text-blue-300">
         <Info className="w-4 h-4 shrink-0 mt-0.5 text-blue-400" />
-        <p>Dữ liệu được đọc từ Sổ Cái (TK) đã lưu. Để cập nhật, hãy nhập giao dịch tại <strong>Finance &gt; Sổ Cái & Nhật Ký</strong> trước, sau đó nhấn <strong>"Làm mới"</strong>.</p>
+        <p>Dữ liệu được đọc từ Sổ Cái (TK) đã lưu. Khoản <strong>Phải thu khách hàng (TK 131)</strong> được tự động thay bằng công nợ thật từ <strong>Business API</strong> (Sales ghi khi "Nhắc nợ"). Nhấn <strong>"Làm mới"</strong> để cập nhật Sổ Cái.</p>
       </div>
 
       {/* Report content */}
-      {tab === 'b01' && <B01Report balances={balances} />}
-      {tab === 'b02' && <B02Report balances={balances} />}
-      {tab === 'b03' && <B03Report balances={balances} />}
-      {tab === 'analysis' && <AnalysisTab balances={balances} />}
+      {tab === 'b01' && <B01Report balances={effectiveBalances} />}
+      {tab === 'b02' && <B02Report balances={effectiveBalances} />}
+      {tab === 'b03' && <B03Report balances={effectiveBalances} />}
+      {tab === 'analysis' && <AnalysisTab balances={effectiveBalances} />}
     </div>
   );
 }

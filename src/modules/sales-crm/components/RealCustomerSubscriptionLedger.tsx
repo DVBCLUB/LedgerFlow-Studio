@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   UsersRound,
   Building,
@@ -13,6 +13,7 @@ import {
   ArrowUpRight,
   TrendingUp,
 } from 'lucide-react';
+import { listBusinessEntities, upsertBusinessEntity, type BusinessEntity } from '../../../utils/businessApi';
 
 export interface CustomerContract {
   id: string;
@@ -28,48 +29,114 @@ export interface CustomerContract {
   daysOverdue: number;
 }
 
+const DEMO_CUSTOMERS: CustomerContract[] = [
+  {
+    id: 'cust_01',
+    companyName: 'Tập đoàn Công nghệ VinTech Digital',
+    contactPerson: 'Nguyễn Văn Minh (CEO)',
+    email: 'minh.nguyen@vintech.example.com',
+    planName: 'Enterprise SaaS',
+    mrrVnd: 50000000,
+    contractStartDate: '2025-09-01',
+    contractEndDate: '2026-08-31',
+    receivableAccount131Vnd: 0,
+    paymentStatus: 'paid',
+    daysOverdue: 0,
+  },
+  {
+    id: 'cust_02',
+    companyName: 'Công ty TNHH Giải pháp Phần mềm NovaSoft',
+    contactPerson: 'Trần Thị Mai (CFO)',
+    email: 'mai.tran@novasoft.example.com',
+    planName: 'Pro License',
+    mrrVnd: 25000000,
+    contractStartDate: '2026-01-15',
+    contractEndDate: '2027-01-14',
+    receivableAccount131Vnd: 25000000,
+    paymentStatus: 'overdue',
+    daysOverdue: 12,
+  },
+  {
+    id: 'cust_03',
+    companyName: 'Công ty Cổ phần Truyền thông Apex Media',
+    contactPerson: 'Lê Hoàng Nam (Marketing Director)',
+    email: 'nam.le@apexmedia.example.com',
+    planName: 'Custom API Plan',
+    mrrVnd: 35000000,
+    contractStartDate: '2026-03-01',
+    contractEndDate: '2027-02-28',
+    receivableAccount131Vnd: 35000000,
+    paymentStatus: 'pending',
+    daysOverdue: 0,
+  },
+];
+
+function entityToContract(entity: BusinessEntity): CustomerContract {
+  const d = entity.data as Record<string, unknown>;
+  return {
+    id: entity.id,
+    companyName: String(d.companyName ?? ''),
+    contactPerson: String(d.contactPerson ?? ''),
+    email: String(d.email ?? ''),
+    planName: (d.planName as CustomerContract['planName']) ?? 'Pro License',
+    mrrVnd: Number(d.mrrVnd ?? 0),
+    contractStartDate: String(d.contractStartDate ?? ''),
+    contractEndDate: String(d.contractEndDate ?? ''),
+    receivableAccount131Vnd: Number(d.receivableAccount131Vnd ?? 0),
+    paymentStatus: (d.paymentStatus as CustomerContract['paymentStatus']) ?? 'pending',
+    daysOverdue: Number(d.daysOverdue ?? 0),
+  };
+}
+
+function contractToData(contract: CustomerContract): Record<string, unknown> {
+  return {
+    companyName: contract.companyName,
+    contactPerson: contract.contactPerson,
+    email: contract.email,
+    planName: contract.planName,
+    mrrVnd: contract.mrrVnd,
+    contractStartDate: contract.contractStartDate,
+    contractEndDate: contract.contractEndDate,
+    receivableAccount131Vnd: contract.receivableAccount131Vnd,
+    paymentStatus: contract.paymentStatus,
+    daysOverdue: contract.daysOverdue,
+  };
+}
+
 export default function RealCustomerSubscriptionLedger() {
-  const [customers, setCustomers] = useState<CustomerContract[]>([
-    {
-      id: 'cust_01',
-      companyName: 'Tập đoàn Công nghệ VinTech Digital',
-      contactPerson: 'Nguyễn Văn Minh (CEO)',
-      email: 'minh.nguyen@vintech.example.com',
-      planName: 'Enterprise SaaS',
-      mrrVnd: 50000000,
-      contractStartDate: '2025-09-01',
-      contractEndDate: '2026-08-31',
-      receivableAccount131Vnd: 0,
-      paymentStatus: 'paid',
-      daysOverdue: 0,
-    },
-    {
-      id: 'cust_02',
-      companyName: 'Công ty TNHH Giải pháp Phần mềm NovaSoft',
-      contactPerson: 'Trần Thị Mai (CFO)',
-      email: 'mai.tran@novasoft.example.com',
-      planName: 'Pro License',
-      mrrVnd: 25000000,
-      contractStartDate: '2026-01-15',
-      contractEndDate: '2027-01-14',
-      receivableAccount131Vnd: 25000000,
-      paymentStatus: 'overdue',
-      daysOverdue: 12,
-    },
-    {
-      id: 'cust_03',
-      companyName: 'Công ty Cổ phần Truyền thông Apex Media',
-      contactPerson: 'Lê Hoàng Nam (Marketing Director)',
-      email: 'nam.le@apexmedia.example.com',
-      planName: 'Custom API Plan',
-      mrrVnd: 35000000,
-      contractStartDate: '2026-03-01',
-      contractEndDate: '2027-02-28',
-      receivableAccount131Vnd: 35000000,
-      paymentStatus: 'pending',
-      daysOverdue: 0,
-    },
-  ]);
+  const [customers, setCustomers] = useState<CustomerContract[]>(DEMO_CUSTOMERS);
+  const [storageMode, setStorageMode] = useState<'api' | 'demo'>('demo');
+
+  // Đọc khách hàng từ Business API (nguồn dữ liệu dùng chung Sales ↔ Finance).
+  // Nếu rỗng thì seed dữ liệu demo lên API để mọi phòng ban đọc chung 1 mối.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const existing = await listBusinessEntities('customer', 200);
+        if (cancelled) return;
+        if (existing.length > 0) {
+          setCustomers(existing.map(entityToContract));
+          setStorageMode('api');
+        } else {
+          await Promise.all(
+            DEMO_CUSTOMERS.map((c) =>
+              upsertBusinessEntity({ type: 'customer', data: contractToData(c), source: 'user' })
+            )
+          );
+          if (!cancelled) {
+            setCustomers(DEMO_CUSTOMERS);
+            setStorageMode('api');
+          }
+        }
+      } catch {
+        if (!cancelled) setStorageMode('demo');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const [reminderNotification, setReminderNotification] = useState<string | null>(null);
 
@@ -77,11 +144,27 @@ export default function RealCustomerSubscriptionLedger() {
   const totalArr = totalMrr * 12;
   const totalReceivables131 = customers.reduce((sum, c) => sum + c.receivableAccount131Vnd, 0);
 
-  const handleSendReminder = (customer: CustomerContract) => {
+  const handleSendReminder = async (customer: CustomerContract) => {
     setReminderNotification(
       `Đã phát hành và gửi thông báo nhắc nợ thanh toán 1-click đến: ${customer.companyName} (${customer.contactPerson}) - Số tiền TK 131: ${customer.receivableAccount131Vnd.toLocaleString('vi-VN')} ₫.`
     );
     setTimeout(() => setReminderNotification(null), 5000);
+    try {
+      await upsertBusinessEntity({
+        type: 'invoice',
+        data: {
+          customerId: customer.id,
+          companyName: customer.companyName,
+          amountVnd: customer.receivableAccount131Vnd,
+          accountCode: '131',
+          kind: 'receivable-reminder',
+          note: `Nhắc nợ ${customer.daysOverdue > 0 ? `${customer.daysOverdue} ngày` : 'đến hạn'}`,
+        },
+        source: 'user',
+      });
+    } catch {
+      // API lỗi/offline → vẫn giữ thông báo hiển thị, không chặn người dùng.
+    }
   };
 
   return (
@@ -133,7 +216,12 @@ export default function RealCustomerSubscriptionLedger() {
               Sổ Quản lý Khách hàng & Hợp đồng Doanh thu Thực tế
             </h3>
           </div>
-          <span className="text-xs font-bold text-slate-400">Theo dõi Công nợ TK 131 thực tế</span>
+          <span className="text-xs font-bold text-slate-400">
+            Nguồn dữ liệu:{' '}
+            <span className={storageMode === 'api' ? 'text-emerald-400' : 'text-amber-400'}>
+              {storageMode === 'api' ? 'Business API (dùng chung)' : 'Demo cục bộ'}
+            </span>
+          </span>
         </div>
 
         <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/50">

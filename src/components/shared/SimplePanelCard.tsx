@@ -22,7 +22,7 @@ const toneClass: Record<NonNullable<SimplePanelCardProps['tone']>, string> = {
   violet: 'border-indigo-500/20 bg-gradient-to-br from-indigo-950/30 via-slate-900/90 to-slate-950 text-indigo-300 shadow-lg shadow-indigo-950/20',
 };
 
-export default function SimplePanelCard({
+const SimplePanelCard = React.memo(function SimplePanelCard({
   eyebrow = 'LedgerFlow control',
   title,
   description,
@@ -74,4 +74,6 @@ export default function SimplePanelCard({
       )}
     </Card>
   );
-}
+});
+
+export default SimplePanelCard;

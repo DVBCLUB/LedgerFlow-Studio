@@ -829,7 +829,7 @@ export default function ChatTab({
               if (e.key === 'Enter' && !e.shiftKey) sendChat();
             }}
             placeholder="Hỏi về code, kiến trúc, debug... (Gõ / để dùng lệnh tắt)"
-            className="flex-1 bg-transparent px-3 py-2.5 text-xs text-slate-200 placeholder-slate-600 outline-none"
+            className="flex-1 min-w-0 bg-transparent px-3 py-2.5 text-xs text-slate-200 placeholder-slate-600 outline-none"
           />
           <button
             onClick={sendChat}

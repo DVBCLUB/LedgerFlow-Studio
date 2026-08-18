@@ -12,9 +12,11 @@
  *  - Audit logging & telemetry stream integration.
  */
 
+import fs from 'node:fs';
 import { randomUUID } from 'node:crypto';
 import { appendAuditEvent } from './auditLog.ts';
 import { emitTelemetryEvent } from './agentTelemetryStream.ts';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv } from './runtimePaths.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -42,6 +44,8 @@ export interface A2AMessage {
   readAt?: string;
   completedAt?: string;
   escalatedAt?: string;
+  /** Human approval flag (bắt buộc true trước khi web chat thực thi). */
+  approved?: boolean;
 }
 
 interface ThreadStore {
@@ -50,7 +54,46 @@ interface ThreadStore {
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-const mailboxes = new Map<string, A2AMessage[]>();
+// ─── Durable storage ──────────────────────────────────────────────────────────
+// Mailboxes are persisted to a runtime JSON file so agent-to-agent threads
+// survive server restarts (world-class durability requirement).
+const MAILBOX_FILE = resolveRuntimePathFromEnv('AGENT_A2A_MAILBOX_FILE', 'agent_a2a_mailboxes.json');
+
+interface PersistedMailboxState {
+  version: 1;
+  mailboxes: Record<string, A2AMessage[]>;
+}
+
+function loadMailboxes(): Map<string, A2AMessage[]> {
+  const map = new Map<string, A2AMessage[]>();
+  try {
+    const raw = fs.readFileSync(MAILBOX_FILE, 'utf8');
+    const parsed = JSON.parse(raw) as Partial<PersistedMailboxState>;
+    if (parsed?.mailboxes && typeof parsed.mailboxes === 'object') {
+      for (const [role, messages] of Object.entries(parsed.mailboxes)) {
+        if (Array.isArray(messages)) map.set(role, messages);
+      }
+    }
+  } catch {
+    // First run or unreadable file → start with empty mailboxes.
+  }
+  return map;
+}
+
+function persistMailboxes(): void {
+  try {
+    ensureRuntimeRootSync();
+    const state: PersistedMailboxState = {
+      version: 1,
+      mailboxes: Object.fromEntries(mailboxes),
+    };
+    fs.writeFileSync(MAILBOX_FILE, JSON.stringify(state, null, 2), 'utf8');
+  } catch (err) {
+    console.error('[A2A] Failed to persist mailboxes:', err);
+  }
+}
+
+const mailboxes = loadMailboxes();
 
 // ─── Core API ─────────────────────────────────────────────────────────────────
 
@@ -92,6 +135,8 @@ export function sendA2AMessage(input: {
   } else {
     recipientQueue.push(msg);
   }
+
+  persistMailboxes();
 
   emitTelemetryEvent({
     category: 'agent_runtime',
@@ -145,6 +190,8 @@ export function markA2AMessageStatus(
   else if (newStatus === 'completed') msg.completedAt = now;
   else if (newStatus === 'escalated') msg.escalatedAt = now;
 
+  persistMailboxes();
+
   emitTelemetryEvent({
     category: 'agent_runtime',
     eventType: `a2a_message_${newStatus}`,
@@ -192,9 +239,36 @@ export function checkAndEscalateUnreadUrgentMessages(timeoutMs = 300000): A2AMes
     }
   }
 
+  if (escalated.length > 0) persistMailboxes();
+
   return escalated;
+}
+
+export function approveA2AMessage(messageId: string, recipientRole: string): A2AMessage | null {
+  const queue = mailboxes.get(recipientRole) || [];
+  const msg = queue.find((m) => m.id === messageId);
+  if (!msg) return null;
+  msg.approved = true;
+  persistMailboxes();
+  return msg;
+}
+
+export function rejectA2AMessage(messageId: string, recipientRole: string): A2AMessage | null {
+  const queue = mailboxes.get(recipientRole) || [];
+  const msg = queue.find((m) => m.id === messageId);
+  if (!msg) return null;
+  msg.approved = false;
+  msg.status = 'escalated';
+  msg.escalatedAt = new Date().toISOString();
+  persistMailboxes();
+  return msg;
 }
 
 export function clearMailboxesForTest() {
   mailboxes.clear();
+  try {
+    fs.rmSync(MAILBOX_FILE, { force: true });
+  } catch {
+    // Ignore cleanup errors in tests.
+  }
 }

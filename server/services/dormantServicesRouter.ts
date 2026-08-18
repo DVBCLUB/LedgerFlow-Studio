@@ -12,41 +12,27 @@ import type { Express, Request, Response } from 'express';
 // ─── 1. AI Agent Swarm & Memory Services ──────────────────────────────────────
 import { listAllCircuits, resetCircuit } from './agentCircuitBreaker.ts';
 import { addLessonLearned, searchLongTermMemory } from './agentLongTermMemory.ts';
-import { getSessionMemory, updateSessionMemory } from './agentManagedMemory.ts';
-import { listSkillMarketplace, installSkill } from './agentSkillMarketplace.ts';
-import { createWorkflowDAG, executeWorkflowDAG } from './agentWorkflowDAG.ts';
 import { listCronRules, triggerCronRuleExecution } from './aiAgentScheduler.ts';
-import { computeFileDiff, applyAcceptedHunksToFile } from './aiCodeDiffEngine.ts';
-import { createCheckpoint, getCheckpointHistory } from './agentControlPlaneCheckpoint.ts';
-import { createCollaborationMessage, listCollaborationMessages } from './agentCollaborationProtocol.ts';
-import { streamMultiProviderAI } from './aiStreamingAdapter.ts';
+import { computeFileDiff } from './aiCodeDiffEngine.ts';
 
 // ─── 2. Ecosystem Integration Connectors ──────────────────────────────────────
 import { GoogleWorkspaceConnector } from './googleWorkspaceConnector.ts';
 import { Microsoft365Connector } from './microsoft365Connector.ts';
 import { NotionConnector } from './notionConnector.ts';
 import { N8nConnector } from './n8nConnector.ts';
-import { convertFigmaToReactComponent, extractMockFigmaDesignTokens } from './figmaCodeBridge.ts';
-import { dispatchCloudWebhook, listWebhookLogs } from './cloudWebhookCallbackDispatcher.ts';
-import { getMediaSyncStatus, syncMediaAsset } from './mediaSyncConnector.ts';
-import { getPublisherChannels, publishContent } from './publisherConnectorEngine.ts';
+import { convertFigmaToReactComponent } from './figmaCodeBridge.ts';
 import { listSupportedHybridMediaProviders, dispatchHybridMediaJob } from './aiMediaHybridConnectors.ts';
 import { listIndustryTemplates, getIndustryTemplate, calculateBOMCost, calculateProgressBilling } from './industryTemplateEngine.ts';
 
 // ─── 3. Business Twin, Optimization & Diagnostics ──────────────────────────────
 import { simulateProfitGrowth } from './aiBusinessTwinSimulator.ts';
 import { listProviderCreditStatuses } from './cloudCostCreditsOptimizer.ts';
-import { classifyGameFeedback } from './gameFeedbackClassifier.ts';
 import { deployProjectToCloud, listDeployments } from './oneClickDeployService.ts';
 import { generateGroundedResponse } from './searchGroundingEngine.ts';
 import { getCacheMetrics } from './sqliteStorageCache.ts';
 import { runSelfHealingDiagnostics } from './systemSelfHealingDoctor.ts';
 
 // ─── 4. Robotics & Sandbox Services ──────────────────────────────────────────
-import { getLivePreviewState, updateLivePreviewCode } from './livePreviewSandbox.ts';
-import { listMCPExternalLedgers } from './mcpExternalExecutionLedger.ts';
-import { listCloudRobotNodes, routeRobotTask } from './robotCloudTaskRouter.ts';
-import { getRobotState, transitionRobotState } from './robotStateMachine.ts';
 import { listWebRobotSessions } from './webRobotSessionGuard.ts';
 
 // ─── 5. Double-Entry Posting & Approval State Machine ────────────────────────

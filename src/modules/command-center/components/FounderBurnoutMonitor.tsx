@@ -44,15 +44,61 @@ export default function FounderBurnoutMonitor() {
     return { burnoutScore, survivalProbability, status, colorClass, progressColor, advisory };
   }, [sleep, meetings, decisions, deepWork]);
 
+  const applyPreset = (preset: 'rest' | 'sprint' | 'balanced') => {
+    if (preset === 'rest') {
+      setSleep(8.5);
+      setMeetings(2);
+      setDecisions(1);
+      setDeepWork(5);
+    } else if (preset === 'sprint') {
+      setSleep(5);
+      setMeetings(22);
+      setDecisions(8);
+      setDeepWork(32);
+    } else {
+      setSleep(7.5);
+      setMeetings(8);
+      setDecisions(3);
+      setDeepWork(18);
+    }
+  };
+
   return (
     <Card className="text-left">
-      <div className="flex items-center gap-3 border-b border-border-primary pb-4 mb-5">
-        <div className="p-2 bg-brand/10 text-brand border border-brand/25 rounded-xl">
-          <Heart className="w-5 h-5 animate-pulse" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-primary pb-4 mb-5">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-brand/10 text-brand border border-brand/25 rounded-xl">
+            <Heart className="w-5 h-5 animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Founder Energy & Burnout Monitor</h3>
+            <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Giả lập mức độ kiệt sức sinh học và xác suất sống sót của dự án trong tuần.</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-text-primary uppercase tracking-wider">Founder Energy & Burnout Monitor</h3>
-          <p className="text-[11px] text-text-secondary font-semibold leading-relaxed">Giả lập mức độ kiệt sức sinh học và xác suất sống sót của dự án trong tuần.</p>
+
+        {/* Quick Presets */}
+        <div className="flex flex-wrap items-center gap-1.5 bg-bg-primary p-1 rounded-xl border border-border-primary">
+          <button
+            type="button"
+            onClick={() => applyPreset('rest')}
+            className="px-2.5 py-1 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/10 rounded-lg transition-colors cursor-pointer"
+          >
+            🛌 Rest Day
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset('balanced')}
+            className="px-2.5 py-1 text-[10px] font-bold text-indigo-300 hover:bg-indigo-500/10 rounded-lg transition-colors cursor-pointer"
+          >
+            ⚖️ Balanced
+          </button>
+          <button
+            type="button"
+            onClick={() => applyPreset('sprint')}
+            className="px-2.5 py-1 text-[10px] font-bold text-rose-300 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
+          >
+            🔥 Release Sprint
+          </button>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Download, KeyRound, Loader2, MessageCircle, RefreshCw, ShieldCheck, Trash2, Upload, Zap } from 'lucide-react';
 import CloudOffloadHubPanel from '../../components/shared/CloudOffloadHubPanel';
+import AITokenBudgetController from './components/AITokenBudgetController';
 import {
   activatePromptTemplateVersion,
   AIKeyPayload,
@@ -354,6 +355,7 @@ export default function AISettingsManager() {
 
   return (
     <div className="space-y-6 select-text">
+      <AITokenBudgetController />
       <CloudOffloadHubPanel />
 
       <div className="rounded-2xl border border-purple-900/40 bg-gradient-to-br from-purple-950/25 via-slate-950 to-slate-950 p-6 shadow-2xl">

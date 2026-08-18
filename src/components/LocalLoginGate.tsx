@@ -225,7 +225,11 @@ function LoginScreen() {
 }
 
 function LocalLoginGateContent({ children }: LocalLoginGateProps) {
-  // Direct pass-through: Bypass login gate screen to load Company OS immediately
+  // Gate thực: yêu cầu phiên local hợp lệ trước khi mở Company OS.
+  // Backend requireLocalAuth chặn mọi /api khi thiếu cookie → frontend phải đồng bộ.
+  const { session, isCheckingSession } = useLocalAuth();
+  if (isCheckingSession) return <SessionCheckingScreen />;
+  if (!session) return <LoginScreen />;
   return <>{children}</>;
 }
 

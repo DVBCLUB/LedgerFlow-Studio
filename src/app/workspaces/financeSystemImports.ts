@@ -1,0 +1,24 @@
+import React from 'react';
+
+export const LedgerAccountingWorkspace = React.lazy(() => import('../../modules/finance-accounting/LedgerAccountingWorkspace'));
+export const RevenueDashboard = React.lazy(() => import('../../modules/finance-accounting/RevenueDashboard'));
+export const AccountingVietnam = React.lazy(() => import('../../modules/finance-accounting/AccountingVietnam'));
+export const CostDashboard = React.lazy(() => import('../../modules/ai-nhan-su/ai-assistant/CostDashboard'));
+export const TaxAuditSimulator = React.lazy(() => import('../../modules/finance-accounting/TaxAuditSimulator'));
+export const SystemSettingsPanel = React.lazy(() => import('../../modules/system-settings/SystemSettingsPanel'));
+export const SystemSOPRunbookPanel = React.lazy(() => import('../../modules/system-settings/SystemSOPRunbookPanel'));
+export const AdvancedDelegationMatrixPanel = React.lazy(() => import('../../modules/system-settings/AdvancedDelegationMatrixPanel'));
+export const FeatureRegistryPanel = React.lazy(() => import('../../modules/system-settings/FeatureRegistryPanel'));
+export const ReleaseReadinessPanel = React.lazy(() => import('../../modules/system-settings/ReleaseReadinessPanel'));
+export const AIIntegrationHealthPanel = React.lazy(() => import('../../modules/system-settings/AIIntegrationHealthPanel'));
+export const SecurityControlCenter = React.lazy(() => import('../../modules/dev-ops/SecurityControlCenter'));
+export const KnowledgeBaseTab = React.lazy(() => import('../../modules/knowledge-library/KnowledgeBaseTab'));
+export const RAGSimulatorPanel = React.lazy(() => import('../../modules/knowledge-library/RAGSimulatorPanel'));
+export const InterAgentProtocolPanel = React.lazy(() => import('../../modules/knowledge-library/InterAgentProtocolPanel'));
+export const SwarmRelayOrchestratorPanel = React.lazy(() => import('../../modules/knowledge-library/SwarmRelayOrchestratorPanel'));
+export const CEOOverviewPanel = React.lazy(() => import('../../modules/command-center/CEOOverviewPanel'));
+export const EnterpriseControlCenterPanel = React.lazy(() => import('../../components/enterprise/EnterpriseControlCenterPanel'));
+export const FounderLabsDock = React.lazy(() => import('../../components/shared/FounderLabsDock'));
+export const UniversalProjectRobotDock = React.lazy(() => import('../../components/shared/UniversalProjectRobotDock'));
+export const OllamaLocalModelHubPanel = React.lazy(() => import('../../modules/system-settings/OllamaLocalModelHubPanel'));
+export const MasterSystemDoctorDashboard = React.lazy(() => import('../../modules/system-settings/MasterSystemDoctorDashboard'));

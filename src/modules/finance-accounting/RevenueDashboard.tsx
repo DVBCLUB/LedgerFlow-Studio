@@ -80,33 +80,54 @@ export default function RevenueDashboard() {
     setSaving(false);
   }
 
+  const [isCompactMode, setIsCompactMode] = useState<boolean>(true);
+
   return (
-    <section className="space-y-4 text-text-primary">
-      <div className="rounded-3xl border border-emerald-400/25 bg-bg-primary p-4 shadow-2xl shadow-emerald-950/20">
-        <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="space-y-4 text-text-primary text-left animate-fade-in">
+      <div className="rounded-3xl border border-emerald-400/25 bg-gradient-to-br from-slate-950 via-slate-900/90 to-emerald-950/20 p-5 shadow-2xl shadow-emerald-950/20 backdrop-blur-xl">
+        <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-success">Revenue Dashboard · Supabase</p>
-            <h3 className="mt-1 text-xl font-bold text-text-primary">Doanh thu thật / MRR / ARR</h3>
-            <p className="mt-1 max-w-3xl text-sm font-semibold leading-6 text-text-secondary">
-              Theo dõi doanh thu từ bảng <span className="text-success">revenue_records</span>, tính MRR/ARR/churn và danh sách khách hàng để AI CFO có số liệu thật.
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                VAS Financial Engine
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                VAS Ledger Auto-Reconciled
+              </span>
+              <span className="text-xs font-bold text-slate-400">| Supabase Sync &amp; VietQR</span>
+            </div>
+            <h3 className="mt-1.5 text-xl font-black text-text-primary">Doanh Thu Thật, MRR / ARR &amp; Dòng Tiền Reconciled</h3>
+            {!isCompactMode && (
+              <p className="mt-1 max-w-3xl text-xs font-semibold leading-5 text-text-secondary">
+                Theo dõi doanh thu từ bảng <span className="text-emerald-400 font-bold">revenue_records</span>, tính MRR/ARR/churn và danh sách khách hàng để AI CFO có số liệu thật.
+              </p>
+            )}
           </div>
-          <div className="flex flex-wrap gap-2">
-            <input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-2xl border border-border-secondary bg-bg-primary px-3 py-2 text-xs font-bold text-text-primary" />
-            <button onClick={loadRecords} className="rounded-2xl bg-emerald-300 px-4 py-2 text-xs font-bold text-slate-950 hover:bg-emerald-200">Refresh</button>
+
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setIsCompactMode(!isCompactMode)}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold border border-white/10 bg-slate-900/80 text-slate-300 hover:text-white hover:border-white/20 transition-all cursor-pointer"
+            >
+              {isCompactMode ? '⚡ Khoang lái CEO (Thu gọn)' : '📜 Chế độ Kỹ thuật (Đầy đủ)'}
+            </button>
+            <input type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-2xl border border-border-secondary bg-slate-950 px-3 py-1.5 text-xs font-bold text-text-primary" />
+            <button onClick={loadRecords} className="rounded-xl bg-emerald-400 px-3.5 py-1.5 text-xs font-bold text-slate-950 hover:bg-emerald-300 transition-all cursor-pointer">Refresh</button>
           </div>
         </div>
 
         {error && <div className="mt-4 rounded-2xl border border-rose-400/40 bg-rose-400/10 px-4 py-3 text-xs font-bold text-rose-100">{error}</div>}
 
         <div className="mt-4 grid gap-3 md:grid-cols-4">
-          <Metric label="MRR" value={formatVnd(metrics.mrr)} sparkData={chartData.map(c => c.mrr)} color="#10b981" />
-          <Metric label="ARR" value={formatVnd(metrics.arr)} sparkData={chartData.map(c => c.mrr * 12)} color="#3b82f6" />
+          <Metric label="MRR" value={formatVnd(metrics.mrr)} sparkData={chartData.map(c => c.recurring)} color="#10b981" />
+          <Metric label="ARR" value={formatVnd(metrics.arr)} sparkData={chartData.map(c => c.recurring * 12)} color="#3b82f6" />
           <Metric label="Active customers" value={String(metrics.activeCustomers)} sparkData={[1, 2, 3, 4, 5, 8, 12, 15]} color="#8b5cf6" />
           <Metric label="Churn tháng này" value={String(metrics.churnedThisMonth)} sparkData={[0, 0, 1, 0, 0, 1, 0, 0]} color="#f43f5e" />
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <Metric label="Revenue tháng chọn" value={formatVnd(metrics.totalRevenue)} sparkData={chartData.map(c => c.total)} color="#06b6d4" />
+          <Metric label="Revenue tháng chọn" value={formatVnd(metrics.totalRevenue)} sparkData={chartData.map(c => c.revenue)} color="#06b6d4" />
           <Metric label="New records" value={String(metrics.newThisMonth)} sparkData={[2, 4, 3, 6, 8, 7, 10, 12]} color="#f59e0b" />
           <Metric label="ARPU" value={formatVnd(metrics.avgRevenuePerUser)} sparkData={[500000, 600000, 750000, 800000, 950000]} color="#ec4899" />
           <Metric label="LTV est." value={formatVnd(metrics.ltv)} sparkData={[3000000, 4500000, 6000000, 8500000, 12000000]} color="#10b981" />

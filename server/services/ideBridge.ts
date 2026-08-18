@@ -14,9 +14,9 @@
 import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { appendAuditEvent } from './auditLog';
-import { updateContractHealth } from './connectorContract';
-import type { ConnectorHandoffRequest, ConnectorHandoffResult } from './connectorContract';
+import { appendAuditEvent } from './auditLog.ts';
+import { updateContractHealth } from './connectorContract.ts';
+import type { ConnectorHandoffRequest, ConnectorHandoffResult } from './connectorContract.ts';
 
 // ─── Supported IDE targets ────────────────────────────────────────────
 export const IDE_TARGETS = ['vscode', 'cursor', 'github', 'terminal', 'windsurf', 'copilot'] as const;

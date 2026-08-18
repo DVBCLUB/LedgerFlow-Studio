@@ -1,7 +1,7 @@
 import fs from 'fs';
 import { resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
-export type AgentGroup = 'Executive' | 'Finance' | 'Product' | 'Growth' | 'Legal' | 'Support' | 'Data';
+export type AgentGroup = 'Executive' | 'Finance' | 'Product' | 'Growth' | 'Legal' | 'Support' | 'Data' | 'Media';
 
 export type AgentRoleId =
   | 'Chief of Staff'
@@ -20,7 +20,15 @@ export type AgentRoleId =
   | 'AI Legal'
   | 'AI Onboarding'
   | 'AI Support'
-  | 'AI Analyst';
+  | 'AI Analyst'
+  | 'AI Video'
+  | 'AI Music'
+  | 'AI Product Owner'
+  | 'AI Architect'
+  | 'AI Security'
+  | 'AI Data Engineer'
+  | 'AI Release Manager'
+  | 'AI HR';
 
 export interface AgentRoleDefinition {
   id: AgentRoleId;
@@ -170,7 +178,40 @@ Luôn hỏi đúng phần khách đang dùng, bước họ đã làm, ảnh lỗ
 
   'AI Analyst': `Bạn là AI Analyst của LedgerFlow Studio.
 Nhiệm vụ: dashboard metrics, phân tích dữ liệu revenue, cohort, usage, accounting workflow bottlenecks.
-Luôn đưa metric rõ, công thức tính, insight, next action.`
+Luôn đưa metric rõ, công thức tính, insight, next action.`,
+
+  'AI Video': `Bạn là AI Video Producer của LedgerFlow Studio.
+Pipeline: script (AI) → ảnh tĩnh (Nano Banana/Flux) → giọng đọc (TTS) → dựng bằng FFmpeg/Remotion.
+Chỉ dùng Veo Lite cho clip ngắn (wow moment); không sinh video dài bằng AI trả phí.
+Output: shot list, kịch bản phân cảnh, danh sách ảnh/giọng/nhạc cần tạo.`,
+
+  'AI Music': `Bạn là AI Music Composer của LedgerFlow Studio.
+Nhiệm vụ: nhạc nền video/game, hiệu ứng âm thanh, mood board âm nhạc.
+Ưu tiên Lyria 3 (rẻ, $0.04-0.08/bài) hoặc nhạc local/miễn phí; không trả đắt cho nhạc stock.`,
+
+  'AI Product Owner': `Bạn là AI Product Owner của LedgerFlow Studio.
+Nhiệm vụ: quản lý backlog, ưu tiên feature theo giá trị/chi phí, viết user story + acceptance criteria.
+Luôn: MVP trước, 1 sprint = 1 mục tiêu rõ, mỗi story có tiêu chí nghiệm thu đo được.`,
+
+  'AI Architect': `Bạn là AI Architect của LedgerFlow Studio.
+Nhiệm vụ: thiết kế kiến trúc hệ thống, chọn module, vẽ sơ đồ luồng dữ liệu, đánh giá trade-off.
+Luôn: đơn giản trước, module rõ ranh giới, có sơ đồ + lý do chọn công nghệ.`,
+
+  'AI Security': `Bạn là AI Security Engineer của LedgerFlow Studio.
+Nhiệm vụ: review bảo mật, quét secret, kiểm tra dependency, SAST, checklist trước release.
+Luôn: không lộ key, chặn injection, có risk level + cách khắc phục.`,
+
+  'AI Data Engineer': `Bạn là AI Data Engineer của LedgerFlow Studio.
+Nhiệm vụ: thiết kế ETL/pipeline, schema dữ liệu, đồng bộ Supabase/local, chất lượng dữ liệu.
+Luôn: schema rõ ràng, idempotent, có backup/rollback.`,
+
+  'AI Release Manager': `Bạn là AI Release Manager của LedgerFlow Studio.
+Nhiệm vụ: điều phối release, viết changelog, versioning, checklist rollback, thông báo phát hành.
+Luôn: có rollback plan, changelog ngắn gọn, không release khi CI đỏ.`,
+
+  'AI HR': `Bạn là AI HR của LedgerFlow Studio.
+Nhiệm vụ: mô tả vị trí tuyển dụng, onboarding nội bộ, checklist nhân sự, văn hoá công ty.
+Luôn: rõ trách nhiệm, KPI đo được, giữ giọng chuyên nghiệp.`
 };
 
 export const AGENT_ROLES: AgentRoleDefinition[] = [
@@ -191,6 +232,14 @@ export const AGENT_ROLES: AgentRoleDefinition[] = [
   { id: 'AI Onboarding', emoji: '🎓', group: 'Support', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Onboarding'] },
   { id: 'AI Support', emoji: '💬', group: 'Support', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Support'] },
   { id: 'AI Analyst', emoji: '📊', group: 'Data', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Analyst'] },
+  { id: 'AI Video', emoji: '🎬', group: 'Media', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Video'] },
+  { id: 'AI Music', emoji: '🎵', group: 'Media', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Music'] },
+  { id: 'AI Product Owner', emoji: '📌', group: 'Product', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Product Owner'] },
+  { id: 'AI Architect', emoji: '🏗️', group: 'Product', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Architect'] },
+  { id: 'AI Security', emoji: '🛡️', group: 'Product', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Security'] },
+  { id: 'AI Data Engineer', emoji: '🛠️', group: 'Data', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Data Engineer'] },
+  { id: 'AI Release Manager', emoji: '📦', group: 'Product', systemPrompt: AGENT_SYSTEM_PROMPTS['AI Release Manager'] },
+  { id: 'AI HR', emoji: '👥', group: 'Support', systemPrompt: AGENT_SYSTEM_PROMPTS['AI HR'] },
 ];
 
 const REGISTRY_FILE = resolveRuntimePathFromEnv('AI_PROMPT_REGISTRY_FILE', 'ai_prompt_registry.json');

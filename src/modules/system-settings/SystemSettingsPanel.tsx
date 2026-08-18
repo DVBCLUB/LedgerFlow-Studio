@@ -1,6 +1,8 @@
-import { Bot, Database, HardDrive, KeyRound, Palette, Shield, Globe, FileSpreadsheet } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Bot, Database, HardDrive, KeyRound, Palette, Shield, Globe, FileSpreadsheet, Users, Plus, Trash2 } from 'lucide-react';
 import SimplePanelCard from '../../components/shared/SimplePanelCard';
 import { useLanguage } from '../../context';
+import HybridCloudSyncPanel from './HybridCloudSyncPanel';
 
 const settingGroups = [
   {
@@ -35,6 +37,59 @@ const settingGroups = [
 
 export default function SystemSettingsPanel() {
   const { language, setLanguage, t } = useLanguage();
+  const [users, setUsers] = useState<Array<{ email: string; role: string; createdAt: string }>>([]);
+  const [newEmail, setNewEmail] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newRole, setNewRole] = useState<'owner' | 'operator' | 'viewer'>('operator');
+  const [userError, setUserError] = useState('');
+
+  const loadUsers = async () => {
+    try {
+      const res = await fetch('/api/auth/users');
+      const data = await res.json();
+      if (data.success) setUsers(data.users || []);
+    } catch {
+      // không bắt buộc
+    }
+  };
+
+  useEffect(() => {
+    void loadUsers();
+  }, []);
+
+  const addUser = async () => {
+    setUserError('');
+    if (!newEmail.includes('@') || newPassword.length < 6) {
+      setUserError('Email hợp lệ + mật khẩu tối thiểu 6 ký tự.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail, password: newPassword, role: newRole }),
+      });
+      const data = await res.json();
+      if (!data.success) {
+        setUserError(data.error || 'Lỗi tạo tài khoản.');
+        return;
+      }
+      setNewEmail('');
+      setNewPassword('');
+      await loadUsers();
+    } catch (err) {
+      setUserError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  const removeUser = async (email: string) => {
+    try {
+      await fetch(`/api/auth/users/${encodeURIComponent(email)}`, { method: 'DELETE' });
+      await loadUsers();
+    } catch {
+      // bỏ qua
+    }
+  };
 
   return (
     <div className="space-y-5 text-left">
@@ -106,6 +161,46 @@ export default function SystemSettingsPanel() {
         <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-3 text-xs font-semibold text-emerald-400">
           <FileSpreadsheet className="w-4 h-4 shrink-0" />
           <span>{t('settings.office_precision', 'Định dạng Biểu mẫu Office Paper-Grade:')} {t('settings.office_enabled', 'Đã kích hoạt chuẩn in nét căng Office Excel/Word')}</span>
+        </div>
+      </section>
+
+      {/* Dual-Engine Storage & iPhone Mobile PWA Panel */}
+      <HybridCloudSyncPanel />
+
+      <section className="rounded-3xl border border-cyan-500/30 bg-slate-900/80 p-5 shadow-xl backdrop-blur-xl">
+        <div className="flex items-center gap-3">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+            <Users className="h-5 w-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-white">Tài khoản & Người dùng</h3>
+            <p className="text-xs font-semibold text-slate-400 mt-0.5">Tạo tài khoản riêng cho từng thành viên (owner/operator/viewer). Tài khoản đầu tiên tự động là owner. Mật khẩu băm scrypt, lưu local.</p>
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-end gap-2">
+          <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="email@congty.local" className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white" />
+          <input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} type="password" placeholder="Mật khẩu ≥ 6 ký tự" className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white" />
+          <select value={newRole} onChange={(e) => setNewRole(e.target.value as 'owner' | 'operator' | 'viewer')} className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-xs text-white">
+            <option value="owner">Owner</option>
+            <option value="operator">Operator</option>
+            <option value="viewer">Viewer</option>
+          </select>
+          <button onClick={addUser} className="inline-flex items-center gap-1 rounded-xl bg-cyan-500 px-3 py-2 text-xs font-black text-slate-950 hover:bg-cyan-400">
+            <Plus className="h-3.5 w-3.5" /> Thêm
+          </button>
+        </div>
+        {userError && <p className="mt-2 text-xs font-bold text-rose-300">{userError}</p>}
+
+        <div className="mt-3 space-y-1.5">
+          {users.length === 0 && <p className="text-xs text-slate-500">Chưa có tài khoản nào — hệ thống đang dùng mật khẩu dev chung.</p>}
+          {users.map((u) => (
+            <div key={u.email} className="flex items-center gap-2 rounded-lg border border-white/10 bg-slate-950/60 px-3 py-1.5 text-xs">
+              <span className="font-bold text-white">{u.email}</span>
+              <span className="rounded-full border border-cyan-500/30 bg-cyan-500/10 px-2 py-0.5 text-[10px] font-black text-cyan-300">{u.role}</span>
+              <button onClick={() => removeUser(u.email)} className="ml-auto text-slate-500 hover:text-rose-300"><Trash2 className="h-3.5 w-3.5" /></button>
+            </div>
+          ))}
         </div>
       </section>
 

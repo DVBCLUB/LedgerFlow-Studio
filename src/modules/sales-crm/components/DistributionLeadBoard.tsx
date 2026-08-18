@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Mail, Phone, Calendar, Clock, DollarSign, Activity, FileText, X } from 'lucide-react';
 import Drawer from '../../../components/ui/Drawer';
+import { upsertBusinessEntity } from '../../../utils/businessApi';
 
 type LeadStage = 'new' | 'contacted' | 'demo' | 'validated' | 'rejected';
 
@@ -62,6 +63,27 @@ const readLeads = (): LeadRecord[] => {
   }
 };
 
+// Mirror 1 lead vào Business API để Marketing ↔ Sales ↔ Finance đọc chung 1 mối.
+const mirrorLeadToApi = (lead: LeadRecord) => {
+  void upsertBusinessEntity({
+    id: lead.id,
+    type: 'lead',
+    data: {
+      name: lead.name,
+      persona: lead.persona,
+      source: lead.source,
+      pain: lead.pain,
+      signal: lead.signal,
+      stage: lead.stage,
+      nextAction: lead.nextAction,
+      updatedAt: lead.updatedAt,
+    },
+    source: 'user',
+  }).catch(() => {
+    // offline → bỏ qua, localStorage vẫn là nguồn local.
+  });
+};
+
 export default function DistributionLeadBoard() {
   const [leads, setLeads] = useState<LeadRecord[]>(readLeads);
   const [selectedLead, setSelectedLead] = useState<LeadRecord | null>(null);
@@ -78,7 +100,14 @@ export default function DistributionLeadBoard() {
   const saveLeads = (next: LeadRecord[]) => {
     setLeads(next);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    next.forEach((lead) => mirrorLeadToApi(lead));
   };
+
+  // Lần mount đầu tiên: đẩy lead hiện có (localStorage) lên Business API 1 lần.
+  useEffect(() => {
+    readLeads().forEach((lead) => mirrorLeadToApi(lead));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const metrics = useMemo(() => {
     const total = leads.length;

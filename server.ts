@@ -21,8 +21,11 @@ import { seedContractsFromRegistry, listContracts, getContract, updateContractHe
 import { checkAllIDEs, openIDE, generateHandoffPrompt, checkIDEBridgeHealth, type IDETarget } from "./server/services/ideBridge";
 // ── Accounting & Core Data ────────────────────────────────────────────
 import { registerAccountingRoutes } from "./server/services/accountingRoutes";
-import { clearLocalSession, createLocalSession, readLocalServerSession, requireLocalAuth, setLocalSessionCookie } from "./server/services/localAuth";
+import { clearLocalSession, createLocalSession, readLocalServerSession, requireLocalAuth, requireRoles, setLocalSessionCookie } from "./server/services/localAuth";
+import { listUsers, createUser, deleteUser } from "./server/services/userAccounts";
 import { loadLocalDatabase, saveLocalDatabase } from "./server/services/localDatabase";
+import { loadHybridDatabase, saveHybridDatabase, getHybridStorageStatus } from "./server/services/hybridStorageService";
+import { getMobileVibeInbox, pushToMobileVibeInbox, pullMobileVibeToDesktop, deleteMobileVibeItem } from "./server/services/mobileVibeBridgeService";
 // ── AI Fabric & Control Plane ────────────────────────────────────────
 import { dispatchThroughFabric, dispatchTextThroughFabric, checkFabricHealth, type AIFabricOptions } from "./server/services/aiFabric";
 import { executeControlPlaneRun, getControlPlaneRun, listControlPlaneRuns, getControlPlaneMetrics, cleanupStaleRuns, type AgentControlPlaneOptions } from "./server/services/agentControlPlane";
@@ -50,6 +53,8 @@ import { registerAgentSystemRoutes } from "./server/services/agentSystemRoutes";
 import { registerMCPHttpRoutes } from "./server/services/mcpHttpRoutes";
 import { hydrateExternalMCPServerCatalog } from "./server/services/mcpClientGateway";
 import { registerDormantServicesRoutes } from "./server/services/dormantServicesRouter";
+import { startEmployeeMailboxWorker } from "./server/services/webAiEmployeeAdapter";
+import { registerBusinessRoutes } from "./server/services/businessDataRoutes";
 
 // ── Core Module Loader (Modular Monolith Setup) ─────────────────────
 import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
@@ -168,6 +173,25 @@ async function startServer() {
     clearLocalSession(req, res);
     return res.json({ success: true });
   });
+
+  // ── Quản lý tài khoản người dùng (chỉ owner) ──────────────────────────────
+  app.get("/api/auth/users", requireRoles("owner"), (_req, res) => {
+    res.json({ success: true, users: listUsers() });
+  });
+  app.post("/api/auth/users", requireRoles("owner"), (req, res) => {
+    const { email, password, role } = req.body || {};
+    const result = createUser({
+      email: String(email || ""),
+      password: String(password || ""),
+      role: role ? (String(role) as "owner" | "operator" | "viewer" | "automation") : undefined,
+    });
+    if (!result.ok) return res.status(400).json({ success: false, error: result.error });
+    return res.json({ success: true, user: result.user });
+  });
+  app.delete("/api/auth/users/:email", requireRoles("owner"), (req, res) => {
+    const email = Array.isArray(req.params.email) ? req.params.email[0] : req.params.email;
+    res.json({ success: deleteUser(String(email || "").toLowerCase()) });
+  });
   app.use("/api", requireLocalAuth);
   registerMCPHttpRoutes(app);
 
@@ -177,8 +201,16 @@ async function startServer() {
   });
 
   const STORAGE_FILE = path.join(process.cwd(), "db_storage.json");
-  app.get("/api/db/load", async (_req, res) => { try { res.json({ success: true, data: await loadLocalDatabase(STORAGE_FILE) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
-  app.post("/api/db/save", async (req, res) => { try { const parsed = databaseSaveSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); await saveLocalDatabase(STORAGE_FILE, parsed.data.payload); res.json({ success: true, message: "Database synchronized successfully on the server." }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to save database state." }); } });
+  app.get("/api/db/load", async (_req, res) => { try { res.json({ success: true, data: await loadHybridDatabase(STORAGE_FILE) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to load database state." }); } });
+  app.post("/api/db/save", async (req, res) => { try { const parsed = databaseSaveSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); const result = await saveHybridDatabase(STORAGE_FILE, parsed.data.payload); res.json({ success: true, message: "Database synchronized successfully.", details: result }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to save database state." }); } });
+  app.get("/api/db/status", async (_req, res) => { try { res.json({ success: true, status: await getHybridStorageStatus(STORAGE_FILE) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to check storage status." }); } });
+  app.post("/api/db/sync", async (_req, res) => { try { const data = await loadHybridDatabase(STORAGE_FILE); const result = await saveHybridDatabase(STORAGE_FILE, data); res.json({ success: true, message: "Dual-Engine sync completed.", details: result }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to force sync." }); } });
+
+  // ── MobileVibe Companion Satellite Routes ─────────────────────────────
+  app.get("/api/mobile-vibe/inbox", async (_req, res) => { try { res.json({ success: true, inbox: await getMobileVibeInbox() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to fetch mobile inbox." }); } });
+  app.post("/api/mobile-vibe/inbox", async (req, res) => { try { const item = await pushToMobileVibeInbox(req.body); res.json({ success: true, item }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to push item to mobile inbox." }); } });
+  app.post("/api/mobile-vibe/pull", async (_req, res) => { try { const result = await pullMobileVibeToDesktop(STORAGE_FILE); res.json({ success: true, ...result }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to pull mobile inbox to desktop." }); } });
+  app.delete("/api/mobile-vibe/inbox/:id", async (req, res) => { try { await deleteMobileVibeItem(req.params.id); res.json({ success: true }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to delete item from mobile inbox." }); } });
 
   app.get("/api/integrations", async (req, res) => { try { res.json({ success: true, connectors: await listIntegrationConnectors(), events: await readIntegrationEvents(30) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to list integrations." }); } });
   app.patch("/api/integrations/:id", async (req, res) => { try { const parsed = integrationPatchSchema.safeParse(req.body); if (!parsed.success) return res.status(400).json({ success: false, error: parsed.error.issues.map(i => i.message).join(", ") }); res.json({ success: true, connector: await updateIntegrationConnector(req.params.id, parsed.data) }); } catch (err: any) { res.status(400).json({ success: false, error: err.message || "Failed to update integration." }); } });
@@ -805,6 +837,10 @@ async function startServer() {
   // ═══════════════════════════════════════════════════════════════════
   registerAgentSystemRoutes(app);
   registerDormantServicesRoutes(app);
+  registerBusinessRoutes(app);
+
+  // AI Employee mailbox worker — nhân viên AI tự "đi làm" định kỳ qua A2A hub.
+  startEmployeeMailboxWorker(60_000);
 
   // ═══════════════════════════════════════════════════════════════════
   // Cost Observability — theo dõi chi phí token/$

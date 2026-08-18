@@ -171,3 +171,33 @@ button, input, select, textarea {
     stroke-dashoffset: 0;
   }
 }
+
+/* ==========================================================================
+   60FPS GPU HARDWARE ACCELERATION UTILITIES
+   ========================================================================== */
+
+/* Accelerate glassmorphism and heavy backdrop-filter cards */
+.backdrop-blur-xl,
+.backdrop-blur-2xl,
+.backdrop-blur-md {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Enable hardware acceleration for smooth 60fps scrolling */
+html, body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Skips layout & paint for off-screen cards to guarantee zero scroll lag */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 1px 300px;
+}
+
+/* Optimization for fast text rendering */
+body {
+  text-rendering: optimizeSpeed;
+}

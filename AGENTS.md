@@ -8,6 +8,9 @@ Use this file as the first stop for ChatGPT, Claude, Gemini, Copilot, Cursor, or
 
 Do not rebuild the project from scratch. Make small, reviewable changes on top of the current codebase.
 
+### Mandatory Wiring Rule (Bắt buộc Đấu nối Mã nguồn):
+Mọi thay đổi frontend hoặc nâng cấp module **PHẢI được nối trực tiếp vào giao diện hiển thị** (Vấn đề routing, WorkspaceRenderer, App UI) và **nối vào backend service/API tương ứng**. Tuyệt đối KHÔNG để mã nguồn bị "ngủ quên", tạo ra mà không được import, không có nút gọi trên UI hoặc bị bỏ quên trong dự án.
+
 ## Product direction rule
 
 LedgerFlow is **not a construction-company ERP** and is **not only construction accounting**.

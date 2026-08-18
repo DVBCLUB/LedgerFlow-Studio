@@ -1,0 +1,48 @@
+{
+  "name": "LedgerFlow Studio — Software Company OS",
+  "short_name": "LedgerFlow",
+  "description": "Hệ điều hành công ty phần mềm, quản trị sản phẩm, đội ngũ AI, sales CRM & tài chính",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "background_color": "#090d16",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/ledgerflow-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/ledgerflow-icon.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/ledgerflow-icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ],
+  "categories": ["productivity", "business", "developer"],
+  "shortcuts": [
+    {
+      "name": "Command Center",
+      "short_name": "Overview",
+      "description": "Bảng điều khiển trung tâm công ty",
+      "url": "/#/",
+      "icons": [{ "src": "/ledgerflow-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "AI Nhân sự",
+      "short_name": "AI Staff",
+      "description": "Điều phối đội ngũ AI và công việc",
+      "url": "/#/ai_workforce",
+      "icons": [{ "src": "/ledgerflow-icon.svg", "sizes": "96x96" }]
+    }
+  ]
+}

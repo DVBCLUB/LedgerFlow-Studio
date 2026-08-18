@@ -21,6 +21,7 @@ import {
   Sun,
   UsersRound,
   UserCircle,
+  Smartphone,
   X,
 } from 'lucide-react';
 import { loadDatabaseFromServer, saveDatabaseToServer } from '../utils/dbSync';
@@ -38,6 +39,12 @@ const GlobalCommandSpotlight = lazy(() => import('../components/shared/GlobalCom
 const NeuralNotificationCenter = lazy(() => import('../components/shared/NeuralNotificationCenter'));
 const SoloFounderNavigation = lazy(() => import('../components/SoloFounderNavigation'));
 const FastAICommandBar = lazy(() => import('../components/shared/FastAICommandBar'));
+const UniversalCEOCommandPalette = lazy(() => import('../components/shared/UniversalCEOCommandPalette'));
+const EnterpriseTelemetryStream = lazy(() => import('../components/shared/EnterpriseTelemetryStream'));
+const OnboardingQuickTour = lazy(() => import('../components/shared/OnboardingQuickTour'));
+const ApprovalToastSystem = lazy(() => import('../components/shared/ApprovalToastSystem'));
+const MobileVibeDesktopBridgeDock = lazy(() => import('../components/shared/MobileVibeDesktopBridgeDock'));
+const MobileVibeApp = lazy(() => import('../modules/mobile-vibe/MobileVibeApp'));
 
 
 // Màu group cho sidebar departments
@@ -107,6 +114,20 @@ function tabFromHash(): TabType {
 
 function ErpAppContent() {
   const { language, setLanguage, t } = useLanguage();
+  const [isMobileVibeMode, setIsMobileVibeMode] = useState(() => {
+    const raw = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+    return raw === 'mobile' || raw === 'vibe' || raw.startsWith('mobile') || raw.startsWith('vibe');
+  });
+
+  useEffect(() => {
+    const checkHash = () => {
+      const raw = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+      setIsMobileVibeMode(raw === 'mobile' || raw === 'vibe' || raw.startsWith('mobile') || raw.startsWith('vibe'));
+    };
+    window.addEventListener('hashchange', checkHash);
+    return () => window.removeEventListener('hashchange', checkHash);
+  }, []);
+
   const [activeRole, setActiveRole] = useState<RoleType>(() => {
     try {
       return (localStorage.getItem('lf_active_role') as RoleType) || 'founder';
@@ -128,7 +149,19 @@ function ErpAppContent() {
     }
     return { tools: true }; // hide "Nền tảng" by default
   });
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const { theme, toggle: toggleTheme, isDark } = useTheme();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const sync = () => setActiveTab(tabFromHash());
@@ -148,13 +181,20 @@ function ErpAppContent() {
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(async () => {
-      try {
-        await saveDatabaseToServer();
-      } catch (err) {
-        console.error('Failed to save database to server:', err);
+    const timer = setTimeout(() => {
+      const runSave = async () => {
+        try {
+          await saveDatabaseToServer();
+        } catch (err) {
+          console.error('Failed to save database to server:', err);
+        }
+      };
+      if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(() => void runSave(), { timeout: 2000 });
+      } else {
+        void runSave();
       }
-    }, 400);
+    }, 1000);
 
     return () => clearTimeout(timer);
   }, [activeTab]);
@@ -233,6 +273,11 @@ function ErpAppContent() {
     <div className="min-h-screen bg-[#09090b] text-slate-300 font-sans selection:bg-indigo-500/30 flex">
       <Suspense fallback={null}>
         <GlobalCommandSpotlight />
+        <UniversalCEOCommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onNavigate={navigate}
+        />
       </Suspense>
 
       {/* Mobile Backdrop */}
@@ -421,10 +466,7 @@ function ErpAppContent() {
 
             {/* Quick search button */}
             <button
-              onClick={() => {
-                const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true });
-                window.dispatchEvent(event);
-              }}
+              onClick={() => setIsCommandPaletteOpen(true)}
               className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-all text-xs font-medium"
               style={{ background: 'rgba(255,255,255,0.03)' }}
             >
@@ -437,6 +479,11 @@ function ErpAppContent() {
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {/* Enterprise Telemetry Stream Ticker */}
+            <Suspense fallback={null}>
+              <EnterpriseTelemetryStream />
+            </Suspense>
+
             {/* Language Switcher */}
             <div className="flex items-center gap-1 px-2 py-1 rounded-xl bg-slate-900/90 border border-white/10 text-[10px] font-bold shadow-sm">
               <span className="text-slate-500 uppercase tracking-wider">🌐</span>
@@ -499,6 +546,20 @@ function ErpAppContent() {
               >
                 <Mic className="w-4 h-4" />
               </button>
+              <button
+                onClick={() => {
+                  window.location.hash = isMobileVibeMode ? '/ceo_command' : '/mobile';
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition-all border ${
+                  isMobileVibeMode
+                    ? 'bg-cyan-500 text-slate-950 border-cyan-400 shadow-md shadow-cyan-500/20'
+                    : 'bg-slate-900/60 text-cyan-300 border-cyan-500/30 hover:bg-cyan-500/10'
+                }`}
+                title="Bật/Tắt chế độ MobileVibe Companion cho điện thoại"
+              >
+                <Smartphone className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">{isMobileVibeMode ? 'Bản Desktop' : 'Mobile Vibe'}</span>
+              </button>
             </div>
 
             <div className="h-5 w-px bg-white/10 hidden sm:block" />
@@ -525,7 +586,13 @@ function ErpAppContent() {
         {/* ── CONTENT ── */}
         <main className="flex-1 p-3 sm:p-4 lg:p-6 overflow-x-hidden">
           <div className="max-w-[1600px] w-full mx-auto">
-            <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
+            {isMobileVibeMode ? (
+              <Suspense fallback={<div className="p-8 text-center text-slate-500">Đang tải MobileVibe Companion...</div>}>
+                <MobileVibeApp />
+              </Suspense>
+            ) : (
+              <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
+            )}
           </div>
         </main>
       </div>
@@ -533,6 +600,9 @@ function ErpAppContent() {
       <Suspense fallback={null}>
         <GlobalCommandSpotlight />
         <FastAICommandBar />
+        <OnboardingQuickTour />
+        <ApprovalToastSystem />
+        <MobileVibeDesktopBridgeDock />
       </Suspense>
     </div>
   );
