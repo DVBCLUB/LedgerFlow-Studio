@@ -74,6 +74,9 @@
     "build:web:vercel": "npm run lint && npm run build:web",
     "build:docker": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/assistant-daemon-desktop.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/assistant-daemon.cjs",
+    "mobile:sync": "npm run build:web && npx cap sync",
+    "mobile:ios": "npx cap open ios",
+    "mobile:android": "npx cap open android",
     "postbuild": "npm run build:manifest && npm run check:build",
     "start": "node scripts/prod-launcher.mjs",
     "start:app": "node dist/server.cjs",
@@ -98,6 +101,10 @@
     "desktop:dev:fast": "npm run build:optimized && npm run prepare:icons && cross-env NODE_ENV=production ELECTRON_DESKTOP=true electron desktop/main.cjs"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@google/genai": "^2.4.0",
     "@supabase/supabase-js": "^2.108.2",
     "clsx": "^2.1.1",

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">LedgerFlow Vibe</string>
+    <string name="title_activity_main">LedgerFlow Vibe</string>
+    <string name="package_name">com.ledgerflow.mobilevibe</string>
+    <string name="custom_url_scheme">com.ledgerflow.mobilevibe</string>
+</resources>
