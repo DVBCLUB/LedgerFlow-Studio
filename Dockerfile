@@ -12,7 +12,7 @@ RUN npm ci
 COPY . .
 
 # Build ứng dụng (sinh ra thư mục dist chứa SPA static files và file server.cjs)
-RUN npm run build
+RUN npm run build:docker
 
 # Stage 2: Môi trường chạy thực tế tối giản (Production Stage)
 FROM node:20-alpine

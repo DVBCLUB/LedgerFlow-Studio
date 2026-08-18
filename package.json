@@ -72,6 +72,7 @@
     "prebuild": "npm run prepare:icons && npm run ai:patch-daemon-entrypoint && npm run ai:patch-daemon-tools && npm run ai:patch-daemon-hardening && npm run ai:patch-telegram-missions && npm run ai:patch-patch-review-routes && npm run ai:patch-ai-workforce-command-center && npm run ai:patch-ai-workforce-snapshot-export && npm run ai:patch-ai-workforce-snapshot-export-ui && npm run check:env && npm run check:ai-desktop-integration && npm test && npm run check:runtime-side-effects && npm run check:agent-tool-ids && npm run check:telegram-missions && npm run check:patch-review-sessions && npm run check:openclaw-plus && npm run check:ai-assistant-safety && npm run check:ai-workforce-command-center && npm run check:desktop && npm run check:offline",
     "build:web": "vite build",
     "build:web:vercel": "npm run lint && npm run build:web",
+    "build:docker": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs && esbuild server/assistant-daemon-desktop.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/assistant-daemon.cjs",
     "postbuild": "npm run build:manifest && npm run check:build",
     "start": "node scripts/prod-launcher.mjs",
