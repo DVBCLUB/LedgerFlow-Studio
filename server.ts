@@ -206,7 +206,16 @@ async function startServer() {
   app.get("/api/db/status", async (_req, res) => { try { res.json({ success: true, status: await getHybridStorageStatus(STORAGE_FILE) }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to check storage status." }); } });
   app.post("/api/db/sync", async (_req, res) => { try { const data = await loadHybridDatabase(STORAGE_FILE); const result = await saveHybridDatabase(STORAGE_FILE, data); res.json({ success: true, message: "Dual-Engine sync completed.", details: result }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to force sync." }); } });
 
-  // ── MobileVibe Companion Satellite Routes ─────────────────────────────
+  // ── MobileVibe Companion Security Gate & Satellite Routes ──────────────
+  const validateMobileVibeToken = (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const expectedToken = process.env.MOBILE_VIBE_SECRET_TOKEN;
+    if (!expectedToken) return next();
+    const token = req.headers['x-mobile-vibe-token'] || (typeof req.headers['authorization'] === 'string' ? req.headers['authorization'].replace(/^Bearer\s+/i, '') : '');
+    if (token === expectedToken) return next();
+    return res.status(401).json({ success: false, error: 'Unauthorized: Invalid or missing Mobile Vibe Security Token.' });
+  };
+  app.use('/api/mobile-vibe', validateMobileVibeToken);
+
   app.get("/api/mobile-vibe/inbox", async (_req, res) => { try { res.json({ success: true, inbox: await getMobileVibeInbox() }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to fetch mobile inbox." }); } });
   app.post("/api/mobile-vibe/inbox", async (req, res) => { try { const item = await pushToMobileVibeInbox(req.body); res.json({ success: true, item }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to push item to mobile inbox." }); } });
   app.post("/api/mobile-vibe/pull", async (_req, res) => { try { const result = await pullMobileVibeToDesktop(STORAGE_FILE); res.json({ success: true, ...result }); } catch (err: any) { res.status(500).json({ success: false, error: err.message || "Failed to pull mobile inbox to desktop." }); } });

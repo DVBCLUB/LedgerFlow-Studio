@@ -1,11 +1,12 @@
-// LedgerFlow Studio PWA Service Worker
-const CACHE_NAME = "ledgerflow-studio-v1";
+// LedgerFlow Studio PWA Service Worker v2
+const CACHE_NAME = "ledgerflow-studio-v2";
 const STATIC_ASSETS = [
   "/",
   "/index.html",
   "/manifest.json",
   "/ledgerflow-icon.svg",
-  "/ledgerflow-logo.svg"
+  "/ledgerflow-logo.svg",
+  "/favicon.ico"
 ];
 
 self.addEventListener("install", (event) => {

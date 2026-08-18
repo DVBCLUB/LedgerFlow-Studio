@@ -1,0 +1,15 @@
+node_modules
+dist
+ios
+android
+.git
+.agents
+.github
+build
+tools
+docs
+*.log
+runtime/*.log.json
+runtime/*.vault.json
+.env
+.env.*
