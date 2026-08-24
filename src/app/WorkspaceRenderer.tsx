@@ -186,6 +186,10 @@ const AIVaultSecurityPanel = React.lazy(() => import('../modules/ai-nhan-su/AIVa
 const MissionOperatorRunbookPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionOperatorRunbookPanel'));
 const MissionReleaseGatePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReleaseGatePanel'));
 const MissionSnapshotExportPanel = React.lazy(() => import('../modules/ai-nhan-su/MissionSnapshotExportPanel'));
+const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-nhan-su/MissionReviewNoteSavePanel'));
+const RobotLabPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotLabPanel'));
+const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMobileCommandCenter'));
+const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ProjectMemoryDecisionLog'));
 const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
 const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
 const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
@@ -878,8 +882,8 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
 
 function AIWorkforceAdvancedWorkspace() {
   const [activeGroup, setActiveGroup] = useState<'tasks' | 'factory' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
-  const [robotSubtab, setRobotSubtab] = useState<'skills' | 'bridge' | 'web_robot'>('bridge');
-  const [tasksSubtab, setTasksSubtab] = useState<'board' | 'routing' | 'catalog' | 'probation' | 'recruiting' | 'ai_bonus'>('board');
+  const [robotSubtab, setRobotSubtab] = useState<'skills' | 'bridge' | 'web_robot' | 'lab'>('bridge');
+  const [tasksSubtab, setTasksSubtab] = useState<'board' | 'routing' | 'catalog' | 'probation' | 'recruiting' | 'ai_bonus' | 'mobile'>('board');
 
   return (
     <div className="space-y-5 text-left">
@@ -1010,6 +1014,14 @@ function AIWorkforceAdvancedWorkspace() {
             >
               🏆 Quỹ Thưởng &amp; ESOP
             </button>
+            <button
+              onClick={() => setTasksSubtab('mobile')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'mobile' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              📱 Mobile Command
+            </button>
           </div>
 
           {tasksSubtab === 'board' && <AIWorkforceTaskBoard />}
@@ -1017,6 +1029,7 @@ function AIWorkforceAdvancedWorkspace() {
           {tasksSubtab === 'probation' && <AgentPerformanceReviewPanel />}
           {tasksSubtab === 'recruiting' && <TalentRecruitingPanel />}
           {tasksSubtab === 'ai_bonus' && <AiBonusEscrowPanel />}
+          {tasksSubtab === 'mobile' && <AIWorkforceMobileCommandCenter />}
           {tasksSubtab === 'catalog' && (
             <div className="space-y-4">
               <AIWorkforceMissionTemplates />
@@ -1040,6 +1053,7 @@ function AIWorkforceAdvancedWorkspace() {
           <MissionReleaseGatePanel />
           <MissionOperatorRunbookPanel />
           <MissionSnapshotExportPanel />
+          <MissionReviewNoteSavePanel />
           <AIWorkforceMissionTrace />
         </div>
       )}
@@ -1071,6 +1085,14 @@ function AIWorkforceAdvancedWorkspace() {
             >
               🌐 OpenClaw Web Robot &amp; Multi-Platform
             </button>
+            <button
+              onClick={() => setRobotSubtab('lab')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                robotSubtab === 'lab' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              🤖 Robot Lab
+            </button>
           </div>
 
           {robotSubtab === 'bridge' && (
@@ -1091,6 +1113,7 @@ function AIWorkforceAdvancedWorkspace() {
               <MultiPlatformRobotSwarmPanel />
             </div>
           )}
+          {robotSubtab === 'lab' && <RobotLabPanel />}
         </div>
       )}
 
@@ -1403,6 +1426,7 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
     <div className="space-y-5 animate-fade-in text-left">
       <PythonSandbox />
       <CustomDataWorkbench />
+      <ProjectMemoryDecisionLog />
     </div>
   );
 }
