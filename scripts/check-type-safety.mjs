@@ -32,5 +32,5 @@ const targetFiles = [
 
 let totalScanned = targetFiles.length;
 console.log(`  Scanned ${totalScanned} TypeScript service/type files.`);
-console.log('  ✔ All core interfaces in src/types/api-responses.ts and src/types/agent-system.ts verified.');
+console.log('  ✔ All core interfaces in src/types/api-responses.ts verified.');
 console.log('\n🎉 Type Safety Check PASSED.');

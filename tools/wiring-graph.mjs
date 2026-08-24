@@ -260,8 +260,9 @@ for (const { abs, rel } of fileSet.values()) {
 
 results.sort((a, b) => a.file.localeCompare(b.file));
 
-const counts = {};
-for (const r of results) counts[r.status] = (counts[r.status] || 0) + 1;
+const STATUSES = ['wired', 'dormant', 'daemon-only', 'test-only', 'script-only', 'dead'];
+const counts = Object.fromEntries(STATUSES.map((s) => [s, 0]));
+for (const r of results) counts[r.status] += 1;
 
 // ─── Xuất báo cáo ───────────────────────────────────────────────
 

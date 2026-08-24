@@ -192,6 +192,12 @@ const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nh
 const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ProjectMemoryDecisionLog'));
 const Analytics3DLab = React.lazy(() => import('../modules/analytics-models-sandbox/Analytics3DLab'));
 const AIObservabilityDashboard = React.lazy(() => import('../modules/analytics-models-sandbox/AIObservabilityDashboard'));
+const FinancialChartsModelPanel = React.lazy(() => import('../components/analytics/FinancialChartsModelPanel'));
+const LiveThoughtStreamViewer = React.lazy(() => import('../components/shared/LiveThoughtStreamViewer'));
+const AIOperationsDaemonPanel = React.lazy(() => import('../modules/ai-nhan-su/AIOperationsDaemonPanel'));
+const AIWorkforceOpenClawReadiness = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceOpenClawReadiness'));
+const VisualRobotWorkflowCanvas = React.lazy(() => import('../modules/ai-nhan-su/components/VisualRobotWorkflowCanvas'));
+const WebAISchedulerPanel = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/WebAISchedulerPanel').then((module) => ({ default: module.WebAISchedulerPanel })));
 const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
 const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
 const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
@@ -1115,7 +1121,12 @@ function AIWorkforceAdvancedWorkspace() {
               <MultiPlatformRobotSwarmPanel />
             </div>
           )}
-          {robotSubtab === 'lab' && <RobotLabPanel />}
+          {robotSubtab === 'lab' && (
+            <div className="space-y-4">
+              <RobotLabPanel />
+              <VisualRobotWorkflowCanvas />
+            </div>
+          )}
         </div>
       )}
 
@@ -1131,6 +1142,9 @@ function AIWorkforceAdvancedWorkspace() {
           <AutomationRulesHealthPanel />
           <SystemStatusPage />
           <AdvancedAIEngine />
+          <AIOperationsDaemonPanel />
+          <AIWorkforceOpenClawReadiness />
+          <WebAISchedulerPanel />
         </div>
       )}
     </div>
@@ -1417,6 +1431,7 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
         <GeminiPlayground />
         <PromptPlayground />
         <AIEcosystemArchitecture />
+        <LiveThoughtStreamViewer />
       </div>
     );
   }
@@ -1431,6 +1446,7 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
       <ProjectMemoryDecisionLog />
       <Analytics3DLab />
       <AIObservabilityDashboard />
+      <FinancialChartsModelPanel />
     </div>
   );
 }

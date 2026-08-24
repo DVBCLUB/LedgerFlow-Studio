@@ -56,7 +56,8 @@ for (const feature of registeredFeatures) {
     failures.push(`Feature Registry source file is missing: ${feature.source}`);
   }
   if (feature.status === 'active' && !feature.component.includes('*')) {
-    const isLazyLoaded = renderer.includes(`const ${feature.component} = React.lazy(`);
+    const isLazyLoaded = renderer.includes(`const ${feature.component} = React.lazy(`)
+      || renderer.includes(`  ${feature.component},`); // WS barrel destructure
     const isRendered = renderer.includes(`<${feature.component}`);
     if (!isLazyLoaded || !isRendered) failures.push(`Active registry component is not fully wired into WorkspaceRenderer: ${feature.component}`);
   }
@@ -65,7 +66,7 @@ for (const feature of registeredFeatures) {
 if (failures.length) {
   console.error('\nLedgerFlow current-app integrity check failed:\n');
   for (const failure of failures) console.error(`- ${failure}`);
-  process.exit(1);
+  process.exitCode = 1;
+} else {
+  console.log('LedgerFlow current-app integrity check passed.');
 }
-
-console.log('LedgerFlow current-app integrity check passed.');
