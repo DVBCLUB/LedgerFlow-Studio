@@ -1,9 +1,11 @@
 import { Github, Plug2, Terminal, Workflow } from 'lucide-react';
 import SimplePanelCard from '../../components/shared/SimplePanelCard';
+import CloudConnectorsPanel from '../../components/operations/CloudConnectorsPanel';
 
 export default function IntegrationHub() {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className="space-y-4">
+      <div className="grid gap-4 lg:grid-cols-2">
       <SimplePanelCard
         eyebrow="Tích hợp"
         title="Kết nối đang dùng"
@@ -64,6 +66,8 @@ export default function IntegrationHub() {
         ]}
         actions={["MCP SSE", "Manifest Catalog", "Test Tool"]}
       />
+      </div>
+      <CloudConnectorsPanel />
     </div>
   );
 }
