@@ -193,24 +193,9 @@ import { getB2bMarketplaceData, installMarketplaceModule } from './b2bMarketplac
 import { getAcademyData, issueAcademyCertificate } from './customerSuccessAcademyEngine.ts';
 import { getErpSyncData, triggerErpSyncNow } from './biDirectionalErpSyncEngine.ts';
 import { getCreditScoringData, calculateCreditEligibility } from './creditScoringCapitalEngine.ts';
-import { getEsgImpactData, purchaseMarketplaceCarbonCredits } from './esgImpactMarketplaceEngine.ts';
 import { getRevenueSharingData, triggerCreatorPayout } from './agentRevenueSharingEngine.ts';
-import { getPostQuantumVaultData, rotateQuantumSafeKey } from './postQuantumVaultEngine.ts';
-import { getPatentDraftingData, generatePatentClaims } from './patentAutoDraftingEngine.ts';
-import { getVirtualDataRoomData, grantInvestorVdrAccess } from './virtualDataRoomEngine.ts';
-import { getIotEdgeData, simulateIotTelemetryEvent } from './iotEdgeScaleSyncEngine.ts';
 import { getVoiceBridgeData, triggerBilingualTranslation } from './bilingualVoiceBridgeEngine.ts';
-import { getKnowledgeGraphMeshData, queryKnowledgeGraphNeighbors } from './knowledgeGraphMeshEngine.ts';
 import { getGeneticPromptData, evolveAgentPromptGeneration } from './geneticPromptMutationEngine.ts';
-import { getSatelliteMeshData, triggerSatellitePacketSync } from './satelliteOfflineMeshEngine.ts';
-import { getSpatialBoardroomData, renderSpatialHologramScene } from './spatialAccountingBoardroomEngine.ts';
-import { getTransferPricingData, calculateArmLengthTransferPrice } from './sovereignTransferPricingEngine.ts';
-import { getDroneInventoryData, processDronePointCloud } from './droneLidarInventoryEngine.ts';
-import { getZeroKnowledgeAuditData, generateZkAuditProof } from './zeroKnowledgeAuditEngine.ts';
-import { getOvernightYieldData, executeCashflowYieldSweep } from './overnightYieldSweepEngine.ts';
-import { getSmartContractEscrowMetrics, releaseEscrowFunds } from './smartContractEscrowEngine.ts';
-import { getMacroeconomicStressData, runMacroStressScenario } from './macroeconomicStressSimulatorEngine.ts';
-import { getSentientSingularityData, triggerSingularityGlobalSync } from './sentientSingularityEngine.ts';
 import { marketDemandScannerEngine } from './marketDemandScannerEngine.ts';
 import { revenueOrchestrationEngine } from './revenueOrchestrationEngine.ts';
 import { autoLaunchPipelineEngine } from './autoLaunchPipelineEngine.ts';
@@ -2891,17 +2876,6 @@ export function registerDormantServicesRoutes(app: Express): void {
   });
 
   // 🟢 150. ESG Impact & Carbon Offset Marketplace Integration
-  app.get('/api/dormant/esg-impact/summary', (_req: Request, res: Response) => {
-    try { return successResponse(res, getEsgImpactData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/esg-impact/purchase-credits', (req: Request, res: Response) => {
-    try {
-      const { projectId, tonsToOffset } = req.body || {};
-      return successResponse(res, purchaseMarketplaceCarbonCredits(projectId || 'prj_01', tonsToOffset || 10));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 151. Autonomous AI Agent Marketplace & Revenue Sharing
   app.get('/api/dormant/agent-revenue-sharing/summary', (_req: Request, res: Response) => {
     try { return successResponse(res, getRevenueSharingData()); } catch (err) { return errorResponse(res, err); }
   });
@@ -2913,50 +2887,6 @@ export function registerDormantServicesRoutes(app: Express): void {
   });
 
   // 🟢 152. Post-Quantum Cryptography Vault (NIST ML-KEM/Kyber)
-  app.get('/api/dormant/post-quantum/keys', (_req: Request, res: Response) => {
-    try { return successResponse(res, getPostQuantumVaultData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/post-quantum/rotate-key', (req: Request, res: Response) => {
-    try {
-      const { keyId } = req.body || {};
-      return successResponse(res, rotateQuantumSafeKey(keyId || 'pq_key_ledger_root'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 153. Autonomous IP & Patent Auto-Drafting Engine
-  app.get('/api/dormant/patent-drafting/filings', (_req: Request, res: Response) => {
-    try { return successResponse(res, getPatentDraftingData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/patent-drafting/generate-claims', (req: Request, res: Response) => {
-    try {
-      const { filingId } = req.body || {};
-      return successResponse(res, generatePatentClaims(filingId || 'PAT-VN-2026-001'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 154. Autonomous M&A Virtual Data Room (VDR Engine)
-  app.get('/api/dormant/vdr/room-status', (_req: Request, res: Response) => {
-    try { return successResponse(res, getVirtualDataRoomData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/vdr/grant-access', (req: Request, res: Response) => {
-    try {
-      const { investorEmail, accessTier } = req.body || {};
-      return successResponse(res, grantInvestorVdrAccess(investorEmail || 'investor@sequoia.com', accessTier));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 155. IoT Edge & Hardware Scale/RFID Sync Engine
-  app.get('/api/dormant/iot-edge/devices', (_req: Request, res: Response) => {
-    try { return successResponse(res, getIotEdgeData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/iot-edge/simulate-scale', (req: Request, res: Response) => {
-    try {
-      const { deviceId, rawWeightKg } = req.body || {};
-      return successResponse(res, simulateIotTelemetryEvent(deviceId || 'scale_01', rawWeightKg || 25400));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 156. Real-Time Bilingual AI Voice Negotiation Bridge
   app.get('/api/dormant/voice-bridge/sessions', (_req: Request, res: Response) => {
     try { return successResponse(res, getVoiceBridgeData()); } catch (err) { return errorResponse(res, err); }
   });
@@ -2968,17 +2898,6 @@ export function registerDormantServicesRoutes(app: Express): void {
   });
 
   // 🟢 157. Self-Synthesizing Enterprise Knowledge Graph Mesh
-  app.get('/api/dormant/knowledge-graph/metrics', (_req: Request, res: Response) => {
-    try { return successResponse(res, getKnowledgeGraphMeshData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/knowledge-graph/query-neighbors', (req: Request, res: Response) => {
-    try {
-      const { nodeId } = req.body || {};
-      return successResponse(res, queryKnowledgeGraphNeighbors(nodeId || 'node_ceo_nexus'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 158. Autonomous Genetic Prompt Mutation Engine
   app.get('/api/dormant/genetic-prompts/generations', (_req: Request, res: Response) => {
     try { return successResponse(res, getGeneticPromptData()); } catch (err) { return errorResponse(res, err); }
   });
@@ -2990,96 +2909,6 @@ export function registerDormantServicesRoutes(app: Express): void {
   });
 
   // 🟢 159. Starlink & Satellite Offline-Mesh Sync
-  app.get('/api/dormant/satellite-mesh/nodes', (_req: Request, res: Response) => {
-    try { return successResponse(res, getSatelliteMeshData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/satellite-mesh/sync-packets', (req: Request, res: Response) => {
-    try {
-      const { nodeId } = req.body || {};
-      return successResponse(res, triggerSatellitePacketSync(nodeId || 'node_offshore_rig_01'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 160. Spatial 3D Accounting & Holographic Boardroom
-  app.get('/api/dormant/spatial-boardroom/scene', (_req: Request, res: Response) => {
-    try { return successResponse(res, getSpatialBoardroomData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/spatial-boardroom/render-hologram', (_req: Request, res: Response) => {
-    try { return successResponse(res, renderSpatialHologramScene()); } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 161. Sovereign Multi-State Transfer Pricing & Tax Shield
-  app.get('/api/dormant/transfer-pricing/entities', (_req: Request, res: Response) => {
-    try { return successResponse(res, getTransferPricingData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/transfer-pricing/calculate', (req: Request, res: Response) => {
-    try {
-      const { sourceEntity, targetEntity, amountVnd } = req.body || {};
-      return successResponse(res, calculateArmLengthTransferPrice(sourceEntity || 'ent_vn', targetEntity || 'ent_sg', amountVnd || 1000000000));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 162. Drone 3D LiDAR Volumetric Inventory Audit
-  app.get('/api/dormant/drone-inventory/missions', (_req: Request, res: Response) => {
-    try { return successResponse(res, getDroneInventoryData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/drone-inventory/process-pointcloud', (req: Request, res: Response) => {
-    try {
-      const { missionId } = req.body || {};
-      return successResponse(res, processDronePointCloud(missionId || 'drn_01'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 163. Zero-Knowledge Proof (ZKP) Confidential Audit
-  app.get('/api/dormant/zk-audit/proofs', (_req: Request, res: Response) => {
-    try { return successResponse(res, getZeroKnowledgeAuditData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/zk-audit/generate-proof', (req: Request, res: Response) => {
-    try {
-      const { statement } = req.body || {};
-      return successResponse(res, generateZkAuditProof(statement || 'Verify Q3 Revenue Compliant'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 164. High-Frequency Cashflow Overnight Yield Sweep
-  app.get('/api/dormant/yield-sweep/accounts', (_req: Request, res: Response) => {
-    try { return successResponse(res, getOvernightYieldData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/yield-sweep/execute', (_req: Request, res: Response) => {
-    try { return successResponse(res, executeCashflowYieldSweep()); } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 165. Autonomous Smart Contract Escrow Settlement
-  app.get('/api/dormant/smart-escrow/metrics', (_req: Request, res: Response) => {
-    try { return successResponse(res, getSmartContractEscrowMetrics()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/smart-escrow/release', (req: Request, res: Response) => {
-    try {
-      const { contractId } = req.body || {};
-      return successResponse(res, releaseEscrowFunds(contractId || 'ESCROW-ETH-001'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 166. 10-Year Macroeconomic Stress Test Simulator
-  app.get('/api/dormant/macro-stress/scenarios', (_req: Request, res: Response) => {
-    try { return successResponse(res, getMacroeconomicStressData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/macro-stress/run-simulation', (req: Request, res: Response) => {
-    try {
-      const { scenarioId } = req.body || {};
-      return successResponse(res, runMacroStressScenario(scenarioId || 'st_01_stagflation'));
-    } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 167. The Sentient Singularity (Self-Governing Enterprise OS Level 8 AGI)
-  app.get('/api/dormant/singularity/overview', (_req: Request, res: Response) => {
-    try { return successResponse(res, getSentientSingularityData()); } catch (err) { return errorResponse(res, err); }
-  });
-  app.post('/api/dormant/singularity/pulse', (_req: Request, res: Response) => {
-    try { return successResponse(res, triggerSingularityGlobalSync()); } catch (err) { return errorResponse(res, err); }
-  });
-
-  // 🟢 168. Autonomous Market Demand Scanner Engine (Pillar 101)
   app.get('/api/dormant/market-demand-scanner/report', (_req: Request, res: Response) => {
     try { return successResponse(res, marketDemandScannerEngine.getMarketReport()); } catch (err) { return errorResponse(res, err); }
   });

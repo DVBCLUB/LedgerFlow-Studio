@@ -304,6 +304,24 @@ export function computeWiringGraph() {
   return { generatedAt: new Date().toISOString(), counts, files: byFile, results };
 }
 
+/**
+ * Trả về danh sách file (rel path) import một file nguồn, dùng cho việc
+ * xác định "leaf" (chỉ được import bởi dormantServicesRouter) trước khi xoá.
+ */
+export function getImportersOf(relPath) {
+  const key = normKey(path.join(root, relPath));
+  const importers = new Set();
+  for (const [from, edges] of graph) {
+    if (edges.has(key)) importers.add(from);
+  }
+  const out = [];
+  for (const imp of importers) {
+    const f = fileSet.get(imp);
+    if (f) out.push(f.rel);
+  }
+  return out;
+}
+
 // ─── CLI ────────────────────────────────────────────────────────
 
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
