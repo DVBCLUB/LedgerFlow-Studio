@@ -6,6 +6,8 @@ import InvoiceSplitViewDemo from './components/InvoiceSplitViewDemo';
 import RealVoucherApprovalCenter from './components/RealVoucherApprovalCenter';
 import { Beaker, BookOpen, Database, ScanLine, FileCheck2, FileText } from 'lucide-react';
 import FinancialReportsVN from './FinancialReportsVN';
+import AdvisoryBoardReport from './AdvisoryBoardReport';
+import FounderReviewChecklist from './FounderReviewChecklist';
 
 export default function LedgerAccountingWorkspace() {
   const [activeTab, setActiveTab] = useState<'voucher' | 'invoice' | 'deepdive' | 'workbench' | 'lab' | 'reports'>('voucher');
@@ -58,8 +60,10 @@ export default function LedgerAccountingWorkspace() {
         )}
 
         {activeTab === 'reports' && (
-          <div className="animate-fade-in">
+          <div className="animate-fade-in space-y-5">
             <FinancialReportsVN />
+            <AdvisoryBoardReport />
+            <FounderReviewChecklist />
           </div>
         )}
 

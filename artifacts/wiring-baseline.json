@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-08-24T14:51:32.218Z",
+  "generatedAt": "2026-08-24T14:55:07.458Z",
   "counts": {
-    "wired": 766,
+    "wired": 770,
     "daemon-only": 90,
     "test-only": 18,
     "dormant": 146,
-    "dead": 22
+    "dead": 18
   },
   "files": {
     "core/server/module-loader.ts": "wired",
@@ -734,8 +734,8 @@
     "src/modules/ai-nhan-su/WorldClassReadinessPanel.tsx": "wired",
     "src/modules/analytics-models-sandbox/ABSimulationLab.tsx": "wired",
     "src/modules/analytics-models-sandbox/AIEcosystemArchitecture.tsx": "wired",
-    "src/modules/analytics-models-sandbox/AIObservabilityDashboard.tsx": "dead",
-    "src/modules/analytics-models-sandbox/Analytics3DLab.tsx": "dead",
+    "src/modules/analytics-models-sandbox/AIObservabilityDashboard.tsx": "wired",
+    "src/modules/analytics-models-sandbox/Analytics3DLab.tsx": "wired",
     "src/modules/analytics-models-sandbox/BrowserSimulationPlanner.tsx": "wired",
     "src/modules/analytics-models-sandbox/BusinessAbTestingPanel.tsx": "wired",
     "src/modules/analytics-models-sandbox/BusinessSimulationEngine.tsx": "wired",
@@ -829,7 +829,7 @@
     "src/modules/finance-accounting/accountingVietnam.constants.ts": "wired",
     "src/modules/finance-accounting/AccountingVietnam.tsx": "wired",
     "src/modules/finance-accounting/AccountingVietnamDeepDivePanel.tsx": "wired",
-    "src/modules/finance-accounting/AdvisoryBoardReport.tsx": "dead",
+    "src/modules/finance-accounting/AdvisoryBoardReport.tsx": "wired",
     "src/modules/finance-accounting/AutoReconciliationPanel.tsx": "wired",
     "src/modules/finance-accounting/CapitalAllocationPanel.tsx": "wired",
     "src/modules/finance-accounting/CashFlowForecastDashboard.tsx": "wired",
@@ -847,7 +847,7 @@
     "src/modules/finance-accounting/FinanceLabMini.tsx": "wired",
     "src/modules/finance-accounting/FinancialIncidentPlaybookPanel.tsx": "wired",
     "src/modules/finance-accounting/FinancialReportsVN.tsx": "wired",
-    "src/modules/finance-accounting/FounderReviewChecklist.tsx": "dead",
+    "src/modules/finance-accounting/FounderReviewChecklist.tsx": "wired",
     "src/modules/finance-accounting/GlobalLocalizationAdapterPanel.tsx": "wired",
     "src/modules/finance-accounting/GlobalVatReverseChargePanel.tsx": "wired",
     "src/modules/finance-accounting/InternalAuditDeepDivePanel.tsx": "wired",

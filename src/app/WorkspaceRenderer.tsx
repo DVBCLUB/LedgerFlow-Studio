@@ -190,6 +190,8 @@ const MissionReviewNoteSavePanel = React.lazy(() => import('../modules/ai-nhan-s
 const RobotLabPanel = React.lazy(() => import('../modules/ai-nhan-su/RobotLabPanel'));
 const AIWorkforceMobileCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMobileCommandCenter'));
 const ProjectMemoryDecisionLog = React.lazy(() => import('../modules/analytics-models-sandbox/ProjectMemoryDecisionLog'));
+const Analytics3DLab = React.lazy(() => import('../modules/analytics-models-sandbox/Analytics3DLab'));
+const AIObservabilityDashboard = React.lazy(() => import('../modules/analytics-models-sandbox/AIObservabilityDashboard'));
 const AIWorkforceMissionTemplates = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionTemplates'));
 const AIWorkforceNextBackendActions = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceNextBackendActions'));
 const AIWorkforceToolCatalog = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceToolCatalog'));
@@ -1427,6 +1429,8 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
       <PythonSandbox />
       <CustomDataWorkbench />
       <ProjectMemoryDecisionLog />
+      <Analytics3DLab />
+      <AIObservabilityDashboard />
     </div>
   );
 }
