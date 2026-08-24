@@ -72,6 +72,7 @@ import * as WS from './workspaces';
 const OpenClawWebRobotPanel = React.lazy(() => import('../modules/ai-nhan-su/OpenClawWebRobotPanel').then((module) => ({ default: module.OpenClawWebRobotPanel })));
 const WorldClassReadinessPanel = React.lazy(() => import('../modules/ai-nhan-su/WorldClassReadinessPanel').then((module) => ({ default: module.WorldClassReadinessPanel })));
 const ProjectPortfolioPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.ProjectPortfolioPanel })));
+const IndustryTemplatePanel = React.lazy(() => import('../components/operations/IndustryTemplatePanel'));
 const ProcurementLogisticsPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.ProcurementLogisticsPanel })));
 const HRAdminPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.HRAdminPanel })));
 
@@ -1823,6 +1824,7 @@ function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
           description="Thư viện mẫu phân hệ theo ngành (Xây dựng, Dịch vụ, Thương mại, Sản xuất) đóng gói chuẩn VAS."
           chips={['Construction', 'Service', 'Trading', 'Manufacturing']}
         />
+        <IndustryTemplatePanel />
         <ProjectPortfolioPanel />
         <ProcurementLogisticsPanel />
       </div>
