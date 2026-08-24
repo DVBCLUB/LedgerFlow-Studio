@@ -4,7 +4,6 @@ const config: CapacitorConfig = {
   appId: 'com.ledgerflow.mobilevibe',
   appName: 'LedgerFlow Vibe',
   webDir: 'dist',
-  bundledWebRuntime: false,
   server: {
     androidScheme: 'https',
     iosScheme: 'ledgerflow',

@@ -62,6 +62,7 @@ export type AutomationActionType =
   | 'send_notification'
   | 'update_status'
   | 'log_event'
+  | 'emit_chained_event'
   | 'webhook_post';
 
 export interface AutomationAction {
@@ -236,7 +237,7 @@ function getNestedValue(obj: Record<string, unknown>, dotPath: string): unknown 
   }, obj as unknown);
 }
 
-function evaluateCondition(condition: RuleCondition, event: AutomationEvent): boolean {
+export function evaluateCondition(condition: RuleCondition, event: AutomationEvent): boolean {
   const rawValue = getNestedValue({ event, type: event.type, payload: event.payload }, condition.field);
   const strValue = String(rawValue ?? '');
   const condValue = String(condition.value ?? '');
@@ -253,7 +254,7 @@ function evaluateCondition(condition: RuleCondition, event: AutomationEvent): bo
   }
 }
 
-function evaluateConditions(rule: AutomationRule, event: AutomationEvent): boolean {
+export function evaluateConditions(rule: AutomationRule, event: AutomationEvent): boolean {
   if (!rule.conditions.length) return true;
   if (rule.conditionLogic === 'AND') return rule.conditions.every((c) => evaluateCondition(c, event));
   return rule.conditions.some((c) => evaluateCondition(c, event));
@@ -261,7 +262,7 @@ function evaluateConditions(rule: AutomationRule, event: AutomationEvent): boole
 
 // ─── Action Execution ─────────────────────────────────────────────────────────
 
-async function executeAction(action: AutomationAction, event: AutomationEvent, ruleId: string): Promise<{ executed: boolean; skipped: boolean; reason?: string }> {
+async function executeAction(action: AutomationAction, event: AutomationEvent, ruleId: string, depth: number = 0): Promise<{ executed: boolean; skipped: boolean; reason?: string }> {
   if (action.requiresApproval) {
     await appendAuditEvent({
       actor: 'system',
@@ -323,6 +324,23 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
       return { executed: true, skipped: false };
     }
 
+    case 'emit_chained_event': {
+      const nextType = action.params.nextEventType as AutomationEventType;
+      if (!nextType) {
+        return { executed: false, skipped: true, reason: 'nextEventType parameter missing' };
+      }
+      const payloadMerge = (action.params.payloadMerge as Record<string, unknown>) || {};
+      const mergedPayload = { ...event.payload, ...payloadMerge, chainedFromRuleId: ruleId };
+      setImmediate(async () => {
+        try {
+          await fireAutomationEvent(nextType, mergedPayload, depth + 1);
+        } catch (e) {
+          console.error('[AutomationRules] Chained event error:', e);
+        }
+      });
+      return { executed: true, skipped: false };
+    }
+
     case 'start_pipeline':
     case 'start_workflow':
     case 'create_agent_run':
@@ -355,7 +373,12 @@ async function executeAction(action: AutomationAction, event: AutomationEvent, r
 export async function fireAutomationEvent(
   type: AutomationEventType,
   payload: Record<string, unknown> = {},
+  depth: number = 0,
 ): Promise<{ matchedRules: number; executionLogs: RuleExecutionLog[] }> {
+  if (depth > 5) {
+    console.warn(`[AutomationRules] Max chaining depth exceeded (depth=${depth}), halting chain.`);
+    return { matchedRules: 0, executionLogs: [] };
+  }
   const event: AutomationEvent = { id: `evt_${randomUUID()}`, type, payload, triggeredAt: new Date().toISOString() };
   const store = readStore();
   const matchedLogs: RuleExecutionLog[] = [];
@@ -374,7 +397,7 @@ export async function fireAutomationEvent(
       status = 'success';
       for (const action of rule.actions) {
         try {
-          const result = await executeAction(action, event, rule.id);
+          const result = await executeAction(action, event, rule.id, depth);
           if (result.executed) executed.push(action.type);
           else skipped.push(`${action.type}: ${result.reason}`);
           if (!result.executed && !result.skipped) status = 'partial';

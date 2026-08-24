@@ -69,18 +69,18 @@ function storagePath(): string {
   return resolveRuntimePathFromEnv('DISTRIBUTION_HUB_STORE_FILE', 'autonomous_distribution_hub.json');
 }
 
-async function loadStore(): Promise<void> {
+function loadStoreSync(): void {
   try {
     const filePath = storagePath();
     if (fs.existsSync(filePath)) {
-      const parsed = JSON.parse(await fs.promises.readFile(filePath, 'utf8'));
+      const parsed = JSON.parse(fs.readFileSync(filePath, 'utf8'));
       store = {
-        campaigns: parsed.campaigns || {},
-        leadScenarios: parsed.leadScenarios || {},
+        campaigns: { ...(parsed.campaigns || {}), ...store.campaigns },
+        leadScenarios: { ...(parsed.leadScenarios || {}), ...store.leadScenarios },
       };
     }
   } catch {
-    store = { campaigns: {}, leadScenarios: {} };
+    // Keep in-memory store
   }
 }
 
@@ -95,7 +95,7 @@ function queueSave(): void {
   writeQueue = writeQueue.then(task, task);
 }
 
-loadStore().catch(() => undefined);
+loadStoreSync();
 
 // ─── Core Engine ──────────────────────────────────────────────────────────────
 

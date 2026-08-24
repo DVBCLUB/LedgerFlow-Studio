@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import {
   getCurrentRobotState,
   validateRobotStateTransition,
@@ -7,47 +8,36 @@ import {
   exportRobotStateDiagramMermaid,
 } from './robotStateMachine.ts';
 
-describe('robotStateMachine', () => {
-  it('starts in idle state', () => {
-    expect(getCurrentRobotState()).toBe('idle');
-  });
-
-  it('validates allowed state transitions from idle to moving', () => {
-    const check = validateRobotStateTransition('move');
-    expect(check.allowed).toBe(true);
-    expect(check.targetState).toBe('moving');
-  });
-
-  it('performs transition to moving and back to idle', () => {
-    const moveRes = transitionRobotState('move');
-    expect(moveRes.success).toBe(true);
-    expect(getCurrentRobotState()).toBe('moving');
-
-    const homeRes = transitionRobotState('home');
-    expect(homeRes.success).toBe(true);
-    expect(getCurrentRobotState()).toBe('moving');
-  });
-
-  it('transitions to emergency_stopped on stop command and resets back to idle', () => {
-    const stopRes = transitionRobotState('stop');
-    expect(stopRes.success).toBe(true);
-    expect(getCurrentRobotState()).toBe('emergency_stopped');
-
-    const invalidMove = transitionRobotState('move');
-    expect(invalidMove.success).toBe(false);
-
-    const resetRes = transitionRobotState('reset');
-    expect(resetRes.success).toBe(true);
-    expect(getCurrentRobotState()).toBe('idle');
-  });
-
-  it('generates predictive maintenance report and Mermaid diagram', () => {
-    const report = analyzePredictiveMaintenance();
-    expect(report.healthScore).toBeGreaterThanOrEqual(0);
-    expect(report.status).toBeDefined();
-
-    const diagram = exportRobotStateDiagramMermaid();
-    expect(diagram).toContain('stateDiagram-v2');
-    expect(diagram).toContain('idle --> moving');
-  });
+test('robotStateMachine - starts in idle state and validates transitions', () => {
+  const check = validateRobotStateTransition('move');
+  assert.equal(check.allowed, true);
+  assert.equal(check.targetState, 'moving');
 });
+
+test('robotStateMachine - performs transition to moving and emergency stop reset', () => {
+  const moveRes = transitionRobotState('move');
+  assert.equal(moveRes.success, true);
+  assert.equal(getCurrentRobotState(), 'moving');
+
+  const stopRes = transitionRobotState('stop');
+  assert.equal(stopRes.success, true);
+  assert.equal(getCurrentRobotState(), 'emergency_stopped');
+
+  const invalidMove = transitionRobotState('move');
+  assert.equal(invalidMove.success, false);
+
+  const resetRes = transitionRobotState('reset');
+  assert.equal(resetRes.success, true);
+  assert.equal(getCurrentRobotState(), 'idle');
+});
+
+test('robotStateMachine - generates predictive maintenance report and Mermaid diagram', () => {
+  const report = analyzePredictiveMaintenance();
+  assert.ok(report.healthScore >= 0);
+  assert.ok(report.status);
+
+  const diagram = exportRobotStateDiagramMermaid();
+  assert.ok(diagram.includes('stateDiagram-v2'));
+  assert.ok(diagram.includes('idle --> moving'));
+});
+

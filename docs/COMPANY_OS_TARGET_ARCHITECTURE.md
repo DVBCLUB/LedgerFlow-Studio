@@ -458,3 +458,36 @@ Milestone `Software Company OS Reform P0`:
 9. Surface Analytics, Models & Sandbox.
 10. Move technical sync panels out of default home.
 11. Keep old modules available under `Legacy Labs` until migrated.
+
+---
+
+## Level 6 Autonomous Enterprise Architecture (Level 5.0 / 5.0)
+
+LedgerFlow Studio incorporates 6 interconnected autonomous subsystems operating in closed-loop:
+
+### 1. AI CEO Autopilot & Natural Language OS
+- **Autopilot Decision Loop:** Daily 4-stage cycle (`briefing` → `prioritization` → `delegation` → `retrospective`).
+- **Strategic OKR Decomposition:** Automatically decomposes quarterly goals into actionable weekly agent sprints.
+- **Natural Language OS Interface:** Spotlight interface parsing executive intent into multi-workspace API action chains.
+
+### 2. Unified Activity Stream (Pulse) & Operating Rhythm
+- **Real-Time Company Pulse:** Ingests events across 5 departments with urgency classification and inline resolution.
+- **Operating Rhythm Scheduler:** Automated cadences for Morning Standups, Weekly Sprints, Circular 80 Tax Deadlines, and Monthly Close.
+
+### 3. 3-Way Auto-Reconciliation & Predictive Accounting
+- **3-Way Matching Engine:** Automatically reconciles Bank Statements ↔ Invoices (TK 131) ↔ CRM Deals. Auto-generates dual-entry vouchers (Nợ 112 / Có 131).
+- **Predictive Statistical Engine:** 2-Sigma Z-Score expense anomaly detector and multi-month revenue forecasting.
+
+### 4. Digital Factory Auto-Scale & Revenue Attribution
+- **Elastic Worker Auto-Scaling:** Co-ordinates worker pools (1 to 8 workers) dynamically based on queue depth.
+- **Self-Optimizing Pipeline:** Identifies compilation/rendering bottlenecks and applies pre-warmed sandbox pools.
+- **Revenue ROI Attribution:** Maps digital artifacts (Software releases, Viral video, PMF games, SEO copy) directly to MRR and LTV growth.
+
+### 5. 360° Department Health & Self-Evolving Workflows
+- **Corporate Health Scorecards:** Telemetry scoring across Sales, Finance, Engineering, AI Ops, and Marketing (0–100 scale).
+- **Self-Evolving Workflow Engine:** Analyzes rule failures and generates mutation proposals to optimize business processes autonomously.
+
+### 6. AI Workforce Token Economics & Agent ROI Dashboard
+- **Cost vs Value Tracking:** Real-time token consumption vs economic value generated per agent.
+- **FTE Equivalence Metric:** Calculates human labor hours saved and blended company return on investment.
+

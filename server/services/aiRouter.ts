@@ -190,7 +190,33 @@ export function parseGeminiToolCalls(data: unknown): NormalizedToolCall[] {
     }));
 }
 
+// ─── Deduplication Cache (Sliding Window TTL: 30s) ───────────────────────────
+interface RouterCacheEntry {
+  result: CallAIResult;
+  expiresAt: number;
+}
+const routerDedupCache = new Map<string, RouterCacheEntry>();
+const ROUTER_CACHE_TTL_MS = 30_000;
+
+function getRouterCacheKey(messages: ChatMessage[], options: CallAIOptions): string {
+  const content = messages.map(m => `${m.role}:${m.content}`).join('|');
+  return `${content}__${options.task || ''}__${options.model || ''}__${options.preferredProvider || ''}`;
+}
+
+export function clearRouterDedupCache(): void {
+  routerDedupCache.clear();
+}
+
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
+  // Check dedup cache (unless tools or streaming are requested)
+  if (!options.tools?.length) {
+    const cacheKey = getRouterCacheKey(messages, options);
+    const cached = routerDedupCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.result;
+    }
+  }
+
   const entries = await getEnabledAIKeyEntries();
   const orderedEntries = orderEntriesByPolicy(entries, options);
   const errors: string[] = [];
@@ -209,7 +235,12 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
       onCircuitSuccess(circuitKey);
       await setAIKeyStatus(entry.id, "ok");
       await logEntry(entry, "call", "ok", started, result.modelUsed || entry.model, promptChars, result.content.length);
-      return { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw, toolCalls: result.toolCalls || [] };
+      const callResult: CallAIResult = { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw, toolCalls: result.toolCalls || [] };
+      if (!options.tools?.length) {
+        const cacheKey = getRouterCacheKey(messages, options);
+        routerDedupCache.set(cacheKey, { result: callResult, expiresAt: Date.now() + ROUTER_CACHE_TTL_MS });
+      }
+      return callResult;
     } catch (err: any) {
       onCircuitFailure(circuitKey);
       const isQuota = isQuotaLikeError(err);
@@ -224,6 +255,10 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
     try {
       const result = await callLiteLLMProxy(messages, options);
       await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: result.modelUsed, mode: "call", status: "ok", latencyMs: Date.now() - started, promptChars, outputChars: result.content.length });
+      if (!options.tools?.length) {
+        const cacheKey = getRouterCacheKey(messages, options);
+        routerDedupCache.set(cacheKey, { result, expiresAt: Date.now() + ROUTER_CACHE_TTL_MS });
+      }
       return result;
     } catch (err: any) {
       const isQuota = isQuotaLikeError(err);
@@ -480,6 +515,59 @@ async function logEntry(entry: DecryptedAIKeyEntry, mode: AIUsageMode, status: "
   await appendAIUsageLog({ provider: entry.provider, keyId: entry.id, label: entry.label, model, mode, status, latencyMs: Date.now() - started, promptChars, outputChars, error });
 }
 function countPromptChars(messages: ChatMessage[]): number { return messages.reduce((sum, msg) => sum + msg.content.length, 0); }
+export interface TaskComplexityAnalysis {
+  score: number; // 0 to 100
+  tier: 'fast' | 'standard' | 'pro';
+  recommendedModel: string;
+  reason: string;
+}
+
+export function analyzeTaskComplexity(messages: ChatMessage[], task: string = 'general'): TaskComplexityAnalysis {
+  const userText = messages.filter((m) => m.role === 'user').map((m) => m.content).join('\n');
+  const length = userText.length;
+  let score = 25;
+
+  if (length > 2500) score += 35;
+  else if (length > 800) score += 20;
+  else if (length < 80) score -= 10;
+
+  const lower = userText.toLowerCase();
+  if (/\b(refactor|architecture|debug|cơ chế|thuật toán|audit|báo cáo tài chính|vas 200|phân tích chuyên sâu|so sánh chi tiết)\b/i.test(lower)) {
+    score += 30;
+  }
+  if (/\b(câu lệnh|sql|regex|typescript|function|interface|schema)\b/i.test(lower)) {
+    score += 15;
+  }
+  if (/\b(tóm tắt|dịch|ngắn gọn|yes\/no|ok|chào|check)\b/i.test(lower)) {
+    score -= 15;
+  }
+
+  score = Math.max(5, Math.min(100, score));
+
+  if (score >= 70 || task === 'coding' || task === 'analytics' || task === 'accounting') {
+    return {
+      score,
+      tier: 'pro',
+      recommendedModel: 'gemini-2.5-pro',
+      reason: 'Nhiệm vụ phức tạp đòi hỏi khả năng suy luận sâu và độ chính xác cao.',
+    };
+  }
+  if (score >= 35) {
+    return {
+      score,
+      tier: 'standard',
+      recommendedModel: 'deepseek-chat',
+      reason: 'Nhiệm vụ tiêu chuẩn, cân bằng giữa chất lượng và chi phí tối ưu.',
+    };
+  }
+  return {
+    score,
+    tier: 'fast',
+    recommendedModel: 'gemini-2.5-flash',
+    reason: 'Nhiệm vụ ngắn/nhanh, ưu tiên phản hồi siêu tốc với chi phí $0.',
+  };
+}
+
 function orderEntriesByPolicy(entries: DecryptedAIKeyEntry[], options: CallAIOptions): DecryptedAIKeyEntry[] {
   const preferredProvider = options.preferredProvider;
   const preferredModel = options.preferredModel?.trim();
@@ -531,17 +619,17 @@ function getProviderRank(provider: AIProviderName, model: NonNullable<CallAIOpti
 }
 function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions["model"]): string {
   const pro = requested === "ai-assistant-pro";
-  if (provider === "gemini") return pro ? "gemini-2.0-flash" : "gemini-2.0-flash";
+  if (provider === "gemini") return pro ? "gemini-2.5-pro" : "gemini-2.5-flash";
   if (provider === "openai") return pro ? "gpt-4o" : "gpt-4o-mini";
   if (provider === "deepseek") return pro ? "deepseek-reasoner" : "deepseek-chat";
   if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
   if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free";
-  if (provider === "anthropic") return pro ? "claude-3-5-sonnet-latest" : "claude-3-5-haiku-latest";
+  if (provider === "anthropic") return pro ? "claude-3-7-sonnet" : "claude-3-5-haiku-latest";
   if (provider === "mistral") return pro ? "mistral-large-latest" : "mistral-small-latest";
   if (provider === "together") return pro ? "meta-llama/Llama-3.3-70B-Instruct-Turbo" : "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
   if (provider === "perplexity") return pro ? "sonar-reasoning-pro" : "sonar-pro";
   if (provider === "xai") return "grok-2-latest";
-  return "qwen2.5:7b";
+  return "qwen2.5-coder:7b";
 }
 function isQuotaLikeError(err: any): boolean { const text = `${err?.status || ""} ${err?.message || ""} ${JSON.stringify(err?.body || {})}`.toLowerCase(); return text.includes("429") || text.includes("quota") || text.includes("rate limit") || text.includes("too many requests") || text.includes("resource_exhausted"); }
 function providerHttpError(provider: AIProviderName | "litellm-proxy", status: number, body: unknown): ProviderError { return new ProviderError(extractErrorMessage(body) || `${provider} returned HTTP ${status}`, status, body, provider); }

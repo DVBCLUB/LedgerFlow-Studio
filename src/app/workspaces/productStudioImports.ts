@@ -7,3 +7,4 @@ export const ProductLaunchChecklist = React.lazy(() => import('../../modules/mar
 export const BusinessHubPanel = React.lazy(() => import('../../components/business/BusinessHubPanel'));
 export const GameAssetStudioPanel = React.lazy(() => import('../../modules/product-studio/components/GameAssetStudioPanel'));
 export const VideoMakerRoot = React.lazy(() => import('../../modules/video-maker/ui/index'));
+export const ZeroTouchLoopPanel = React.lazy(() => import('../../modules/product-studio/ZeroTouchLoopPanel'));

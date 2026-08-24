@@ -109,7 +109,8 @@ web_ai_profiles.json
 /fine_tuning_data/
 /knowledge_base/
 /reports/
-/artifacts/
+/artifacts/*
+!/artifacts/wiring-baseline.json
 /exports/
 /plugins/
 .agent_sandbox/

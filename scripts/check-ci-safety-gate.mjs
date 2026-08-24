@@ -24,6 +24,8 @@ const requiredPackageScripts = [
   'check:telegram-missions',
   'check:patch-review-sessions',
   'check:openclaw-plus',
+  'check:wiring',
+  'wiring:baseline',
 ];
 
 function read(relativePath) {
@@ -43,10 +45,22 @@ for (const script of requiredPackageScripts) {
   assert(pkg.scripts?.[script], `Missing package script: ${script}`);
 }
 
+// Builds are read-only: lifecycle hooks must NOT run source-mutating patch scripts.
+// The patch scripts remain as manual-only tools (npm run ai:patch-*).
+const readOnlyPatchers = [
+  'ai:patch-daemon-entrypoint',
+  'ai:patch-daemon-tools',
+  'ai:patch-daemon-hardening',
+  'ai:patch-telegram-missions',
+  'ai:patch-patch-review-routes',
+  'ai:patch-ai-workforce-command-center',
+  'ai:patch-ai-workforce-snapshot-export',
+  'ai:patch-ai-workforce-snapshot-export-ui',
+];
 for (const lifecycle of ['predev', 'prelint', 'prebuild']) {
   const value = String(pkg.scripts?.[lifecycle] || '');
-  for (const patcher of ['ai:patch-daemon-tools', 'ai:patch-daemon-hardening', 'ai:patch-telegram-missions', 'ai:patch-patch-review-routes']) {
-    assert(value.includes(patcher), `${lifecycle} must run ${patcher}`);
+  for (const patcher of readOnlyPatchers) {
+    assert(!value.includes(patcher), `${lifecycle} must NOT run ${patcher} — builds are read-only now.`);
   }
 }
 
@@ -60,4 +74,4 @@ for (const token of ['Tool schema sync', 'Telegram / mobile parity', 'Plugin bou
   assert(doc.includes(token), `OpenClaw parity doc missing section: ${token}`);
 }
 
-console.log('CI safety gate passed for OpenClaw parity hardening contracts.');
+console.log('CI safety gate passed: OpenClaw parity hardening contracts + read-only build policy + wiring gate.');

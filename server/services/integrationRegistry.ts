@@ -1,7 +1,7 @@
 import fs from "fs";
-import { appendAuditEvent, integrationLevelToAuditRisk, integrationTypeToAuditStatus } from "./auditLog";
-import { getGitHubSummary } from "./githubConnector";
-import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths";
+import { appendAuditEvent, integrationLevelToAuditRisk, integrationTypeToAuditStatus } from "./auditLog.ts";
+import { getGitHubSummary } from "./githubConnector.ts";
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths.ts";
 
 export type IntegrationStatus = "connected" | "local" | "manual" | "planned" | "error";
 export type IntegrationCategory = "ai" | "devops" | "workspace" | "accounting" | "documents" | "automation" | "data";

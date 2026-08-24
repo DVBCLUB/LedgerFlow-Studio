@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { appendIntegrationEvent } from "./integrationRegistry";
-import { appendCompanyOsEvent } from "./companyOsControlPlane";
+import { appendIntegrationEvent } from "./integrationRegistry.ts";
+import { appendCompanyOsEvent } from "./companyOsControlPlane.ts";
 
 const NOTION_DIR = path.join(process.cwd(), ".notion_workspace");
 const PAGES_SUBDIR = path.join(NOTION_DIR, "Pages");

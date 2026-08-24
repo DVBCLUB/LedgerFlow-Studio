@@ -5,10 +5,12 @@
  * phát hiện anomalies, patterns, errors, và đề xuất fix.
  */
 import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric } from './aiFabric';
-import { appendAuditEvent } from './auditLog';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { appendAuditEvent } from './auditLog.ts';
 import fs from 'fs';
 import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
+
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface LogAnomaly {
@@ -61,12 +63,26 @@ const KNOWN_PATTERNS: LogPattern[] = [
 ];
 
 // ─── Storage ────────────────────────────────────────────────────────
-const FILE = path.join(process.cwd(), 'log_analyses.json');
+const FILE = resolveRuntimePathFromEnv('LOG_ANALYSES_FILE', 'log_analyses.json');
 let analyses: LogAnalysis[] = [];
 
-async function load(): Promise<void> { try { if (fs.existsSync(FILE)) analyses = JSON.parse(await fs.promises.readFile(FILE, 'utf8')); } catch { } }
+async function load(): Promise<void> {
+  try {
+    const readPath = resolveRuntimeReadPathFromEnv('LOG_ANALYSES_FILE', 'log_analyses.json');
+    if (fs.existsSync(readPath)) {
+      analyses = JSON.parse(await fs.promises.readFile(readPath, 'utf8'));
+    }
+  } catch {}
+}
 load().catch(() => undefined);
-async function save(): Promise<void> { await fs.promises.writeFile(FILE, JSON.stringify(analyses.slice(-30), null, 2), 'utf8'); }
+
+async function save(): Promise<void> {
+  try {
+    ensureRuntimeRootSync();
+    await fs.promises.writeFile(FILE, JSON.stringify(analyses.slice(-30), null, 2), 'utf8');
+  } catch {}
+}
+
 
 // ─── Core Heuristic Analysis ────────────────────────────────────────
 
@@ -263,9 +279,53 @@ RECOMMENDATIONS: [3-5 bullet points, most urgent first]`;
   return analysis;
 }
 
+export async function analyzeLogContent(
+  rawContent: string,
+  sourceLabel = 'raw_log',
+  useAI = false,
+): Promise<LogAnalysis> {
+  const analysisId = `log_${Date.now()}`;
+  const started = Date.now();
+  const allLines = rawContent.split('\n').filter((l) => l.trim().length > 0);
+  const totalLines = allLines.length;
+  const heuristic = analyzeLogLines(allLines);
+
+  const healthScore = Math.max(0, 100
+    - heuristic.anomalies.filter(a => a.level === 'CRITICAL' || a.level === 'critical').length * 20
+    - heuristic.anomalies.filter(a => a.level === 'HIGH' || a.level === 'high').length * 8
+    - heuristic.anomalies.length * 2);
+
+  const summary = heuristic.anomalies.length === 0
+    ? `Logs look clean. ${totalLines} lines analyzed, no critical/high anomalies detected.`
+    : `Found ${heuristic.anomalies.length} anomalies in ${totalLines} log lines. Health score: ${healthScore}/100.`;
+
+  const analysis: LogAnalysis = {
+    id: analysisId,
+    source: sourceLabel,
+    fileSize: Buffer.byteLength(rawContent, 'utf8'),
+    totalLines,
+    timeRange: heuristic.timeRange,
+    levelDistribution: heuristic.levelDistribution,
+    topErrors: heuristic.anomalies.slice(0, 5),
+    anomalies: heuristic.anomalies,
+    patternsFound: heuristic.patternsFound,
+    healthScore,
+    recommendations: heuristic.anomalies.map((a) => a.suggestedFix).slice(0, 5),
+    summary,
+    analyzedAt: new Date().toISOString(),
+    durationMs: Date.now() - started,
+  };
+
+  analyses.push(analysis);
+  save().catch(() => undefined);
+  return analysis;
+}
+
+export { analyzeLogLines };
 export function getAnalysis(id: string): LogAnalysis | undefined { return analyses.find(a => a.id === id); }
 export function listAnalyses(): LogAnalysis[] { return [...analyses].reverse(); }
 export function getPatterns(): LogPattern[] { return [...KNOWN_PATTERNS]; }
 export function getLogStats(): { total: number; avgHealth: number } {
   return { total: analyses.length, avgHealth: analyses.length > 0 ? +(analyses.reduce((s, a) => s + a.healthScore, 0) / analyses.length).toFixed(1) : 0 };
 }
+

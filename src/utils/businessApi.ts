@@ -63,3 +63,100 @@ export function setBusinessEntityStatus(id: string, status: 'approved' | 'reject
 export function getBusinessStats(): Promise<BusinessStats> {
   return request<{ success: boolean; stats: BusinessStats }>('/api/business/stats').then((r) => r.stats);
 }
+
+// ─── Autonomous Enterprise Level 4 API Helpers ───────────────────────────────
+
+export interface DailyStandupBriefing {
+  id: string;
+  date: string;
+  ceoBrief: string;
+  cfoFinancialStatus: string;
+  ctoReleaseStatus: string;
+  cmoGrowthStatus: string;
+  vpProductRoadmapStatus: string;
+  overallReadinessScore: number;
+  markdownSummary: string;
+  audioSpeechScript: string;
+}
+
+export function fetchDailyStandupBriefing(): Promise<DailyStandupBriefing> {
+  return request<{ success: boolean; briefing: DailyStandupBriefing }>('/api/dormant/executive-boardroom/daily-standup').then((r) => r.briefing);
+}
+
+export function orchestrateClosedDeal(deal: {
+  dealId: string;
+  customerName: string;
+  customerEmail?: string;
+  amountVnd: number;
+  productName: string;
+  notes?: string;
+}): Promise<{
+  customerId: string;
+  taskId: string;
+  invoiceId: string;
+  crossDeptRequestId: string;
+}> {
+  return request<{ success: boolean; result: any }>('/api/dormant/cross-dept/orchestrate-deal', {
+    method: 'POST',
+    body: JSON.stringify(deal),
+  }).then((r) => r.result);
+}
+
+export function ingestLiveBankWebhook(payload: {
+  transactionId?: string;
+  amount: number;
+  description: string;
+  bank?: string;
+}): Promise<any> {
+  return request<{ success: boolean; result: any }>('/api/dormant/bank-webhook/ingest', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }).then((r) => r.result);
+}
+
+export function fetchLiveArchitectureMermaid(): Promise<string> {
+  return request<{ success: boolean; mermaid: string }>('/api/dormant/doc-generator/architecture-mermaid').then((r) => r.mermaid);
+}
+
+// ─── Level 5 Full Autonomy Client Helpers ────────────────────────────────────
+
+export function generateStandardEInvoiceXML(payload: any): Promise<any> {
+  return request<{ success: boolean; eInvoice: any }>('/api/dormant/einvoice/generate-xml', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }).then((r) => r.eInvoice);
+}
+
+export function scanSubscriptionRenewals(subscriptions: any[], referenceDate?: string): Promise<any[]> {
+  return request<{ success: boolean; recommendations: any[] }>('/api/dormant/subscriptions/scan-renewals', {
+    method: 'POST',
+    body: JSON.stringify({ subscriptions, referenceDate }),
+  }).then((r) => r.recommendations);
+}
+
+export function parseVoiceEarphoneCommand(transcript: string): Promise<any> {
+  return request<{ success: boolean; intentResult: any }>('/api/dormant/voice-earphone/parse', {
+    method: 'POST',
+    body: JSON.stringify({ transcript }),
+  }).then((r) => r.intentResult);
+}
+
+export function createEncryptedCloudBackup(params: {
+  sourceWorkspace?: string;
+  targetCloudStorage?: string;
+  dataPayload: Record<string, any>;
+}): Promise<any> {
+  return request<{ success: boolean; snapshot: any }>('/api/dormant/cloud-backup/create-snapshot', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  }).then((r) => r.snapshot);
+}
+
+export function restoreAndVerifyCloudBackup(snapshot: any, secret?: string): Promise<any> {
+  return request<{ success: boolean; result: any }>('/api/dormant/cloud-backup/restore-verify', {
+    method: 'POST',
+    body: JSON.stringify({ snapshot, secret }),
+  }).then((r) => r.result);
+}
+
+

@@ -15,6 +15,8 @@ import { appendAuditEvent } from "./auditLog.ts";
 import { recordUsage } from "./costObservability.ts";
 import { validateAIOutput } from "./aiOutputValidator.ts";
 import { searchKnowledgeGraph } from "./knowledgeGraph.ts";
+import { scanAndCleanseContextPrompt } from "./zeroTrustPoisonShield.ts";
+import { maskSensitiveData, unmaskSensitiveData } from "./vietnameseDataPrivacyMasker.ts";
 import type { CallAIOptions, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
 
 let routeAIThroughProvider = callAIWithFallback;
@@ -75,6 +77,7 @@ export interface AIFabricOptions {
   localFallback?: boolean; // Cho phép fallback sang Ollama local
   agentRole?: string;
   filePath?: string;       // File cần phân tích qua Web AI
+  maskSensitiveData?: boolean; // Tự động che dữ liệu nhạy cảm theo Nghị định 13/2023/NĐ-CP
 }
 
 // ─── Response Cache System (TTL 5 minutes) ───────────────────────────
@@ -143,6 +146,53 @@ export async function dispatchThroughFabric(
     totalLatencyMs: 0,
   };
 
+  // Zero-Trust Prompt Poisoning & Injection Shield Pre-Scan
+  try {
+    const poisonCheck = await scanAndCleanseContextPrompt({
+      rawContent: userText,
+      source: 'user_input',
+    });
+    if (poisonCheck.actionTaken === 'blocked') {
+      run.status = "bypassed";
+      run.completedAt = new Date().toISOString();
+      run.steps.push({
+        route: "bypass",
+        status: "failed",
+        errorCode: "prompt_injection_blocked",
+        error: "Yêu cầu bị chặn do phát hiện mẫu prompt injection/jailbreak rủi ro cao.",
+        fixSuggestion: "Vui lòng nhập câu hỏi tự nhiên, tránh các chỉ thị can thiệp hệ thống.",
+        latencyMs: Date.now() - started,
+      });
+      return run;
+    } else if (poisonCheck.actionTaken === 'sanitized') {
+      for (const m of messages) {
+        if (m.role === 'user') {
+          m.content = poisonCheck.sanitizedContent;
+        }
+      }
+    }
+  } catch {
+    // Non-fatal
+  }
+
+  // Privacy Masking (Decree 13/2023/ND-CP) — anonymize CCCD/MST/Phone before cloud dispatch
+  let privacyTokensMap: Record<string, string> = {};
+  if (options.maskSensitiveData !== false) {
+    try {
+      const maskResult = maskSensitiveData(userText);
+      if (maskResult.maskedItemsCount > 0) {
+        privacyTokensMap = maskResult.tokensMap;
+        for (const m of messages) {
+          if (m.role === 'user') {
+            m.content = maskSensitiveData(m.content).maskedText;
+          }
+        }
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
   // ── Step 1: API route ─────────────────────────────────────────────
   try {
     const stepStart = Date.now();
@@ -155,13 +205,18 @@ export async function dispatchThroughFabric(
       toolChoice: options.toolChoice,
     });
 
-    const validation = validateAIOutput(userText, result.content);
+    // Unmask tokens back to original user values if any were masked
+    const finalContent = Object.keys(privacyTokensMap).length > 0
+      ? unmaskSensitiveData(result.content, privacyTokensMap)
+      : result.content;
+
+    const validation = validateAIOutput(userText, finalContent);
     run.steps.push({
       route: "api",
       provider: result.modelUsed,
       status: "success",
       latencyMs: Date.now() - stepStart,
-      contentPreview: result.content.slice(0, 200),
+      contentPreview: finalContent.slice(0, 200),
       toolCalls: result.toolCalls || [],
       evidence: { validationSummary: validation.summary, valid: validation.valid },
     });

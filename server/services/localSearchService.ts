@@ -9,7 +9,7 @@
 
 import fs from "fs";
 import path from "path";
-import { getWorkspaceRoot } from "./safeFileManager";
+import { getWorkspaceRoot } from "./safeFileManager.ts";
 
 export interface SearchMatch {
   relativePath: string;

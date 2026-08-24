@@ -4,6 +4,9 @@ import {
   runSoloFounderNightlySweeperRobot,
   runViralContentCrossPublisherRobot,
   runRevenueLeakReconciliationRobot,
+  runCustomerChurnPredictorRobot,
+  runCodeQualityPatrolBot,
+  runCompetitorIntelligenceBot,
 } from './autonomousCompanyRobots.ts';
 import { upsertBusinessEntity, getBusinessEntity } from './businessDataService.ts';
 
@@ -66,3 +69,43 @@ test('autonomousCompanyRobots - runRevenueLeakReconciliationRobot identifies ove
   assert.ok(matched?.daysOverdue >= 29);
   assert.ok(matched?.reminderDraft.includes('Công ty Cổ phần Xây dựng Minh Long'));
 });
+
+test('autonomousCompanyRobots - runCustomerChurnPredictorRobot identifies at-risk accounts', async () => {
+  upsertBusinessEntity({
+    id: 'cust_churn_sample',
+    type: 'customer',
+    data: {
+      name: 'Công ty TNHH Vận Tải An Phát',
+      npsScore: 5,
+    },
+  });
+
+  const churnReport = await runCustomerChurnPredictorRobot();
+  assert.ok(churnReport.id);
+  assert.ok(churnReport.totalCustomersAnalyzed >= 1);
+  assert.ok(churnReport.atRiskCount >= 1);
+
+  const matched = churnReport.atRiskCustomers.find((c) => c.customerId === 'cust_churn_sample');
+  assert.ok(matched);
+  assert.ok(matched?.riskScore >= 40);
+  assert.ok(matched?.draftRetentionMessage.includes('Công ty TNHH Vận Tải An Phát'));
+});
+
+test('autonomousCompanyRobots - runCodeQualityPatrolBot returns system health report', async () => {
+  const patrolReport = await runCodeQualityPatrolBot();
+  assert.ok(patrolReport.id);
+  assert.ok(patrolReport.totalChecksRun > 0);
+  assert.ok(['A+', 'A', 'B', 'C', 'D'].includes(patrolReport.healthGrade));
+  assert.ok(patrolReport.markdownSummary.includes('Code Quality'));
+});
+
+test('autonomousCompanyRobots - runCompetitorIntelligenceBot generates market insights report', async () => {
+  const report = await runCompetitorIntelligenceBot();
+  assert.ok(report.id);
+  assert.ok(report.competitorsAnalyzedCount >= 1);
+  assert.ok(report.marketInsights.length >= 1);
+  assert.ok(report.executiveActionPlan.length >= 1);
+  assert.ok(report.markdownReport.includes('Phân Tích Đối Thủ & Thị Trường'));
+});
+
+

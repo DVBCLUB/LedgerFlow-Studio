@@ -1,5 +1,13 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { FileText, CheckCircle2, XCircle, Clock, Send, Plus, Trash2, ChevronRight, User, Calendar, DollarSign, Filter, Download, AlertTriangle, RefreshCw, Archive, CreditCard, Receipt } from 'lucide-react';
+import {
+  listApprovalRequests as fetchApprovalRequests,
+  createApprovalRequest as createBackendApprovalRequest,
+  transitionApprovalRequest as transitionBackendApprovalRequest,
+  type BackendApprovalRequest,
+  type BackendApprovalState,
+  type BackendDocumentType,
+} from '../../utils/approvalApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type ApprovalStatus = 'draft' | 'submitted' | 'checked' | 'approved' | 'paid' | 'settled' | 'archived';
@@ -57,8 +65,7 @@ const STATUS_FLOW: Partial<Record<ApprovalStatus, ApprovalStatus>> = {
   submitted: 'checked',
   checked:   'approved',
   approved:  'paid',
-  paid:      'settled',
-  settled:   'archived',
+  paid:      'archived',
 };
 
 const NEXT_ACTION_LABEL: Partial<Record<ApprovalStatus, string>> = {
@@ -66,8 +73,7 @@ const NEXT_ACTION_LABEL: Partial<Record<ApprovalStatus, string>> = {
   submitted: 'Đánh Dấu Đã Kiểm',
   checked:   'Phê Duyệt',
   approved:  'Xác Nhận Thanh Toán',
-  paid:      'Quyết Toán',
-  settled:   'Lưu Trữ',
+  paid:      'Lưu Trữ',
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -90,8 +96,73 @@ function genCode(type: VoucherType) {
   return `${prefix[type]}-${new Date().getFullYear()}-${String(Math.floor(Math.random()*9000)+1000)}`;
 }
 function fmtVND(n: number) { return n.toLocaleString('vi-VN') + ' ₫'; }
-function fmtDate(iso: string) { return new Date(iso).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' }); }
+function fmtDate(iso: string) { if (!iso) return '—'; return new Date(iso).toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' }); }
 function fmtDateTime(iso: string) { return new Date(iso).toLocaleString('vi-VN'); }
+
+// ─── Backend Approval State Machine mapping ───────────────────────────────────
+const FRONTEND_TO_BACKEND_STATE: Record<ApprovalStatus, BackendApprovalState> = {
+  draft: 'DRAFT',
+  submitted: 'SUBMITTED',
+  checked: 'CHECKED',
+  approved: 'APPROVED',
+  paid: 'PAID',
+  settled: 'ARCHIVED',
+  archived: 'ARCHIVED',
+};
+
+const BACKEND_TO_FRONTEND_STATE: Record<BackendApprovalState, ApprovalStatus> = {
+  DRAFT: 'draft',
+  SUBMITTED: 'submitted',
+  CHECKED: 'checked',
+  APPROVED: 'approved',
+  PAID: 'paid',
+  ARCHIVED: 'archived',
+  REJECTED: 'draft',
+};
+
+const FRONTEND_TO_BACKEND_TYPE: Record<VoucherType, BackendDocumentType> = {
+  payment: 'PAYMENT_REQUEST',
+  advance: 'ADVANCE_REQUEST',
+  settlement: 'PAYMENT_REQUEST',
+  purchase: 'PAYMENT_REQUEST',
+  expense: 'PAYMENT_REQUEST',
+  other: 'RELEASE_CHECKLIST',
+};
+
+const BACKEND_TO_FRONTEND_TYPE: Record<BackendDocumentType, VoucherType> = {
+  PAYMENT_REQUEST: 'payment',
+  CONTRACT: 'other',
+  QUOTATION: 'other',
+  ADVANCE_REQUEST: 'advance',
+  RELEASE_CHECKLIST: 'other',
+};
+
+function fromBackendRequest(r: BackendApprovalRequest): ApprovalRecord {
+  return {
+    id: r.id,
+    code: r.documentNo,
+    type: BACKEND_TO_FRONTEND_TYPE[r.documentType] ?? 'other',
+    title: r.title,
+    amount: r.amountVnd ?? 0,
+    currency: 'VND',
+    status: BACKEND_TO_FRONTEND_STATE[r.currentState] ?? 'draft',
+    requestedBy: r.requester,
+    department: '',
+    description: '',
+    dueDate: '',
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    comments: (r.history ?? []).map((h) => ({
+      id: `${r.id}-${h.timestamp}-${h.toState}`,
+      actor: h.actor,
+      action: `Chuyển ${h.fromState} → ${h.toState}`,
+      note: h.comment ?? '',
+      timestamp: h.timestamp,
+      status: BACKEND_TO_FRONTEND_STATE[h.toState] ?? 'draft',
+    })),
+    tags: [r.documentType],
+  };
+}
 
 // ─── Components ───────────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: ApprovalStatus }) {
@@ -138,6 +209,7 @@ export default function ApprovalWorkflow() {
   const [showForm, setShowForm] = useState(false);
   const [noteInput, setNoteInput] = useState('');
   const [actorInput, setActorInput] = useState(() => localStorage.getItem('lf_actor_name') || 'Kế toán viên');
+  const [backendMode, setBackendMode] = useState(false);
 
   // Form state
   const [form, setForm] = useState({
@@ -155,18 +227,58 @@ export default function ApprovalWorkflow() {
     saveRecords(next);
   }, []);
 
-  const handleCreate = () => {
+  const syncFromBackend = useCallback(async () => {
+    const reqs = await fetchApprovalRequests();
+    const recs = reqs.map(fromBackendRequest);
+    setRecords(recs);
+    saveRecords(recs); // mirror cache để offline vẫn có dữ liệu
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await syncFromBackend();
+        if (!cancelled) setBackendMode(true);
+      } catch {
+        if (!cancelled) setBackendMode(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [syncFromBackend]);
+
+  const handleCreate = async () => {
     if (!form.title.trim() || !form.amount.trim()) {
       alert('Vui lòng nhập tiêu đề và số tiền!');
       return;
     }
     const now = new Date().toISOString();
+    const amount = parseFloat(form.amount.replace(/[^0-9.]/g, '')) || 0;
+    if (backendMode) {
+      try {
+        const created = await createBackendApprovalRequest({
+          documentType: FRONTEND_TO_BACKEND_TYPE[form.type] as BackendDocumentType,
+          documentNo: genCode(form.type),
+          title: form.title.trim(),
+          requester: actorInput,
+          amountVnd: amount,
+        });
+        await syncFromBackend();
+        setShowForm(false);
+        setForm({ type: 'payment', title: '', amount: '', department: '', description: '', dueDate: new Date(Date.now()+7*86400000).toISOString().split('T')[0], tags: '' });
+        setSelectedId(created.id);
+        return;
+      } catch (err: any) {
+        alert('Lỗi backend: ' + (err?.message || err));
+        return;
+      }
+    }
     const rec: ApprovalRecord = {
       id: genId(),
       code: genCode(form.type),
       type: form.type,
       title: form.title.trim(),
-      amount: parseFloat(form.amount.replace(/[^0-9.]/g, '')) || 0,
+      amount,
       currency: 'VND',
       status: 'draft',
       requestedBy: actorInput,
@@ -184,9 +296,29 @@ export default function ApprovalWorkflow() {
     setSelectedId(rec.id);
   };
 
-  const handleAdvance = (rec: ApprovalRecord) => {
+  const handleAdvance = async (rec: ApprovalRecord) => {
     const nextStatus = STATUS_FLOW[rec.status];
     if (!nextStatus) return;
+    if (backendMode) {
+      try {
+        const result = await transitionBackendApprovalRequest({
+          id: rec.id,
+          targetState: FRONTEND_TO_BACKEND_STATE[nextStatus] as BackendApprovalState,
+          actor: actorInput,
+          comment: noteInput.trim() || undefined,
+        });
+        if (!result.success) {
+          alert(result.error || 'Không thể chuyển trạng thái (backend từ chối transition).');
+          return;
+        }
+        await syncFromBackend();
+        setNoteInput('');
+        return;
+      } catch (err: any) {
+        alert('Lỗi backend: ' + (err?.message || err));
+        return;
+      }
+    }
     const now = new Date().toISOString();
     const comment: ApprovalComment = {
       id: genId(),
@@ -236,8 +368,12 @@ export default function ApprovalWorkflow() {
               <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
               <span className="text-[10px] font-black text-orange-400 uppercase tracking-widest font-mono">ERP Approval Engine v1</span>
             </div>
-            <h2 className="text-xl font-black text-text-primary">Phê Duyệt Chứng Từ</h2>
-            <p className="text-text-secondary text-xs mt-1">Luồng phê duyệt: <span className="text-text-primary font-bold">Nháp → Trình duyệt → Kiểm tra → Duyệt → Thanh toán → Quyết toán → Lưu trữ</span></p>
+            <h2 className="text-xl font-black text-text-primary flex items-center gap-2">Phê Duyệt Chứng Từ
+              <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${backendMode ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' : 'bg-slate-500/15 text-slate-300 border-slate-500/30'}`}>
+                {backendMode ? '● Approval State Machine (backend)' : '○ Offline (localStorage)'}
+              </span>
+            </h2>
+            <p className="text-text-secondary text-xs mt-1">Luồng phê duyệt: <span className="text-text-primary font-bold">Nháp → Trình duyệt → Kiểm tra → Duyệt → Thanh toán → Lưu trữ</span></p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <input

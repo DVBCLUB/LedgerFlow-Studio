@@ -174,9 +174,107 @@ export function listCrossDeptRequests(filter?: {
   return list.reverse();
 }
 
+import { upsertBusinessEntity } from './businessDataService.ts';
+import { publishSystemEvent } from './crossSystemEventBus.ts';
+
+/**
+ * Autonomous Level 4 Orchestration: Auto-provisions delivery tasks, customer entity, and financial invoices when a sales deal is closed.
+ */
+export async function autoOrchestrateClosedDeal(deal: {
+  dealId: string;
+  customerName: string;
+  customerEmail?: string;
+  amountVnd: number;
+  productName: string;
+  notes?: string;
+}): Promise<{
+  customerId: string;
+  taskId: string;
+  invoiceId: string;
+  crossDeptRequestId: string;
+}> {
+  const now = new Date().toISOString();
+  const customerId = `cust_${Date.now()}_${deal.dealId.slice(-4)}`;
+  const taskId = `task_delivery_${Date.now()}`;
+  const invoiceId = `inv_${Date.now()}_${deal.dealId.slice(-4)}`;
+
+  // 1. Create Customer Entity
+  upsertBusinessEntity({
+    id: customerId,
+    type: 'customer',
+    data: {
+      name: deal.customerName,
+      email: deal.customerEmail || 'client@business.local',
+      dealId: deal.dealId,
+      totalSpendVnd: deal.amountVnd,
+      tier: deal.amountVnd > 50_000_000 ? 'VIP' : 'STANDARD',
+      status: 'active',
+    },
+    source: 'workflow',
+  });
+
+  // 2. Create Project Delivery Task for AI Workforce
+  upsertBusinessEntity({
+    id: taskId,
+    type: 'task',
+    data: {
+      title: `[Triển khai Khách hàng] ${deal.customerName} - ${deal.productName}`,
+      description: `Bàn giao hệ thống, cấp license và khởi tạo workspace cho ${deal.customerName}. Giá trị hợp đồng: ${deal.amountVnd.toLocaleString('vi-VN')} đ.`,
+      status: 'pending',
+      priority: 'HIGH',
+      customerId,
+      dealId: deal.dealId,
+      productName: deal.productName,
+    },
+    source: 'workflow',
+  });
+
+  // 3. Create Draft Accounting Invoice
+  upsertBusinessEntity({
+    id: invoiceId,
+    type: 'invoice',
+    data: {
+      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
+      customerId,
+      dealId: deal.dealId,
+      amountVnd: deal.amountVnd,
+      status: 'pending_payment',
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      vatRate: 0.1,
+    },
+    source: 'workflow',
+  });
+
+  // 4. Submit Cross-Dept Request from Sales/Growth to Product Delivery
+  const crossDeptReq = submitCrossDeptRequest({
+    fromDepartment: 'GROWTH',
+    fromRoleId: 'role_growth_marketer',
+    toDepartment: 'PRODUCT',
+    title: `Triển khai dự án mới: ${deal.customerName}`,
+    description: `Hợp đồng ${deal.productName} đã ký kết thành công (${deal.amountVnd.toLocaleString('vi-VN')} đ). Cần khởi tạo workspace và bàn giao cho khách hàng.`,
+    priority: 'HIGH',
+  });
+
+  // 5. Emit universal event on bus
+  await publishSystemEvent(
+    'sales.deal_closed',
+    'crossDepartmentRequestBridge',
+    `Deal closed for ${deal.customerName} (${deal.amountVnd.toLocaleString('vi-VN')} VND)`,
+    { dealId: deal.dealId, customerId, taskId, invoiceId, amountVnd: deal.amountVnd }
+  );
+
+  return {
+    customerId,
+    taskId,
+    invoiceId,
+    crossDeptRequestId: crossDeptReq.requestId,
+  };
+}
+
 /**
  * Reset for testing
  */
 export function __resetCrossDeptRequestsForTesting(): void {
   CROSS_DEPT_REQUESTS.length = 0;
 }
+

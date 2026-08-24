@@ -9,9 +9,10 @@ describe('API Integration - AI Workforce & Live Board', () => {
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.success, true);
-      assert.ok(typeof data.activeEmployeesCount === 'number');
+      assert.equal(typeof data.activeCount, 'number');
     });
   });
+
 
   test('GET /api/capacity/forecast returns capacity metrics', async () => {
     await withTestServer(async (baseUrl) => {

@@ -56,7 +56,9 @@ export type LegacyTabType =
   | 'devops_hub'
   | 'control_room'
   | 'growth_sales'
-  | 'ai_staff_sandbox';
+  | 'ai_staff_sandbox'
+  | 'analytics_models_sandbox'
+  | 'ai_nhan_su';
 
 export type TabType = CoreTabType | LegacyTabType;
 

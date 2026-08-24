@@ -57,6 +57,42 @@ const INITIAL_FLAGS: FeatureFlag[] = [
     enabled: true,
     userCount: 890,
   },
+  {
+    id: 'flag-5',
+    key: 'AUTONOMOUS_CLOSED_LOOP_L4',
+    name: 'Vòng Lặp Tự Trị Đóng Level 4 (Closed-Loop Autonomy)',
+    description: 'Tự động phản xạ liên phòng ban: Chốt deal -> Giao việc AI -> Tạo hóa đơn nháp',
+    enabledTiers: ['enterprise'],
+    enabled: true,
+    userCount: 520,
+  },
+  {
+    id: 'flag-6',
+    key: 'DIGITAL_TWIN_MONTE_CARLO',
+    name: 'Mô Phỏng Digital Twin & Monte Carlo Runway',
+    description: 'Mô phỏng 10,000 kịch bản dự báo cạn tiền và điểm nghẽn token 60 ngày',
+    enabledTiers: ['pro', 'enterprise'],
+    enabled: true,
+    userCount: 780,
+  },
+  {
+    id: 'flag-7',
+    key: 'SWE_AGENT_SANDBOX_SWARM',
+    name: 'Nhà Máy Phần Mềm SWE Multi-Agent Swarm',
+    description: 'AI tự động lập trình trong Docker Sandbox, chạy test và tạo GitHub PR an toàn',
+    enabledTiers: ['enterprise'],
+    enabled: true,
+    userCount: 310,
+  },
+  {
+    id: 'flag-8',
+    key: 'REALTIME_SSE_TELEMETRY',
+    name: 'Luồng Giám Sát Telemetry Thời Gian Thực SSE',
+    description: 'Cập nhật trực tiếp phản xạ của robot và nhân sự ảo lên giao diện người dùng',
+    enabledTiers: ['freemium', 'pro', 'enterprise'],
+    enabled: true,
+    userCount: 6200,
+  },
 ];
 
 export default function FeatureFlagMatrixPanel() {

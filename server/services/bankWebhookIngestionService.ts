@@ -17,6 +17,7 @@ import {
   type BusinessEntity,
 } from './businessDataService.ts';
 import { parseVietQRDescription, reconcileBankTransactions, type BankTransaction } from './vietqrReconciler.ts';
+import { publishSystemEvent } from './crossSystemEventBus.ts';
 
 export interface BankWebhookPayload {
   transactionId?: string;
@@ -259,6 +260,14 @@ export function ingestBankWebhook(
       ? `Đã nhận ${amount.toLocaleString('vi-VN')} đ qua ${bank} và tự động gạch nợ hóa đơn ${matchedInvoiceResult.invoiceCode}!`
       : `Đã ghi nhận giao dịch ${amount.toLocaleString('vi-VN')} đ qua ${bank} (Hạch toán Nợ ${journalEntry?.debitAccount || '112'} / Có ${journalEntry?.creditAccount || '511'}).`,
   };
+
+  // Publish to universal system event bus for closed-loop reaction
+  publishSystemEvent(
+    'bank.payment_received',
+    'bankWebhookIngestionService',
+    result.message,
+    { transactionId, amount, bank, matchedInvoice: matchedInvoiceResult, matchedCustomer: matchedCustomerResult }
+  ).catch(() => undefined);
 
   logWebhookEvent({ status: 'ingested', result, payload });
   return result;

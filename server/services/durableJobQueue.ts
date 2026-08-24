@@ -189,3 +189,38 @@ export async function getDurableQueueSummary() {
   for (const job of jobs) counts[job.status] += 1;
   return { counts, recent: jobs.slice(0, 20) };
 }
+
+export interface DeadLetterAlertSummary {
+  hasAlert: boolean;
+  deadLetterCount: number;
+  unresolvedDeadLetters: DurableJob[];
+  oldestDeadLetterAgeHours: number;
+  recommendations: string[];
+}
+
+export async function checkDeadLetterAlert(): Promise<DeadLetterAlertSummary> {
+  const jobs = await listDurableJobs(500);
+  const deadLetters = jobs.filter((j) => j.status === 'dead_letter');
+  const now = Date.now();
+  let oldestAgeHours = 0;
+
+  for (const dl of deadLetters) {
+    const age = (now - Date.parse(dl.updatedAt)) / (1000 * 3600);
+    if (age > oldestAgeHours) oldestAgeHours = age;
+  }
+
+  const hasAlert = deadLetters.length > 0;
+  const recommendations: string[] = [];
+  if (deadLetters.length > 0) {
+    recommendations.push(`Có ${deadLetters.length} tác vụ rơi vào Dead Letter Queue (DLQ). Cần kiểm tra lỗi '${deadLetters[0]?.lastError?.slice(0, 80) || 'unknown'}' và thử lại.`);
+  }
+
+  return {
+    hasAlert,
+    deadLetterCount: deadLetters.length,
+    unresolvedDeadLetters: deadLetters.slice(0, 10),
+    oldestDeadLetterAgeHours: Math.round(oldestAgeHours * 10) / 10,
+    recommendations,
+  };
+}
+

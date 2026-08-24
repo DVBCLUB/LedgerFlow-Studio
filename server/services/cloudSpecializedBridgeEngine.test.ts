@@ -1,26 +1,26 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import {
   listCloudBridgeEndpoints,
   getLocalHardwareTelemetry,
   offloadTaskToCloud,
 } from './cloudSpecializedBridgeEngine.ts';
 
-describe('cloudSpecializedBridgeEngine', () => {
-  it('lists specialized cloud endpoints and measures local hardware telemetry', async () => {
-    const endpoints = await listCloudBridgeEndpoints();
-    expect(endpoints.length).toBeGreaterThan(0);
+test('cloudSpecializedBridgeEngine - lists specialized cloud endpoints and measures local hardware telemetry', async () => {
+  const endpoints = await listCloudBridgeEndpoints();
+  assert.ok(endpoints.length > 0);
 
-    const telemetry = getLocalHardwareTelemetry();
-    expect(telemetry.cpuUsagePercent).toBeLessThan(5);
-    expect(telemetry.totalGpuSavedPercent).toBe(100);
-  });
-
-  it('offloads heavy task to cloud bridge without CPU/GPU load', async () => {
-    const endpoints = await listCloudBridgeEndpoints();
-    const target = endpoints[0];
-
-    const res = await offloadTaskToCloud(target.id, 'Render 4K Promo Video', { script: 'test' });
-    expect(res.success).toBe(true);
-    expect(res.cloudTaskId).toContain('cloud_job_');
-  });
+  const telemetry = getLocalHardwareTelemetry();
+  assert.ok(telemetry.cpuUsagePercent < 5);
+  assert.equal(telemetry.totalGpuSavedPercent, 100);
 });
+
+test('cloudSpecializedBridgeEngine - offloads heavy task to cloud bridge without CPU/GPU load', async () => {
+  const endpoints = await listCloudBridgeEndpoints();
+  const target = endpoints[0];
+
+  const res = await offloadTaskToCloud(target.id, 'Render 4K Promo Video', { script: 'test' });
+  assert.equal(res.success, true);
+  assert.ok(res.cloudTaskId?.includes('cloud_job_'));
+});
+

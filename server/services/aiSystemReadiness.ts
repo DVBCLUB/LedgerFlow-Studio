@@ -1,10 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { getAIVaultAutoLockStatus } from "./aiVaultAutoLock";
-import { getAIVaultSecurityStatus, listAIKeys } from "./aiKeyVault";
-import { runAIPreflight, type AIPreflightSeverity } from "./aiDoctor";
-import { getCompanyOsContracts, listCompanyOsControlPlane } from "./companyOsControlPlane";
-import { listIntegrationConnectors } from "./integrationRegistry";
+import { getAIVaultAutoLockStatus } from "./aiVaultAutoLock.ts";
+import { getAIVaultSecurityStatus, listAIKeys } from "./aiKeyVault.ts";
+import { runAIPreflight, type AIPreflightSeverity } from "./aiDoctor.ts";
+import { getCompanyOsContracts, listCompanyOsControlPlane } from "./companyOsControlPlane.ts";
+import { listIntegrationConnectors } from "./integrationRegistry.ts";
 
 export type AISystemReadinessStatus = "ready" | "partial" | "blocked";
 

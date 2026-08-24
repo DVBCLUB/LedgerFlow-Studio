@@ -9,6 +9,7 @@ import {
   toAnthropicTools,
   toGeminiTools,
   toOpenAITools,
+  analyzeTaskComplexity,
 } from './aiRouter.ts';
 
 const sampleTools: ToolSpec[] = [
@@ -117,3 +118,14 @@ test('OpenAI-compatible transport includes tools in fetch body', async (t) => {
   assert.equal(capturedBody.tools[0].function.name, 'lookup_customer');
   assert.equal(capturedBody.tool_choice, 'auto');
 });
+
+test('analyzeTaskComplexity - recommends tiers accurately based on task and text', () => {
+  const simpleAnalysis = analyzeTaskComplexity([{ role: 'user', content: 'Chào bạn, tóm tắt nhanh giúp tôi' }]);
+  assert.equal(simpleAnalysis.tier, 'fast');
+  assert.equal(simpleAnalysis.recommendedModel, 'gemini-2.5-flash');
+
+  const codingAnalysis = analyzeTaskComplexity([{ role: 'user', content: 'Refactor architecture và debug SQL schema cho hệ thống VAS 200' }], 'coding');
+  assert.equal(codingAnalysis.tier, 'pro');
+  assert.equal(codingAnalysis.recommendedModel, 'gemini-2.5-pro');
+});
+

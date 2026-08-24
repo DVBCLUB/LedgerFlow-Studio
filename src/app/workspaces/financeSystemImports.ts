@@ -22,3 +22,9 @@ export const FounderLabsDock = React.lazy(() => import('../../components/shared/
 export const UniversalProjectRobotDock = React.lazy(() => import('../../components/shared/UniversalProjectRobotDock'));
 export const OllamaLocalModelHubPanel = React.lazy(() => import('../../modules/system-settings/OllamaLocalModelHubPanel'));
 export const MasterSystemDoctorDashboard = React.lazy(() => import('../../modules/system-settings/MasterSystemDoctorDashboard'));
+export const AutoReconciliationPanel = React.lazy(() => import('../../modules/finance-accounting/AutoReconciliationPanel'));
+export const PredictiveAccountingPanel = React.lazy(() => import('../../modules/finance-accounting/PredictiveAccountingPanel'));
+export const TaxFilingPanel = React.lazy(() => import('../../modules/finance-accounting/TaxFilingPanel'));
+export const CashFlowForecastDashboard = React.lazy(() => import('../../modules/finance-accounting/CashFlowForecastDashboard'));
+export const RBACManagementPanel = React.lazy(() => import('../../modules/system-settings/RBACManagementPanel'));
+export const CapitalAllocationPanel = React.lazy(() => import('../../modules/finance-accounting/CapitalAllocationPanel'));

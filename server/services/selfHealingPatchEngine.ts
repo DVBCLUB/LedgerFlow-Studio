@@ -105,6 +105,8 @@ export async function generateSelfHealingPatch(input: {
   errorLog: string;
   sourceContext?: string;
   preferLocal?: boolean;
+  autoApplyLowRisk?: boolean;
+  minSafetyScore?: number;
 }): Promise<SelfHealingPatchProposal> {
   const { classification, targetFile: detectedFile } = classifyErrorLog(input.errorLog);
   const targetFile = detectedFile || 'server/services/aiRouter.ts';
@@ -182,6 +184,12 @@ BẮT BUỘC trả về duy nhất 1 JSON object không bọc markdown theo sche
     preferLocal: input.preferLocal,
   });
 
+  const isEligibleForAutoApply = Boolean(
+    input.autoApplyLowRisk &&
+    riskLevel === 'low' &&
+    judgeEval.overallScore >= (input.minSafetyScore ?? 85)
+  );
+
   const proposal: SelfHealingPatchProposal = {
     id: patchId,
     errorLogSnippet: input.errorLog.slice(0, 600),
@@ -193,7 +201,9 @@ BẮT BUỘC trả về duy nhất 1 JSON object không bọc markdown theo sche
     riskLevel,
     safetyScore: judgeEval.overallScore,
     judgeReasoning: judgeEval.reasoning,
-    status: 'pending_review',
+    status: isEligibleForAutoApply ? 'applied' : 'pending_review',
+    approvedBy: isEligibleForAutoApply ? 'AI Safety Self-Healer (Auto-Applied)' : undefined,
+    appliedAt: isEligibleForAutoApply ? new Date().toISOString() : undefined,
     createdAt: new Date().toISOString(),
   };
 

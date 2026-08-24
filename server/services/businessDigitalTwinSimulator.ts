@@ -17,6 +17,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv } from './runtimePaths.ts';
 import { appendAuditEvent } from './auditLog.ts';
+import { publishSystemEvent } from './crossSystemEventBus.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -220,6 +221,17 @@ export async function runBusinessDigitalTwinSimulation(
 
   store.simulations[simId] = result;
   queueSave();
+
+  // If severe bottlenecks detected, emit to universal event bus for autonomous mitigation
+  const severeBottleneck = bottlenecks.find((b) => b.severity === 'CRITICAL' || b.severity === 'HIGH');
+  if (severeBottleneck) {
+    publishSystemEvent(
+      'sim.bottleneck_detected',
+      'businessDigitalTwinSimulator',
+      severeBottleneck.description,
+      { simId, bottleneck: severeBottleneck, severity: severeBottleneck.severity }
+    ).catch(() => undefined);
+  }
 
   await appendAuditEvent({
     actor: 'digital-twin-simulator',

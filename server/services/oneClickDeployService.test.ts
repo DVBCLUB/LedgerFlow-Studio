@@ -1,32 +1,32 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import {
   deployProjectToCloud,
   rollbackDeployment,
   listDeployments,
 } from './oneClickDeployService.ts';
 
-describe('oneClickDeployService', () => {
-  it('deploys project to cloud provider and generates live URL', async () => {
-    const record = await deployProjectToCloud({
-      projectName: 'LedgerFlow Accounting Portal',
-      provider: 'vercel',
-    });
-
-    expect(record.id).toBeDefined();
-    expect(record.status).toBe('deployed');
-    expect(record.liveUrl).toContain('vercel.app');
-
-    const deployments = await listDeployments();
-    expect(deployments.length).toBeGreaterThan(0);
+test('oneClickDeployService - deploys project to cloud provider and generates live URL', async () => {
+  const record = await deployProjectToCloud({
+    projectName: 'LedgerFlow Accounting Portal',
+    provider: 'vercel',
   });
 
-  it('rolls back deployment status', async () => {
-    const record = await deployProjectToCloud({
-      projectName: 'Marketing Site Mockup',
-      provider: 'netlify',
-    });
+  assert.ok(record.id);
+  assert.equal(record.status, 'deployed');
+  assert.ok(record.liveUrl.includes('vercel.app'));
 
-    const rolledBack = await rollbackDeployment(record.id);
-    expect(rolledBack?.status).toBe('rolled_back');
-  });
+  const deployments = await listDeployments();
+  assert.ok(deployments.length > 0);
 });
+
+test('oneClickDeployService - rolls back deployment status', async () => {
+  const record = await deployProjectToCloud({
+    projectName: 'Marketing Site Mockup',
+    provider: 'netlify',
+  });
+
+  const rolledBack = await rollbackDeployment(record.id);
+  assert.equal(rolledBack?.status, 'rolled_back');
+});
+

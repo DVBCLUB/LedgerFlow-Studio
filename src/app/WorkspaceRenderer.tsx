@@ -2,6 +2,7 @@ import React, { Suspense, useMemo, useState } from 'react';
 import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
+  Award,
   BarChart3,
   BookOpen,
   Bot,
@@ -10,12 +11,16 @@ import {
   CheckCircle,
   ClipboardList,
   Code,
+  Coins,
+  CreditCard,
   Database,
   FileCheck2,
   FolderKanban,
   Mail,
+  Mic,
   Network,
   Rocket,
+  Search,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -23,13 +28,36 @@ import {
   TestTubeDiagonal,
   TrendingUp,
   Users,
+  Users2,
   UsersRound,
   Film,
   Gamepad2,
   Lightbulb,
   GraduationCap,
   Scale,
+  Wifi,
   Zap,
+  GitBranch,
+  Globe2,
+  Video,
+  Radio,
+  HeartPulse,
+  PhoneCall,
+  Smile,
+  ShieldAlert,
+  Truck,
+  Landmark,
+  Leaf,
+  FileText,
+  UserCheck,
+  Cpu,
+  Cloud,
+  Headphones,
+  Building2,
+  Smartphone,
+  DollarSign,
+  Package,
+  Camera,
 } from 'lucide-react';
 import { TabType, RoleType } from './companyNavigation';
 import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
@@ -132,6 +160,9 @@ const {
   CustomerConversionLab,
   PricingAndLTVLab,
   ReferralAndNPSLab,
+  AgentKernelPanel,
+  CapitalAllocationPanel,
+  ZeroTouchLoopPanel,
 } = WS;
 
 // Sub-components remaining
@@ -184,7 +215,140 @@ const SelfHealingPatchGatePanel = React.lazy(() => import('../modules/dev-ops/Se
 const SyntheticSurveyBuilder = React.lazy(() => import('../modules/marketing-growth/components/SyntheticSurveyBuilder'));
 const AIVideoFactoryPanel = React.lazy(() => import('../modules/sales-crm/components/AIVideoFactoryPanel'));
 const VideoMakerRoot = React.lazy(() => import('../modules/video-maker/ui/index'));
+const AssetFoundryPanel = React.lazy(() => import('../modules/asset-foundry/AssetFoundryPanel'));
 const EnterpriseControlCenterPanel = React.lazy(() => import('../components/enterprise/EnterpriseControlCenterPanel'));
+const SalesCRMWorkspaceLive = React.lazy(() => import('../modules/sales-crm/SalesCRMWorkspace'));
+const TelegramBotControlPanel = React.lazy(() => import('../modules/ai-nhan-su/TelegramBotControlPanel'));
+const CashFlowForecastDashboard = React.lazy(() => import('../modules/finance-accounting/CashFlowForecastDashboard'));
+const TaxFilingPanel = React.lazy(() => import('../modules/finance-accounting/TaxFilingPanel'));
+const RBACManagementPanel = React.lazy(() => import('../modules/system-settings/RBACManagementPanel'));
+const MultiFactoryDashboard = React.lazy(() => import('../modules/ai-nhan-su/MultiFactoryDashboard'));
+const AutoReconciliationPanel = React.lazy(() => import('../modules/finance-accounting/AutoReconciliationPanel'));
+const PredictiveAccountingPanel = React.lazy(() => import('../modules/finance-accounting/PredictiveAccountingPanel'));
+const FactoryPerformanceDashboard = React.lazy(() => import('../modules/ai-nhan-su/FactoryPerformanceDashboard'));
+const AgentROIDashboard = React.lazy(() => import('../modules/ai-nhan-su/AgentROIDashboard'));
+const RevenueFlywheelPanel = React.lazy(() => import('../modules/sales-crm/RevenueFlywheelPanel'));
+const AutoHarvestedInsightsPanel = React.lazy(() => import('../modules/knowledge-library/AutoHarvestedInsightsPanel'));
+const AgentPerformanceReviewPanel = React.lazy(() => import('../modules/ai-nhan-su/AgentPerformanceReviewPanel'));
+const MarketIntelligencePanel = React.lazy(() => import('../modules/marketing-growth/MarketIntelligencePanel'));
+const FinancialIncidentPlaybookPanel = React.lazy(() => import('../modules/finance-accounting/FinancialIncidentPlaybookPanel'));
+const BusinessAbTestingPanel = React.lazy(() => import('../modules/analytics-models-sandbox/BusinessAbTestingPanel'));
+const PluginMarketplacePanel = React.lazy(() => import('../modules/system-settings/PluginMarketplacePanel'));
+const ConstitutionalConsensusBoardPanel = React.lazy(() => import('../modules/command-center/ConstitutionalConsensusBoardPanel'));
+const SelfHealingInfraPanel = React.lazy(() => import('../modules/system-settings/SelfHealingInfraPanel'));
+const VirtualBranchManagerPanel = React.lazy(() => import('../modules/command-center/VirtualBranchManagerPanel'));
+const AutonomousSelfMutationPanel = React.lazy(() => import('../modules/system-settings/AutonomousSelfMutationPanel'));
+const EnterpriseDigitalTwinPanel = React.lazy(() => import('../modules/analytics-models-sandbox/EnterpriseDigitalTwinPanel'));
+const GlobalLocalizationAdapterPanel = React.lazy(() => import('../modules/finance-accounting/GlobalLocalizationAdapterPanel'));
+const SocialSwarmCampaignPanel = React.lazy(() => import('../modules/marketing-growth/SocialSwarmCampaignPanel'));
+const TaxComplianceShieldPanel = React.lazy(() => import('../modules/finance-accounting/TaxComplianceShieldPanel'));
+const NLToSqlDataPanel = React.lazy(() => import('../modules/analytics-models-sandbox/NLToSqlDataPanel'));
+const AutonomousSupportPanel = React.lazy(() => import('../modules/sales-crm/AutonomousSupportPanel'));
+const DynamicRepricingPanel = React.lazy(() => import('../modules/sales-crm/DynamicRepricingPanel'));
+const SecurityPosturePanel = React.lazy(() => import('../modules/system-settings/SecurityPosturePanel'));
+const InvestorRelationsPanel = React.lazy(() => import('../modules/finance-accounting/InvestorRelationsPanel'));
+const VendorSettlementPanel = React.lazy(() => import('../modules/finance-accounting/VendorSettlementPanel'));
+const SeoTopicalAuthorityPanel = React.lazy(() => import('../modules/marketing-growth/SeoTopicalAuthorityPanel'));
+const TalentRecruitingPanel = React.lazy(() => import('../modules/ai-nhan-su/TalentRecruitingPanel'));
+const IpPatentGuardPanel = React.lazy(() => import('../modules/system-settings/IpPatentGuardPanel'));
+const EdgeRoutingHubPanel = React.lazy(() => import('../modules/system-settings/EdgeRoutingHubPanel'));
+const ContractLifecyclePanel = React.lazy(() => import('../modules/documents-approval/ContractLifecyclePanel'));
+const CustomerHealthScorePanel = React.lazy(() => import('../modules/sales-crm/CustomerHealthScorePanel'));
+const LlmCostArbitragePanel = React.lazy(() => import('../modules/system-settings/LlmCostArbitragePanel'));
+const TreasuryManagementPanel = React.lazy(() => import('../modules/finance-accounting/TreasuryManagementPanel'));
+const VoiceHelpdeskPanel = React.lazy(() => import('../modules/sales-crm/VoiceHelpdeskPanel'));
+const MultiCloudMeshPanel = React.lazy(() => import('../modules/system-settings/MultiCloudMeshPanel'));
+const MaValuationPanel = React.lazy(() => import('../modules/finance-accounting/MaValuationPanel'));
+const BrandReputationRadarPanel = React.lazy(() => import('../modules/marketing-growth/BrandReputationRadarPanel'));
+const SocThreatHuntingPanel = React.lazy(() => import('../modules/system-settings/SocThreatHuntingPanel'));
+const AgmGovernancePanel = React.lazy(() => import('../modules/command-center/AgmGovernancePanel'));
+const GlobalVatReverseChargePanel = React.lazy(() => import('../modules/finance-accounting/GlobalVatReverseChargePanel'));
+const AffiliateCommissionPanel = React.lazy(() => import('../modules/sales-crm/AffiliateCommissionPanel'));
+const PromptSecurityFirewallPanel = React.lazy(() => import('../modules/system-settings/PromptSecurityFirewallPanel'));
+const EsgCarbonAccountingPanel = React.lazy(() => import('../modules/finance-accounting/EsgCarbonAccountingPanel'));
+const MultiChannelMarketingBotPanel = React.lazy(() => import('../modules/marketing-growth/MultiChannelMarketingBotPanel'));
+const NpsCsatVoiceSentimentPanel = React.lazy(() => import('../modules/sales-crm/NpsCsatVoiceSentimentPanel'));
+const ChaosEngineeringPanel = React.lazy(() => import('../modules/system-settings/ChaosEngineeringPanel'));
+const FounderSecondBrainPanel = React.lazy(() => import('../modules/command-center/FounderSecondBrainPanel'));
+const CryptoTreasuryWeb3Panel = React.lazy(() => import('../modules/finance-accounting/CryptoTreasuryWeb3Panel'));
+const VideoProductionStudioPanel = React.lazy(() => import('../modules/marketing-growth/VideoProductionStudioPanel'));
+const AiBonusEscrowPanel = React.lazy(() => import('../modules/ai-nhan-su/AiBonusEscrowPanel'));
+const AiDevCopilotPanel = React.lazy(() => import('../modules/system-settings/AiDevCopilotPanel'));
+const DbAutoShardingPanel = React.lazy(() => import('../modules/system-settings/DbAutoShardingPanel'));
+const LoyaltyGamificationPanel = React.lazy(() => import('../modules/sales-crm/LoyaltyGamificationPanel'));
+const VirtualAdvisoryCouncilPanel = React.lazy(() => import('../modules/command-center/VirtualAdvisoryCouncilPanel'));
+const FounderMobileDashboardPanel = React.lazy(() => import('../modules/command-center/FounderMobileDashboardPanel'));
+const VoiceCeoCommandPanel = React.lazy(() => import('../modules/command-center/VoiceCeoCommandPanel'));
+const SubscriptionBillingPanel = React.lazy(() => import('../modules/finance-accounting/SubscriptionBillingPanel'));
+const PlgConversionPanel = React.lazy(() => import('../modules/sales-crm/PlgConversionPanel'));
+const MultiTenantOnboardingPanel = React.lazy(() => import('../modules/system-settings/MultiTenantOnboardingPanel'));
+const PwaOfflineSyncPanel = React.lazy(() => import('../modules/system-settings/PwaOfflineSyncPanel'));
+const SemanticRagSearchPanel = React.lazy(() => import('../modules/knowledge-library/SemanticRagSearchPanel'));
+const PredictiveRevenuePanel = React.lazy(() => import('../modules/analytics-models-sandbox/PredictiveRevenuePanel'));
+const AiCodeReviewPrPanel = React.lazy(() => import('../modules/dev-ops/AiCodeReviewPrPanel'));
+const WebhookIntegrationHubPanel = React.lazy(() => import('../modules/system-settings/WebhookIntegrationHubPanel'));
+const IaCCloudArchitectPanel = React.lazy(() => import('../modules/dev-ops/IaCCloudArchitectPanel'));
+const AgentRedTeamingPanel = React.lazy(() => import('../modules/system-settings/AgentRedTeamingPanel'));
+const CustomerDnaProfilingPanel = React.lazy(() => import('../modules/sales-crm/CustomerDnaProfilingPanel'));
+const AiBoardDeckPanel = React.lazy(() => import('../modules/command-center/AiBoardDeckPanel'));
+const AutonomousOkrPanel = React.lazy(() => import('../modules/command-center/AutonomousOkrPanel'));
+const AiContractIntelligencePanel = React.lazy(() => import('../modules/system-settings/AiContractIntelligencePanel'));
+const RevenueRecognitionPanel = React.lazy(() => import('../modules/finance-accounting/RevenueRecognitionPanel'));
+const DataPrivacyPdpaPanel = React.lazy(() => import('../modules/system-settings/DataPrivacyPdpaPanel'));
+const PartnerResellerPanel = React.lazy(() => import('../modules/sales-crm/PartnerResellerPanel'));
+const TechDebtMigrationPanel = React.lazy(() => import('../modules/dev-ops/TechDebtMigrationPanel'));
+const NoCodeBpaPanel = React.lazy(() => import('../modules/system-settings/NoCodeBpaPanel'));
+const MarketLocalizationPanel = React.lazy(() => import('../modules/knowledge-library/MarketLocalizationPanel'));
+const HyperPersonalizationPanel = React.lazy(() => import('../modules/marketing-growth/HyperPersonalizationPanel'));
+const FeatureFlagsEntitlementPanel = React.lazy(() => import('../modules/product-studio/FeatureFlagsEntitlementPanel'));
+const MultiVariatePricingPanel = React.lazy(() => import('../modules/sales-crm/MultiVariatePricingPanel'));
+const CompetitiveWarRoomPanel = React.lazy(() => import('../modules/marketing-growth/CompetitiveWarRoomPanel'));
+const B2bMarketplacePanel = React.lazy(() => import('../modules/product-studio/B2bMarketplacePanel'));
+const CustomerSuccessAcademyPanel = React.lazy(() => import('../modules/knowledge-library/CustomerSuccessAcademyPanel'));
+const BiDirectionalErpSyncPanel = React.lazy(() => import('../modules/system-settings/BiDirectionalErpSyncPanel'));
+const CreditScoringCapitalPanel = React.lazy(() => import('../modules/finance-accounting/CreditScoringCapitalPanel'));
+const EsgImpactMarketplacePanel = React.lazy(() => import('../modules/finance-accounting/EsgImpactMarketplacePanel'));
+const AgentRevenueSharingPanel = React.lazy(() => import('../modules/ai-nhan-su/AgentRevenueSharingPanel'));
+const PostQuantumVaultPanel = React.lazy(() => import('../modules/system-settings/PostQuantumVaultPanel'));
+const PatentAutoDraftingPanel = React.lazy(() => import('../modules/system-settings/PatentAutoDraftingPanel'));
+const VirtualDataRoomPanel = React.lazy(() => import('../modules/finance-accounting/VirtualDataRoomPanel'));
+const IotEdgeScaleSyncPanel = React.lazy(() => import('../modules/finance-accounting/IotEdgeScaleSyncPanel'));
+const BilingualVoiceBridgePanel = React.lazy(() => import('../modules/sales-crm/BilingualVoiceBridgePanel'));
+const KnowledgeGraphMeshPanel = React.lazy(() => import('../modules/knowledge-library/KnowledgeGraphMeshPanel'));
+const GeneticPromptMutationPanel = React.lazy(() => import('../modules/ai-nhan-su/GeneticPromptMutationPanel'));
+const SatelliteOfflineMeshPanel = React.lazy(() => import('../modules/system-settings/SatelliteOfflineMeshPanel'));
+const SpatialAccountingBoardroomPanel = React.lazy(() => import('../modules/command-center/SpatialAccountingBoardroomPanel'));
+const SovereignTransferPricingPanel = React.lazy(() => import('../modules/finance-accounting/SovereignTransferPricingPanel'));
+const DroneLidarInventoryPanel = React.lazy(() => import('../modules/finance-accounting/DroneLidarInventoryPanel'));
+const ZeroKnowledgeAuditPanel = React.lazy(() => import('../modules/finance-accounting/ZeroKnowledgeAuditPanel'));
+const OvernightYieldSweepPanel = React.lazy(() => import('../modules/finance-accounting/OvernightYieldSweepPanel'));
+const SmartContractEscrowPanel = React.lazy(() => import('../modules/finance-accounting/SmartContractEscrowPanel'));
+const MacroeconomicStressSimulatorPanel = React.lazy(() => import('../modules/analytics-models-sandbox/MacroeconomicStressSimulatorPanel'));
+const SentientSingularityPanel = React.lazy(() => import('../modules/command-center/SentientSingularityPanel'));
+const MarketDemandScannerPanel = React.lazy(() => import('../modules/marketing-growth/MarketDemandScannerPanel'));
+const RevenueOrchestrationPanel = React.lazy(() => import('../modules/finance-accounting/RevenueOrchestrationPanel'));
+const AutoLaunchPipelinePanel = React.lazy(() => import('../modules/product-studio/AutoLaunchPipelinePanel'));
+const CrossAssetSynergyBusPanel = React.lazy(() => import('../modules/product-studio/CrossAssetSynergyBusPanel'));
+const A11yAccessibilityAuditPanel = React.lazy(() => import('../modules/system-settings/A11yAccessibilityAuditPanel'));
+const CoreWebVitalsOptimizationPanel = React.lazy(() => import('../modules/system-settings/CoreWebVitalsOptimizationPanel'));
+const IsoSoftwareQualityBenchmarkPanel = React.lazy(() => import('../modules/dev-ops/IsoSoftwareQualityBenchmarkPanel'));
+const GameQaBugDensityPanel = React.lazy(() => import('../modules/product-studio/GameQaBugDensityPanel'));
+const VmafVideoQualityPanel = React.lazy(() => import('../modules/marketing-growth/VmafVideoQualityPanel'));
+const MobileBuildPublishPanel = React.lazy(() => import('../modules/product-studio/MobileBuildPublishPanel'));
+const GameStorePublishPanel = React.lazy(() => import('../modules/product-studio/GameStorePublishPanel'));
+const OpenSourcePublishPanel = React.lazy(() => import('../modules/dev-ops/OpenSourcePublishPanel'));
+const EdgeComputeRoutingPanel = React.lazy(() => import('../modules/system-settings/EdgeComputeRoutingPanel'));
+const AgentConsensusVotingPanel = React.lazy(() => import('../modules/ai-nhan-su/AgentConsensusVotingPanel'));
+const ContinuousPmfHeatmapPanel = React.lazy(() => import('../modules/product-studio/ContinuousPmfHeatmapPanel'));
+const ApiFederationGatewayPanel = React.lazy(() => import('../modules/dev-ops/ApiFederationGatewayPanel'));
+const ExecutiveEarphoneAudioBriefingPanel = React.lazy(() => import('../modules/command-center/ExecutiveEarphoneAudioBriefingPanel'));
+const NotionObsidianKnowledgeBridgePanel = React.lazy(() => import('../modules/knowledge-base/NotionObsidianKnowledgeBridgePanel'));
+const EnterpriseTelemetryStreamPanel = React.lazy(() => import('../modules/system-settings/EnterpriseTelemetryStreamPanel'));
+const MultiFactoryGpuSchedulerPanel = React.lazy(() => import('../modules/ai-nhan-su/MultiFactoryGpuSchedulerPanel'));
+const CompanyInABoxClonerPanel = React.lazy(() => import('../modules/command-center/CompanyInABoxClonerPanel'));
+const VcInvestorMatcherPanel = React.lazy(() => import('../modules/sales-crm/VcInvestorMatcherPanel'));
+const VisionFactorySurveillancePanel = React.lazy(() => import('../modules/system-settings/VisionFactorySurveillancePanel'));
+const CrossChainLiquidityBridgePanel = React.lazy(() => import('../modules/system-settings/CrossChainLiquidityBridgePanel'));
 
 
 type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
@@ -211,6 +375,18 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'today', label: 'Việc cần quyết định', icon: Activity },
     { id: 'autonomous_command', label: 'Autonomous Command', icon: Bot },
     { id: 'standup_rhythm', label: 'Founder Rhythm', icon: ClipboardList },
+    { id: 'boardroom', label: '⚖️ Hội Đồng Biểu Quyết', icon: Scale },
+    { id: 'branches', label: '🏢 Chi Nhánh & Franchise', icon: GitBranch },
+    { id: 'second_brain', label: '🧠 Founder Second-Brain', icon: Sparkles },
+    { id: 'advisory_council', label: '🏛️ Hội Đồng Cố Vấn Chiến Lược', icon: Users2 },
+    { id: 'mobile_dashboard', label: '📱 CEO Mobile Dashboard', icon: Activity },
+    { id: 'voice_command', label: '🎤 Voice Command Center', icon: Mic },
+    { id: 'board_deck', label: '📊 AI Board Deck & Investor Memo', icon: BarChart3 },
+    { id: 'okr_engine', label: '🎯 Autonomous OKR & Strategic Execution', icon: Target },
+    { id: 'spatial_boardroom', label: '🕶️ Spatial 3D Boardroom VR', icon: Sparkles },
+    { id: 'singularity', label: '👑 The Sentient Singularity (100)', icon: Sparkles },
+    { id: 'earphone_audio', label: '🎧 Executive Earphone Briefing (117)', icon: Headphones },
+    { id: 'company_cloner', label: '🏢 Company-in-a-Box Cloner (121)', icon: Building2 },
   ],
   knowledge_library: [
     { id: 'library', label: 'Kho tri thức Gốc & SOP', icon: BookOpen },
@@ -218,6 +394,12 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'operating_layer', label: 'Operating Layer & Case Bank', icon: Network },
     { id: 'inter_agent_protocol', label: '💬 Inter-Agent Chat', icon: UsersRound },
     { id: 'swarm_orchestrator', label: '🤖 Swarm Relay & Robot Node', icon: Bot },
+    { id: 'auto_harvest', label: '🧠 Thu Hoạch Tri Thức Tự Học', icon: Sparkles },
+    { id: 'semantic_search', label: '🔍 Semantic RAG Search 2.0', icon: Search },
+    { id: 'market_localization', label: '🌐 Bản Địa Hóa i18n & Đa Ngôn Ngữ', icon: Globe2 },
+    { id: 'success_academy', label: '🎓 Học Viện Khách Hàng AI Academy', icon: GraduationCap },
+    { id: 'knowledge_graph', label: '🧠 Đồ Thị Tri Thức Graph Mesh', icon: Network },
+    { id: 'notion_obsidian', label: '🧠 Notion & Obsidian Bridge (118)', icon: BookOpen },
   ],
   product_studio: [
     { id: 'portfolio', label: '🗺️ Lộ trình SaaS & Product Roadmap', icon: FolderKanban },
@@ -226,21 +408,79 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'game_builder', label: '🛠️ Game Studio Builder', icon: Sparkles },
     { id: 'game_assets', label: '🎨 Xưởng Tài Sản Game AI (5-in-1)', icon: Sparkles },
     { id: 'smoke_test', label: '🧪 Vaporware & Smoke Test Lab', icon: TestTubeDiagonal },
+    { id: 'entitlements', label: '📦 Feature Flags & Gating SaaS', icon: Award },
+    { id: 'b2b_marketplace', label: '🛒 B2B App & Module Marketplace', icon: FolderKanban },
+    { id: 'asset_foundry', label: '🏭 Asset Foundry (ADF)', icon: Sparkles },
+    { id: 'zero_touch', label: '🔁 Zero-Touch Product-to-Revenue Loop', icon: Rocket },
+    { id: 'auto_launch', label: '🚀 1-Click Auto Launch Pipeline (103)', icon: Rocket },
+    { id: 'synergy_bus', label: '⚡ Cross-Asset Synergy Bus (104)', icon: Sparkles },
+    { id: 'game_qa', label: '🎮 Game QA & Bug Density (108)', icon: Gamepad2 },
+    { id: 'mobile_publish', label: '📱 Mobile Store Publish (110)', icon: Smartphone },
+    { id: 'game_store', label: '🎮 Steam & Itch.io Store (111)', icon: Gamepad2 },
+    { id: 'pmf_heatmap', label: '📊 Continuous PMF Heatmap (115)', icon: BarChart3 },
   ],
   marketing_growth: [
     { id: 'campaigns', label: '🚀 1. Chiến Dịch & Phễu Chuyển Đổi', icon: Rocket },
     { id: 'content', label: '✍️ 2. Nội Dung & SEO AI', icon: Mail },
     { id: 'video_studio', label: '🎬 3. Studio Video & Xuất Bản', icon: Film },
+    { id: 'competitor_radar', label: '📡 4. Radar Đối Thủ & Battle Cards', icon: Target },
+    { id: 'social_swarm', label: '🎬 5. Video Ngắn & Social Swarm', icon: Video },
+    { id: 'seo', label: '🌐 6. SEO Topical Authority & Schema', icon: Globe2 },
+    { id: 'brand_radar', label: '📡 7. Uy Tín Thương Hiệu & PR Radar', icon: Radio },
+    { id: 'marketing_bot', label: '📡 8. Telegram & WhatsApp Broadcast', icon: Radio },
+    { id: 'video_production', label: '🎬 9. Video Studio 9:16 & Auto-Publish', icon: Film },
+    { id: 'hyper_personalization', label: '🎪 10. Hyper-Personalization 1-to-1', icon: Mail },
+    { id: 'war_room', label: '🔬 11. War Room Đối Thủ & Intel', icon: Target },
+    { id: 'demand_scanner', label: '📡 12. Quét Nhu Cầu Radar (101)', icon: Radio },
+    { id: 'vmaf_video', label: '🎬 13. Netflix VMAF Quality (109)', icon: Film },
   ],
   sales_crm: [
-    { id: 'funnel_lab', label: '🎯 1. Phễu Khách Hàng & Lead Scoring', icon: Target },
-    { id: 'pricing_ltv', label: '💰 2. Báo Giá, Gói Đăng Ký & LTV', icon: BarChart3 },
-    { id: 'referral_nps', label: '🤝 3. Đại Lý, Affiliate & NPS', icon: UsersRound },
+    { id: 'live_pipeline', label: '🚀 Pipeline Live & AI Proposal', icon: Target },
+    { id: 'revenue_flywheel', label: '⚡ Revenue Flywheel & Upsell', icon: TrendingUp },
+    { id: 'funnel_lab', label: '🎯 Phễu Khách Hàng & Lead Scoring', icon: Target },
+    { id: 'pricing_ltv', label: '💰 Báo Giá, Gói Đăng Ký & LTV', icon: BarChart3 },
+    { id: 'referral_nps', label: '🤝 Đại Lý, Affiliate & NPS', icon: UsersRound },
+    { id: 'support', label: '🎧 CSKH Tự Động & Hỗ Trợ 24/7', icon: UsersRound },
+    { id: 'customer_health', label: '❤️ Điểm Sức Khỏe & Churn Risk', icon: HeartPulse },
+    { id: 'helpdesk', label: '📞 Tổng Đài Thoại AI & Zalo OA', icon: PhoneCall },
+    { id: 'affiliate_commission', label: '🤝 Đại Lý & Hoa Hồng 15%', icon: UsersRound },
+    { id: 'voice_sentiment', label: '❤️ NPS, CSAT & Cảm Xúc Giọng Nói', icon: Smile },
+    { id: 'loyalty_gamification', label: '🏆 Gamification & Điểm Thưởng Viral', icon: Award },
+    { id: 'plg_conversion', label: '🚀 PLG Conversion & Upsell Trigger', icon: TrendingUp },
+    { id: 'customer_dna', label: '🧬 Customer DNA Profiling 360°', icon: Sparkles },
+    { id: 'partner_reseller', label: '🤝 Đại Lý & Đối Tác Bán Lại', icon: UsersRound },
+    { id: 'pricing_optimization', label: '🧪 Tối Ưu Hóa Giá & Độ Co Giãn', icon: BarChart3 },
+    { id: 'voice_bridge', label: '🎙️ Đàm Thoại Song Ngữ Quốc Tế', icon: PhoneCall },
+    { id: 'vc_matcher', label: '💰 AI Pitch Deck & VC Matcher (122)', icon: DollarSign },
   ],
   finance_accounting: [
     { id: 'cashflow', label: '📈 1. Doanh Thu, Dòng Tiền & VietQR', icon: TrendingUp },
-    { id: 'ledger', label: '📊 2. Sổ Cái & Báo Cáo VAS 200/133', icon: Database },
-    { id: 'tax_simulator', label: '🛡️ 3. Quản Trị Thuế & Duyệt Chi Phí', icon: ShieldCheck },
+    { id: 'cashflow_forecast', label: '🔮 2. Dự Báo Dòng Tiền & Runway', icon: TrendingUp },
+    { id: 'ledger', label: '📊 3. Sổ Cái & Báo Cáo VAS 200/133', icon: Database },
+    { id: 'tax_simulator', label: '🛡️ 4. Quản Trị Thuế & Duyệt Chi Phí', icon: ShieldCheck },
+    { id: 'incidents', label: '🚨 5. Sự Cố & Playbook Khẩn Cấp', icon: ShieldAlert },
+    { id: 'global_adapter', label: '🌐 6. Chuẩn Kép IFRS / VAS & Đa Ngoại Tệ', icon: Globe2 },
+    { id: 'tax_shield', label: '🛡️ 7. Thẩm Tra & Khiên Thuế TT80', icon: ShieldCheck },
+    { id: 'vendor_settlement', label: '📦 8. Đối Soát Nhà Cung Cấp 3-Way', icon: Truck },
+    { id: 'investors', label: '💼 9. Quan Hệ Nhà Đầu Tư & Cap Table', icon: UsersRound },
+    { id: 'treasury', label: '🏦 10. Kho Bạc & Quét Lãi Suất 5.2%', icon: Landmark },
+    { id: 'ma_valuation', label: '💼 11. M&A Pipeline & Định Giá', icon: Briefcase },
+    { id: 'cross_border_vat', label: '🌐 12. Thuế Xuyên Biên Giới Reverse Charge', icon: Globe2 },
+    { id: 'esg_carbon', label: '🌱 13. Kế Toán Carbon & ESG Net-Zero', icon: Leaf },
+    { id: 'crypto_treasury', label: '🪙 14. Kho Bạc Crypto & Web3 Settlement', icon: Coins },
+    { id: 'subscription_billing', label: '💳 15. Subscription Billing & Dunning', icon: CreditCard },
+    { id: 'revenue_recognition', label: '💰 16. Phân Bổ Doanh Thu IFRS 15 / ASC 606', icon: BarChart3 },
+    { id: 'credit_scoring', label: '🏦 17. Chấm Điểm Tín Dụng & Vốn Lưu Động', icon: Landmark },
+    { id: 'carbon_offset', label: '🌍 18. Sàn Tín Chỉ Carbon & ESG Net-Zero', icon: Leaf },
+    { id: 'vdr_room', label: '💼 19. Phòng Dữ Liệu Ảo VDR Series A', icon: Briefcase },
+    { id: 'iot_scale', label: '📡 20. Cân Điện Tử & Cổng RFID Kho', icon: Activity },
+    { id: 'transfer_pricing', label: '🌐 21. Thuế Chuyển Giá & DTAA', icon: Globe2 },
+    { id: 'drone_lidar', label: '🚁 22. Drone LiDAR Kiểm Kê Bãi', icon: Activity },
+    { id: 'zk_audit', label: '🛡️ 23. Kiểm Toán Bảo Mật zk-SNARKs', icon: ShieldCheck },
+    { id: 'yield_sweep', label: '⚡ 24. Quét Lãi Suất Nhàn Rỗi Qua Đêm', icon: Landmark },
+    { id: 'smart_escrow', label: '📜 25. Smart Contract Escrow EVM', icon: Coins },
+    { id: 'capital_allocation', label: '🧮 26. Phân Bổ Vốn Tự Trị (DSGE + CCC)', icon: Coins },
+    { id: 'revenue_orchestrator', label: '🔁 27. Điều Phối Doanh Thu Tự Trị (102)', icon: TrendingUp },
   ],
   projects_delivery: [
     { id: 'portfolio', label: 'Danh mục dự án', icon: FolderKanban },
@@ -251,6 +491,7 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'approvals', label: 'Luồng phê duyệt', icon: CheckCircle },
     { id: 'audit', label: 'Kiểm soát hồ sơ', icon: ShieldCheck },
     { id: 'evidence', label: 'Audit trail', icon: FileCheck2 },
+    { id: 'clm', label: '📑 Hợp Đồng & AI Redline (CLM)', icon: FileText },
   ],
   ai_factory: [
     { id: 'autonomous_flywheel', label: '🚀 Vòng Lặp Tự Vận Hành', icon: Zap },
@@ -259,11 +500,19 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'apprentice_lab', label: '🎓 Học Việc Local AI & Mẫu Vàng', icon: GraduationCap },
     { id: 'automation', label: '🦾 Robot Tự Động Hóa & DOM Vision', icon: Activity },
     { id: 'governance', label: '🛡️ Quản Trị, Chat Liên AI & Giám Sát', icon: ShieldCheck },
+    { id: 'recruiting', label: '🧑‍💼 Tuyển Dụng & Đánh Giá Ứng Viên', icon: UserCheck },
+    { id: 'ai_bonus', label: '🏆 Quỹ Thưởng & ESOP Hiệu Suất AI', icon: Award },
+    { id: 'revenue_sharing', label: '🤖 Chia Sẻ Doanh Thu AI Creator 70/30', icon: Coins },
+    { id: 'genetic_prompts', label: '🧬 Đột Biến Prompt Di Truyền', icon: Sparkles },
+    { id: 'agent_consensus', label: '🗳️ Multi-Agent BFT Consensus (114)', icon: UsersRound },
+    { id: 'gpu_scheduler', label: '🎮 Multi-Factory GPU Scheduler (120)', icon: Cpu },
   ],
   analytics: [
     { id: 'python_sandbox', label: '🧪 1. Python & SQL Sandbox AI', icon: Code },
     { id: 'ai_sandbox', label: '🤖 2. Gemini Reasoning & Prompt Lab', icon: TestTubeDiagonal },
     { id: 'simulations', label: '📈 3. Mô Phỏng Doanh Nghiệp & A/B Test', icon: Target },
+    { id: 'predictive_revenue', label: '🔮 4. Dự Báo Doanh Thu 90 Ngày AI', icon: TrendingUp },
+    { id: 'macro_stress', label: '🌪️ 5. Stress Test Kinh Tế Vĩ Mô 10 Năm', icon: Target },
   ],
   system_settings: [
     { id: 'delegation_matrix', label: '⚖️ Phân Quyền & Giải Quyết Xung Đột AI', icon: Scale },
@@ -273,6 +522,38 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'connectors', label: 'Tích hợp & Kết nối', icon: Network },
     { id: 'dev_ops', label: 'GitOps & Phát hành', icon: Rocket },
     { id: 'recovery_ops', label: 'Bảo trì & Khôi phục', icon: FileCheck2 },
+    { id: 'ip_guard', label: '📜 Bản Quyền & Cục SHTT', icon: Award },
+    { id: 'edge_cdn', label: '🌍 Global Edge CDN Anycast', icon: Globe2 },
+    { id: 'llm_arbitrage', label: '💰 LLM Cost Arbitrage & Token', icon: Cpu },
+    { id: 'multi_cloud', label: '🌐 Multi-Cloud Mesh & DR RPO < 1s', icon: Cloud },
+    { id: 'soc_threat', label: '🚨 SOC & Săn Lùng Nguy Cơ Zero-Day', icon: ShieldAlert },
+    { id: 'prompt_firewall', label: '🔥 Tường Lửa Prompt & Guardrails', icon: ShieldCheck },
+    { id: 'chaos_engineering', label: '⚡ Diễn Tập Sự Cố & Chaos Engineering', icon: Zap },
+    { id: 'ai_dev_copilot', label: '💻 AI Dev Copilot & AST Refactor Hub', icon: Code },
+    { id: 'db_sharding', label: '🗄️ DB Auto-Sharding & Active Replicas', icon: Database },
+    { id: 'pwa_offline', label: '📶 PWA Offline Sync & Service Worker', icon: Wifi },
+    { id: 'tenant_onboarding', label: '🌐 Multi-Tenant Onboarding Automation', icon: Users2 },
+    { id: 'code_review_pr', label: '🤖 AI Code Review & PR Automation', icon: Code },
+    { id: 'webhook_hub', label: '🔗 Webhook & Integration Hub (Zapier)', icon: Network },
+    { id: 'iac_architect', label: '🏗️ IaC & Cloud Architecture Generator', icon: Rocket },
+    { id: 'agent_red_team', label: '🛡️ AI Agent Red-Teaming & Jailbreak Shield', icon: ShieldCheck },
+    { id: 'contract_intelligence', label: '💼 AI Contract Intelligence & Legal Risk', icon: FileCheck2 },
+    { id: 'privacy_pdpa', label: '🔐 Bảo Mật Dữ Liệu & PDPA/GDPR', icon: ShieldCheck },
+    { id: 'tech_debt', label: '🔭 Nợ Kỹ Thuật & Migration Roadmap', icon: Code },
+    { id: 'no_code_bpa', label: '🔄 Tự Động Hóa Quy Trình No-Code (BPA)', icon: Zap },
+    { id: 'erp_sync', label: '🔄 Đồng Bộ 2 Chiều ERP (MISA, Fast)', icon: Database },
+    { id: 'post_quantum', label: '🛡️ Mã Hóa Hậu Lượng Tử (Kyber)', icon: ShieldCheck },
+    { id: 'patent_drafting', label: '📜 Soạn Thảo Hồ Sơ Sáng Chế AI', icon: FileText },
+    { id: 'satellite_mesh', label: '🛰️ Vệ Tinh Starlink & Mesh Xa Bờ', icon: Globe2 },
+    { id: 'a11y_audit', label: '♿ WCAG 2.2 AA A11y (105)', icon: ShieldCheck },
+    { id: 'web_vitals', label: '⚡ Core Web Vitals (106)', icon: Activity },
+    { id: 'iso_quality', label: '🏆 ISO 25010 Benchmark (107)', icon: Award },
+    { id: 'open_source', label: '📦 Open Source Registry (112)', icon: Package },
+    { id: 'edge_compute', label: '🌐 Edge Compute & Load Balancer (113)', icon: Globe2 },
+    { id: 'api_federation', label: '⚡ GraphQL Federation Gateway (116)', icon: Network },
+    { id: 'telemetry_stream', label: '⚡ Real-Time Telemetry Stream (119)', icon: Activity },
+    { id: 'vision_surveillance', label: '📸 AI Computer Vision Cam (123)', icon: Camera },
+    { id: 'cross_chain_liquidity', label: '🪙 Cross-Chain RWA Yield (124)', icon: Coins },
   ],
   operations: [
     { id: 'portfolio', label: 'Project Portfolio', icon: FolderKanban },
@@ -416,6 +697,31 @@ function StaticWorkspace({ config, subtab }: { config: StaticWorkspaceConfig; su
 }
 
 function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
+  if (subtab === 'second_brain' || subtab === 'thoughts' || subtab === 'brain') return <FounderSecondBrainPanel />;
+  if (subtab === 'advisory_council' || subtab === 'advisors' || subtab === 'council') return <VirtualAdvisoryCouncilPanel />;
+  if (subtab === 'mobile_dashboard' || subtab === 'founder_kpi' || subtab === 'ceo_mobile') return <FounderMobileDashboardPanel />;
+  if (subtab === 'voice_command' || subtab === 'voice_ceo' || subtab === 'voice') return <VoiceCeoCommandPanel />;
+  if (subtab === 'board_deck' || subtab === 'investor_memo') return <AiBoardDeckPanel />;
+  if (subtab === 'okr_engine' || subtab === 'autonomous_okr') return <AutonomousOkrPanel />;
+  if (subtab === 'spatial_boardroom' || subtab === 'spatial_3d' || subtab === 'webxr') return <SpatialAccountingBoardroomPanel />;
+  if (subtab === 'singularity' || subtab === 'sentient_singularity' || subtab === 'level8_agi') return <SentientSingularityPanel />;
+  if (subtab === 'earphone_audio' || subtab === 'earphone' || subtab === 'whisper') return <ExecutiveEarphoneAudioBriefingPanel />;
+  if (subtab === 'company_cloner' || subtab === 'cloner' || subtab === 'franchising') return <CompanyInABoxClonerPanel />;
+  if (subtab === 'agm_governance' || subtab === 'shareholders' || subtab === 'resolutions') return <AgmGovernancePanel />;
+  if (subtab === 'boardroom' || subtab === 'consensus' || subtab === 'delphi') {
+    return (
+      <div className="space-y-5">
+        <ConstitutionalConsensusBoardPanel />
+      </div>
+    );
+  }
+  if (subtab === 'branches' || subtab === 'franchise' || subtab === 'virtual_branches') {
+    return (
+      <div className="space-y-5">
+        <VirtualBranchManagerPanel />
+      </div>
+    );
+  }
   if (subtab === 'overview') {
     return (
       <div className="space-y-5">
@@ -452,10 +758,26 @@ function ProductStudioWorkspace({ subtab, staticConfig }: { subtab: string; stat
   if (subtab === 'game_builder') return <GameStudioBuilder />;
   if (subtab === 'game_assets') return <GameAssetStudioPanel />;
   if (subtab === 'smoke_test') return <VaporwareSmokeTester />;
+  if (subtab === 'entitlements' || subtab === 'feature_flags') return <FeatureFlagsEntitlementPanel />;
+  if (subtab === 'b2b_marketplace' || subtab === 'marketplace_modules') return <B2bMarketplacePanel />;
+  if (subtab === 'asset_foundry') return <AssetFoundryPanel />;
+  if (subtab === 'zero_touch' || subtab === 'commerce_loop' || subtab === 'revenue_loop') return <ZeroTouchLoopPanel />;
+  if (subtab === 'auto_launch' || subtab === 'launchpad' || subtab === 'one_click_launch') return <AutoLaunchPipelinePanel />;
+  if (subtab === 'synergy_bus' || subtab === 'cross_asset' || subtab === 'asset_bus') return <CrossAssetSynergyBusPanel />;
+  if (subtab === 'game_qa' || subtab === 'bug_density' || subtab === 'playtest') return <GameQaBugDensityPanel />;
+  if (subtab === 'mobile_publish' || subtab === 'app_store' || subtab === 'google_play') return <MobileBuildPublishPanel />;
+  if (subtab === 'game_store' || subtab === 'steam' || subtab === 'itch_io') return <GameStorePublishPanel />;
+  if (subtab === 'pmf_heatmap' || subtab === 'pmf' || subtab === 'sean_ellis') return <ContinuousPmfHeatmapPanel />;
   return <StaticWorkspace config={staticConfig} subtab={subtab} />;
 }
 
-function KnowledgeWorkspace({ subtab }: { subtab: string }) {
+function KnowledgeLibraryWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'auto_harvest' || subtab === 'harvested' || subtab === 'insights') return <AutoHarvestedInsightsPanel />;
+  if (subtab === 'semantic_search' || subtab === 'rag_search' || subtab === 'hybrid_search') return <SemanticRagSearchPanel />;
+  if (subtab === 'market_localization' || subtab === 'i18n' || subtab === 'locales') return <MarketLocalizationPanel />;
+  if (subtab === 'success_academy' || subtab === 'academy' || subtab === 'training') return <CustomerSuccessAcademyPanel />;
+  if (subtab === 'knowledge_graph' || subtab === 'graph_mesh' || subtab === 'entity_graph') return <KnowledgeGraphMeshPanel />;
+  if (subtab === 'notion_obsidian' || subtab === 'second_brain_sync' || subtab === 'obsidian') return <NotionObsidianKnowledgeBridgePanel />;
   const mode = subtab === 'rag_simulator'
     ? 'rag_simulator'
     : subtab === 'operating_layer'
@@ -469,28 +791,87 @@ function KnowledgeWorkspace({ subtab }: { subtab: string }) {
 }
 
 function MarketingWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
+  if (subtab === 'video_production' || subtab === 'tiktok_studio' || subtab === 'capcut') return <VideoProductionStudioPanel />;
+  if (subtab === 'marketing_bot' || subtab === 'broadcast' || subtab === 'whatsapp_bot' || subtab === 'telegram_bot') return <MultiChannelMarketingBotPanel />;
+  if (subtab === 'brand_radar' || subtab === 'pr_radar' || subtab === 'reputation') return <BrandReputationRadarPanel />;
+  if (subtab === 'seo' || subtab === 'seo_topical' || subtab === 'backlinks') return <SeoTopicalAuthorityPanel />;
+  if (subtab === 'social_swarm' || subtab === 'video_campaigns' || subtab === 'reels') return <SocialSwarmCampaignPanel />;
+  if (subtab === 'competitor_radar' || subtab === 'competitor' || subtab === 'battle_cards') return <MarketIntelligencePanel />;
   if (subtab === 'campaigns') return <div className="space-y-5"><CampaignsLab /><SyntheticMarketSimulatorPanel /></div>;
   if (subtab === 'content') return <ContentLab />;
   if (subtab === 'video_studio') return <DigitalStudioLab />;
+  if (subtab === 'hyper_personalization' || subtab === 'personalization') return <HyperPersonalizationPanel />;
+  if (subtab === 'war_room' || subtab === 'competitive_war_room') return <CompetitiveWarRoomPanel />;
+  if (subtab === 'demand_scanner' || subtab === 'market_demand' || subtab === 'signals') return <MarketDemandScannerPanel />;
+  if (subtab === 'vmaf_video' || subtab === 'vmaf' || subtab === 'video_quality') return <VmafVideoQualityPanel />;
   return <StaticWorkspace config={staticConfig} subtab={subtab} />;
 }
 
 function SalesCRMWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
+  if (subtab === 'voice_sentiment' || subtab === 'nps_csat' || subtab === 'sentiment') return <NpsCsatVoiceSentimentPanel />;
+  if (subtab === 'affiliate_commission' || subtab === 'referrals' || subtab === 'commissions') return <AffiliateCommissionPanel />;
+  if (subtab === 'helpdesk' || subtab === 'voice_ai' || subtab === 'call_center') return <VoiceHelpdeskPanel />;
+  if (subtab === 'customer_health' || subtab === 'health_score' || subtab === 'churn') return <CustomerHealthScorePanel />;
+  if (subtab === 'ai_bonus' || subtab === 'escrow_bonus') return <AiBonusEscrowPanel />;
+  if (subtab === 'revenue_sharing' || subtab === 'creator_revenue') return <AgentRevenueSharingPanel />;
+  if (subtab === 'genetic_prompts' || subtab === 'prompt_mutation' || subtab === 'genetic_evolution') return <GeneticPromptMutationPanel />;
+  if (subtab === 'support' || subtab === 'customer_support' || subtab === 'deflection') return <AutonomousSupportPanel />;
+  if (subtab === 'revenue_flywheel' || subtab === 'flywheel') return <RevenueFlywheelPanel />;
+  if (subtab === 'live_pipeline') return <SalesCRMWorkspaceLive />;
   if (subtab === 'funnel_lab') return <CustomerConversionLab />;
-  if (subtab === 'pricing_ltv') return <PricingAndLTVLab />;
+  if (subtab === 'pricing_ltv') return <div className="space-y-5"><PricingAndLTVLab /><DynamicRepricingPanel /></div>;
   if (subtab === 'referral_nps') return <ReferralAndNPSLab />;
+  if (subtab === 'loyalty_gamification' || subtab === 'loyalty' || subtab === 'gamification') return <LoyaltyGamificationPanel />;
+  if (subtab === 'plg_conversion' || subtab === 'plg' || subtab === 'upsell_trigger') return <PlgConversionPanel />;
+  if (subtab === 'customer_dna' || subtab === 'dna_profiling' || subtab === 'behavioral_segmentation') return <CustomerDnaProfilingPanel />;
+  if (subtab === 'partner_reseller' || subtab === 'reseller' || subtab === 'channel_partners') return <PartnerResellerPanel />;
+  if (subtab === 'pricing_optimization' || subtab === 'elasticity' || subtab === 'wtp') return <MultiVariatePricingPanel />;
+  if (subtab === 'voice_bridge' || subtab === 'bilingual_voice' || subtab === 'intl_negotiation') return <BilingualVoiceBridgePanel />;
+  if (subtab === 'vc_matcher' || subtab === 'pitch_deck' || subtab === 'investor_match') return <VcInvestorMatcherPanel />;
   return (
     <div className="space-y-6">
-      <RealCustomerSubscriptionLedger />
-      <StaticWorkspace config={staticConfig} subtab={subtab} />
+      <SalesCRMWorkspaceLive />
     </div>
   );
 }
 
 function FinanceWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'crypto_treasury' || subtab === 'web3' || subtab === 'stablecoins') return <CryptoTreasuryWeb3Panel />;
+  if (subtab === 'subscription_billing' || subtab === 'billing' || subtab === 'dunning') return <SubscriptionBillingPanel />;
+  if (subtab === 'revenue_recognition' || subtab === 'ifrs15' || subtab === 'deferred_revenue') return <RevenueRecognitionPanel />;
+  if (subtab === 'credit_scoring' || subtab === 'working_capital' || subtab === 'underwriting') return <CreditScoringCapitalPanel />;
+  if (subtab === 'carbon_offset' || subtab === 'esg_impact' || subtab === 'carbon_marketplace') return <EsgImpactMarketplacePanel />;
+  if (subtab === 'vdr_room' || subtab === 'data_room' || subtab === 'due_diligence') return <VirtualDataRoomPanel />;
+  if (subtab === 'iot_scale' || subtab === 'scale_sync' || subtab === 'rfid_gate') return <IotEdgeScaleSyncPanel />;
+  if (subtab === 'transfer_pricing' || subtab === 'dtaa' || subtab === 'arm_length') return <SovereignTransferPricingPanel />;
+  if (subtab === 'drone_lidar' || subtab === 'point_cloud' || subtab === 'volumetric_audit') return <DroneLidarInventoryPanel />;
+  if (subtab === 'zk_audit' || subtab === 'zk_proof' || subtab === 'zk_snark') return <ZeroKnowledgeAuditPanel />;
+  if (subtab === 'revenue_orchestrator' || subtab === 'revenue_loop' || subtab === 'zero_touch_revenue') return <RevenueOrchestrationPanel />;
+  if (subtab === 'yield_sweep' || subtab === 'overnight_yield' || subtab === 'idle_cash') return <OvernightYieldSweepPanel />;
+  if (subtab === 'smart_escrow' || subtab === 'escrow_settlement' || subtab === 'smart_contract') return <SmartContractEscrowPanel />;
+  if (subtab === 'esg_carbon' || subtab === 'carbon' || subtab === 'sustainability') return <EsgCarbonAccountingPanel />;
+  if (subtab === 'cross_border_vat' || subtab === 'reverse_charge' || subtab === 'vat_gst') return <GlobalVatReverseChargePanel />;
+  if (subtab === 'ma_valuation' || subtab === 'mergers' || subtab === 'acquisitions') return <MaValuationPanel />;
+  if (subtab === 'treasury' || subtab === 'yield_sweep' || subtab === 'bank_sweep') return <TreasuryManagementPanel />;
+  if (subtab === 'capital_allocation' || subtab === 'treasury_controller' || subtab === 'dsge') return <CapitalAllocationPanel />;
+  if (subtab === 'investors' || subtab === 'cap_table' || subtab === 'equity') return <InvestorRelationsPanel />;
+  if (subtab === 'vendor_settlement' || subtab === 'supply_chain' || subtab === 'matching') return <VendorSettlementPanel />;
+  if (subtab === 'tax_shield' || subtab === 'compliance_shield') return <TaxComplianceShieldPanel />;
+  if (subtab === 'global_adapter' || subtab === 'multi_currency' || subtab === 'ifrs' || subtab === 'fx') return <GlobalLocalizationAdapterPanel />;
+  if (subtab === 'incidents' || subtab === 'financial_incidents' || subtab === 'playbook') return <FinancialIncidentPlaybookPanel />;
   if (subtab === 'cashflow') return <RevenueDashboard />;
+  if (subtab === 'cashflow_forecast') return <CashFlowForecastDashboard />;
+  if (subtab === 'auto_reconciliation') return <AutoReconciliationPanel />;
+  if (subtab === 'predictive_accounting') return <PredictiveAccountingPanel />;
   if (subtab === 'ledger') return <LedgerAccountingWorkspace />;
-  if (subtab === 'tax_simulator') return <TaxAuditSimulator />;
+  if (subtab === 'tax_simulator') {
+    return (
+      <div className="space-y-6">
+        <TaxFilingPanel />
+        <TaxAuditSimulator />
+      </div>
+    );
+  }
   return <RevenueDashboard />;
 }
 
@@ -498,7 +879,7 @@ function FinanceWorkspace({ subtab }: { subtab: string }) {
 function AIWorkforceAdvancedWorkspace() {
   const [activeGroup, setActiveGroup] = useState<'tasks' | 'factory' | 'release' | 'robot' | 'patch' | 'health'>('tasks');
   const [robotSubtab, setRobotSubtab] = useState<'skills' | 'bridge' | 'web_robot'>('bridge');
-  const [tasksSubtab, setTasksSubtab] = useState<'board' | 'routing' | 'catalog'>('board');
+  const [tasksSubtab, setTasksSubtab] = useState<'board' | 'routing' | 'catalog' | 'probation' | 'recruiting' | 'ai_bonus'>('board');
 
   return (
     <div className="space-y-5 text-left">
@@ -513,7 +894,7 @@ function AIWorkforceAdvancedWorkspace() {
               : 'text-slate-400 hover:text-white hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>📋 Nhiệm vụ &amp; Routing</span>
+          <span>📋 Nhiệm vụ, Routing &amp; Thử việc</span>
         </button>
 
         <button
@@ -605,10 +986,37 @@ function AIWorkforceAdvancedWorkspace() {
             >
               Danh mục Công cụ &amp; Actions
             </button>
+            <button
+              onClick={() => setTasksSubtab('probation')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'probation' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              🎓 Thử việc &amp; Đánh giá Năng lực
+            </button>
+            <button
+              onClick={() => setTasksSubtab('recruiting')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'recruiting' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              🧑‍💼 Tuyển dụng &amp; Ứng viên
+            </button>
+            <button
+              onClick={() => setTasksSubtab('ai_bonus')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                tasksSubtab === 'ai_bonus' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white bg-slate-900'
+              }`}
+            >
+              🏆 Quỹ Thưởng &amp; ESOP
+            </button>
           </div>
 
           {tasksSubtab === 'board' && <AIWorkforceTaskBoard />}
           {tasksSubtab === 'routing' && <ModelDispatchMatrix />}
+          {tasksSubtab === 'probation' && <AgentPerformanceReviewPanel />}
+          {tasksSubtab === 'recruiting' && <TalentRecruitingPanel />}
+          {tasksSubtab === 'ai_bonus' && <AiBonusEscrowPanel />}
           {tasksSubtab === 'catalog' && (
             <div className="space-y-4">
               <AIWorkforceMissionTemplates />
@@ -621,6 +1029,8 @@ function AIWorkforceAdvancedWorkspace() {
 
       {activeGroup === 'factory' && (
         <div className="space-y-5 animate-fade-in">
+          <FactoryPerformanceDashboard />
+          <MultiFactoryDashboard />
           <SoftwareFactoryCatalogPanel />
         </div>
       )}
@@ -705,6 +1115,62 @@ function AIWorkforceAdvancedWorkspace() {
 function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
   const [commandSubtab, setCommandSubtab] = useState<'assistant' | 'staff' | 'builder' | 'ops'>('assistant');
 
+  if (subtab === 'gpu_scheduler' || subtab === 'factory_scheduler' || subtab === 'gpu_allocator') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <MultiFactoryGpuSchedulerPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'agent_consensus' || subtab === 'consensus' || subtab === 'swarm_voting') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AgentConsensusVotingPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'recruiting' || subtab === 'talent' || subtab === 'hiring') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <TalentRecruitingPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'revenue_sharing' || subtab === 'creator_payout' || subtab === 'agent_marketplace') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AgentRevenueSharingPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'ai_bonus') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AiBonusEscrowPanel />
+      </div>
+    );
+  }
+
+  if (subtab === 'factory_performance') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <FactoryPerformanceDashboard />
+      </div>
+    );
+  }
+
+  if (subtab === 'agent_roi') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <AgentROIDashboard />
+      </div>
+    );
+  }
+
   if (subtab === 'autonomous_flywheel') {
     return (
       <div className="space-y-5 animate-fade-in text-left">
@@ -745,8 +1211,10 @@ function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
         <WorkflowPanel />
         <AIDispatchPanel />
         <A2AMailboxPanel />
+        <AgentKernelPanel />
         <InterAgentProtocolPanel />
         <SwarmRelayOrchestratorPanel />
+        <TelegramBotControlPanel />
         <AIWorkforceAdvancedWorkspace />
       </div>
     );
@@ -841,6 +1309,8 @@ function AnalyticsSimulationsWorkspace() {
 
       {activeGroup === 'market' && (
         <div className="space-y-5 animate-fade-in">
+          <EnterpriseDigitalTwinPanel />
+          <BusinessAbTestingPanel />
           <BusinessSimulationEngine />
           <ABSimulationLab />
           <MarketSurveySimulator />
@@ -848,6 +1318,7 @@ function AnalyticsSimulationsWorkspace() {
       )}
       {activeGroup === 'experiments' && (
         <div className="space-y-5 animate-fade-in">
+          <NLToSqlDataPanel />
           <ExperimentDashboard />
           <ExperimentDecisionLog />
           <MoatDefensibilityTracker />
@@ -925,6 +1396,8 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
     );
   }
   if (subtab === 'simulations') return <AnalyticsSimulationsWorkspace />;
+  if (subtab === 'predictive_revenue' || subtab === 'revenue_forecast' || subtab === 'arr_monte_carlo') return <PredictiveRevenuePanel />;
+  if (subtab === 'macro_stress' || subtab === 'stress_test' || subtab === 'dsge_simulation') return <MacroeconomicStressSimulatorPanel />;
   // python_sandbox is default
   return (
     <div className="space-y-5 animate-fade-in text-left">
@@ -977,6 +1450,7 @@ function SettingsDevOpsWorkspace() {
 
       {activeGroup === 'hub' && (
         <div className="space-y-5 animate-fade-in">
+          <AutonomousSelfMutationPanel />
           <DevOpsReleaseHubPanel />
           <DeveloperIntelligenceHubPanel />
           <BuildMonitorPanel />
@@ -1003,7 +1477,7 @@ function SettingsDevOpsWorkspace() {
 }
 
 function SettingsConnectorsWorkspace() {
-  const [activeGroup, setActiveGroup] = useState<'hub' | 'contracts'>('hub');
+  const [activeGroup, setActiveGroup] = useState<'hub' | 'contracts' | 'marketplace'>('hub');
 
   return (
     <div className="space-y-5">
@@ -1030,6 +1504,17 @@ function SettingsConnectorsWorkspace() {
         >
           <span>🌐 Web AI & Connector Contracts</span>
         </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('marketplace')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'marketplace'
+              ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🧩 Plugin Marketplace & Ecosystem</span>
+        </button>
       </div>
 
       {activeGroup === 'hub' && (
@@ -1046,12 +1531,17 @@ function SettingsConnectorsWorkspace() {
           <ConfigHealthMonitor />
         </div>
       )}
+      {activeGroup === 'marketplace' && (
+        <div className="space-y-5 animate-fade-in">
+          <PluginMarketplacePanel />
+        </div>
+      )}
     </div>
   );
 }
 
 function SettingsSecurityWorkspace() {
-  const [activeGroup, setActiveGroup] = useState<'doctor' | 'vault' | 'ollama' | 'audit'>('doctor');
+  const [activeGroup, setActiveGroup] = useState<'doctor' | 'vault' | 'ollama' | 'audit' | 'rbac' | 'self_healing'>('doctor');
 
   return (
     <div className="space-y-5">
@@ -1066,6 +1556,28 @@ function SettingsSecurityWorkspace() {
           }`}
         >
           <span>🩺 Master System Doctor</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('self_healing')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'self_healing'
+              ? 'bg-teal-500/20 text-teal-200 border border-teal-500/40 shadow-sm shadow-teal-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🛠️ Tự Phục Hồi (Self-Healing)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('rbac')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'rbac'
+              ? 'bg-indigo-500/20 text-indigo-200 border border-indigo-500/40 shadow-sm shadow-indigo-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>⚖️ Phân Quyền (RBAC)</span>
         </button>
         <button
           type="button"
@@ -1107,6 +1619,16 @@ function SettingsSecurityWorkspace() {
           <WS.MasterSystemDoctorDashboard />
         </div>
       )}
+      {activeGroup === 'self_healing' && (
+        <div className="space-y-5 animate-fade-in">
+          <SelfHealingInfraPanel />
+        </div>
+      )}
+      {activeGroup === 'rbac' && (
+        <div className="space-y-5 animate-fade-in">
+          <RBACManagementPanel />
+        </div>
+      )}
       {activeGroup === 'vault' && (
         <div className="space-y-5 animate-fade-in">
           <AISettingsManager />
@@ -1120,10 +1642,19 @@ function SettingsSecurityWorkspace() {
       )}
       {activeGroup === 'audit' && (
         <div className="space-y-5 animate-fade-in">
+          <SecurityPosturePanel />
+          <IpPatentGuardPanel />
+          <EdgeRoutingHubPanel />
+          <LlmCostArbitragePanel />
+          <MultiCloudMeshPanel />
+          <SocThreatHuntingPanel />
+          <PromptSecurityFirewallPanel />
+          <ChaosEngineeringPanel />
           <SecurityControlCenter />
           <AuditTrailPanel />
         </div>
       )}
+
     </div>
   );
 }
@@ -1139,11 +1670,11 @@ function SettingsRecoveryWorkspace() {
           onClick={() => setActiveGroup('diff')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
             activeGroup === 'diff'
-              ? 'bg-amber-500/20 text-amber-200 border border-amber-500/40 shadow-sm shadow-amber-500/10'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
               : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
           }`}
         >
-          <span>🩹 So sánh Diff & Patch Workspace</span>
+          <span>🔍 So sánh Patch Diff</span>
         </button>
         <button
           type="button"
@@ -1176,6 +1707,37 @@ function SettingsRecoveryWorkspace() {
 }
 
 function SettingsWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'chaos_engineering' || subtab === 'fault_injection' || subtab === 'chaos') return <ChaosEngineeringPanel />;
+  if (subtab === 'ai_dev_copilot' || subtab === 'refactor' || subtab === 'ast_copilot') return <AiDevCopilotPanel />;
+  if (subtab === 'db_sharding' || subtab === 'sharding' || subtab === 'replicas') return <DbAutoShardingPanel />;
+  if (subtab === 'pwa_offline' || subtab === 'offline_sync' || subtab === 'service_worker') return <PwaOfflineSyncPanel />;
+  if (subtab === 'tenant_onboarding' || subtab === 'onboarding_pipeline' || subtab === 'tenant_setup') return <MultiTenantOnboardingPanel />;
+  if (subtab === 'code_review_pr' || subtab === 'code_review' || subtab === 'pr_review') return <AiCodeReviewPrPanel />;
+  if (subtab === 'webhook_hub' || subtab === 'webhooks' || subtab === 'zapier_make') return <WebhookIntegrationHubPanel />;
+  if (subtab === 'iac_architect' || subtab === 'iac' || subtab === 'cloud_architect') return <IaCCloudArchitectPanel />;
+  if (subtab === 'agent_red_team' || subtab === 'red_team' || subtab === 'jailbreak_test') return <AgentRedTeamingPanel />;
+  if (subtab === 'contract_intelligence' || subtab === 'legal_risk' || subtab === 'contracts') return <AiContractIntelligencePanel />;
+  if (subtab === 'privacy_pdpa' || subtab === 'gdpr' || subtab === 'dsar') return <DataPrivacyPdpaPanel />;
+  if (subtab === 'tech_debt' || subtab === 'migration_roadmap') return <TechDebtMigrationPanel />;
+  if (subtab === 'no_code_bpa' || subtab === 'bpa' || subtab === 'process_automation') return <NoCodeBpaPanel />;
+  if (subtab === 'erp_sync' || subtab === 'misa_sync' || subtab === 'bi_directional_sync') return <BiDirectionalErpSyncPanel />;
+  if (subtab === 'post_quantum' || subtab === 'quantum_vault' || subtab === 'fips203') return <PostQuantumVaultPanel />;
+  if (subtab === 'patent_drafting' || subtab === 'ip_patent' || subtab === 'wipo') return <PatentAutoDraftingPanel />;
+  if (subtab === 'satellite_mesh' || subtab === 'starlink' || subtab === 'offshore_mesh') return <SatelliteOfflineMeshPanel />;
+  if (subtab === 'a11y_audit' || subtab === 'accessibility' || subtab === 'wcag') return <A11yAccessibilityAuditPanel />;
+  if (subtab === 'web_vitals' || subtab === 'core_web_vitals' || subtab === 'lighthouse') return <CoreWebVitalsOptimizationPanel />;
+  if (subtab === 'iso_quality' || subtab === 'iso25010' || subtab === 'software_quality') return <IsoSoftwareQualityBenchmarkPanel />;
+  if (subtab === 'open_source' || subtab === 'npm' || subtab === 'docker_registry') return <OpenSourcePublishPanel />;
+  if (subtab === 'edge_compute' || subtab === 'load_balancer' || subtab === 'anycast') return <EdgeComputeRoutingPanel />;
+  if (subtab === 'api_federation' || subtab === 'graphql_supergraph' || subtab === 'federation') return <ApiFederationGatewayPanel />;
+  if (subtab === 'telemetry_stream' || subtab === 'telemetry' || subtab === 'observability') return <EnterpriseTelemetryStreamPanel />;
+  if (subtab === 'vision_surveillance' || subtab === 'rtsp_cam' || subtab === 'camera') return <VisionFactorySurveillancePanel />;
+  if (subtab === 'cross_chain_liquidity' || subtab === 'rwa_yield' || subtab === 'liquidity_bridge') return <CrossChainLiquidityBridgePanel />;
+  if (subtab === 'prompt_firewall' || subtab === 'guardrails' || subtab === 'llm_firewall') return <PromptSecurityFirewallPanel />;
+  if (subtab === 'soc_threat' || subtab === 'threat_hunting' || subtab === 'cyber_soc') return <SocThreatHuntingPanel />;
+  if (subtab === 'multi_cloud' || subtab === 'dr_mesh' || subtab === 'cloud_mesh') return <MultiCloudMeshPanel />;
+  if (subtab === 'llm_arbitrage' || subtab === 'cost_arbitrage') return <LlmCostArbitragePanel />;
+  if (subtab === 'marketplace' || subtab === 'plugins') return <PluginMarketplacePanel />;
   if (subtab === 'delegation_matrix') return <AdvancedDelegationMatrixPanel />;
   if (subtab === 'sop_runbook') return <SystemSOPRunbookPanel />;
   if (subtab === 'security') return <SettingsSecurityWorkspace />;
@@ -1247,6 +1809,7 @@ function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
 }
 
 function DocumentsApprovalWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'clm' || subtab === 'contracts' || subtab === 'redline') return <ContractLifecyclePanel />;
   if (subtab === 'audit') {
     return (
       <div className="space-y-5">
@@ -1363,7 +1926,7 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
         {staticConfig && !['ceo_command', 'ai_factory', 'marketing_growth', 'sales_crm', 'product_studio'].includes(activeSegment) && <StaticWorkspace config={staticConfig} subtab={currentSubTabId} />}
         {activeSegment === 'ceo_command' && staticConfig && <CommandCenterWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}
         {activeSegment === 'product_studio' && staticConfig && <ProductStudioWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}
-        {activeSegment === 'knowledge_library' && <KnowledgeWorkspace subtab={currentSubTabId} />}
+        {activeSegment === 'knowledge_library' && <KnowledgeLibraryWorkspace subtab={currentSubTabId} />}
         {activeSegment === 'marketing_growth' && staticConfig && <MarketingWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}
         {activeSegment === 'sales_crm' && staticConfig && <SalesCRMWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}
         {activeSegment === 'ai_factory' && <AIWorkforceWorkspace subtab={currentSubTabId} />}

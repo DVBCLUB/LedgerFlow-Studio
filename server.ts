@@ -55,6 +55,8 @@ import { hydrateExternalMCPServerCatalog } from "./server/services/mcpClientGate
 import { registerDormantServicesRoutes } from "./server/services/dormantServicesRouter";
 import { startEmployeeMailboxWorker } from "./server/services/webAiEmployeeAdapter";
 import { registerBusinessRoutes } from "./server/services/businessDataRoutes";
+import { registerAssetFoundryRoutes } from "./server/services/assetFoundryRoutes";
+import { registerFoundryOrchestrationRoutes } from "./server/services/foundryOrchestrationRoutes";
 
 // ── Core Module Loader (Modular Monolith Setup) ─────────────────────
 import { loadAllModules, registerModuleRegistryEndpoint } from "./core/server/module-loader";
@@ -138,11 +140,37 @@ async function startServer() {
   const isDev = process.env.NODE_ENV !== "production";
   const apiLimiter = rateLimit({ windowMs: 60_000, max: isDev ? 240 : 30, skip: (req) => isDev && ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.ip || ""), message: { error: "Bạn đã đạt giới hạn yêu cầu/phút. Vui lòng thử lại sau.", isRateLimit: true }, standardHeaders: true, legacyHeaders: false, validate: { trustProxy: false } });
   app.use("/api/gemini/", apiLimiter); app.use("/api/ai/", apiLimiter); app.use("/api/integrations/", apiLimiter);
-  app.get("/api/health", (_req, res) => res.json({
-    status: "ok",
-    desktop: process.env.ELECTRON_DESKTOP === "true",
-    time: new Date()
-  }));
+  app.get("/api/health", async (_req, res) => {
+    const memory = process.memoryUsage();
+    const hybridStatus = await getHybridStorageStatus(STORAGE_FILE);
+    const aiVaultStatus = await getAIVaultSecurityStatus();
+    res.json({
+      status: "ok",
+      desktop: process.env.ELECTRON_DESKTOP === "true",
+      environment: process.env.NODE_ENV || "development",
+      time: new Date().toISOString(),
+      uptimeSec: Math.floor(process.uptime()),
+      subsystems: {
+        aiGateway: {
+          vaultLocked: aiVaultStatus.isLocked,
+          totalKeys: aiVaultStatus.totalKeys,
+          enabledKeys: aiVaultStatus.enabledKeys,
+          mode: aiVaultStatus.mode,
+        },
+        storage: {
+          mode: hybridStatus.mode,
+          supabaseConfigured: hybridStatus.supabaseConfigured,
+          supabaseConnected: hybridStatus.supabaseConnected,
+        },
+        system: {
+          nodeVersion: process.version,
+          pid: process.pid,
+          memoryRssMb: Math.round(memory.rss / (1024 * 1024)),
+          memoryHeapUsedMb: Math.round(memory.heapUsed / (1024 * 1024)),
+        },
+      },
+    });
+  });
   app.post("/api/auth/local-session", (req, res) => {
     const parsed = localSessionSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -847,6 +875,8 @@ async function startServer() {
   registerAgentSystemRoutes(app);
   registerDormantServicesRoutes(app);
   registerBusinessRoutes(app);
+  registerAssetFoundryRoutes(app);
+  registerFoundryOrchestrationRoutes(app);
 
   // AI Employee mailbox worker — nhân viên AI tự "đi làm" định kỳ qua A2A hub.
   startEmployeeMailboxWorker(60_000);

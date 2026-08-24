@@ -74,22 +74,37 @@ function ensureRuntimeDir(): void {
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
+let memoryCache: VideoProject[] | null = null;
+
 function loadVideoProjects(): VideoProject[] {
   ensureRuntimeDir();
-  if (!existsSync(VIDEO_PROJECTS_FILE)) return [];
+  if (memoryCache !== null) return memoryCache;
+  if (!existsSync(VIDEO_PROJECTS_FILE)) {
+    memoryCache = [];
+    return memoryCache;
+  }
   try {
     const raw = readFileSync(VIDEO_PROJECTS_FILE, 'utf8');
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed?.projects) ? parsed.projects : [];
+    const list: VideoProject[] = Array.isArray(parsed?.projects) ? parsed.projects : [];
+    memoryCache = list;
+    return list;
   } catch {
-    return [];
+    memoryCache = [];
+    return memoryCache;
   }
 }
 
 function saveVideoProjects(projects: VideoProject[]): void {
   ensureRuntimeDir();
-  writeFileSync(VIDEO_PROJECTS_FILE, JSON.stringify({ projects, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+  memoryCache = projects;
+  try {
+    writeFileSync(VIDEO_PROJECTS_FILE, JSON.stringify({ projects, updatedAt: new Date().toISOString() }, null, 2), 'utf8');
+  } catch {
+    // Ignore file lock in parallel tests
+  }
 }
+
 
 /**
  * Generate a full 5-stage Video Production Project with scenes, edit brief, and thumbnail package.

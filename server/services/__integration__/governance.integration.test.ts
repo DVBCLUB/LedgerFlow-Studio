@@ -19,12 +19,12 @@ describe('API Integration - Governance, SOP & Approvals', () => {
       const res = await fetch(`${baseUrl}/api/delegation/permission/verify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roleId: 'role_chief_of_staff', actionType: 'trigger_release' }),
+        body: JSON.stringify({ roleId: 'role_chief_of_staff', actionType: 'read' }),
       });
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.success, true);
-      assert.equal(typeof data.allowed, 'boolean');
+      assert.equal(typeof data.isAllowed, 'boolean');
     });
   });
 
@@ -34,7 +34,8 @@ describe('API Integration - Governance, SOP & Approvals', () => {
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.success, true);
-      assert.equal(typeof data.valid, 'boolean');
+      assert.equal(typeof data.isValid, 'boolean');
     });
   });
+
 });

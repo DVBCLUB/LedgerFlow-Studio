@@ -6,7 +6,7 @@ const root = process.cwd();
 const botFile = path.join(root, 'server/services/telegramBot.ts');
 const source = fs.readFileSync(botFile, 'utf8');
 
-const importLine = 'import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands";';
+const importLine = 'import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands.ts";';
 let next = source;
 
 function insertAfterFirstAnchor(anchors, insertion, label) {
@@ -18,11 +18,13 @@ function insertAfterFirstAnchor(anchors, insertion, label) {
   throw new Error(`Cannot find ${label} in telegramBot.ts`);
 }
 
-if (!next.includes(importLine)) {
+if (!next.includes('tryHandleTelegramMissionCommand')) {
   insertAfterFirstAnchor([
     'import fs from "fs";',
+    'import fs from "node:fs";',
     'import path from "path";',
     'import { diagnoseAIRouter } from "./aiRouter";',
+    'import { diagnoseAIRouter } from "./aiRouter.ts";',
   ], importLine, 'import anchor');
 }
 

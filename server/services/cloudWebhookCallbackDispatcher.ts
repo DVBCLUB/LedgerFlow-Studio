@@ -29,13 +29,6 @@ interface WebhookStore {
   events: Record<string, CloudWebhookEvent>;
 }
 
-let store: WebhookStore = { events: {} };
-let writeQueue = Promise.resolve();
-
-function storageFile() {
-  return resolveRuntimePathFromEnv('CLOUD_WEBHOOKS_FILE', 'cloud_webhooks.local.enc');
-}
-
 const PRESET_EVENTS: CloudWebhookEvent[] = [
   {
     id: 'wh_evt_001',
@@ -66,19 +59,26 @@ const PRESET_EVENTS: CloudWebhookEvent[] = [
   },
 ];
 
+let store: WebhookStore = {
+  events: Object.fromEntries(PRESET_EVENTS.map((e) => [e.id, e])),
+};
+let writeQueue = Promise.resolve();
+
+function storageFile() {
+  return resolveRuntimePathFromEnv('CLOUD_WEBHOOKS_FILE', 'cloud_webhooks.local.enc');
+}
+
+let storeLoaded = false;
+
 async function loadStore(): Promise<WebhookStore> {
+  if (storeLoaded) return store;
+  storeLoaded = true;
   const parsed = await readSecureJson<WebhookStore>(storageFile(), { events: {} });
-  store = { events: parsed.events || {} };
-
-  if (Object.keys(store.events).length === 0) {
-    for (const evt of PRESET_EVENTS) {
-      store.events[evt.id] = evt;
-    }
-    await saveStore();
-  }
-
+  store.events = { ...store.events, ...(parsed.events || {}) };
   return store;
 }
+
+
 
 async function saveStore(): Promise<void> {
   await writeSecureJson(storageFile(), store);

@@ -18,6 +18,9 @@ const PROMPT_TEMPLATES = [
   { label: '🛡️ Kiểm tra Security', value: 'Kiểm tra toàn bộ bảo mật của code này. Tìm các lỗ hổng OWASP Top 10, injection, XSS, CSRF và đề xuất cách khắc phục.' },
   { label: '🏗️ Thiết kế Architecture', value: 'Thiết kế kiến trúc cho tính năng mới. Bao gồm sơ đồ component, data flow và các design pattern phù hợp.\n\n[Mô tả tính năng ở đây]' },
   { label: '🔄 Migration Code', value: 'Hãy giúp tôi migrate/convert đoạn code này sang công nghệ mới, giữ nguyên logic business:\n\n[Mô tả nguồn và đích]' },
+  { label: '☀️ Họp Giao Ban AI (Daily Standup)', value: 'Hãy tạo bản tin giao ban Ban Điều hành AI hôm nay, đánh giá điểm sẵn sàng hệ thống và đưa ra khuyến nghị điều hành cho Solo Founder.' },
+  { label: '🚀 Tự Động Hóa Chốt Deal B2B', value: 'Hãy kích hoạt luồng phản xạ tự trị liên phòng ban (Closed-Loop Autonomy) cho hợp đồng vừa ký: tạo hồ sơ khách hàng, phân bổ task triển khai và tạo hóa đơn nháp.' },
+  { label: '📊 Mô Phỏng Monte Carlo Runway', value: 'Chạy mô phỏng Digital Twin 10,000 vòng lặp dự báo đường băng tiền mặt (Cash Runway) 60 ngày và phát hiện trước các điểm nghẽn chi phí token AI.' },
 ] as const;
 
 // ─── Slash Commands ──────────────────────────────────────────────────────────

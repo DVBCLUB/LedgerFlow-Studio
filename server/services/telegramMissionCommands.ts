@@ -7,9 +7,9 @@ import {
   rejectAgentRunStep,
   setAgentRuntimeEmergencyStop,
   stopAgentRun,
-} from './agentRuntime';
-import { getRobotCapability, listRobotCapabilities } from './robotCapabilityRegistry';
-import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './automationSchedulerLoop';
+} from './agentRuntime.ts';
+import { getRobotCapability, listRobotCapabilities } from './robotCapabilityRegistry.ts';
+import { getAutomationSchedulerStatus, runAutomationSchedulerTick, startAutomationScheduler, stopAutomationScheduler } from './automationSchedulerLoop.ts';
 import { listAgentLoopJobs, getAgentLoopJobStatus, getAgentLoopJobStats } from './agentLoopJobRunner.ts';
 import { retryJob, purgeJob } from './backgroundJobQueue.ts';
 import { getCircuitBreakerStatus } from './aiRouter.ts';

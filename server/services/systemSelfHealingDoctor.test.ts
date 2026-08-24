@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import { runSelfHealingDiagnostics } from './systemSelfHealingDoctor.ts';
 
-describe('systemSelfHealingDoctor', () => {
-  it('runs diagnostic health check and returns memory and circuit breaker status', async () => {
-    const report = await runSelfHealingDiagnostics();
+test('systemSelfHealingDoctor - runs diagnostic health check and returns memory and circuit breaker status', async () => {
+  const report = await runSelfHealingDiagnostics();
 
-    expect(report.timestamp).toBeDefined();
-    expect(report.status).toMatch(/HEALTHY|DEGRADED|CRITICAL/);
-    expect(report.memory.heapUsedMb).toBeGreaterThan(0);
-    expect(report.selfHealingActionsTaken.length).toBeGreaterThan(0);
-  });
+  assert.ok(report.timestamp);
+  assert.ok(['HEALTHY', 'DEGRADED', 'CRITICAL'].includes(report.status));
+  assert.ok(report.memory.heapUsedMb > 0);
+  assert.ok(report.selfHealingActionsTaken.length > 0);
 });
+

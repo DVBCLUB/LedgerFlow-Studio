@@ -1,12 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import { simulateProfitGrowth } from './aiBusinessTwinSimulator.ts';
 
-describe('aiBusinessTwinSimulator', () => {
-  it('simulates profit growth with reinvestment ratio', async () => {
-    const res = await simulateProfitGrowth('Kịch bản Trích 25% Tái đầu tư AI Ads', 25);
+test('aiBusinessTwinSimulator - simulates profit growth with reinvestment ratio', async () => {
+  const res = await simulateProfitGrowth('Kịch bản Trích 25% Tái đầu tư AI Ads', 25);
 
-    expect(res.reinvestAmountVnd).toBeGreaterThan(0);
-    expect(res.projectedNetIncomeVnd).toBeGreaterThan(res.monthlyRevenueVnd);
-    expect(res.recommendation).toContain('lợi nhuận ròng');
-  });
+  assert.ok(res.reinvestAmountVnd > 0);
+  assert.ok(res.projectedNetIncomeVnd > res.monthlyRevenueVnd);
+  assert.ok(res.recommendation.includes('lợi nhuận ròng'));
 });
+

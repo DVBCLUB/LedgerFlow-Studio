@@ -6,7 +6,7 @@
  * theo interface này để Control Plane đọc và điều phối được.
  */
 
-import type { IntegrationCategory, IntegrationStatus, IntegrationPriority } from './integrationRegistry';
+import type { IntegrationCategory, IntegrationStatus, IntegrationPriority } from './integrationRegistry.ts';
 
 // ─── Auth modes ──────────────────────────────────────────────────────
 export type ConnectorAuthMode =
@@ -121,7 +121,7 @@ export function getContractCapability(connectorId: string, capabilityId: string)
 }
 
 // ─── Khởi tạo contracts từ IntegrationConnector[] ───────────────────
-import type { IntegrationConnector } from './integrationRegistry';
+import type { IntegrationConnector } from './integrationRegistry.ts';
 
 export function seedContractsFromRegistry(connectors: IntegrationConnector[]): void {
   for (const conn of connectors) {

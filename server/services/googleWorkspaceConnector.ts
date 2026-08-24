@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { appendIntegrationEvent } from "./integrationRegistry";
-import { appendCompanyOsEvent } from "./companyOsControlPlane";
+import { appendIntegrationEvent } from "./integrationRegistry.ts";
+import { appendCompanyOsEvent } from "./companyOsControlPlane.ts";
 
 const GOOGLE_DRIVE_DIR = path.join(process.cwd(), ".google_drive");
 const DRIVE_SUBDIR = path.join(GOOGLE_DRIVE_DIR, "Drive");

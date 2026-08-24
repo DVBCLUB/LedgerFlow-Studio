@@ -13,6 +13,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
 export interface CacheQueryResult<T> {
   data: T[];
@@ -20,8 +21,7 @@ export interface CacheQueryResult<T> {
   totalCount: number;
 }
 
-const RUNTIME_DIR = path.resolve('runtime');
-const CACHE_SNAPSHOT_FILE = path.join(RUNTIME_DIR, 'cache_snapshot.json');
+const CACHE_SNAPSHOT_FILE = resolveRuntimePathFromEnv('CACHE_SNAPSHOT_FILE', 'cache_snapshot.json');
 
 const inMemoryTables = new Map<string, Map<string, any>>();
 let isDirty = false;
@@ -29,11 +29,10 @@ let isDirty = false;
 // Initialize and load snapshot from disk if available
 function initCacheFromDisk(): void {
   try {
-    if (!fs.existsSync(RUNTIME_DIR)) {
-      fs.mkdirSync(RUNTIME_DIR, { recursive: true });
-    }
-    if (fs.existsSync(CACHE_SNAPSHOT_FILE)) {
-      const data = JSON.parse(fs.readFileSync(CACHE_SNAPSHOT_FILE, 'utf8'));
+    ensureRuntimeRootSync();
+    const readPath = resolveRuntimeReadPathFromEnv('CACHE_SNAPSHOT_FILE', 'cache_snapshot.json');
+    if (fs.existsSync(readPath)) {
+      const data = JSON.parse(fs.readFileSync(readPath, 'utf8'));
       for (const [tableName, items] of Object.entries(data)) {
         const tableMap = new Map<string, any>();
         if (Array.isArray(items)) {
@@ -63,9 +62,7 @@ function scheduleFlush(): void {
 export function flushToDisk(): void {
   if (!isDirty) return;
   try {
-    if (!fs.existsSync(RUNTIME_DIR)) {
-      fs.mkdirSync(RUNTIME_DIR, { recursive: true });
-    }
+    ensureRuntimeRootSync();
     const serialized: Record<string, any[]> = {};
     for (const [table, map] of inMemoryTables.entries()) {
       serialized[table] = Array.from(map.values());
@@ -76,6 +73,7 @@ export function flushToDisk(): void {
     // Disk sync failure must never crash the service
   }
 }
+
 
 initCacheFromDisk();
 

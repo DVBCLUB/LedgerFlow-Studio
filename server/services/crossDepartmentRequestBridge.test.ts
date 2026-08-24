@@ -5,6 +5,7 @@ import {
   respondToCrossDeptRequest,
   completeCrossDeptRequest,
   listCrossDeptRequests,
+  autoOrchestrateClosedDeal,
   __resetCrossDeptRequestsForTesting,
 } from './crossDepartmentRequestBridge.ts';
 
@@ -49,6 +50,21 @@ describe('crossDepartmentRequestBridge - Cross-Department Collaboration', () => 
 
     const completed = completeCrossDeptRequest(req.requestId, 'Rà soát hoàn tất, không có lỗ hổng.');
     assert.equal(completed.status, 'COMPLETED');
+  });
+
+  it('orchestrates closed sales deal to auto-provision customer, delivery task, and invoice', async () => {
+    const result = await autoOrchestrateClosedDeal({
+      dealId: 'deal_enterprise_99',
+      customerName: 'VinTech Solutions',
+      customerEmail: 'cto@vintech.local',
+      amountVnd: 75_000_000,
+      productName: 'LedgerFlow Enterprise Hub',
+    });
+
+    assert.ok(result.customerId.startsWith('cust_'));
+    assert.ok(result.taskId.startsWith('task_delivery_'));
+    assert.ok(result.invoiceId.startsWith('inv_'));
+    assert.ok(result.crossDeptRequestId.startsWith('xdept_'));
   });
 
   it('lists cross-department requests with filters', () => {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
-import { getAgentToolContract, listAgentToolContracts } from './agentToolRegistry';
+import { getAgentToolContract, listAgentToolContracts } from './agentToolRegistry.ts';
 
 export type CompanyOsSource = 'founder' | 'n8n' | 'telegram' | 'openclaw' | 'dashboard' | 'system' | 'accounting' | 'documents';
 export type CompanyOsRisk = 'low' | 'medium' | 'high' | 'blocked';

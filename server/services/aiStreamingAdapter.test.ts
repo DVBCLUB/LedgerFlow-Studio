@@ -1,27 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import { streamAICompletion, streamAIResponseToCallback } from './aiStreamingAdapter.ts';
 
-describe('aiStreamingAdapter', () => {
-  it('streams completion tokens via AsyncGenerator', async () => {
-    const chunks: string[] = [];
-    for await (const chunk of streamAICompletion([{ role: 'user', content: 'Say hello world' }], { simulatedChunkDelayMs: 0 })) {
-      chunks.push(chunk.text);
-    }
+test('aiStreamingAdapter - streams completion tokens via AsyncGenerator', async () => {
+  const chunks: string[] = [];
+  for await (const chunk of streamAICompletion([{ role: 'user', content: 'Say hello world' }], { simulatedChunkDelayMs: 0 })) {
+    chunks.push(chunk.text);
+  }
 
-    expect(chunks.length).toBeGreaterThan(0);
-    const text = chunks.join('');
-    expect(text.length).toBeGreaterThan(0);
-  });
-
-  it('streams response to callback handler', async () => {
-    const receivedChunks: string[] = [];
-    const fullText = await streamAIResponseToCallback(
-      [{ role: 'user', content: 'Count to 3' }],
-      (chunk) => receivedChunks.push(chunk.text),
-      { simulatedChunkDelayMs: 0 }
-    );
-
-    expect(receivedChunks.length).toBeGreaterThan(0);
-    expect(fullText).toBe(receivedChunks.join(''));
-  });
+  assert.ok(chunks.length > 0);
+  const text = chunks.join('');
+  assert.ok(text.length > 0);
 });
+
+test('aiStreamingAdapter - streams response to callback handler', async () => {
+  const receivedChunks: string[] = [];
+  const fullText = await streamAIResponseToCallback(
+    [{ role: 'user', content: 'Count to 3' }],
+    (chunk) => receivedChunks.push(chunk.text),
+    { simulatedChunkDelayMs: 0 }
+  );
+
+  assert.ok(receivedChunks.length > 0);
+  assert.equal(fullText, receivedChunks.join(''));
+});
+

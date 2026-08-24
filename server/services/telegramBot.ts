@@ -21,9 +21,9 @@
  */
 
 import fs from "node:fs";
-import type { PendingSuggestion } from "./assistant-daemon.types";
-import { callAI } from "./aiClient";
-import { diagnoseAIRouter } from "./aiRouter";
+import type { PendingSuggestion } from "./assistant-daemon.types.ts";
+import { callAI } from "./aiClient.ts";
+import { diagnoseAIRouter } from "./aiRouter.ts";
 import {
   readFileForAI,
   readDirectoryForAI,
@@ -31,14 +31,14 @@ import {
   createFile,
   rollbackFile,
   resolveAndValidate,
-} from "./safeFileManager";
+} from "./safeFileManager.ts";
 import {
   buildCodingPrompt,
   getCodingAIOptions,
   parseAICodeResponse,
   detectTaskFromInstruction,
-} from "./codingContext";
-import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands";
+} from "./codingContext.ts";
+import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands.ts";
 import { subscribe } from "./agentEventBus.ts";
 import { getAgentRun, approveAgentRunStep, rejectAgentRunStep } from "./agentRuntime.ts";
 import { respondToApprovalRequest, type ApprovalRequest } from "./humanApprovalGateway.ts";

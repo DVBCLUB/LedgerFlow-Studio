@@ -20,3 +20,8 @@ export const AICommandCenterHubPanel = React.lazy(() => import('../../modules/ai
 export const AutonomousSweAgentLoopPanel = React.lazy(() => import('../../modules/ai-nhan-su/AutonomousSweAgentLoopPanel'));
 export const AIOutputQualityReview = React.lazy(() => import('../../modules/ai-nhan-su/AIOutputQualityReview'));
 export const AIWorkforceRobotAutomationBridge = React.lazy(() => import('../../modules/ai-nhan-su/AIWorkforceRobotAutomationBridge'));
+export const FactoryPerformanceDashboard = React.lazy(() => import('../../modules/ai-nhan-su/FactoryPerformanceDashboard'));
+export const AgentROIDashboard = React.lazy(() => import('../../modules/ai-nhan-su/AgentROIDashboard'));
+export const MultiFactoryDashboard = React.lazy(() => import('../../modules/ai-nhan-su/MultiFactoryDashboard'));
+export const TelegramBotControlPanel = React.lazy(() => import('../../modules/ai-nhan-su/TelegramBotControlPanel'));
+export const AgentKernelPanel = React.lazy(() => import('../../modules/ai-nhan-su/AgentKernelPanel'));

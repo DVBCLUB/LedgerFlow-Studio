@@ -10,9 +10,10 @@
 import fs from 'fs';
 import path from 'path';
 import { randomUUID } from 'node:crypto';
-import { dispatchTextThroughFabric } from './aiFabric';
-import { searchCodebase } from './localSearchService';
-import { appendAuditEvent } from './auditLog';
+import { dispatchTextThroughFabric } from './aiFabric.ts';
+import { searchCodebase } from './localSearchService.ts';
+import { appendAuditEvent } from './auditLog.ts';
+import { publishSystemEvent } from './crossSystemEventBus.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface DocTarget {
@@ -207,4 +208,56 @@ export function listGeneratedDocs(): string[] {
     if (!fs.existsSync(OUT_DIR)) return [];
     return fs.readdirSync(OUT_DIR).filter(f => f.endsWith('.md'));
   } catch { return []; }
+}
+
+/**
+ * Compiles a comprehensive live Mermaid architecture map for LedgerFlow Studio Company OS.
+ */
+export function generateSystemArchitectureMermaidMap(): string {
+  return `\`\`\`mermaid
+graph TD
+    subgraph UI_Workspaces["UI Core Workspaces (12 Lanes)"]
+        CC[Command Center]
+        KL[Knowledge Library]
+        PS[Product Studio]
+        MG[Marketing & Growth]
+        SC[Sales & CRM]
+        FA[Finance & Accounting]
+        PD[Projects & Delivery]
+        DA[Documents & Approval]
+        WF[AI Workforce Operations]
+        AN[Analytics Sandbox]
+        IH[Integration Hub]
+        SS[System Settings]
+    end
+
+    subgraph Core_Engines["Core Autonomous Engines"]
+        EB[Universal Event Bus]
+        DB[Business Data Service / SQLite]
+        BR[Executive Boardroom Standup]
+        SWE[Autonomous SWE Agent Sandbox]
+        GAP[Game Asset Pipeline]
+        VPP[Video Production Pipeline]
+        VQR[VietQR & Bank Reconciler]
+    end
+
+    subgraph Security_Gate["Security & Guardrails Layer"]
+        KV[AI Key Vault AES-256]
+        CB[Circuit Breaker & Quarantine]
+        IAM[Least-Privilege & NHI Tokens]
+        D13[NĐ 13 Privacy Masker]
+    end
+
+    CC --> BR
+    SC -->|sales.deal_closed| EB
+    EB --> PD
+    EB --> FA
+    FA --> VQR
+    PS --> SWE
+    PS --> GAP
+    MG --> VPP
+    WF --> SWE
+    SWE --> Security_Gate
+    Security_Gate --> DB
+\`\`\``;
 }

@@ -30,7 +30,8 @@ describe('API Integration - Connectors & External Gateway', () => {
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.success, true);
-      assert.ok(Array.isArray(data.radar));
+      assert.ok(Array.isArray(data.radar?.competitors));
     });
   });
+
 });

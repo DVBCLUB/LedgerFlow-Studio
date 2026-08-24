@@ -1,23 +1,23 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import {
   getTelegramBotConfig,
   executeTelegramCommand,
 } from './mobileMissionTelegramBot.ts';
 
-describe('mobileMissionTelegramBot', () => {
-  it('loads telegram bot configuration', async () => {
-    const config = await getTelegramBotConfig();
-    expect(config.enabled).toBe(true);
-    expect(config.totalCommandsProcessed).toBeGreaterThan(0);
-  });
-
-  it('executes mobile telegram commands and returns format reply', async () => {
-    const res = await executeTelegramCommand('/status');
-    expect(res.success).toBe(true);
-    expect(res.replyText).toContain('Doanh thu');
-
-    const res2 = await executeTelegramCommand('/render_tiktok');
-    expect(res2.success).toBe(true);
-    expect(res2.replyText).toContain('AI Media Director');
-  });
+test('mobileMissionTelegramBot - loads telegram bot configuration', async () => {
+  const config = await getTelegramBotConfig();
+  assert.equal(config.enabled, true);
+  assert.ok(config.totalCommandsProcessed > 0);
 });
+
+test('mobileMissionTelegramBot - executes mobile telegram commands and returns format reply', async () => {
+  const res = await executeTelegramCommand('/status');
+  assert.equal(res.success, true);
+  assert.ok(res.replyText.includes('Doanh thu'));
+
+  const res2 = await executeTelegramCommand('/render_tiktok');
+  assert.equal(res2.success, true);
+  assert.ok(res2.replyText.includes('AI Media Director'));
+});
+

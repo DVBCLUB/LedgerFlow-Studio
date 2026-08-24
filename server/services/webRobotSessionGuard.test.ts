@@ -1,22 +1,22 @@
-import { describe, it, expect } from 'vitest';
+import test from 'node:test';
+import assert from 'node:assert/strict';
 import {
   listWebRobotSessions,
   refreshRobotSession,
 } from './webRobotSessionGuard.ts';
 
-describe('webRobotSessionGuard', () => {
-  it('loads managed web robot session statuses', async () => {
-    const sessions = await listWebRobotSessions();
-    expect(sessions.length).toBeGreaterThan(0);
-    expect(sessions[0].sessionStatus).toBe('HEALTHY');
-  });
-
-  it('refreshes web robot session keep-alive status', async () => {
-    const sessions = await listWebRobotSessions();
-    const target = sessions[0];
-
-    const refreshed = await refreshRobotSession(target.id);
-    expect(refreshed?.lastKeepAliveAt).toBe('Vừa xong');
-    expect(refreshed?.sessionStatus).toBe('HEALTHY');
-  });
+test('webRobotSessionGuard - loads managed web robot session statuses', async () => {
+  const sessions = await listWebRobotSessions();
+  assert.ok(sessions.length > 0);
+  assert.equal(sessions[0].sessionStatus, 'HEALTHY');
 });
+
+test('webRobotSessionGuard - refreshes web robot session keep-alive status', async () => {
+  const sessions = await listWebRobotSessions();
+  const target = sessions[0];
+
+  const refreshed = await refreshRobotSession(target.id);
+  assert.equal(refreshed?.lastKeepAliveAt, 'Vừa xong');
+  assert.equal(refreshed?.sessionStatus, 'HEALTHY');
+});
+

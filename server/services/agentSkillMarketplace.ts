@@ -117,31 +117,29 @@ const PRESET_SKILLS: SkillManifest[] = [
 
 // ─── Storage ──────────────────────────────────────────────────────────────────
 
-let store: SkillStore = { skills: {}, pipelines: {}, versions: {} };
+let store: SkillStore = {
+  skills: Object.fromEntries(PRESET_SKILLS.map((s) => [s.id, s])),
+  pipelines: {},
+  versions: {},
+};
 let writeQueue = Promise.resolve();
 
 function storageFile() {
   return resolveRuntimePathFromEnv('SKILL_MARKETPLACE_FILE', 'agent_skill_marketplace.local.enc');
 }
 
+let storeLoaded = false;
+
 async function loadStore(): Promise<SkillStore> {
+  if (storeLoaded) return store;
+  storeLoaded = true;
   const parsed = await readSecureJson<SkillStore>(storageFile(), { skills: {}, pipelines: {}, versions: {} });
-  store = {
-    skills: parsed.skills || {},
-    pipelines: parsed.pipelines || {},
-    versions: parsed.versions || {},
-  };
-
-  // Seed presets if store is empty
-  if (Object.keys(store.skills).length === 0) {
-    for (const preset of PRESET_SKILLS) {
-      store.skills[preset.id] = preset;
-    }
-    await saveStore();
-  }
-
+  store.skills = { ...store.skills, ...(parsed.skills || {}) };
+  store.pipelines = { ...store.pipelines, ...(parsed.pipelines || {}) };
+  store.versions = { ...store.versions, ...(parsed.versions || {}) };
   return store;
 }
+
 
 async function saveStore(): Promise<void> {
   await writeSecureJson(storageFile(), store);

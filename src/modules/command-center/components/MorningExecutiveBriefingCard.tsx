@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { Sun, CheckCircle2, Clock, ShieldAlert, Sparkles, ArrowRight, TrendingUp, Play, Check, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sun, CheckCircle2, Clock, ShieldAlert, Sparkles, ArrowRight, TrendingUp, Play, Check, X, Volume2, Bot } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
+import { fetchDailyStandupBriefing, type DailyStandupBriefing } from '../../../utils/businessApi';
 
 export interface PendingApprovalItem {
   id: string;
@@ -14,6 +15,14 @@ export interface PendingApprovalItem {
 }
 
 export default function MorningExecutiveBriefingCard() {
+  const [standup, setStandup] = useState<DailyStandupBriefing | null>(null);
+  const [showSpeech, setShowSpeech] = useState(false);
+
+  useEffect(() => {
+    fetchDailyStandupBriefing()
+      .then((b) => setStandup(b))
+      .catch(() => undefined);
+  }, []);
   const [approvals, setApprovals] = useState<PendingApprovalItem[]>(() => [
     {
       id: 'appr_1',
@@ -102,6 +111,31 @@ export default function MorningExecutiveBriefingCard() {
             <TrendingUp className="w-4 h-4 text-emerald-400" />
           </div>
         </div>
+
+        {/* AI Executive Standup Live Banner */}
+        {standup && (
+          <div className="mt-3 p-3 bg-indigo-950/30 border border-indigo-500/20 rounded-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-indigo-400" />
+                <span className="text-xs font-semibold text-indigo-200">Giao ban Ban Điều hành AI (Điểm sẵn sàng: {standup.overallReadinessScore}/100)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSpeech((prev) => !prev)}
+                className="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 cursor-pointer bg-indigo-500/10 px-2 py-0.5 rounded"
+              >
+                <Volume2 className="w-3.5 h-3.5" />
+                {showSpeech ? 'Ẩn kịch bản nói' : 'Nghe tóm tắt Voice'}
+              </button>
+            </div>
+            {showSpeech && (
+              <p className="text-[11px] text-slate-300 mt-2 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800 italic">
+                "{standup.audioSpeechScript}"
+              </p>
+            )}
+          </div>
+        )}
 
         {/* 3 Quick Approval Items */}
         <div className="mt-4">

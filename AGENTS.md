@@ -173,9 +173,14 @@ Rules:
 npm install
 npm run lint
 npm run build
+npm run check:wiring    # mandatory wiring gate (route → UI → service → test)
+npm run wiring:graph     # classify every service/module (wired/dormant/daemon-only/dead)
+npm run wiring:baseline  # update the wiring baseline after review
 npm run ai:doctor
 npm run desktop:dist
 ```
+
+Builds are read-only: `predev` / `prebuild` / `prelint` do NOT run any `ai:patch-*` source-mutating scripts. The patch scripts remain as manual-only tools (`npm run ai:patch-*`). The wiring baseline lives in `artifacts/wiring-baseline.json`; `check:wiring` blocks new sleeping code (`dead`/`test-only`/`script-only`) and wiring regressions.
 
 For local development:
 
@@ -200,7 +205,7 @@ When adding or editing features:
 3. Keep backend secrets server-side only.
 4. Do not rename or move files unless imports and docs are updated.
 5. Update docs when adding new connector behavior.
-6. Run `npm run lint` and `npm run build`.
+6. Run `npm run lint`, `npm run check:wiring`, and `npm run build`.
 7. If desktop code changed, run or update `npm run check:desktop` / `npm run desktop:dist`.
 
 ## Naming conventions

@@ -53,15 +53,19 @@ function storageFile(): string {
   return resolveRuntimePathFromEnv('CLOUD_WORKERS_FILE', 'agent_cloud_workers.json');
 }
 
+let storeLoaded = false;
+
 async function loadStore(): Promise<void> {
+  if (storeLoaded) return;
+  storeLoaded = true;
   try {
     const file = storageFile();
     if (fs.existsSync(file)) {
       const parsed = JSON.parse(await fs.promises.readFile(file, 'utf8'));
-      store = { tasks: parsed.tasks || {} };
+      store.tasks = { ...(parsed.tasks || {}), ...store.tasks };
     }
   } catch {
-    store = { tasks: {} };
+    // Keep in-memory
   }
 }
 
@@ -78,7 +82,7 @@ function queueSave(): void {
 
 loadStore().catch(() => undefined);
 
-// ─── Core Worker Queue Engine ─────────────────────────────────────────────────
+
 
 export async function enqueueCloudAgentTask(input: {
   title: string;

@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { appendIntegrationEvent } from "./integrationRegistry";
-import { appendCompanyOsEvent } from "./companyOsControlPlane";
+import { appendIntegrationEvent } from "./integrationRegistry.ts";
+import { appendCompanyOsEvent } from "./companyOsControlPlane.ts";
 
 const MEDIA_DIR = path.join(process.cwd(), ".media_pipeline");
 const CALENDAR_FILE = path.join(MEDIA_DIR, "calendar.json");

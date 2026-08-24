@@ -15,6 +15,9 @@ import { getPerformanceDashboard, listAllPerformanceRecords, getAgentPerformance
 import { retryJob, purgeJob } from './backgroundJobQueue.ts';
 import { triggerAutoRepairSession, getAutoRepairSession, listAutoRepairSessions } from './agentAutoRepairEngine.ts';
 import { triggerAutoHealingMission } from './autonomousSweAgentLoop.ts';
+import { evolveAgentPromptGeneration, getGeneticPromptData } from './geneticPromptMutationEngine.ts';
+import { evolvePromptsForRole, getPromptEvolutionSummary } from './geneticPromptEvolution.ts';
+import { runPBFTLite, assembleDefaultReplicas, deriveDemoVotes } from './bftConsensus.ts';
 
 const enqueueLoopSchema = z.object({
   goal: z.string().min(3, 'goal is required'),
@@ -36,6 +39,38 @@ const getBestAgentSchema = z.object({
 });
 
 export function registerAgentLoopRoutes(app: Express): void {
+  // ── Genetic Prompt Evolution ──
+  app.get('/api/agent/genetic/data', (_req: Request, res: Response) => {
+    res.json({ success: true, data: getGeneticPromptData(), summary: getPromptEvolutionSummary() });
+  });
+
+  app.post('/api/agent/genetic/evolve', (req: Request, res: Response) => {
+    const role = String(req.body?.role || req.body?.agentName || 'general').trim();
+    const generations = Number(req.body?.maxGenerations);
+    const cfg = Number.isFinite(generations) && generations > 0 ? { maxGenerations: Math.min(50, Math.max(1, Math.floor(generations))) } : {};
+    const result = evolvePromptsForRole(role, cfg);
+    res.json({
+      success: true,
+      result: {
+        role: result.role,
+        champion: result.champion,
+        generationsRun: result.generationsRun,
+        initialAvgFitness: result.initialAvgFitness,
+        finalAvgFitness: result.finalAvgFitness,
+        improvementPercent: result.improvementPercent,
+      },
+    });
+  });
+
+  // ── Byzantine Fault Tolerant Consensus (PBFT-lite) ──
+  app.post('/api/agent/consensus/bft', (req: Request, res: Response) => {
+    const roles = Array.isArray(req.body?.roles) && req.body.roles.length ? req.body.roles.map(String) : undefined;
+    const replicas = assembleDefaultReplicas(roles);
+    const votes = Array.isArray(req.body?.votes) ? req.body.votes : deriveDemoVotes(replicas);
+    const decision = runPBFTLite(replicas, votes, { proposalId: req.body?.topic });
+    res.json({ success: true, decision });
+  });
+
   // ── Agent Loop Background Jobs ──
   app.post('/api/agent/loop/enqueue', async (req: Request, res: Response) => {
     try {

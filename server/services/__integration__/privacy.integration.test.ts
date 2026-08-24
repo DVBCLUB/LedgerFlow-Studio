@@ -36,7 +36,8 @@ describe('API Integration - Vietnamese Privacy Masker (Nghị định 13/2023/N�
       assert.equal(res.status, 200);
       const data: any = await res.json();
       assert.equal(data.success, true);
-      assert.ok(data.turn.aiResponseText);
+      assert.ok(data.turn.aiSpokenResponseVi);
     });
   });
+
 });

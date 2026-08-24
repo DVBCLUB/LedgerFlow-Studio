@@ -27,6 +27,7 @@ import {
   Gamepad2,
   Film,
   Code2,
+  Headphones,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -55,6 +56,14 @@ import CloudHybridWorkflowStatusPanel from '../../components/shared/CloudHybridW
 import MasterSystemHealthDashboard from '../../components/shared/MasterSystemHealthDashboard';
 import ExecutiveBoardroomPanel from '../analytics-models-sandbox/ExecutiveBoardroomPanel';
 import EnterpriseControlCenterPanel from '../../components/enterprise/EnterpriseControlCenterPanel';
+import ExecutiveEarphoneModeModal from './components/ExecutiveEarphoneModeModal';
+import SystemOSStateMap from './components/SystemOSStateMap';
+import HITLApprovalInboxPanel from '../../components/shared/HITLApprovalInboxPanel';
+import NaturalLanguageCommandBar from './components/NaturalLanguageCommandBar';
+import LiveCompanyPulseBar from '../../components/shared/LiveCompanyPulseBar';
+import UnifiedActivityStreamPanel from './components/UnifiedActivityStreamPanel';
+import CompanyCalendarPanel from './components/CompanyCalendarPanel';
+import DepartmentHealthPanel from './components/DepartmentHealthPanel';
 import { useLanguage } from '../../context/LanguageContext';
 import { formatMoneyVN, formatNumberVN } from '../../utils/excelFormatters';
 
@@ -73,7 +82,18 @@ type DailyCommandSnapshot = {
   loadedAt: string;
 };
 
-type ViewMode = 'today' | 'boardroom' | 'finance' | 'ai_ops' | 'risk_kpi' | 'enterprise';
+type ViewMode =
+  | 'today'
+  | 'inbox'
+  | 'topology'
+  | 'activity_stream'
+  | 'calendar'
+  | 'dept_health'
+  | 'boardroom'
+  | 'finance'
+  | 'ai_ops'
+  | 'risk_kpi'
+  | 'enterprise';
 
 export default function CEOOverviewPanel() {
   const { t } = useLanguage();
@@ -84,6 +104,7 @@ export default function CEOOverviewPanel() {
   const [dailyLoading, setDailyLoading] = useState(false);
   const [dailyError, setDailyError] = useState('');
   const [emergencyStopped, setEmergencyStopped] = useState<boolean>(false);
+  const [isEarphoneOpen, setIsEarphoneOpen] = useState(false);
 
   // Decision Queue Interactive State
   const [decisionsState, setDecisionsState] = useState<Record<string, 'approved' | 'rejected' | 'pending'>>(() => {
@@ -273,6 +294,16 @@ export default function CEOOverviewPanel() {
               <span>{emergencyStopped ? '🚨 AI STOPPED' : '✓ AI ACTIVE'}</span>
             </button>
 
+            {/* Executive Voice Earphone Mode */}
+            <button
+              type="button"
+              onClick={() => setIsEarphoneOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-500/40 bg-indigo-950/50 hover:bg-indigo-900/60 text-indigo-300 text-xs font-bold transition-all cursor-pointer shadow-md"
+            >
+              <Headphones className="h-3.5 w-3.5 animate-pulse" />
+              <span>Tai nghe AI</span>
+            </button>
+
             {/* Quick Refresh */}
             <Button
               onClick={() => void refreshDailySnapshot()}
@@ -298,13 +329,23 @@ export default function CEOOverviewPanel() {
           </div>
         </div>
 
+        {/* Phase 7: Real-Time SSE Company Pulse Bar */}
+        <div className="mt-4">
+          <LiveCompanyPulseBar />
+        </div>
+
+        {/* Level 6 Upgrade: Natural Language AI OS Command Bar */}
+        <div className="mt-3">
+          <NaturalLanguageCommandBar />
+        </div>
+
         {/* Dynamic Mode Switcher Bar */}
-        <div className="mt-5 pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-1.5 bg-slate-950/80 p-1.5 rounded-2xl border border-slate-800">
             <button
               type="button"
               onClick={() => setViewMode('today')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 viewMode === 'today'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
@@ -312,6 +353,69 @@ export default function CEOOverviewPanel() {
             >
               <Zap className="h-3.5 w-3.5" />
               <span>{t('ceo.mode.today', '1. Việc cần chốt hôm nay')}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('activity_stream')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                viewMode === 'activity_stream'
+                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <Activity className="h-3.5 w-3.5" />
+              <span>⚡ Dòng sự kiện (Pulse)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('calendar')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                viewMode === 'calendar'
+                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span>📅 Lịch Vận Hành</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('dept_health')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                viewMode === 'dept_health'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <ShieldCheck className="h-3.5 w-3.5" />
+              <span>📊 Sức Khỏe 5 Khối</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('inbox')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                viewMode === 'inbox'
+                  ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <span>✋ Duyệt HITL</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setViewMode('topology')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                viewMode === 'topology'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              }`}
+            >
+              <span>🌐 Neural Topology</span>
             </button>
 
             <button
@@ -674,6 +778,41 @@ export default function CEOOverviewPanel() {
               </div>
             </Card>
           </div>
+        </div>
+      )}
+
+      {/* MODE: DUYỆT QUYẾT ĐỊNH (HITL APPROVAL INBOX) */}
+      {viewMode === 'inbox' && (
+        <div className="space-y-6 animate-fade-in">
+          <HITLApprovalInboxPanel />
+        </div>
+      )}
+
+      {/* MODE: UNIFIED ACTIVITY STREAM (PULSE) */}
+      {viewMode === 'activity_stream' && (
+        <div className="space-y-6 animate-fade-in">
+          <UnifiedActivityStreamPanel />
+        </div>
+      )}
+
+      {/* MODE: COMPANY OPERATING CALENDAR */}
+      {viewMode === 'calendar' && (
+        <div className="space-y-6 animate-fade-in">
+          <CompanyCalendarPanel />
+        </div>
+      )}
+
+      {/* MODE: 360-DEGREE DEPARTMENT HEALTH */}
+      {viewMode === 'dept_health' && (
+        <div className="space-y-6 animate-fade-in">
+          <DepartmentHealthPanel />
+        </div>
+      )}
+
+      {/* MODE: NEURAL TOPOLOGY OS STATE MAP */}
+      {viewMode === 'topology' && (
+        <div className="space-y-6 animate-fade-in">
+          <SystemOSStateMap />
         </div>
       )}
 
@@ -1143,6 +1282,12 @@ export default function CEOOverviewPanel() {
           <EnterpriseControlCenterPanel />
         </div>
       )}
+
+      {/* Executive Voice Earphone Mode Hands-Free Modal */}
+      <ExecutiveEarphoneModeModal
+        isOpen={isEarphoneOpen}
+        onClose={() => setIsEarphoneOpen(false)}
+      />
     </div>
   );
 }

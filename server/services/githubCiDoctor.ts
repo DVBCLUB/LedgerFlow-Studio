@@ -1,5 +1,5 @@
-import { callAI } from "./aiClient";
-import { appendIntegrationEvent } from "./integrationRegistry";
+import { callAI } from "./aiClient.ts";
+import { appendIntegrationEvent } from "./integrationRegistry.ts";
 
 const DEFAULT_REPO = "DVBCLUB/LedgerFlow-Studio";
 const GITHUB_API = "https://api.github.com";

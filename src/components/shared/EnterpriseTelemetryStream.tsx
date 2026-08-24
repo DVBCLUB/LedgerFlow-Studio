@@ -45,10 +45,37 @@ export default function EnterpriseTelemetryStream() {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    // Connect to live SSE stream if available
+    let es: EventSource | null = null;
+    try {
+      es = new EventSource('/api/ai-workforce/stream');
+      es.addEventListener('health', (e) => {
+        try {
+          const snapshot = JSON.parse(e.data);
+          if (snapshot?.status) {
+            setEvents((prev) => [
+              {
+                id: `evt_live_${Date.now()}`,
+                time: 'Vừa xong',
+                type: 'ai',
+                message: `AI Workforce Hub: ${snapshot.totalEmployees || 5} nhân sự ảo đang hoạt động`,
+                badge: 'Live Stream',
+              },
+              ...prev.slice(0, 5),
+            ]);
+          }
+        } catch { /* ignore */ }
+      });
+    } catch { /* ignore */ }
+
     const timer = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % events.length);
+      setCurrentIndex((prev) => (prev + 1) % (events.length || 1));
     }, 4500);
-    return () => clearInterval(timer);
+
+    return () => {
+      clearInterval(timer);
+      if (es) es.close();
+    };
   }, [events.length]);
 
   const currentEvt = events[currentIndex];

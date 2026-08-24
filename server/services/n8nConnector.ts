@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
-import { appendIntegrationEvent } from "./integrationRegistry";
-import { appendCompanyOsEvent } from "./companyOsControlPlane";
+import { appendIntegrationEvent } from "./integrationRegistry.ts";
+import { appendCompanyOsEvent } from "./companyOsControlPlane.ts";
 
 const N8N_DIR = path.join(process.cwd(), ".n8n_workflows");
 const TEMPLATES_SUBDIR = path.join(N8N_DIR, "Templates");

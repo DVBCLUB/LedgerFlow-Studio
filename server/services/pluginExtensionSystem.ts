@@ -8,7 +8,7 @@
 import { randomUUID } from 'node:crypto';
 import fs from 'fs';
 import path from 'path';
-import { appendAuditEvent } from './auditLog';
+import { appendAuditEvent } from './auditLog.ts';
 import { auditPluginInvocationDecision, decidePluginInvocation } from './pluginInvocationBoundary.ts';
 
 // ─── Types ──────────────────────────────────────────────────────────

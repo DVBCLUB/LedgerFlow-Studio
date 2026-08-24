@@ -20,6 +20,7 @@ import { retrieveLessons, getLearningStats, exportLessonsForFinetune, syncLesson
 import { exportIdeContext, generateCrossPlatformAppBlueprint, generatePcAndMobileGamePackage, generateAiEndToEndVideoSpec, getNexusSystemHealth } from './unifiedAiRobotNexus.ts';
 import { scanLeadsAndProposeFollowups } from './crmAiScoutService.ts';
 import { calculateAiRoiSummary } from './aiRoiAnalytics.ts';
+import { meshLatencyHistogram, getEventLog, getSubscriberCount, flushEventLog } from './agentEventBus.ts';
 
 export function registerConnectorIntegrationRoutes(app: Express): void {
   // ── System Events & Telemetry ──
@@ -33,6 +34,15 @@ export function registerConnectorIntegrationRoutes(app: Express): void {
 
   app.get('/api/system/telemetry/diagnostics', (_req: Request, res: Response) => {
     res.json({ success: true, diagnostics: generateDiagnosticsSnapshot() });
+  });
+
+  app.get('/api/agent/mesh/metrics', (_req: Request, res: Response) => {
+    res.json({ success: true, metrics: meshLatencyHistogram(), subscribers: getSubscriberCount(), logSize: getEventLog(1000).length });
+  });
+
+  app.post('/api/agent/mesh/flush', async (_req: Request, res: Response) => {
+    await flushEventLog();
+    res.json({ success: true });
   });
 
   app.get('/api/system/telemetry/subscribe', (req: Request, res: Response) => {
