@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getBillingData, processCharge, processDunning } from '../../utils/businessInsightsApi';
 type Status = 'active' | 'past_due' | 'suspended' | 'cancelled';
 interface Sub { id: string; tenantName: string; plan: string; status: Status; mrrVnd: number; nextBillingDate: string; failedAttempts: number; }
 const SUBS: Sub[] = [
@@ -11,7 +12,19 @@ const STATUS_COLORS: Record<Status, string> = { active: '#4ade80', past_due: '#f
 
 export default function SubscriptionBillingPanel() {
   const [charged, setCharged] = useState<string | null>(null);
-  const totalMrr = SUBS.filter(s => s.status === 'active').reduce((a, s) => a + s.mrrVnd, 0);
+  const [subs, setSubs] = useState<Sub[]>(SUBS);
+
+  useEffect(() => {
+    getBillingData()
+      .then((d) => {
+        if (d.subscriptions?.length) {
+          setSubs(d.subscriptions.map((s) => ({ id: s.id, tenantName: s.tenantName, plan: s.plan, status: s.status, mrrVnd: s.mrrVnd, nextBillingDate: s.nextBillingDate, failedAttempts: s.failedAttempts })));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const totalMrr = subs.filter(s => s.status === 'active').reduce((a, s) => a + s.mrrVnd, 0);
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -23,8 +36,8 @@ export default function SubscriptionBillingPanel() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
         {[
           { label: 'Total MRR', value: '₫' + (totalMrr / 1_000_000).toFixed(1) + 'M' },
-          { label: 'Active Subs', value: String(SUBS.filter(s => s.status === 'active').length) },
-          { label: 'Past Due', value: String(SUBS.filter(s => s.status === 'past_due').length) },
+          { label: 'Active Subs', value: String(subs.filter(s => s.status === 'active').length) },
+          { label: 'Past Due', value: String(subs.filter(s => s.status === 'past_due').length) },
         ].map(c => (
           <div key={c.label} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.label}</div>
@@ -44,7 +57,7 @@ export default function SubscriptionBillingPanel() {
             </tr>
           </thead>
           <tbody>
-            {SUBS.map(s => (
+            {subs.map(s => (
               <tr key={s.id} style={{ borderBottom: '1px solid #1e293b' }}>
                 <td style={{ padding: '0.75rem 1rem', color: '#e2e8f0', fontWeight: 600 }}>{s.tenantName}</td>
                 <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>{s.plan}</td>
@@ -56,7 +69,7 @@ export default function SubscriptionBillingPanel() {
                 <td style={{ padding: '0.75rem 1rem', color: '#4ade80', fontWeight: 600 }}>₫{(s.mrrVnd / 1_000_000).toFixed(2)}M</td>
                 <td style={{ padding: '0.75rem 1rem', color: s.status === 'past_due' ? '#fbbf24' : '#94a3b8' }}>{s.nextBillingDate}</td>
                 <td style={{ padding: '0.75rem 1rem' }}>
-                  <button onClick={() => setCharged(s.id)} style={{ background: s.status === 'past_due' ? '#f59e0b' : '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <button onClick={async () => { if (s.status === 'past_due') { await processDunning(s.id).catch(() => {}); } else { await processCharge(s.id).catch(() => {}); } setCharged(s.id); }} style={{ background: s.status === 'past_due' ? '#f59e0b' : '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                     {s.status === 'past_due' ? 'Dunning' : 'Charge'}
                   </button>
                   {charged === s.id && <span style={{ marginLeft: '0.5rem', color: '#4ade80', fontSize: '0.75rem' }}>✅</span>}

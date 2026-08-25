@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-24T16:30:31.314Z",
+  "generatedAt": "2026-08-25T01:44:30.884Z",
   "counts": {
-    "wired": 782,
+    "wired": 784,
     "dormant": 137,
     "daemon-only": 90,
     "test-only": 18,
@@ -777,6 +777,7 @@
     "src/modules/command-center/VirtualAdvisoryCouncilPanel.tsx": "wired",
     "src/modules/command-center/VirtualBranchManagerPanel.tsx": "wired",
     "src/modules/command-center/VoiceCeoCommandPanel.tsx": "wired",
+    "src/modules/command-center/WeeklyExecutiveReportPanel.tsx": "wired",
     "src/modules/dev-ops/AiCodeReviewPrPanel.tsx": "wired",
     "src/modules/dev-ops/ApiFederationGatewayPanel.tsx": "wired",
     "src/modules/dev-ops/ApprovalWorkflow.tsx": "wired",
@@ -1025,6 +1026,7 @@
     "src/utils/assistantApi.ts": "wired",
     "src/utils/browserNotifications.ts": "wired",
     "src/utils/businessApi.ts": "wired",
+    "src/utils/businessInsightsApi.ts": "wired",
     "src/utils/cloudConnectorsApi.ts": "wired",
     "src/utils/coreModulesApi.ts": "wired",
     "src/utils/dbSync.ts": "wired",

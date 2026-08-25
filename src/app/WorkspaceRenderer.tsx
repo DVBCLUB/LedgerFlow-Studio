@@ -170,6 +170,7 @@ const {
 const ApiConnectionHealthMatrix = React.lazy(() => import('../modules/system-settings/components/ApiConnectionHealthMatrix'));
 const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/components/AiAgentControlCenter'));
 const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
+const WeeklyExecutiveReportPanel = React.lazy(() => import('../modules/command-center/WeeklyExecutiveReportPanel'));
 const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
 const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
 const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
@@ -740,6 +741,7 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
       <div className="space-y-5">
         <BusinessHubPanel />
         <CEOOverviewPanel />
+        <WeeklyExecutiveReportPanel />
       </div>
     );
   }

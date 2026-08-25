@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getPredictiveRevenue, type PredictiveRevenueData } from '../../utils/businessInsightsApi';
 const FORECAST = [
   { month: 'Sep 2026', p10: 30.5, p50: 31.8, p90: 33.2 },
   { month: 'Oct 2026', p50: 33.0, p10: 31.4, p90: 34.7 },
@@ -13,6 +14,8 @@ const DRIVERS = [
 export default function PredictiveRevenuePanel() {
   const [churnDelta, setChurnDelta] = useState(5);
   const [scenarioRun, setScenarioRun] = useState(false);
+  const [data, setData] = useState<PredictiveRevenueData | null>(null);
+  useEffect(() => { getPredictiveRevenue().then(setData).catch(() => {}); }, []);
   const impact = -(29760 * churnDelta / 100 * 0.42);
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -22,10 +25,10 @@ export default function PredictiveRevenuePanel() {
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '1rem' }}>
         {[
-          {l:'Current ARR',v:'₫29.76B',c:'#60a5fa'},
-          {l:'Forecast ARR (90d)',v:'₫34.2B',c:'#4ade80'},
-          {l:'Confidence',v:'87.3%',c:'#a78bfa'},
-          {l:'Churn Risk',v:'4.2%',c:'#fbbf24'},
+          {l:'Current ARR',v: data ? '₫' + (data.currentArrVnd / 1e9).toFixed(2) + 'B' : '₫29.76B',c:'#60a5fa'},
+          {l:'Forecast ARR (90d)',v: data ? '₫' + (data.forecastedArrVnd90d / 1e9).toFixed(2) + 'B' : '₫34.2B',c:'#4ade80'},
+          {l:'Confidence',v: data ? data.confidencePercent + '%' : '87.3%',c:'#a78bfa'},
+          {l:'Churn Risk',v: data ? data.churnRiskPercent + '%' : '4.2%',c:'#fbbf24'},
         ].map(c=>(
           <div key={c.l} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.l}</div>
@@ -49,7 +52,7 @@ export default function PredictiveRevenuePanel() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
         <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155' }}>
           <h3 style={{ margin: '0 0 0.75rem', color: '#e2e8f0', fontSize: '1rem' }}>⚡ Key Revenue Drivers</h3>
-          {DRIVERS.map((d, i) => (
+          {(data ? data.keyDrivers.map((d) => ({ d: d.driver, impact: d.impact, mag: d.magnitude })) : DRIVERS).map((d, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid #1e293b', fontSize: '0.8rem' }}>
               <span style={{ color: '#cbd5e1' }}>{d.d}</span>
               <span style={{ fontWeight: 700, color: d.impact === 'positive' ? '#4ade80' : '#f87171', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>{d.mag}</span>
