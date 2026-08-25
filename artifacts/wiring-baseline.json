@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-25T01:50:49.017Z",
+  "generatedAt": "2026-08-25T02:04:32.218Z",
   "counts": {
-    "wired": 786,
+    "wired": 787,
     "dormant": 137,
     "daemon-only": 90,
     "test-only": 18,
@@ -1038,6 +1038,7 @@
     "src/utils/integrationHubApi.ts": "wired",
     "src/utils/mobileBackendConfig.ts": "wired",
     "src/utils/revenueMetrics.ts": "wired",
+    "src/utils/strategicEnginesApi.ts": "wired",
     "src/utils/supabaseSync.ts": "wired",
     "src/utils/treasuryApi.ts": "wired"
   }

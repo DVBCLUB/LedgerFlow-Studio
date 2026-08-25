@@ -1,11 +1,12 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getOkrSystemData } from '../../utils/strategicEnginesApi';
 
 interface KR {
   krId: string;
   title: string;
   progressPercent: number;
   ownerAgent: string;
-  status: 'on_track' | 'at_risk' | 'achieved';
+  status: 'on_track' | 'at_risk' | 'achieved' | 'behind';
 }
 
 interface Objective {
@@ -50,6 +51,12 @@ const OBJECTIVES: Objective[] = [
 
 export default function AutonomousOkrPanel() {
   const [checked, setChecked] = useState(false);
+  const [objectives, setObjectives] = useState<Objective[]>(OBJECTIVES);
+  useEffect(() => {
+    getOkrSystemData().then((d) => {
+      if (d.objectives?.length) setObjectives(d.objectives.map((o) => ({ id: o.id, title: o.title, level: o.level, overallProgressPercent: o.overallProgressPercent, keyResults: o.keyResults })));
+    }).catch(() => {});
+  }, []);
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -85,7 +92,7 @@ export default function AutonomousOkrPanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>🎯 Q3 2026 Strategic Objectives & Key Results</div>
         <div style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {OBJECTIVES.map((obj) => (
+          {objectives.map((obj) => (
             <div key={obj.id} style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #334155' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
                 <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{obj.title}</span>

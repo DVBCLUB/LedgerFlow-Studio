@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getSemanticSearchData, semanticSearch } from '../../utils/strategicEnginesApi';
 const CORPORA = [
   { corpus: 'invoices', docs: 3200, icon: '🧾' },
   { corpus: 'contracts', docs: 1450, icon: '📑' },
@@ -15,7 +16,16 @@ export default function SemanticRagSearchPanel() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<typeof SAMPLE_RESULTS>([]);
   const [searched, setSearched] = useState(false);
-  const handleSearch = () => { if (!query.trim()) return; setResults(SAMPLE_RESULTS); setSearched(true); };
+  const [corpora, setCorpora] = useState(CORPORA);
+  useEffect(() => { getSemanticSearchData().then((d) => { if (d.topCorpora?.length) setCorpora(d.topCorpora.map((c) => ({ corpus: c.corpus, docs: c.docs, icon: '📄' }))); }).catch(() => {}); }, []);
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+    try {
+      const r = await semanticSearch(query.trim());
+      setResults(r.results.map((x) => ({ title: x.title, corpus: x.corpus, score: x.relevanceScore, snippet: x.snippet })));
+    } catch { setResults(SAMPLE_RESULTS); }
+    setSearched(true);
+  };
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#1e3a5f22,#2563eb22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #2563eb44' }}>
@@ -23,7 +33,7 @@ export default function SemanticRagSearchPanel() {
         <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Hybrid Vector + BM25 · 8,742 tài liệu · Latency 38ms · Tiếng Việt thuần</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5,1fr)', gap: '0.75rem' }}>
-        {CORPORA.map(c => (
+        {corpora.map(c => (
           <div key={c.corpus} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '0.875rem', border: '1px solid #334155', textAlign: 'center' }}>
             <div style={{ fontSize: '1.25rem' }}>{c.icon}</div>
             <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.25rem' }}>{c.corpus}</div>

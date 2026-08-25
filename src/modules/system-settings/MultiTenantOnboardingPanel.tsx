@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getOnboardingPipeline, launchOnboarding } from '../../utils/strategicEnginesApi';
 const PIPELINE = [
   { id: 'ten_001', name: 'ABC Logistics VN', plan: 'Enterprise', progress: 83, steps: ['Tạo workspace','Import Excel/MISA','Cấu hình RBAC','Demo AI Swarm','Welcome Call AI','Go-live'], completedSteps: 5, csm: 'AI-CSM-Minh' },
   { id: 'ten_002', name: 'XYZ Retail Group', plan: 'Growth', progress: 50, steps: ['Tạo workspace','Import Excel/MISA','Cấu hình RBAC','Demo AI Swarm','Welcome Call AI','Go-live'], completedSteps: 3, csm: 'AI-CSM-Lan' },
@@ -6,6 +7,12 @@ const PIPELINE = [
 ];
 export default function MultiTenantOnboardingPanel() {
   const [launched, setLaunched] = useState<string | null>(null);
+  const [pipeline, setPipeline] = useState(PIPELINE);
+  useEffect(() => {
+    getOnboardingPipeline().then((d) => {
+      if (d.pipeline?.length) setPipeline(d.pipeline.map((t) => ({ id: t.tenantId, name: t.tenantName, plan: t.plan, progress: t.progressPercent, steps: t.steps.map((s) => s.label), completedSteps: t.steps.filter((s) => s.status === 'done').length, csm: t.assignedCsmAgent })));
+    }).catch(() => {});
+  }, []);
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#0c4a6e22,#0284c722)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #0284c744' }}>
@@ -13,7 +20,7 @@ export default function MultiTenantOnboardingPanel() {
         <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Workspace Setup · Data Import · AI Welcome Call · Go-live Checklist</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '1rem' }}>
-        {[{l:'Avg Completion',v:'7.4 ngày'},{l:'Completion Rate',v:'94.2%'},{l:'Active Onboarding',v:String(PIPELINE.length)}].map(c=>(
+        {[{l:'Avg Completion',v:'7.4 ngày'},{l:'Completion Rate',v:'94.2%'},{l:'Active Onboarding',v:String(pipeline.length)}].map(c=>(
           <div key={c.l} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
             <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.l}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#38bdf8', marginTop: '0.25rem' }}>{c.v}</div>
@@ -21,7 +28,7 @@ export default function MultiTenantOnboardingPanel() {
         ))}
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {PIPELINE.map(t => (
+        {pipeline.map(t => (
           <div key={t.id} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
               <div>
@@ -30,7 +37,7 @@ export default function MultiTenantOnboardingPanel() {
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>CSM: {t.csm}</span>
-                <button onClick={() => setLaunched(t.id)} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                <button onClick={async () => { await launchOnboarding(t.id).catch(() => {}); setLaunched(t.id); }} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                   {launched === t.id ? '✅ Launched' : 'Launch Sequence'}
                 </button>
               </div>
