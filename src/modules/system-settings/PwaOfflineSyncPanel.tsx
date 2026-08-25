@@ -1,9 +1,24 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getPwaSyncStatus, forcePwaSync, type PwaSyncStatus } from '../../utils/aiOpsApi';
 export default function PwaOfflineSyncPanel() {
   const [syncing, setSyncing] = useState(false);
   const [synced, setSynced] = useState(false);
-  const handleSync = () => { setSyncing(true); setTimeout(() => { setSyncing(false); setSynced(true); }, 1500); };
-  const STATUS = { queueDepth: 7, lastSync: '5 phút trước', conflicts: 1, pendingKb: 41.9, clients: 3, version: 'sw-v2.14.0', online: true };
+  const [status, setStatus] = useState<PwaSyncStatus>({ queueDepth: 0, lastSyncAt: null, conflictCount: 0, pendingBytes: 0, connectedClients: 0, serviceWorkerVersion: 'sw-unknown', isOnline: true });
+  useEffect(() => { getPwaSyncStatus().then(setStatus).catch(() => {}); }, []);
+  const handleSync = async () => {
+    setSyncing(true);
+    try { await forcePwaSync(); setSynced(true); } catch { /* offline fallback */ }
+    setSyncing(false);
+  };
+  const STATUS = {
+    queueDepth: status.queueDepth,
+    lastSync: status.lastSyncAt ? new Date(status.lastSyncAt).toLocaleTimeString('vi-VN') : 'chưa sync',
+    conflicts: status.conflictCount,
+    pendingKb: Number((status.pendingBytes / 1024).toFixed(1)),
+    clients: status.connectedClients,
+    version: status.serviceWorkerVersion,
+    online: status.isOnline,
+  };
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#134e4a22,#0d948022)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #0d948044' }}>

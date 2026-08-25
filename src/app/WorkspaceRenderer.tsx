@@ -171,6 +171,7 @@ const ApiConnectionHealthMatrix = React.lazy(() => import('../modules/system-set
 const AiAgentControlCenter = React.lazy(() => import('../modules/command-center/components/AiAgentControlCenter'));
 const FounderBurnoutMonitor = React.lazy(() => import('../modules/command-center/components/FounderBurnoutMonitor'));
 const WeeklyExecutiveReportPanel = React.lazy(() => import('../modules/command-center/WeeklyExecutiveReportPanel'));
+const AiCeoAutopilotPanel = React.lazy(() => import('../modules/command-center/AiCeoAutopilotPanel'));
 const NorthStarMetricBuilder = React.lazy(() => import('../modules/command-center/components/NorthStarMetricBuilder'));
 const OnboardingGuide = React.lazy(() => import('../modules/command-center/components/OnboardingGuide'));
 const AutomationRulesPanel = React.lazy(() => import('../modules/ai-nhan-su/AutomationRulesPanel'));
@@ -711,6 +712,7 @@ function StaticWorkspace({ config, subtab }: { config: StaticWorkspaceConfig; su
 }
 
 function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; staticConfig: StaticWorkspaceConfig }) {
+  if (subtab === 'autopilot' || subtab === 'ceo_autopilot' || subtab === 'decision_cycle') return <AiCeoAutopilotPanel />;
   if (subtab === 'second_brain' || subtab === 'thoughts' || subtab === 'brain') return <FounderSecondBrainPanel />;
   if (subtab === 'advisory_council' || subtab === 'advisors' || subtab === 'council') return <VirtualAdvisoryCouncilPanel />;
   if (subtab === 'mobile_dashboard' || subtab === 'founder_kpi' || subtab === 'ceo_mobile') return <FounderMobileDashboardPanel />;

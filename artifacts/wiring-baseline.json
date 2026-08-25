@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-08-25T01:44:30.884Z",
+  "generatedAt": "2026-08-25T01:50:49.017Z",
   "counts": {
-    "wired": 784,
+    "wired": 786,
     "dormant": 137,
     "daemon-only": 90,
     "test-only": 18,
@@ -753,6 +753,7 @@
     "src/modules/asset-foundry/AssetFoundryPanel.tsx": "wired",
     "src/modules/command-center/AgmGovernancePanel.tsx": "wired",
     "src/modules/command-center/AiBoardDeckPanel.tsx": "wired",
+    "src/modules/command-center/AiCeoAutopilotPanel.tsx": "wired",
     "src/modules/command-center/AutonomousOkrPanel.tsx": "wired",
     "src/modules/command-center/CEOOverviewPanel.tsx": "wired",
     "src/modules/command-center/CompanyInABoxClonerPanel.tsx": "wired",
@@ -1020,6 +1021,7 @@
     "src/types/api-responses.ts": "wired",
     "src/utils/accountingPostApi.ts": "wired",
     "src/utils/agentKernelApi.ts": "wired",
+    "src/utils/aiOpsApi.ts": "wired",
     "src/utils/aiSettingsApi.ts": "wired",
     "src/utils/approvalApi.ts": "wired",
     "src/utils/assetFoundryApi.ts": "wired",

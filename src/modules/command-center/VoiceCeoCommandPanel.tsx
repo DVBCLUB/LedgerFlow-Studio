@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getVoiceCommandHistory, processVoiceCommand, type VoiceCommand } from '../../utils/aiOpsApi';
 const HISTORY = [
   { id: 'vc_001', transcript: 'Xuất báo cáo doanh thu tuần này', intent: 'export_revenue_report', confidence: 0.97, status: 'executed', delegatedTo: 'ReportAgentSwarm', executedAt: '30 phút trước' },
   { id: 'vc_002', transcript: 'Duyệt chi 50 triệu cho nhóm marketing', intent: 'approve_expense', confidence: 0.94, status: 'executed', delegatedTo: 'FinanceAgent', executedAt: '2 giờ trước' },
@@ -8,9 +9,17 @@ const HISTORY = [
 export default function VoiceCeoCommandPanel() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState<string | null>(null);
-  const handleExecute = () => {
+  const [history, setHistory] = useState<VoiceCommand[]>([]);
+  useEffect(() => { getVoiceCommandHistory().then((cmds) => { if (cmds.length) setHistory(cmds); }).catch(() => {}); }, []);
+  const handleExecute = async () => {
     if (!input.trim()) return;
-    setResult('✅ Lệnh "' + input + '" đã được nhận dạng và ủy quyền cho AI Swarm xử lý. Kết quả trong 30 giây.');
+    try {
+      const r = await processVoiceCommand(input.trim());
+      setResult(`✅ [${r.intent}] ${r.actionTaken} → ủy quyền ${r.delegatedTo} (confidence ${(r.confidence * 100).toFixed(0)}%)`);
+      setHistory((p) => [{ id: r.commandId, transcript: r.transcript, intent: r.intent, confidence: r.confidence, action: r.actionTaken, status: 'executed', executedAt: r.completedAt, delegatedTo: r.delegatedTo }, ...p]);
+    } catch (e: any) {
+      setResult('❌ ' + String(e?.message ?? e));
+    }
     setInput('');
   };
   return (
@@ -38,11 +47,11 @@ export default function VoiceCeoCommandPanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📜 Lịch sử lệnh hôm nay</div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {HISTORY.map(h => (
+          {history.map(h => (
             <div key={h.id} style={{ padding: '0.875rem 1.25rem', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <div style={{ color: '#e2e8f0', fontWeight: 500, fontSize: '0.875rem' }}>"{h.transcript}"</div>
-                <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem' }}>{h.intent} → {h.delegatedTo} · Confidence: {(h.confidence * 100).toFixed(0)}%</div>
+                <div style={{ color: '#64748b', fontSize: '0.75rem', marginTop: '0.2rem' }}>{h.intent} → {h.delegatedTo ?? 'AI Swarm'} · Confidence: {(h.confidence * 100).toFixed(0)}%</div>
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ background: h.status === 'executed' ? '#16a34a22' : '#d9770622', color: h.status === 'executed' ? '#4ade80' : '#fbbf24', borderRadius: '9999px', padding: '0.2rem 0.6rem', fontSize: '0.7rem', fontWeight: 600 }}>
