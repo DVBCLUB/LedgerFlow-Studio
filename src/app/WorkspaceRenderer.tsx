@@ -364,6 +364,19 @@ const CompanyInABoxClonerPanel = React.lazy(() => import('../modules/command-cen
 const VcInvestorMatcherPanel = React.lazy(() => import('../modules/sales-crm/VcInvestorMatcherPanel'));
 const VisionFactorySurveillancePanel = React.lazy(() => import('../modules/system-settings/VisionFactorySurveillancePanel'));
 const CrossChainLiquidityBridgePanel = React.lazy(() => import('../modules/system-settings/CrossChainLiquidityBridgePanel'));
+const AgentCircuitBreakerPanel = React.lazy(() => import('../modules/dev-ops/AgentCircuitBreakerPanel'));
+const OneClickDeployPanel = React.lazy(() => import('../modules/dev-ops/OneClickDeployPanel'));
+const AiCodeDiffPanel = React.lazy(() => import('../modules/dev-ops/AiCodeDiffPanel'));
+const SystemSelfHealingDoctorPanel = React.lazy(() => import('../modules/dev-ops/SystemSelfHealingDoctorPanel'));
+const AgentLongTermMemoryPanel = React.lazy(() => import('../modules/knowledge-library/AgentLongTermMemoryPanel'));
+const KnowledgeRagPipelinePanel = React.lazy(() => import('../modules/knowledge-library/KnowledgeRagPipelinePanel'));
+const ContinuousLearningPanel = React.lazy(() => import('../modules/knowledge-library/ContinuousLearningPanel'));
+const SearchGroundingPanel = React.lazy(() => import('../modules/knowledge-library/SearchGroundingPanel'));
+const AutonomousEscalationPanel = React.lazy(() => import('../modules/command-center/AutonomousEscalationPanel'));
+const CloudCostCreditsOptimizerPanel = React.lazy(() => import('../modules/system-settings/CloudCostCreditsOptimizerPanel'));
+const WebRobotSessionGuardPanel = React.lazy(() => import('../modules/system-settings/WebRobotSessionGuardPanel'));
+const AiMediaHybridConnectorsPanel = React.lazy(() => import('../modules/system-settings/AiMediaHybridConnectorsPanel'));
+const FigmaCodeBridgePanel = React.lazy(() => import('../modules/system-settings/FigmaCodeBridgePanel'));
 
 
 type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
@@ -402,6 +415,7 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'singularity', label: '👑 The Sentient Singularity (100)', icon: Sparkles },
     { id: 'earphone_audio', label: '🎧 Executive Earphone Briefing (117)', icon: Headphones },
     { id: 'company_cloner', label: '🏢 Company-in-a-Box Cloner (121)', icon: Building2 },
+    { id: 'escalation_center', label: '🚨 Trung Tâm Leo Thang Sự Cố', icon: ShieldAlert },
   ],
   knowledge_library: [
     { id: 'library', label: 'Kho tri thức Gốc & SOP', icon: BookOpen },
@@ -415,6 +429,10 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'success_academy', label: '🎓 Học Viện Khách Hàng AI Academy', icon: GraduationCap },
     { id: 'knowledge_graph', label: '🧠 Đồ Thị Tri Thức Graph Mesh', icon: Network },
     { id: 'notion_obsidian', label: '🧠 Notion & Obsidian Bridge (118)', icon: BookOpen },
+    { id: 'agent_memory', label: '🧠 Bộ Nhớ Dài Hạn AI Agent', icon: Database },
+    { id: 'knowledge_rag', label: '🔎 Knowledge RAG Pipeline', icon: Search },
+    { id: 'continuous_learning', label: '🧠 Continuous Learning Engine', icon: Sparkles },
+    { id: 'search_grounding', label: '🌐 Search Grounding & Dẫn Nguồn', icon: Globe2 },
   ],
   product_studio: [
     { id: 'portfolio', label: '🗺️ Lộ trình SaaS & Product Roadmap', icon: FolderKanban },
@@ -569,6 +587,14 @@ const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
     { id: 'telemetry_stream', label: '⚡ Real-Time Telemetry Stream (119)', icon: Activity },
     { id: 'vision_surveillance', label: '📸 AI Computer Vision Cam (123)', icon: Camera },
     { id: 'cross_chain_liquidity', label: '🪙 Cross-Chain RWA Yield (124)', icon: Coins },
+    { id: 'circuit_breaker', label: '🔌 Agent Circuit Breaker', icon: Zap },
+    { id: 'code_diff', label: '🔀 AI Code Diff & Refactoring', icon: Code },
+    { id: 'one_click_deploy', label: '🚀 One-Click Deploy Service', icon: Rocket },
+    { id: 'self_healing_doctor', label: '🩺 System Self-Healing Doctor', icon: ShieldCheck },
+    { id: 'cloud_cost', label: '💸 Cloud Cost & Credit Optimizer', icon: Cpu },
+    { id: 'robot_session_guard', label: '🤖 Web Robot Session Guard', icon: Bot },
+    { id: 'media_hybrid', label: '🎬 AI Media Hybrid Connectors', icon: Film },
+    { id: 'figma_bridge', label: '🎨 Figma → React Code Bridge', icon: Sparkles },
   ],
   operations: [
     { id: 'portfolio', label: 'Project Portfolio', icon: FolderKanban },
@@ -722,6 +748,7 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
   if (subtab === 'spatial_boardroom' || subtab === 'spatial_3d' || subtab === 'webxr') return <SpatialAccountingBoardroomPanel />;
   if (subtab === 'singularity' || subtab === 'sentient_singularity' || subtab === 'level8_agi') return <SentientSingularityPanel />;
   if (subtab === 'earphone_audio' || subtab === 'earphone' || subtab === 'whisper') return <ExecutiveEarphoneAudioBriefingPanel />;
+  if (subtab === 'escalation_center' || subtab === 'escalation' || subtab === 'alerting') return <AutonomousEscalationPanel />;
   if (subtab === 'company_cloner' || subtab === 'cloner' || subtab === 'franchising') return <CompanyInABoxClonerPanel />;
   if (subtab === 'agm_governance' || subtab === 'shareholders' || subtab === 'resolutions') return <AgmGovernancePanel />;
   if (subtab === 'boardroom' || subtab === 'consensus' || subtab === 'delphi') {
@@ -795,6 +822,10 @@ function KnowledgeLibraryWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'success_academy' || subtab === 'academy' || subtab === 'training') return <CustomerSuccessAcademyPanel />;
   if (subtab === 'knowledge_graph' || subtab === 'graph_mesh' || subtab === 'entity_graph') return <KnowledgeGraphMeshPanel />;
   if (subtab === 'notion_obsidian' || subtab === 'second_brain_sync' || subtab === 'obsidian') return <NotionObsidianKnowledgeBridgePanel />;
+  if (subtab === 'agent_memory' || subtab === 'long_term_memory') return <AgentLongTermMemoryPanel />;
+  if (subtab === 'knowledge_rag' || subtab === 'rag_pipeline') return <KnowledgeRagPipelinePanel />;
+  if (subtab === 'continuous_learning' || subtab === 'learning_engine') return <ContinuousLearningPanel />;
+  if (subtab === 'search_grounding' || subtab === 'grounded_search' || subtab === 'fact_check') return <SearchGroundingPanel />;
   const mode = subtab === 'rag_simulator'
     ? 'rag_simulator'
     : subtab === 'operating_layer'
@@ -1788,6 +1819,14 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'llm_arbitrage' || subtab === 'cost_arbitrage') return <LlmCostArbitragePanel />;
   if (subtab === 'marketplace' || subtab === 'plugins') return <PluginMarketplacePanel />;
   if (subtab === 'delegation_matrix') return <AdvancedDelegationMatrixPanel />;
+  if (subtab === 'circuit_breaker' || subtab === 'breaker') return <AgentCircuitBreakerPanel />;
+  if (subtab === 'code_diff' || subtab === 'diff_engine') return <AiCodeDiffPanel />;
+  if (subtab === 'one_click_deploy' || subtab === 'deploy') return <OneClickDeployPanel />;
+  if (subtab === 'self_healing_doctor' || subtab === 'system_doctor') return <SystemSelfHealingDoctorPanel />;
+  if (subtab === 'cloud_cost' || subtab === 'credit_optimizer') return <CloudCostCreditsOptimizerPanel />;
+  if (subtab === 'robot_session_guard' || subtab === 'session_guard') return <WebRobotSessionGuardPanel />;
+  if (subtab === 'media_hybrid' || subtab === 'media_connectors') return <AiMediaHybridConnectorsPanel />;
+  if (subtab === 'figma_bridge' || subtab === 'figma') return <FigmaCodeBridgePanel />;
   if (subtab === 'sop_runbook') return <SystemSOPRunbookPanel />;
   if (subtab === 'security') return <SettingsSecurityWorkspace />;
   if (subtab === 'connectors') return <SettingsConnectorsWorkspace />;
