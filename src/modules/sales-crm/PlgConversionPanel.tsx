@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getPlgFunnel, triggerPlgUpsell } from '../../utils/salesMarketingApi';
 interface PlgMember { userId: string; tenantName: string; plan: string; featureAdoptionScore: number; upsellEligible: boolean; recommendedUpgrade: string; }
 const MEMBERS: PlgMember[] = [
   { userId: 'usr_001', tenantName: 'StarterCorp VN', plan: 'Starter', featureAdoptionScore: 87, upsellEligible: true, recommendedUpgrade: 'Growth' },
@@ -8,7 +9,15 @@ const MEMBERS: PlgMember[] = [
 ];
 export default function PlgConversionPanel() {
   const [upsellSent, setUpsellSent] = useState<string | null>(null);
-  const candidates = MEMBERS.filter(m => m.upsellEligible);
+  const [members, setMembers] = useState<PlgMember[]>(MEMBERS);
+
+  useEffect(() => {
+    getPlgFunnel().then((d) => {
+      if (d.members?.length) setMembers(d.members);
+    }).catch(() => {});
+  }, []);
+
+  const candidates = members.filter(m => m.upsellEligible);
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#4c1d9522,#7c3aed22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #7c3aed44' }}>
@@ -37,7 +46,7 @@ export default function PlgConversionPanel() {
             ))}
           </tr></thead>
           <tbody>
-            {MEMBERS.map(m => (
+            {members.map(m => (
               <tr key={m.userId} style={{ borderBottom: '1px solid #1e293b' }}>
                 <td style={{ padding: '0.75rem 1rem', color: '#e2e8f0', fontWeight: 600 }}>{m.tenantName}</td>
                 <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>{m.plan}</td>
@@ -55,7 +64,7 @@ export default function PlgConversionPanel() {
                 <td style={{ padding: '0.75rem 1rem', color: '#c4b5fd' }}>{m.recommendedUpgrade || '—'}</td>
                 <td style={{ padding: '0.75rem 1rem' }}>
                   {m.upsellEligible && (
-                    <button onClick={() => setUpsellSent(m.userId)} style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                    <button onClick={() => { setUpsellSent(m.userId); triggerPlgUpsell(m.userId).catch(() => {}); }} style={{ background: '#7c3aed', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                       {upsellSent === m.userId ? '✅ Sent' : 'Trigger'}
                     </button>
                   )}

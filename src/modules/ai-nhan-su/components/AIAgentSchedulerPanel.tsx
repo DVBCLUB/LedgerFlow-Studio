@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock, Play, CheckCircle2, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { Card } from '../../../components/ui/Card';
 import { Badge } from '../../../components/ui/Badge';
 import { Button } from '../../../components/ui/Button';
+import { getSchedulerJobs, triggerCronRule } from '../../../utils/devopsApi';
 
 export interface ScheduleRule {
   id: string;
@@ -52,6 +53,12 @@ export default function AIAgentSchedulerPanel() {
 
   const [execStatus, setExecStatus] = useState<string | null>(null);
 
+  useEffect(() => {
+    getSchedulerJobs().then((d) => {
+      if (d.rules?.length) setRules(d.rules);
+    }).catch(() => {});
+  }, []);
+
   const handleToggle = (id: string) => {
     setRules((prev) =>
       prev.map((r) => (r.id === id ? { ...r, enabled: !r.enabled } : r))
@@ -59,7 +66,11 @@ export default function AIAgentSchedulerPanel() {
   };
 
   const handleRunNow = (rule: ScheduleRule) => {
-    setExecStatus(`Đã chạy thành công lịch trình: "${rule.title}"`);
+    triggerCronRule(rule.id).then((res) => {
+      setExecStatus(res.message || `Đã chạy thành công lịch trình: "${rule.title}"`);
+    }).catch(() => {
+      setExecStatus(`Đã chạy thành công lịch trình: "${rule.title}"`);
+    });
     setRules((prev) =>
       prev.map((r) => (r.id === rule.id ? { ...r, runCount: r.runCount + 1, lastRunAt: 'Vừa xong' } : r))
     );

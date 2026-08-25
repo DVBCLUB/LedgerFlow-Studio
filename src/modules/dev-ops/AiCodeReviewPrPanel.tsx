@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getCodeReviewPRs, analyzePullRequest } from '../../utils/devopsApi';
 
 interface PR {
   prId: string;
@@ -9,7 +10,7 @@ interface PR {
   additions: number;
   deletions: number;
   securityScore: number;
-  status: 'approved' | 'changes_requested';
+  status: string;
   suggestedChangelog: string;
 }
 
@@ -54,6 +55,18 @@ const SAMPLE_PRS: PR[] = [
 
 export default function AiCodeReviewPrPanel() {
   const [analyzedPr, setAnalyzedPr] = useState<string | null>(null);
+  const [prs, setPrs] = useState<PR[]>(SAMPLE_PRS);
+
+  useEffect(() => {
+    getCodeReviewPRs().then((d) => {
+      if (d.openPullRequests?.length) setPrs(d.openPullRequests);
+    }).catch(() => {});
+  }, []);
+
+  const handleAudit = (prId: string) => {
+    setAnalyzedPr(prId);
+    analyzePullRequest(prId).catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -79,7 +92,7 @@ export default function AiCodeReviewPrPanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📦 Open Pull Requests (Auto-Reviewed by AI Swarm)</div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {SAMPLE_PRS.map((pr) => (
+          {prs.map((pr) => (
             <div key={pr.prId} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -94,7 +107,7 @@ export default function AiCodeReviewPrPanel() {
                 <span>Author: {pr.author} · Branch: <code>{pr.branch}</code> · Changed {pr.filesChanged} files (+{pr.additions} / -{pr.deletions})</span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <span style={{ color: '#34d399', fontWeight: 600 }}>Security Score: {pr.securityScore}/100</span>
-                  <button onClick={() => setAnalyzedPr(pr.prId)} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <button onClick={() => handleAudit(pr.prId)} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                     {analyzedPr === pr.prId ? '✓ Release Notes Generated' : 'View AI Audit'}
                   </button>
                 </div>

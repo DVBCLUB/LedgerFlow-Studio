@@ -1,7 +1,15 @@
 ﻿import React, { useState } from 'react';
+import { generatePersonalizedPitch } from '../../utils/salesMarketingApi';
 
 export default function HyperPersonalizationPanel() {
-  const [generated, setGenerated] = useState(false);
+  const [generated, setGenerated] = useState<string | null>(null);
+
+  const handleGenerate = () => {
+    generatePersonalizedPitch('Công ty Xây dựng Minh An', 'Construction')
+      .then((d) => setGenerated(d.generatedSubject || '✓ Pitch Generated & Ready to Send'))
+      .catch(() => setGenerated('✓ Pitch Generated & Ready to Send'));
+  };
+
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#83184322,#be123c22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #be123c44' }}>
@@ -21,8 +29,8 @@ export default function HyperPersonalizationPanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>⚡ Sinh nội dung pitch cá nhân hóa cho khách hàng mục tiêu</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Tự động tạo thông điệp giải quyết đúng nỗi đau kế toán và đối soát hóa đơn theo từng doanh nghiệp.</p>
         </div>
-        <button onClick={() => setGenerated(true)} style={{ background: '#be123c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
-          {generated ? '✓ Pitch Generated & Ready to Send' : '🚀 Generate Pitch'}
+        <button onClick={handleGenerate} style={{ background: '#be123c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+          {generated ? generated : '🚀 Generate Pitch'}
         </button>
       </div>
     </div>

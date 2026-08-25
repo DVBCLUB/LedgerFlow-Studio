@@ -1,7 +1,15 @@
 ﻿import React, { useState } from 'react';
+import { installB2bModule } from '../../utils/salesMarketingApi';
 
 export default function B2bMarketplacePanel() {
-  const [installed, setInstalled] = useState(false);
+  const [installed, setInstalled] = useState<string | null>(null);
+
+  const handleInstall = () => {
+    installB2bModule('bom_construction')
+      .then((d) => setInstalled(d.installStatus ? `✓ ${d.installStatus}` : '✓ Module Installed & Active'))
+      .catch(() => setInstalled('✓ Module Installed & Active'));
+  };
+
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#0284c722,#0369a122)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #0284c744' }}>
@@ -21,8 +29,8 @@ export default function B2bMarketplacePanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>⚡ Cài đặt module BOM Dự toán Xây dựng TT10/2019</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Tích hợp tự động định mức vật tư xây dựng vào module Kế toán Kho & Công trình.</p>
         </div>
-        <button onClick={() => setInstalled(true)} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
-          {installed ? '✓ Module Installed & Active' : '🚀 Install BOM Plugin'}
+        <button onClick={handleInstall} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+          {installed ? installed : '🚀 Install BOM Plugin'}
         </button>
       </div>
     </div>

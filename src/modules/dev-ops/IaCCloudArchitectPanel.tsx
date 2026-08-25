@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getIaCTemplates, generateIaC } from '../../utils/devopsApi';
 
 interface Template {
   id: string;
@@ -39,10 +40,25 @@ const TEMPLATES: Template[] = [
 export default function IaCCloudArchitectPanel() {
   const [prompt, setPrompt] = useState('');
   const [generatedOutput, setGeneratedOutput] = useState<string | null>(null);
+  const [templates, setTemplates] = useState<Template[]>(TEMPLATES);
+
+  useEffect(() => {
+    getIaCTemplates().then((d) => {
+      if (d.availableTemplates?.length) setTemplates(d.availableTemplates);
+    }).catch(() => {});
+  }, []);
 
   const handleGenerate = () => {
     if (!prompt.trim()) return;
-    setGeneratedOutput(`// Auto-Generated Docker Compose for: "${prompt}"\nversion: '3.8'\nservices:\n  ledgerflow-app:\n    image: ledgerflow-studio:latest\n    ports:\n      - "3000:3000"\n    environment:\n      - NODE_ENV=production\n      - DATABASE_URL=file:/app/data/ledgerflow.db\n    volumes:\n      - ./data:/app/data\n`);
+    generateIaC(prompt.trim()).then((d) => {
+      if (d.generatedFiles?.length) {
+        setGeneratedOutput(d.generatedFiles.map((f) => `// ${f.filename} (${f.language})\n${f.content}`).join('\n\n'));
+      } else if (d.deploymentGuideVi) {
+        setGeneratedOutput(d.deploymentGuideVi);
+      }
+    }).catch(() => {
+      setGeneratedOutput(`// Auto-Generated Docker Compose for: "${prompt}"\nversion: '3.8'\nservices:\n  ledgerflow-app:\n    image: ledgerflow-studio:latest\n    ports:\n      - "3000:3000"\n    environment:\n      - NODE_ENV=production\n      - DATABASE_URL=file:/app/data/ledgerflow.db\n    volumes:\n      - ./data:/app/data\n`);
+    });
   };
 
   return (
@@ -75,7 +91,7 @@ export default function IaCCloudArchitectPanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📦 Best-Practice Blueprint Templates</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', padding: '1.25rem' }}>
-          {TEMPLATES.map((tpl) => (
+          {templates.map((tpl) => (
             <div key={tpl.id} style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #334155', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>

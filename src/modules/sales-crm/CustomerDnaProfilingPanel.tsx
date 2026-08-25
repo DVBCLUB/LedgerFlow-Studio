@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getCustomerDnaProfiles } from '../../utils/salesMarketingApi';
 
 interface Profile {
   customerId: string;
@@ -54,6 +55,13 @@ const PROFILES: Profile[] = [
 
 export default function CustomerDnaProfilingPanel() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [profiles, setProfiles] = useState<Profile[]>(PROFILES);
+
+  useEffect(() => {
+    getCustomerDnaProfiles().then((d) => {
+      if (d.profiles?.length) setProfiles(d.profiles);
+    }).catch(() => {});
+  }, []);
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -79,7 +87,7 @@ export default function CustomerDnaProfilingPanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>👤 Customer DNA Matrix</div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {PROFILES.map((p) => (
+          {profiles.map((p) => (
             <div key={p.customerId} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>

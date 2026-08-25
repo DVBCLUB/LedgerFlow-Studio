@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getWebhookEndpoints, dispatchWebhookTest } from '../../utils/devopsApi';
 
 interface Endpoint {
   id: string;
@@ -6,7 +7,7 @@ interface Endpoint {
   targetUrl: string;
   direction: 'inbound' | 'outbound';
   events: string[];
-  status: 'active' | 'paused';
+  status: 'active' | 'paused' | 'failing' | string;
   successRatePercent: number;
   totalDispatches: number;
 }
@@ -56,6 +57,18 @@ const ENDPOINTS: Endpoint[] = [
 
 export default function WebhookIntegrationHubPanel() {
   const [testedId, setTestedId] = useState<string | null>(null);
+  const [endpoints, setEndpoints] = useState<Endpoint[]>(ENDPOINTS);
+
+  useEffect(() => {
+    getWebhookEndpoints().then((d) => {
+      if (d.endpoints?.length) setEndpoints(d.endpoints);
+    }).catch(() => {});
+  }, []);
+
+  const handleTest = (id: string) => {
+    setTestedId(id);
+    dispatchWebhookTest(id).catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -91,7 +104,7 @@ export default function WebhookIntegrationHubPanel() {
             </tr>
           </thead>
           <tbody>
-            {ENDPOINTS.map((ep) => (
+            {endpoints.map((ep) => (
               <tr key={ep.id} style={{ borderBottom: '1px solid #1e293b' }}>
                 <td style={{ padding: '0.75rem 1rem' }}>
                   <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{ep.name}</div>
@@ -109,7 +122,7 @@ export default function WebhookIntegrationHubPanel() {
                   {ep.successRatePercent}% ({ep.totalDispatches})
                 </td>
                 <td style={{ padding: '0.75rem 1rem' }}>
-                  <button onClick={() => setTestedId(ep.id)} style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <button onClick={() => handleTest(ep.id)} style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                     {testedId === ep.id ? '✓ Dispatched (200 OK)' : 'Ping Test'}
                   </button>
                 </td>

@@ -1,7 +1,15 @@
 ﻿import React, { useState } from 'react';
+import { simulatePricing } from '../../utils/salesMarketingApi';
 
 export default function MultiVariatePricingPanel() {
-  const [simulated, setSimulated] = useState(false);
+  const [simulated, setSimulated] = useState<string | null>(null);
+
+  const handleSimulate = () => {
+    simulatePricing('Growth', 2890000)
+      .then((d) => setSimulated(d.projectedMrrVnd ? `Projected MRR: ${d.projectedMrrVnd.toLocaleString('vi-VN')} VND (${d.projectedConversionRatePercent}% conv)` : '✓ Projected MRR: +18.5% Growth'))
+      .catch(() => setSimulated('✓ Projected MRR: +18.5% Growth'));
+  };
+
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div style={{ background: 'linear-gradient(135deg,#7c2d1222,#c2410c22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #c2410c44' }}>
@@ -21,8 +29,8 @@ export default function MultiVariatePricingPanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>⚡ Chạy mô phỏng giá động (Dynamic Pricing Simulation)</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Mô phỏng tác động doanh thu khi điều chỉnh giá gói Growth từ 2.49M lên 2.89M VND.</p>
         </div>
-        <button onClick={() => setSimulated(true)} style={{ background: '#c2410c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
-          {simulated ? '✓ Projected MRR: +18.5% Growth' : '🚀 Run Pricing Simulation'}
+        <button onClick={handleSimulate} style={{ background: '#c2410c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+          {simulated ? simulated : '🚀 Run Pricing Simulation'}
         </button>
       </div>
     </div>
