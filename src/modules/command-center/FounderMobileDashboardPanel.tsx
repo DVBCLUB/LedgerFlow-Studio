@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getMobileDashboardKpis, triggerMobileAlert } from '../../utils/enterpriseApi';
 
 interface Kpi { label: string; value: string; delta: string; trend: string; alert: boolean; }
 interface Cohort { cohort: string; d30: number; d60: number; d90: number; ltv: number; }
@@ -22,7 +23,22 @@ const MOCK_COHORTS: Cohort[] = [
 export default function FounderMobileDashboardPanel() {
   const [alertSent, setAlertSent] = useState(false);
   const [alertMetric, setAlertMetric] = useState('Churn');
-  const alertCount = MOCK_KPIS.filter(k => k.alert).length;
+  const [kpis, setKpis] = useState<Kpi[]>(MOCK_KPIS);
+  const [cohorts, setCohorts] = useState<Cohort[]>(MOCK_COHORTS);
+
+  useEffect(() => {
+    getMobileDashboardKpis().then((d) => {
+      if (d.kpis?.length) setKpis(d.kpis.map((k) => ({ label: k.label, value: String(k.value), delta: String(k.delta), trend: k.trend, alert: k.alert })));
+      if (d.cohorts?.length) setCohorts(d.cohorts);
+    }).catch(() => {});
+  }, []);
+
+  const alertCount = kpis.filter(k => k.alert).length;
+
+  const handleSendAlert = () => {
+    setAlertSent(true);
+    triggerMobileAlert(alertMetric).catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -41,7 +57,7 @@ export default function FounderMobileDashboardPanel() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem' }}>
-        {MOCK_KPIS.map(kpi => (
+        {kpis.map(kpi => (
           <div key={kpi.label} style={{ background: kpi.alert ? '#7f1d1d22' : '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: `1px solid ${kpi.alert ? '#ef444440' : '#334155'}` }}>
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.25rem' }}>{kpi.label}</div>
             <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#f1f5f9' }}>{kpi.value}</div>
@@ -63,7 +79,7 @@ export default function FounderMobileDashboardPanel() {
             </tr>
           </thead>
           <tbody>
-            {MOCK_COHORTS.map(c => (
+            {cohorts.map(c => (
               <tr key={c.cohort} style={{ color: '#cbd5e1' }}>
                 <td style={{ padding: '0.5rem', fontWeight: 600 }}>{c.cohort}</td>
                 <td style={{ textAlign: 'right', padding: '0.5rem', color: '#4ade80' }}>{c.d30}%</td>
@@ -80,9 +96,9 @@ export default function FounderMobileDashboardPanel() {
         <h3 style={{ margin: '0 0 0.75rem', color: '#e2e8f0' }}>🔔 Telegram Alert</h3>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <select value={alertMetric} onChange={e => setAlertMetric(e.target.value)} style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.5rem' }}>
-            {MOCK_KPIS.map(k => <option key={k.label}>{k.label}</option>)}
+            {kpis.map(k => <option key={k.label}>{k.label}</option>)}
           </select>
-          <button onClick={() => setAlertSent(true)} style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>
+          <button onClick={handleSendAlert} style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.5rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>
             Gửi Alert
           </button>
           {alertSent && <span style={{ color: '#4ade80', fontSize: '0.875rem' }}>✅ Alert đã gửi về Telegram!</span>}

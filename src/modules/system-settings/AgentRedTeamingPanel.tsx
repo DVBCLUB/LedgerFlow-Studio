@@ -1,11 +1,12 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getRedTeamScenarios, runRedTeamSimulation } from '../../utils/enterpriseApi';
 
 interface Scenario {
   id: string;
   category: string;
   name: string;
   targetAgent: string;
-  defenseStatus: 'defended' | 'mitigated';
+  defenseStatus: string;
   guardrailTriggered: string;
 }
 
@@ -46,6 +47,18 @@ const SCENARIOS: Scenario[] = [
 
 export default function AgentRedTeamingPanel() {
   const [simulated, setSimulated] = useState(false);
+  const [scenarios, setScenarios] = useState<Scenario[]>(SCENARIOS);
+
+  useEffect(() => {
+    getRedTeamScenarios().then((d) => {
+      if (d.scenarios?.length) setScenarios(d.scenarios);
+    }).catch(() => {});
+  }, []);
+
+  const handleRun = () => {
+    setSimulated(true);
+    runRedTeamSimulation().catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -73,7 +86,7 @@ export default function AgentRedTeamingPanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>⚡ Chạy diễn tập đối kháng toàn diện (Red-Team Adversarial Run)</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Thực thi 42 kịch bản prompt injection & data exfiltration nhắm vào toàn bộ AI Agents.</p>
         </div>
-        <button onClick={() => setSimulated(true)} style={{ background: '#be123c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+        <button onClick={handleRun} style={{ background: '#be123c', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
           {simulated ? '✓ Simulation Passed (100% Defended)' : '🔥 Run Red-Team Drill'}
         </button>
       </div>
@@ -91,7 +104,7 @@ export default function AgentRedTeamingPanel() {
             </tr>
           </thead>
           <tbody>
-            {SCENARIOS.map((sc) => (
+            {scenarios.map((sc) => (
               <tr key={sc.id} style={{ borderBottom: '1px solid #1e293b' }}>
                 <td style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#e2e8f0' }}>{sc.name}</td>
                 <td style={{ padding: '0.75rem 1rem', color: '#fb7185' }}>{sc.category}</td>

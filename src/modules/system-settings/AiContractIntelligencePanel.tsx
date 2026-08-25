@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getContractAudit, analyzeContract } from '../../utils/enterpriseApi';
 
 interface Contract {
   contractId: string;
@@ -42,6 +43,18 @@ const CONTRACTS: Contract[] = [
 
 export default function AiContractIntelligencePanel() {
   const [analyzedId, setAnalyzedId] = useState<string | null>(null);
+  const [contracts, setContracts] = useState<Contract[]>(CONTRACTS);
+
+  useEffect(() => {
+    getContractAudit().then((d) => {
+      if (d.contracts?.length) setContracts(d.contracts);
+    }).catch(() => {});
+  }, []);
+
+  const handleAnalyze = (id: string) => {
+    setAnalyzedId(analyzedId === id ? null : id);
+    analyzeContract(id).catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -67,7 +80,7 @@ export default function AiContractIntelligencePanel() {
       <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
         <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📋 Contract Intelligence Ledger</div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {CONTRACTS.map((ctr) => (
+          {contracts.map((ctr) => (
             <div key={ctr.contractId} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
@@ -77,7 +90,7 @@ export default function AiContractIntelligencePanel() {
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
                   <span style={{ color: '#34d399', fontWeight: 700 }}>{(ctr.contractValueVnd / 1e6).toFixed(0)}M VND</span>
                   <span style={{ color: ctr.riskScore < 20 ? '#34d399' : '#fbbf24', fontSize: '0.85rem' }}>Rủi ro: {ctr.riskScore}/100</span>
-                  <button onClick={() => setAnalyzedId(analyzedId === ctr.contractId ? null : ctr.contractId)} style={{ background: '#4338ca', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
+                  <button onClick={() => handleAnalyze(ctr.contractId)} style={{ background: '#4338ca', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
                     {analyzedId === ctr.contractId ? 'Đóng' : 'Xem Pháp Lý AI'}
                   </button>
                 </div>

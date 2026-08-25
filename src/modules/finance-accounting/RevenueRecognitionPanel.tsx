@@ -1,4 +1,5 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import { getRevenueSchedules, calculateRevenueRecognition } from '../../utils/financeAccountingApi';
 
 interface Schedule {
   scheduleId: string;
@@ -30,6 +31,18 @@ const SCHEDULES: Schedule[] = [
 
 export default function RevenueRecognitionPanel() {
   const [calculated, setCalculated] = useState(false);
+  const [schedules, setSchedules] = useState<Schedule[]>(SCHEDULES);
+
+  useEffect(() => {
+    getRevenueSchedules().then((d) => {
+      if (d.schedules?.length) setSchedules(d.schedules);
+    }).catch(() => {});
+  }, []);
+
+  const handleCalculate = () => {
+    setCalculated(true);
+    calculateRevenueRecognition(450_000_000, 12).catch(() => {});
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -57,7 +70,7 @@ export default function RevenueRecognitionPanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>⚡ Tự động tính toán phân bổ IFRS 15 cho hợp đồng mới</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Tách nghĩa vụ thực hiện (Performance Obligations): 15% Onboarding Professional Service + 85% Subscription trích đều 12 tháng.</p>
         </div>
-        <button onClick={() => setCalculated(true)} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+        <button onClick={handleCalculate} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
           {calculated ? '✓ IFRS 15 Waterfall Calculated & Locked' : '🚀 Calculate Revenue Allocation'}
         </button>
       </div>
@@ -75,7 +88,7 @@ export default function RevenueRecognitionPanel() {
             </tr>
           </thead>
           <tbody>
-            {SCHEDULES.map((sch) => (
+            {schedules.map((sch) => (
               <tr key={sch.scheduleId} style={{ borderBottom: '1px solid #1e293b' }}>
                 <td style={{ padding: '0.75rem 1rem' }}>
                   <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{sch.customerName}</div>

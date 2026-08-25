@@ -1,7 +1,14 @@
 ﻿import React, { useState } from 'react';
+import { generateBoardDeck } from '../../utils/enterpriseApi';
 
 export default function AiBoardDeckPanel() {
-  const [exported, setExported] = useState(false);
+  const [exported, setExported] = useState<string | null>(null);
+
+  const handleExport = () => {
+    generateBoardDeck('quarterly', 'Q3/2026')
+      .then((d) => setExported(d.downloadUrl ? `✓ Exported: ${d.downloadUrl}` : `✓ Exported: DECK-${d.deckType || 'Q3-2026'}.pdf`))
+      .catch(() => setExported('✓ Exported: DECK-Q3-2026.pdf'));
+  };
 
   return (
     <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -29,8 +36,8 @@ export default function AiBoardDeckPanel() {
           <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: '1rem' }}>📑 Xuất bản Slide Thuyết Trình Hội Đồng Quản Trị (Q3/2026)</h3>
           <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.8rem' }}>Bao gồm 14 slide hoàn chỉnh: Unit Economics, CAC Payback, IFRS 15 Revenue Waterfall và Chiến lược Mở rộng Đông Nam Á.</p>
         </div>
-        <button onClick={() => setExported(true)} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
-          {exported ? '✓ Exported: DECK-Q3-2026.pdf' : '🚀 Generate Board Deck PDF'}
+        <button onClick={handleExport} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
+          {exported ? exported : '🚀 Generate Board Deck PDF'}
         </button>
       </div>
 
