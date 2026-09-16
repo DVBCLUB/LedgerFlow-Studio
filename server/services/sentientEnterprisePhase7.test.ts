@@ -1272,6 +1272,10 @@ test('Pillar 76 — Feature Flags & Entitlement Engine gates SaaS tier access', 
   const check = checkUserEntitlement('usr_01', 'feat_vietqr_auto_reconcile', 'Enterprise');
   assert.equal(check.success, true);
   assert.equal(check.hasAccess, true);
+
+  const denied = checkUserEntitlement('usr_01', 'feat_ai_boardroom_delphi', 'Starter');
+  assert.equal(denied.hasAccess, false);
+  assert.equal(denied.reason, 'tier_not_entitled');
 });
 
 test('Pillar 77 — Multi-Variate Pricing Optimization Engine simulates price elasticity', () => {

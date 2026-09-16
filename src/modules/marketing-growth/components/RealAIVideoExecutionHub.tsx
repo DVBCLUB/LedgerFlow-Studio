@@ -9,7 +9,6 @@ import {
   Bot,
   Layers,
   ArrowRight,
-  ExternalLink,
   Loader2,
   Tv,
 } from 'lucide-react';
@@ -37,15 +36,10 @@ export default function RealAIVideoExecutionHub() {
       voiceProvider: 'ElevenLabs Studio Voice',
       status: 'completed',
       progress: 100,
-      outputVideoUrl: 'https://assets.ledgerflow.example/videos/ledgerflow_studio_intro_4k.mp4',
-      autoPublishedChannel: 'TikTok Studio Web (Kênh @LedgerFlowOfficial)',
+      autoPublishedChannel: undefined,
       logs: [
-        '[14:00:01] Gửi Prompt sang Midjourney v6.1 Cloud Bridge API thành công.',
-        '[14:01:20] Nhận 4 Keyframe ảnh 4K render chất lượng cao.',
-        '[14:02:10] Đẩy Keyframe sang Kling AI 1.5 Motion Pipeline.',
-        '[14:04:40] Render video chuyển động 60fps hoàn tất.',
-        '[14:05:10] Lồng tiếng ElevenLabs AI Voice (Giọng đọc Doanh nhân).',
-        '[14:06:00] Robot Web đăng tải tự động lên TikTok Studio Web thành công.',
+        '[Demo local] Đây là mẫu workflow, chưa gọi cloud provider.',
+        '[Demo local] Tạo preview cần backend connector và founder approval.',
       ],
     },
   ]);
@@ -56,7 +50,7 @@ export default function RealAIVideoExecutionHub() {
   const [imgModel, setImgModel] = useState('Midjourney v6.1');
   const [motionModel, setMotionModel] = useState('Kling AI 1.5');
   const [voiceModel, setVoiceModel] = useState('ElevenLabs AI Voice');
-  const [autoPublish, setAutoPublish] = useState(true);
+  const [autoPublish, setAutoPublish] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleDispatchJob = (e: React.FormEvent) => {
@@ -72,10 +66,10 @@ export default function RealAIVideoExecutionHub() {
       voiceProvider: voiceModel,
       status: 'rendering',
       progress: 35,
-      autoPublishedChannel: autoPublish ? 'TikTok Studio Web & YouTube Studio Web' : undefined,
+      autoPublishedChannel: undefined,
       logs: [
-        `[${new Date().toLocaleTimeString('vi-VN')}] Đã tạo nhiệm vụ sản xuất Video AI thực tế.`,
-        `[${new Date().toLocaleTimeString('vi-VN')}] Đang gửi lệnh sang ${imgModel} và ${motionModel}...`,
+        `[${new Date().toLocaleTimeString('vi-VN')}] Đã tạo preview workflow cục bộ.`,
+        `[${new Date().toLocaleTimeString('vi-VN')}] Cloud connector chưa được gọi.`,
       ],
     };
 
@@ -89,13 +83,12 @@ export default function RealAIVideoExecutionHub() {
             ...j,
             status: 'completed',
             progress: 100,
-            outputVideoUrl: `https://assets.ledgerflow.example/videos/video_${Date.now()}.mp4`,
             logs: [
               ...j.logs,
-              `[${new Date().toLocaleTimeString('vi-VN')}] Render Video AI 4K hoàn tất thành công.`,
+              `[${new Date().toLocaleTimeString('vi-VN')}] Preview workflow đã sẵn sàng để founder duyệt.`,
               autoPublish
-                ? `[${new Date().toLocaleTimeString('vi-VN')}] Web Robot đã hoàn tất đăng tải tự động lên TikTok & YouTube Studio Web.`
-                : `[${new Date().toLocaleTimeString('vi-VN')}] Đã sẵn sàng tải về hoặc đăng thủ công.`,
+                ? `[${new Date().toLocaleTimeString('vi-VN')}] Yêu cầu đăng tải được ghi là draft; chưa gửi ra nền tảng nào.`
+                : `[${new Date().toLocaleTimeString('vi-VN')}] Không có thao tác xuất bản hoặc gọi dịch vụ bên ngoài.`,
             ],
           };
         })
@@ -114,10 +107,10 @@ export default function RealAIVideoExecutionHub() {
           </div>
           <div>
             <h3 className="text-sm font-black text-white uppercase tracking-wider">
-              Xưởng Sản xuất Video AI & Robot Tự động Đăng tải Thực tế
+              Xưởng Video AI · Preview Workflow
             </h3>
             <p className="text-xs text-slate-400">
-              Điều phối cloud API (Midjourney, Flux.1, Kling, Runway, ElevenLabs) & Robot Web tự động đăng bài
+              Lập kế hoạch local-first; cloud connector và xuất bản cần endpoint được duyệt riêng.
             </p>
           </div>
         </div>
@@ -183,7 +176,7 @@ export default function RealAIVideoExecutionHub() {
                 onChange={(e) => setAutoPublish(e.target.checked)}
                 className="rounded border-slate-800 bg-slate-950 text-purple-500"
               />
-              <span>Tự động kích hoạt Web Robot đăng lên TikTok & YouTube Studio Web ngay sau khi render</span>
+              <span>Đưa yêu cầu xuất bản vào draft để founder duyệt sau</span>
             </label>
 
             <button
@@ -193,11 +186,11 @@ export default function RealAIVideoExecutionHub() {
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin" /> Đang phát lệnh Cloud...
+                  <Loader2 className="h-4 w-4 animate-spin" /> Đang tạo preview...
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4" /> Kích hoạt Sản xuất Video AI
+                  <Sparkles className="h-4 w-4" /> Tạo Preview Video AI
                 </>
               )}
             </button>
@@ -208,7 +201,7 @@ export default function RealAIVideoExecutionHub() {
       {/* Production Jobs Feed */}
       <div className="space-y-4">
         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
-          Lịch sử Sản xuất & Đăng tải Video AI ({jobs.length})
+          Lịch sử Preview Workflow Video AI ({jobs.length})
         </h4>
 
         {jobs.map((job) => (
@@ -231,8 +224,8 @@ export default function RealAIVideoExecutionHub() {
                 <p className="font-bold text-slate-200 mt-0.5">{job.imageProvider} + {job.motionProvider}</p>
               </div>
               <div>
-                <span className="text-slate-500">Kênh Đăng tải Tự động:</span>
-                <p className="font-bold text-cyan-300 mt-0.5">{job.autoPublishedChannel || 'Đăng thủ công'}</p>
+                <span className="text-slate-500">Xuất bản:</span>
+                <p className="font-bold text-cyan-300 mt-0.5">{job.autoPublishedChannel || 'Chưa gửi ra nền tảng nào'}</p>
               </div>
               <div>
                 <span className="text-slate-500">Kết quả Render:</span>
@@ -243,10 +236,10 @@ export default function RealAIVideoExecutionHub() {
                     rel="noreferrer"
                     className="inline-flex items-center gap-1 font-bold text-emerald-400 hover:underline mt-0.5"
                   >
-                    Xem Video .MP4 <ExternalLink className="h-3 w-3" />
+                    Xem Video .MP4
                   </a>
                 ) : (
-                  <p className="text-slate-400 mt-0.5 font-mono">Chưa hoàn tất</p>
+                  <p className="text-slate-400 mt-0.5 font-mono">Chưa có asset local</p>
                 )}
               </div>
             </div>

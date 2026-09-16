@@ -27,6 +27,8 @@ Root should stay lean. Keep only files that must be at the project root for Node
 
 ## Runtime entrypoints
 
+Glacia RSI: `server/services/glaciaRecursiveImprovementEngine.ts` → routes trong `robotAutomationRoutes.ts` → `src/utils/glaciaRsiApi.ts` → `SelfHealingPatchGatePanel.tsx`, được gắn trực tiếp vào `GlaciaIntelligenceHub.tsx`. Hướng dẫn và giới hạn: [GLACIA_RSI.md](GLACIA_RSI.md).
+
 | Runtime | Entry |
 |---|---|
 | Local developer runtime | `npm run dev` → `server.ts` |

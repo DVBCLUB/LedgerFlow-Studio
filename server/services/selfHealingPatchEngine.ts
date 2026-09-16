@@ -36,6 +36,8 @@ export interface SelfHealingPatchProposal {
   createdAt: string;
   appliedAt?: string;
   approvedBy?: string;
+  generationSource?: 'model' | 'fallback';
+  judgeProvider?: string;
 }
 
 const PATCHES_FILE = path.join(process.cwd(), 'runtime', 'self_healing_patches.json');
@@ -107,6 +109,7 @@ export async function generateSelfHealingPatch(input: {
   preferLocal?: boolean;
   autoApplyLowRisk?: boolean;
   minSafetyScore?: number;
+  requireModelOutput?: boolean;
 }): Promise<SelfHealingPatchProposal> {
   const { classification, targetFile: detectedFile } = classifyErrorLog(input.errorLog);
   const targetFile = detectedFile || 'server/services/aiRouter.ts';
@@ -170,6 +173,13 @@ BẮT BUỘC trả về duy nhất 1 JSON object không bọc markdown theo sche
     // fallback
   }
 
+  const hasModelOutput = parsed && ['summary', 'targetFile', 'diffSnippet', 'suggestedAction'].every(
+    (key) => typeof parsed[key] === 'string' && parsed[key].trim().length > 0 && parsed[key].length <= 20000,
+  ) && ['low', 'medium', 'high'].includes(parsed.riskLevel);
+  if (input.requireModelOutput && !hasModelOutput) {
+    throw new Error('AI chưa tạo được đề xuất hợp lệ. Kiểm tra provider/model rồi thử lại.');
+  }
+
   const patchId = `patch_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
   const finalTargetFile = parsed?.targetFile || targetFile;
   const summary = parsed?.summary || `Tự động khắc phục lỗi ${classification} tại ${finalTargetFile}`;
@@ -184,12 +194,6 @@ BẮT BUỘC trả về duy nhất 1 JSON object không bọc markdown theo sche
     preferLocal: input.preferLocal,
   });
 
-  const isEligibleForAutoApply = Boolean(
-    input.autoApplyLowRisk &&
-    riskLevel === 'low' &&
-    judgeEval.overallScore >= (input.minSafetyScore ?? 85)
-  );
-
   const proposal: SelfHealingPatchProposal = {
     id: patchId,
     errorLogSnippet: input.errorLog.slice(0, 600),
@@ -201,9 +205,10 @@ BẮT BUỘC trả về duy nhất 1 JSON object không bọc markdown theo sche
     riskLevel,
     safetyScore: judgeEval.overallScore,
     judgeReasoning: judgeEval.reasoning,
-    status: isEligibleForAutoApply ? 'applied' : 'pending_review',
-    approvedBy: isEligibleForAutoApply ? 'AI Safety Self-Healer (Auto-Applied)' : undefined,
-    appliedAt: isEligibleForAutoApply ? new Date().toISOString() : undefined,
+    // This engine generates proposals; it does not apply files, even when requested.
+    status: 'pending_review',
+    generationSource: hasModelOutput ? 'model' : 'fallback',
+    judgeProvider: judgeEval.judgeProvider,
     createdAt: new Date().toISOString(),
   };
 
@@ -232,14 +237,15 @@ export function listSelfHealingPatches(status?: string): SelfHealingPatchProposa
 }
 
 export function updatePatchStatus(id: string, status: SelfHealingPatchProposal['status'], approvedBy = 'Founder'): SelfHealingPatchProposal | null {
+  if (!['approved', 'rejected'].includes(status)) throw new Error('Only approve/reject is supported; no code has been applied.');
   const patches = loadPatches();
   const idx = patches.findIndex((p) => p.id === id);
   if (idx === -1) return null;
+  if (patches[idx].status !== 'pending_review') throw new Error('Proposal already reviewed.');
 
   patches[idx].status = status;
   if (status === 'approved' || status === 'applied') {
     patches[idx].approvedBy = approvedBy;
-    patches[idx].appliedAt = new Date().toISOString();
   }
   savePatches(patches);
   return patches[idx];

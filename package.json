@@ -6,6 +6,8 @@
   "type": "module",
   "main": "desktop/main.cjs",
   "scripts": {
+    "pretest": "npm run test:rsi",
+    "test:rsi": "node --test --experimental-strip-types server/services/glaciaRecursiveImprovementEngine.test.ts server/services/glaciaRsiRoutes.test.ts",
     "check:encoding": "node scripts/check-encoding.mjs",
     "dev": "node scripts/dev-launcher.mjs",
     "predev": "npm run prepare:icons",

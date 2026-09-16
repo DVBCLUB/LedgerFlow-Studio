@@ -36,7 +36,7 @@ test('selfHealingPatchEngine - generates patch with safety judge review and trac
   assert.equal(updated?.approvedBy, 'CEO Test');
 });
 
-test('selfHealingPatchEngine - auto-applies safe low-risk patch when requested', async () => {
+test('selfHealingPatchEngine - cannot claim application without writing and verifying code', async () => {
   const proposal = await generateSelfHealingPatch({
     errorLog: "TypeError: Cannot read property 'trim' of undefined at src/utils/format.ts:10",
     autoApplyLowRisk: true,
@@ -44,7 +44,7 @@ test('selfHealingPatchEngine - auto-applies safe low-risk patch when requested',
   });
 
   assert.ok(proposal.id.startsWith('patch_'));
-  assert.equal(proposal.status, 'applied');
-  assert.ok(proposal.approvedBy?.includes('Auto-Applied'));
+  assert.equal(proposal.status, 'pending_review');
+  assert.equal(proposal.appliedAt, undefined);
+  assert.throws(() => updatePatchStatus(proposal.id, 'applied'), /Only approve/);
 });
-

@@ -32,6 +32,14 @@ jobs:
       - name: Bundle Node server
         run: npx esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs
 
+      - name: Bundle assistant daemon for desktop runtime
+        run: npx esbuild server/assistant-daemon-desktop.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/assistant-daemon.cjs
+
+      - name: Verify offline and wiring release gates
+        run: |
+          npm run check:offline
+          npm run check:wiring
+
       - name: Write build manifest
         run: npm run build:manifest
 
@@ -66,6 +74,11 @@ jobs:
           }
           if (-not (Test-Path $appExe)) {
             throw "Missing LedgerFlow Hub.exe inside release/win-unpacked. Refusing to upload a debug-only artifact."
+          }
+          $serverRuntime = Join-Path $appDir "resources\app\dist\server.cjs"
+          $assistantDaemon = Join-Path $appDir "resources\app\dist\assistant-daemon.cjs"
+          if (-not (Test-Path $serverRuntime) -or -not (Test-Path $assistantDaemon)) {
+            throw "Missing packaged desktop runtime (server.cjs or assistant-daemon.cjs). Refusing to upload an incomplete app."
           }
 
           $appBytes = (Get-ChildItem $appDir -Recurse -File | Measure-Object -Property Length -Sum).Sum

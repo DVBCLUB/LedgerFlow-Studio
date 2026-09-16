@@ -238,6 +238,8 @@ function startEmbeddedServer() {
   process.env.NODE_ENV = 'production';
   process.env.ELECTRON_DESKTOP = 'true';
   process.env.PORT = String(APP_PORT);
+  // Use the real writable location for atomic RSI writes (including renameSync).
+  process.env.LEDGERFLOW_RSI_STORE_PATH = path.join(app.getPath('userData'), 'glacia_rsi_cycles.json');
 
   const appRoot = app.getAppPath();
   process.chdir(appRoot);
@@ -640,4 +642,3 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
-

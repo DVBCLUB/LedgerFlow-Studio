@@ -27,6 +27,7 @@ import {
 import { useGlacia } from './GlaciaContext';
 import { glaciaAudio } from './glaciaAudioSynth';
 import GlaciaAutoProgrammerPanel from './GlaciaAutoProgrammerPanel';
+const GlaciaRsiPanel = React.lazy(() => import('../../modules/dev-ops/SelfHealingPatchGatePanel'));
 import GlaciaMultiModelRouterPanel from './GlaciaMultiModelRouterPanel';
 import GlaciaPluginMarketplacePanel from './GlaciaPluginMarketplacePanel';
 import {
@@ -361,7 +362,7 @@ export default function GlaciaIntelligenceHub() {
   const [completedTasks, setCompletedTasks] = useState<OrchestrationTask[]>([]);
   const [trustReport, setTrustReport] = useState<GlaciaTrustReport | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'dag' | 'digital-twin' | 'knowledge' | 'swe-studio' | 'singularity' | 'sovereign' | 'cognitive' | 'cyborg' | 'transcendent' | 'cosmic' | 'omniscient' | 'queue' | 'history' | 'trust-audit' | 'plugins' | 'auto-programmer' | 'multi-model'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'dag' | 'digital-twin' | 'knowledge' | 'swe-studio' | 'singularity' | 'sovereign' | 'cognitive' | 'cyborg' | 'transcendent' | 'cosmic' | 'omniscient' | 'queue' | 'history' | 'trust-audit' | 'plugins' | 'auto-programmer' | 'multi-model' | 'rsi'>('dashboard');
   const [executing, setExecuting] = useState<string | null>(null);
   const [showDevTools, setShowDevTools] = useState(false);
   const [daemonTelemetry, setDaemonTelemetry] = useState<{
@@ -1853,6 +1854,7 @@ console.log('✓ Rendered Quantum Aurora in 60FPS Sandbox!');`);
           { id: 'trust-audit' as const, label: 'Trust & Audit', icon: ShieldAlert, isExec: false },
           { id: 'plugins' as const, label: 'Plugins', icon: Cpu, isExec: false },
           { id: 'auto-programmer' as const, label: 'Auto-Program', icon: Bot, isExec: false },
+          { id: 'rsi' as const, label: 'RSI · Cải tiến', icon: TrendingUp, isExec: false },
           { id: 'multi-model' as const, label: 'Multi-Model', icon: Brain, isExec: false },
         ])
           .filter((tab) => showDevTools || tab.isExec)
@@ -1871,6 +1873,12 @@ console.log('✓ Rendered Quantum Aurora in 60FPS Sandbox!');`);
             </button>
           ))}
       </div>
+
+      {activeTab === 'rsi' && (
+        <React.Suspense fallback={<p className="p-6 text-sm text-slate-400">Đang tải RSI…</p>}>
+          <GlaciaRsiPanel />
+        </React.Suspense>
+      )}
 
       {activeTab === 'dashboard' && (
         <div className="space-y-5">

@@ -1,5 +1,33 @@
 # AI Handoff Log
 
+## 2026-09-16 — Glacia RSI: feedback loop, canonical review and Windows persistence
+
+- Nâng `glaciaRecursiveImprovementEngine.ts`: lineage cha/con, baseline cố định, fingerprint bản vá, quyết định Owner, so sánh từng ca, bài học vòng sau, quota, pause bền vững, phục hồi gián đoạn và ghi JSON atomic. Factory cô lập để test không chạm dữ liệu Owner.
+- `selfHealingPatchEngine.ts`: RSI bắt buộc phản hồi model hợp lệ; không còn gắn trạng thái đã áp dụng khi chỉ tạo proposal. AI judge có provenance để phân biệt fallback.
+- `robotAutomationRoutes.ts`: toàn bộ RSI API cần đúng Owner; thêm review/evaluate/pause; chặn route self-healing cũ duyệt bản sao RSI gây lệch trạng thái.
+- `glaciaRsiApi.ts` + `SelfHealingPatchGatePanel.tsx`: form baseline, duyệt, báo cáo candidate, xem hồi quy/lịch sử, xuất handoff và chuẩn bị vòng kế tiếp. Gắn trực tiếp tab Dev Tools → RSI trong `GlaciaIntelligenceHub.tsx`, giữ mount DevOps.
+- `desktop/main.cjs`: RSI dùng đường dẫn userData thực để rename atomic không bị lệch với cơ chế redirect filesystem của Electron.
+- `package.json`: `test:rsi` và `pretest`; thêm 10 test lõi + 1 test HTTP (`glaciaRsiRoutes.test.ts`). Hướng dẫn: `docs/GLACIA_RSI.md`; cập nhật PROJECT_STRUCTURE.
+
+### Xác minh
+
+- Build nền trước sửa: pass. Build cuối trong `npm run desktop:pack`: pass, electron-builder và release notes hoàn tất với exit 0.
+- `npm run test:rsi`: 11/11 pass (bao gồm HTTP owner gate, validation, pause); `npm test` trong build: pass.
+- `npm run lint` (CI safety gate), `npm run check:wiring`, `git diff --check`: pass.
+- SSR smoke render panel: pass; bundle frontend không mang `node:fs` từ import type backend.
+- SHA-256 `dist/server.cjs`, `dist/assistant-daemon.cjs`, `desktop/main.cjs` khớp bản trong `release/win-unpacked/resources/app`.
+- `npm run lint:strict`: chưa pass, 16 lỗi ngoài tập RSI tại glaciaBatchWebInspector, glaciaCrossSystemIntegrator, glaciaGeminiDeepWebBridge, glaciaGeminiLiveApi, glaciaWebMonitorScheduler và GlaciaAutonomousResearchModal. Không sửa lấn sang các module này.
+- Cảnh báo build hiện có: bundle lớn, dynamic/static import trùng, test BusinessData cạnh tranh ghi SQLite/JSON. Không coi các cảnh báo này là đã xử lý.
+
+### Giới hạn và bước tiếp
+
+- Kết quả cải thiện là `owner_reported`; chưa tự thực thi candidate, xác minh report, áp dụng diff, triển khai hoặc huấn luyện model. Không quảng cáo thành tự cải tiến trọng số hay nâng cấp đã kiểm chứng độc lập.
+- Pause bỏ kết quả đến muộn, không hủy request provider đã gửi. Kho dữ liệu phục vụ một tiến trình backend; chưa có lock đa tiến trình hoặc UI archive 200 hồ sơ.
+- Không chạy ứng dụng đóng gói với tài khoản thật để tạo RSI mới và chưa kiểm thử giao diện tương tác end-to-end. Kiểm thử lõi/HTTP dùng dữ liệu tạm.
+- Giữ nguyên các thay đổi có sẵn trong worktree từ pha trước. Không commit tự động.
+
+**AI Agent: Codex — 2026-09-16**
+
 > Lịch sử bàn giao công việc giữa các AI agent.
 > Mỗi AI PHẢI ghi lại handoff note khi kết thúc phiên làm việc.
 > Xem `docs/AI_CONSISTENCY_PROTOCOL.md` để biết quy trình chi tiết.
@@ -34,6 +62,32 @@
 ---
 
 ## Lịch sử
+
+# 2026-09-16 — Phase 5: release readiness uses live artifact evidence
+
+- Added a read-only release artifact snapshot for the frontend bundle, server runtime, assistant daemon, and Windows executable. It never runs commands or changes a release.
+- `ReleaseReadinessPanel` now displays actual presence, size, timestamp, runtime mode, fetch failures, and allows only a manual refresh.
+- The existing command checklist remains a human verification guide; artifact evidence is not presented as a substitute for tests or release approval.
+- Validation passed: `npm run check:wiring` (wired=1001, dead=0), lint, full build/tests (356/356), and `npm run desktop:pack`. The rebuilt `release/win-unpacked/LedgerFlow Hub.exe` and packaged `resources/app/dist/server.cjs` were both verified.
+
+# 2026-09-16 — Phase 7: remove mandatory remote demo assets
+
+- Face tracking no longer fetches a CDN at runtime; it only accepts the deliberate local vendor path and returns a clear diagnostic if that optional asset is absent.
+- Video workflow sample no longer exposes an invented remote MP4 or claims cloud generation/publication. It is now explicitly a local preview workflow, with external work remaining draft-only.
+
+# 2026-09-16 — Phase 8: Windows CI validates the complete desktop runtime
+
+- Windows GitHub Actions now bundles `assistant-daemon.cjs` alongside `server.cjs`, runs offline and wiring gates, and refuses to upload an EXE whose package lacks either runtime entrypoint.
+
+# 2026-09-16 — Phase 6: packaged-runtime smoke test
+
+- The rebuilt EXE was started temporarily and its local server answered on port 32123. The protected release-readiness endpoint returned `Authentication required`, confirming both embedded server startup and the intended local-auth boundary. Visual post-login navigation still requires a manual owner-session check because the available Computer Use session exposed no targetable Windows-app controls.
+- Final package verification: `LedgerFlow Hub.exe`, `dist/server.cjs`, and `dist/assistant-daemon.cjs` are present in `release/win-unpacked`.
+
+# 2026-09-16 — Glacia RSI foundation: bounded, founder-governed learning cycles
+
+- Added a persisted RSI cycle: one technical observation produces one safety-judged patch proposal plus a reusable lesson. Every cycle forces `autoApplyLowRisk: false` and explicitly forbids source writes, command execution, commits, and releases.
+- The Glacia RSI panel now uses the cycle API rather than a detached patch endpoint. Approval is restricted server-side to the designated local owner and records that identity; approval still does not apply code.
 
 ## AI Handoff Note
 
@@ -230,3 +284,12 @@ Claude 3.5 Sonnet (Cline) — 2026-08-26
 - Replaced the sample approval cards in `HITLApprovalInboxPanel.tsx` with the canonical `GET /api/delegation/approvals` gateway and added `src/utils/hitlApprovalApi.ts` as the frontend boundary.
 - Inbox decisions now use `POST /api/delegation/approval/respond`; failures remain visible and do not pretend that a decision was saved.
 - Corrected the route to validate approved/rejected states and persist the approved owner identity plus reviewer note in the correct fields, so Action Ledger audit records accurately identify the decision maker.
+# 2026-09-16 — Phase 3: approval resolution restricted to designated owner
+
+- Locked `POST /api/delegation/approval/respond` to the authenticated owner account `davidbao1704@gmail.com`. Other signed-in roles may still inspect the inbox but receive an explicit 403 when attempting a high-risk decision.
+- The resolved Action Ledger identity is now server-controlled rather than accepted from the client request body.
+# 2026-09-16 — Phase 4: feature flag entitlement is real, not decorative
+
+- `featureFlagsEntitlementEngine` now checks that a flag exists, the customer tier is entitled, and the deterministic rollout bucket is eligible; unknown flags and unentitled tiers are denied.
+- `FeatureFlagsEntitlementPanel` now reads real engine data, shows real rollout cards, and does not fall back to a fabricated successful entitlement response.
+- Added a regression assertion for a denied Starter-tier request to an Enterprise-only flag.

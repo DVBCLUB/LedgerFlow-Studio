@@ -1,14 +1,25 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ToggleLeft, ShieldCheck, Zap, Activity, Layers, CheckCircle2, Lock } from 'lucide-react';
-import { checkEntitlement } from '../../utils/enterpriseApi';
+import { checkEntitlement, getFeatureFlags, type EntitlementData } from '../../utils/enterpriseApi';
 
 export default function FeatureFlagsEntitlementPanel() {
   const [checked, setChecked] = useState<string | null>(null);
+  const [data, setData] = useState<EntitlementData | null>(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getFeatureFlags().then((result) => {
+      setData(result);
+      setError('');
+    }).catch((err: any) => setError(err?.message || 'Không thể tải trạng thái feature flags.'));
+  }, []);
 
   const handleCheck = () => {
-    checkEntitlement({ userId: 'usr_001', flagKey: 'advanced_analytics', tier: 'Enterprise' })
+    const flagKey = data?.flags[0]?.flagKey;
+    if (!flagKey) return;
+    checkEntitlement({ userId: 'davidbao1704@gmail.com', flagKey, tier: 'Enterprise' })
       .then((d) => setChecked(d.hasAccess ? `✓ Quyền truy cập Hợp Lệ: Gói ${d.tier}` : '✗ Từ Chối Truy Cập'))
-      .catch(() => setChecked('✓ Quyền truy cập Hợp Lệ: Gói Enterprise'));
+      .catch((err: any) => setChecked(`✗ ${err?.message || 'Không thể kiểm tra quyền'}`));
   };
 
   return (
@@ -28,7 +39,7 @@ export default function FeatureFlagsEntitlementPanel() {
                 </span>
               </div>
               <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                Quản lý phân quyền gói Starter/Growth/Enterprise · 92,400 sự kiện đo lường/24h · Phân bổ tính năng tự động.
+                Quản lý phân quyền gói Starter/Growth/Enterprise · trạng thái đọc trực tiếp từ Entitlement Engine.
               </p>
             </div>
           </div>
@@ -52,7 +63,7 @@ export default function FeatureFlagsEntitlementPanel() {
             </div>
           </div>
           <div className="mt-2 text-2xl font-black text-emerald-300 font-mono">
-            4 Flags
+            {data?.totalActiveFlags ?? '—'} Flags
           </div>
           <p className="mt-1 text-[11px] font-medium text-emerald-400/90 font-mono">Starter, Growth, Enterprise, Beta</p>
         </div>
@@ -65,7 +76,7 @@ export default function FeatureFlagsEntitlementPanel() {
             </div>
           </div>
           <div className="mt-2 text-2xl font-black text-blue-300 font-mono">
-            92.4K Events
+            {data ? `${(data.meteredUsageEvents24h / 1000).toFixed(1)}K` : '—'} Events
           </div>
           <p className="mt-1 text-[11px] font-medium text-blue-400">Tự động đối soát hạn mức</p>
         </div>
@@ -78,7 +89,7 @@ export default function FeatureFlagsEntitlementPanel() {
             </div>
           </div>
           <div className="mt-2 text-2xl font-black text-purple-300 font-mono">
-            100% Core
+            {data ? `${Math.max(...data.flags.map((flag) => flag.rolloutPercent), 0)}% Core` : '—'}
           </div>
           <p className="mt-1 text-[11px] font-medium text-purple-400 font-mono">Toàn bộ 15 phân hệ</p>
         </div>
@@ -114,7 +125,7 @@ export default function FeatureFlagsEntitlementPanel() {
           onClick={handleCheck}
           className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-xs transition-all shadow-lg cursor-pointer whitespace-nowrap ${
             checked
-              ? 'bg-emerald-600 text-white shadow-emerald-500/20'
+              ? checked.startsWith('✓') ? 'bg-emerald-600 text-white shadow-emerald-500/20' : 'bg-rose-600 text-white shadow-rose-500/20'
               : 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/20'
           }`}
         >
@@ -131,6 +142,13 @@ export default function FeatureFlagsEntitlementPanel() {
           )}
         </button>
       </div>
+
+      {error && <div className="rounded-2xl border border-rose-500/25 bg-rose-500/10 p-4 text-xs font-semibold text-rose-200">{error}</div>}
+
+      <section className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 shadow-xl">
+        <h2 className="text-sm font-black text-white">Trạng thái rollout thực tế</h2>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">{data?.flags.map((flag) => <div key={flag.flagKey} className="rounded-2xl border border-white/10 bg-slate-950/70 p-4"><div className="flex items-start justify-between gap-3"><div><p className="text-sm font-bold text-white">{flag.name}</p><p className="mt-1 text-[10px] font-mono text-slate-500">{flag.flagKey}</p></div><span className={`rounded-full px-2 py-1 text-[10px] font-black ${flag.status === 'active' ? 'bg-emerald-500/15 text-emerald-300' : 'bg-amber-500/15 text-amber-300'}`}>{flag.status}</span></div><p className="mt-3 text-xs text-slate-400">{flag.rolloutPercent}% rollout · {flag.enabledTiers.join(', ')}</p></div>) || <p className="text-xs text-slate-500">Đang tải flags…</p>}</div>
+      </section>
     </div>
   );
 }

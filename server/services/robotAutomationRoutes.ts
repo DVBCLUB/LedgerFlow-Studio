@@ -32,6 +32,8 @@ import { listPublishSchedules, createPublishSchedule, ingestInboundLead } from '
 import { runAiGamePlaytestSimulation } from './aiGamePlaytestSimulator.ts';
 import { generatePackagingManifest } from './multiPlatformPackager.ts';
 import { generateSelfHealingPatch, listSelfHealingPatches, updatePatchStatus } from './selfHealingPatchEngine.ts';
+import { listGlaciaRsiCycles, runGlaciaRsiCycle, getGlaciaRsiEngine, RSI_OWNER } from './glaciaRecursiveImprovementEngine.ts';
+import { readLocalServerSession } from './localAuth.ts';
 // ── Free Tool Robot Bridge ($0 Operator) ──
 import {
   createBlenderRobotExecutionPlan,
@@ -487,6 +489,39 @@ export function registerRobotAutomationRoutes(app: Express): void {
   });
 
   // ── Self-Healing Patches ──
+  app.use('/api/glacia/rsi', (req: Request, res: Response, next) => {
+    const session = readLocalServerSession(req);
+    if (session?.role !== 'owner' || session.email.toLowerCase() !== RSI_OWNER) {
+      return res.status(403).json({ success: false, error: 'Chỉ owner được truy cập RSI.' });
+    }
+    next();
+  });
+  app.post('/api/glacia/rsi/cycles', async (req: Request, res: Response) => {
+    try {
+      const cycle = await runGlaciaRsiCycle(req.body, RSI_OWNER);
+      res.json({ success: true, cycle });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error?.message || 'Không thể tạo RSI cycle.' });
+    }
+  });
+
+  app.get('/api/glacia/rsi/cycles', (_req: Request, res: Response) => {
+    try { res.json({ success: true, ...getGlaciaRsiEngine().snapshot() }); }
+    catch { res.status(503).json({ success: false, error: 'Không đọc được lịch sử RSI; giữ nguyên dữ liệu để phục hồi.' }); }
+  });
+  app.post('/api/glacia/rsi/cycles/:id/review', (req: Request, res: Response) => {
+    try { res.json({ success: true, cycle: getGlaciaRsiEngine().review(routeParam(req.params.id), req.body, RSI_OWNER) }); }
+    catch (e) { res.status(400).json({ success: false, error: e instanceof Error ? e.message : 'Không thể duyệt.' }); }
+  });
+  app.post('/api/glacia/rsi/cycles/:id/evaluate', (req: Request, res: Response) => {
+    try { res.json({ success: true, cycle: getGlaciaRsiEngine().evaluate(routeParam(req.params.id), req.body, RSI_OWNER) }); }
+    catch (e) { res.status(400).json({ success: false, error: e instanceof Error ? e.message : 'Không thể đánh giá.' }); }
+  });
+  app.post('/api/glacia/rsi/pause', (req: Request, res: Response) => {
+    try { res.json({ success: true, ...getGlaciaRsiEngine().pause(req.body?.paused, RSI_OWNER) }); }
+    catch { res.status(400).json({ success: false, error: 'Không thể đổi trạng thái RSI.' }); }
+  });
+
   app.post('/api/self-healing/propose', async (req: Request, res: Response) => {
     const { issueDescription, affectedFiles } = req.body || {};
     res.json({ success: true, patch: await generateSelfHealingPatch({ errorLog: issueDescription, sourceContext: (affectedFiles || []).join(', ') }) });
@@ -498,7 +533,18 @@ export function registerRobotAutomationRoutes(app: Express): void {
 
   app.post('/api/self-healing/status', (req: Request, res: Response) => {
     const { id, status } = req.body || {};
-    res.json({ success: true, patch: updatePatchStatus(id, status) });
+    const session = readLocalServerSession(req);
+    if (session?.role !== 'owner' || session.email.toLowerCase() !== 'davidbao1704@gmail.com') {
+      return res.status(403).json({ success: false, error: 'Only the designated owner may approve a self-healing proposal.' });
+    }
+    try {
+      if (listGlaciaRsiCycles().some(c => c.patch?.id === id)) {
+        return res.status(409).json({ success: false, error: 'Duyệt trong RSI bằng fingerprint để giữ nhất quán lịch sử.' });
+      }
+      const patch = updatePatchStatus(id, status, RSI_OWNER);
+      if (!patch) return res.status(404).json({ success: false, error: 'Proposal not found.' });
+      res.json({ success: true, patch });
+    } catch { res.status(400).json({ success: false, error: 'Không thể đổi trạng thái proposal.' }); }
   });
 
   // ═══════════════════════════════════════════════════════════════════

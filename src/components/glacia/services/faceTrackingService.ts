@@ -341,16 +341,17 @@ export class FaceTrackingService {
         return;
       }
       
-      // Load face-api.js from CDN
-      console.log('Loading face-api.js from CDN...');
-      await this.loadScript('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js');
+      // Desktop runtime is local-first. The release pipeline must vendor this optional library.
+      const localFaceApi = '/vendor/face-api/face-api.min.js';
+      console.log(`Loading local face-api.js from ${localFaceApi}...`);
+      await this.loadScript(localFaceApi);
       
       this.faceApi = (window as any).faceapi;
       this.faceApiLoaded = true;
       console.log('face-api.js loaded successfully');
     } catch (error) {
       console.error('Failed to load face-api.js:', error);
-      throw new Error('face-api.js loading failed');
+      throw new Error('Face tracking cần asset local /vendor/face-api/face-api.min.js trong gói desktop. Ứng dụng sẽ không tải thư viện từ Internet.');
     }
   }
 

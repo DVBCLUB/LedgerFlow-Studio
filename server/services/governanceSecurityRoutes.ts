@@ -37,8 +37,22 @@ import { getDynamicRouterReport } from './aiDynamicRouterEngine.ts';
 import { WORKFLOW_TEMPLATES, startWorkflow, approveWorkflow, rejectWorkflow, listWorkflowRuns } from './automatedWorkflows.ts';
 import { runEvalSuite, runLlmJudgeEvalSuite, listEvalSuites, listEvalRuns, getEvalStats } from './aiEvalHarness.ts';
 import { getGovernanceStatus, setGovernorConfig } from './costGovernor.ts';
+import { readLocalServerSession } from './localAuth.ts';
+import { getReleaseReadinessSnapshot } from './releaseReadinessService.ts';
+
+const DESIGNATED_OWNER_EMAIL = 'davidbao1704@gmail.com';
+
+function canResolveFounderApproval(req: Request) {
+  const session = readLocalServerSession(req);
+  return session?.role === 'owner' && session.email.toLowerCase() === DESIGNATED_OWNER_EMAIL;
+}
 
 export function registerGovernanceSecurityRoutes(app: Express): void {
+  // ── Release artifact evidence (read-only; never executes build/package commands) ──
+  app.get('/api/release/readiness', (_req: Request, res: Response) => {
+    res.json({ success: true, snapshot: getReleaseReadinessSnapshot() });
+  });
+
   // ── SOP & Runbooks ──
   app.get('/api/sop/runbooks', (_req: Request, res: Response) => {
     res.json({ success: true, runbooks: getSystemSOPRunbooks() });
@@ -152,12 +166,15 @@ export function registerGovernanceSecurityRoutes(app: Express): void {
   });
 
   app.post('/api/delegation/approval/respond', (req: Request, res: Response) => {
-    const { requestId, status, reviewerNote, signatureKey } = req.body || {};
+    if (!canResolveFounderApproval(req)) {
+      return res.status(403).json({ success: false, error: 'Only the designated owner may resolve high-risk approval requests.' });
+    }
+    const { requestId, status, reviewerNote } = req.body || {};
     if (!requestId || !['APPROVED', 'REJECTED'].includes(status)) {
       return res.status(400).json({ success: false, error: 'requestId and status (APPROVED or REJECTED) required' });
     }
     try {
-      const reviewer = typeof signatureKey === 'string' && signatureKey.trim() ? signatureKey.trim() : 'davidbao1704@gmail.com';
+      const reviewer = DESIGNATED_OWNER_EMAIL;
       const result = respondToApprovalRequest(requestId, status, reviewer, typeof reviewerNote === 'string' ? reviewerNote : '');
       res.json({ success: true, ...result });
     } catch (error: any) {
