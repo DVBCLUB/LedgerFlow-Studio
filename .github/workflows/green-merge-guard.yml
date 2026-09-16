@@ -42,7 +42,7 @@ jobs:
 
       - name: Sync PR risk labels
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -91,7 +91,7 @@ jobs:
 
       - name: Enforce risk label presence
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -104,7 +104,7 @@ jobs:
 
       - name: Audit risk gate configuration
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
           RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
@@ -197,7 +197,7 @@ jobs:
 
       - name: Publish risk gate config checklist
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
           RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
@@ -351,7 +351,7 @@ jobs:
 
       - name: Auto-request reviewers by risk label
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
           RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
@@ -408,7 +408,7 @@ jobs:
 
       - name: Enforce reviewer request delivery
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           RISK_STANDARD_REVIEWERS: ${{ vars.RISK_STANDARD_REVIEWERS }}
           RISK_DESKTOP_REVIEWERS: ${{ vars.RISK_DESKTOP_REVIEWERS }}
@@ -534,7 +534,7 @@ jobs:
 
       - name: Enforce AI runtime approval policy
         if: always() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           ENFORCE_AI_RUNTIME_APPROVAL: ${{ vars.ENFORCE_AI_RUNTIME_APPROVAL }}
           AI_RUNTIME_MIN_APPROVALS: ${{ vars.AI_RUNTIME_MIN_APPROVALS }}
@@ -582,7 +582,7 @@ jobs:
 
       - name: Build readiness diagnostics artifacts
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -727,7 +727,7 @@ jobs:
 
       - name: Comment PR guidance on failure
         if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
