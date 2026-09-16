@@ -5,7 +5,20 @@ let saveQueue = Promise.resolve();
 
 export async function loadLocalDatabase(storageFile: string): Promise<Record<string, unknown>> {
   if (!fs.existsSync(storageFile)) return {};
-  return JSON.parse(await fs.promises.readFile(storageFile, "utf-8"));
+  try {
+    const raw = await fs.promises.readFile(storageFile, "utf-8");
+    if (!raw.trim()) return {};
+    return JSON.parse(raw);
+  } catch {
+    const backupFile = `${storageFile}.bak`;
+    if (fs.existsSync(backupFile)) {
+      try {
+        const rawBak = await fs.promises.readFile(backupFile, "utf-8");
+        return JSON.parse(rawBak);
+      } catch {}
+    }
+    return {};
+  }
 }
 
 export function saveLocalDatabase(storageFile: string, payload: Record<string, unknown>): Promise<void> {

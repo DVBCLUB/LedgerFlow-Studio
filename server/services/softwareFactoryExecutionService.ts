@@ -1,14 +1,14 @@
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 import {
   getSoftwareFactoryRun,
   updateSoftwareFactoryRunStatus,
   type SoftwareFactoryRun,
-} from "./softwareFactoryService";
+} from "./softwareFactoryService.ts";
 import {
   chooseSoftwareFactoryProvider,
   type SoftwareFactoryProviderRuntimeDecision,
   type SoftwareFactoryWorkKind,
-} from "./softwareFactoryProviderRuntime";
+} from "./softwareFactoryProviderRuntime.ts";
 
 export type SoftwareFactoryExecutionStepStatus = "pending" | "running" | "complete" | "review" | "blocked";
 

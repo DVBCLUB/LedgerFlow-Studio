@@ -58,7 +58,7 @@ Yêu cầu JSON format, không thêm markdown, không thêm giải thích:
 
 Quy tắc gợi ý định khoản theo VAS/Thông tư 200:
 - Hàng hóa mua về: Nợ 156, Nợ 1331 / Có 331.
-- Nguyên vật liệu/vật tư công trình: Nợ 152 hoặc 154, Nợ 1331 / Có 331.
+- Chi phí License Asset/Cloud GPU dự án: Nợ 154 hoặc 642, Nợ 1331 / Có 331.
 - Dịch vụ mua ngoài/văn phòng/hành chính: Nợ 642, Nợ 1331 / Có 331.
 - Tài sản cố định: Nợ 211, Nợ 1332 / Có 331.
 - Nếu chưa rõ bản chất hàng hóa dịch vụ: dùng Nợ 642, Nợ 1331 / Có 331 và giảm confidence.

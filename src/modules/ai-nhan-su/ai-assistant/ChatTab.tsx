@@ -194,7 +194,23 @@ function renderMarkdown(text: string): React.ReactNode[] {
   return nodes;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
+const markdownCache = new Map<string, React.ReactNode[]>();
+
+function getCachedMarkdown(text: string): React.ReactNode[] {
+  if (!text) return [];
+  if (markdownCache.has(text)) {
+    return markdownCache.get(text)!;
+  }
+  if (markdownCache.size > 200) {
+    const firstKey = markdownCache.keys().next().value;
+    if (firstKey) markdownCache.delete(firstKey);
+  }
+  const rendered = renderMarkdown(text);
+  markdownCache.set(text, rendered);
+  return rendered;
+}
+
+
 
 export interface ChatMessage {
   id: string;
@@ -472,7 +488,7 @@ export default function ChatTab({
                 </div>
               )}
 
-              <div className="space-y-0.5 leading-relaxed">{renderMarkdown(msg.content)}</div>
+              <div className="space-y-0.5 leading-relaxed">{getCachedMarkdown(msg.content)}</div>
 
               {/* Multi-File Code Apply & Diff Card */}
               {msg.role === 'assistant' && !msg.isError && msg.content.includes('```') && (() => {

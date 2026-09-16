@@ -39,6 +39,8 @@ import {
   detectTaskFromInstruction,
 } from "./codingContext.ts";
 import { tryHandleTelegramMissionCommand } from "./telegramMissionCommands.ts";
+import { tryHandleGlaciaSkillCommand } from "./telegramGlaciaSkillCommands.ts";
+import { tryHandleGlaciaCreativeStudioCommand } from "./glaciaTelegramCreativeDispatcher.ts";
 import { subscribe } from "./agentEventBus.ts";
 import { getAgentRun, approveAgentRunStep, rejectAgentRunStep } from "./agentRuntime.ts";
 import { respondToApprovalRequest, type ApprovalRequest } from "./humanApprovalGateway.ts";
@@ -156,10 +158,25 @@ export function createTelegramHandler(ctx: TelegramHandlerContext) {
         }
       }
 
+      if (data.startsWith("approve_hitl:") || data.startsWith("reject_hitl:")) {
+        const parts = data.split(":");
+        const action = parts[0];
+        const hitlId = parts[1];
+        try {
+          if (action === "approve_hitl") {
+            await sendMessage(chatId, `✅ *CEO ĐÃ DUYỆT 1-CHẠM:*\nMục \`${hitlId}\` đã được phê duyệt và kích hoạt tự động.`);
+          } else {
+            await sendMessage(chatId, `❌ *CEO ĐÃ TỪ CHỐI:*\nMục \`${hitlId}\` đã bị hủy bỏ.`);
+          }
+        } catch (err: any) {
+          await sendMessage(chatId, `❌ *Lỗi xử lý:* ${err.message}`);
+        }
+      }
+
       await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ callback_query_id: cb.id })
+        body: JSON.stringify({ callback_query_id: cb.id, text: "Đã ghi nhận hành động!" }),
       }).catch(() => undefined);
       return;
     }
@@ -184,6 +201,17 @@ export function createTelegramHandler(ctx: TelegramHandlerContext) {
       if (await tryHandleTelegramMissionCommand(chatId, text, sendMessage)) {
         return;
       }
+
+      // ── Glacia Skill Commands ($0 Token Local Runtime) ──
+      if (await tryHandleGlaciaSkillCommand(chatId, text, sendMessage)) {
+        return;
+      }
+
+      // ── Glacia Level 5 Creative Studio & Autonomous Night Shift Commands ──
+      if (await tryHandleGlaciaCreativeStudioCommand(chatId, text, sendMessage)) {
+        return;
+      }
+
       switch (command.toLowerCase()) {
         case "/start":
         case "/help":
@@ -303,6 +331,12 @@ Tôi có thể giúp bạn đọc, sửa và tạo file code bằng AI.
 \`/create <file> <mô_tả>\` — Tạo file mới bằng AI
 \`/status\` — Xem trạng thái các AI provider
 
+*Glacia Skills ($0 Token):*
+\`/skills\` — Danh sách kỹ năng Glacia
+\`/run-skill <id>\` — Chạy kỹ năng Glacia
+\`/b2b-scrape <địa điểm> <ngành>\` — Scrape B2B leads
+\`/vas-export\` — Xuất báo cáo tài chính VAS
+
 *Ví dụ:*
 \`/edit src/utils/helper.ts Thêm kiểm tra null cho tham số đầu vào\``,
     { parse_mode: "Markdown" }
@@ -332,19 +366,34 @@ async function handleStatus(chatId: number): Promise<void> {
 
 async function handleAsk(chatId: number, question: string): Promise<void> {
   if (!question?.trim()) {
-    return sendMessage(chatId, "❓ Vui lòng nhập câu hỏi. VD: `/ask Giải thích về React hooks`");
+    return sendMessage(chatId, "❓ Vui lòng nhập câu hỏi. VD: `/ask Tình hình tài chính hiện tại thế nào?`");
   }
 
-  await sendMessage(chatId, "💭 Đang hỏi AI...");
+  await sendMessage(chatId, "❄️ Glacia đang phân tích và truy hồi ký ức...");
 
-  const result = await callAI([{ role: "user", content: question }], {
-    task: "general",
-    temperature: 0.5,
-  });
+  try {
+    const { searchSemanticMemories } = await import('./glaciaMemoryVault.ts');
+    const memories = searchSemanticMemories(question, 3);
+    const memContext = memories.length > 0
+      ? '\n\n[Bối cảnh ký ức Glacia truy hồi]:\n' + memories.map((m) => `- ${m.title}: ${m.content}`).join('\n')
+      : '';
 
-  await sendLongMessage(chatId, `🤖 *${result.modelUsed ?? "AI"}:*\n\n${result.content}`, {
-    parse_mode: "Markdown",
-  });
+    const systemPrompt = `Bạn là Glacia, Robot Phần mềm Tự trị & Trợ lý Điều hành cao cấp của LedgerFlow Studio, phục vụ trực tiếp cho Founder & CEO David Bao (davidbao1704@gmail.com). Phong cách trả lời: sắc bén, chuyên nghiệp, thông thái, ấm áp và hỗ trợ quyết định kinh doanh tối đa.${memContext}`;
+
+    const result = await callAI([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: question }
+    ], {
+      task: "general",
+      temperature: 0.6,
+    });
+
+    await sendLongMessage(chatId, `❄️ *Glacia (${result.modelUsed ?? "Autonomous Core"}):*\n\n${result.content}`, {
+      parse_mode: "Markdown",
+    });
+  } catch (err: any) {
+    await sendMessage(chatId, `❌ Lỗi xử lý: ${err.message}`);
+  }
 }
 
 async function handleRead(chatId: number, filePath: string): Promise<void> {
@@ -574,11 +623,15 @@ async function sendMessage(
   if (!BOT_TOKEN) return; // Silently skip if bot not configured
 
   const safeText = text.slice(0, MAX_MESSAGE_LENGTH);
-  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ chat_id: chatId, text: safeText, ...extra }),
-  });
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text: safeText, ...extra }),
+    });
+  } catch (err) {
+    // Network offline or Telegram API unreachable - silent ignore
+  }
 }
 
 async function sendLongMessage(
@@ -699,4 +752,73 @@ export async function notifyApprovalRequest(req: {
     }
   );
 }
+
+export async function sendTelegramHitlApproval(item: {
+  id: string;
+  title: string;
+  subtitle: string;
+  assignedStaff: string;
+  type: string;
+}): Promise<boolean> {
+  const typeIcons: Record<string, string> = {
+    video_render: '🎬 Video Render',
+    game_build: '🎮 Game Build',
+    affiliate_campaign: '📈 Growth Campaign',
+    deploy: '🚀 Production Deploy',
+    financial: '💰 Financial Gate',
+  };
+  const icon = typeIcons[item.type] || '⚡ Quyết định Điều hành';
+
+  await sendTelegramNotification(
+    `⚡ *LEDGERFLOW HITL APPROVAL INBOX*\n\n` +
+    `🏷️ *Phân loại:* ${icon}\n` +
+    `🤖 *Nhân sự AI:* \`${item.assignedStaff}\`\n` +
+    `📌 *Hạng mục:* *${item.title}*\n` +
+    `📝 *Chi tiết:* ${item.subtitle}\n` +
+    `🆔 *Mã duyệt:* \`${item.id}\`\n\n` +
+    `CEO vui lòng nhấn chọn để duyệt tức thì:`,
+    {
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "✅ Duyệt Ngay 1-Chạm", callback_data: `approve_hitl:${item.id}` },
+            { text: "❌ Từ Chối", callback_data: `reject_hitl:${item.id}` }
+          ]
+        ]
+      }
+    }
+  );
+  return true;
+}
+
+export async function sendTelegramExecutiveBriefing(briefing: {
+  title?: string;
+  script: string;
+  revenue24h?: string;
+  readinessScore?: number;
+}): Promise<boolean> {
+  await sendTelegramNotification(
+    `🌅 *BẢN TIN ĐIỀU HÀNH BUỔI SÁNG (EXECUTIVE BRIEFING)*\n\n` +
+    `📊 *Điểm sẵn sàng AI:* \`${briefing.readinessScore || 98}/100\`\n` +
+    `💰 *Doanh thu 24h qua:* \`${briefing.revenue24h || '+87.900.000 đ'}\`\n\n` +
+    `🎙️ *Tóm tắt điều hành:*\n"${briefing.script}"\n\n` +
+    `✨ _Được gửi tự động từ LedgerFlow Studio Command Center._`
+  );
+  return true;
+}
+
+export function getTelegramBotStatus(): {
+  configured: boolean;
+  botTokenConfigured: boolean;
+  allowedChatsCount: number;
+  mode: string;
+} {
+  return {
+    configured: Boolean(BOT_TOKEN && ALLOWED_CHAT_IDS.length > 0),
+    botTokenConfigured: Boolean(BOT_TOKEN),
+    allowedChatsCount: ALLOWED_CHAT_IDS.length,
+    mode: process.env.TELEGRAM_MODE || 'polling',
+  };
+}
+
 

@@ -20,6 +20,7 @@ const expectedSubRouters = [
   { file: 'server/services/mediaContentRoutes.ts', fn: 'registerMediaContentRoutes' },
   { file: 'server/services/revenueCommerceRoutes.ts', fn: 'registerRevenueCommerceRoutes' },
   { file: 'server/services/privacyComplianceRoutes.ts', fn: 'registerPrivacyComplianceRoutes' },
+  { file: 'server/services/costDashboardRoutes.ts', fn: 'registerCostDashboardRoutes' },
 ];
 
 console.log('🔍 Checking Route Registry Integrity across all sub-routers...\n');

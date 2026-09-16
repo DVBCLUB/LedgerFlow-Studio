@@ -14,7 +14,7 @@ export default defineConfig(() => {
       alias: {
         '@': path.resolve(__dirname, '.'),
       },
-      dedupe: ['react', 'react-dom'],
+      dedupe: ['react', 'react-dom', 'three'],
     },
     optimizeDeps: {
       include: [
@@ -25,16 +25,15 @@ export default defineConfig(() => {
         'recharts',
         'framer-motion',
         'clsx',
-        'tailwind-merge'
+        'tailwind-merge',
+        'three',
       ]
     },
     build: {
       rollupOptions: {
         output: {
           manualChunks: {
-            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-ui': ['lucide-react', 'framer-motion', 'clsx', 'tailwind-merge'],
-            'vendor-charts': ['recharts']
+            'vendor-three': ['three'],
           }
         }
       }

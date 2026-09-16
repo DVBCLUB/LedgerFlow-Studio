@@ -1,45 +1,46 @@
 export const AUDIT_AREAS = [
-  { area: 'Mua hàng - thanh toán', objective: 'Chi đúng, đủ hồ sơ, không trùng hóa đơn, không vượt ngân sách.', keyRisks: ['thanh toán trùng', 'thiếu phiếu nhập', 'NCC không hợp lệ', 'duyệt chi vượt quyền'], controls: ['3-way match: PO/hợp đồng - phiếu nhập/nghiệm thu - hóa đơn', 'phân quyền duyệt theo hạn mức', 'đối chiếu công nợ NCC'] },
-  { area: 'Tạm ứng - hoàn ứng', objective: 'Tiền ứng dùng đúng mục đích, hoàn ứng đúng hạn, không treo lâu.', keyRisks: ['tạm ứng quá hạn', 'chi sai mục đích', 'chứng từ hoàn ứng thiếu', 'một người nhận nhiều khoản treo'], controls: ['aging tạm ứng', 'hạn hoàn ứng', 'đối chiếu chứng từ theo mã công trình', 'khóa tạm ứng mới nếu khoản cũ quá hạn'] },
-  { area: 'Kho vật tư', objective: 'Nhập xuất tồn đúng thực tế, không âm kho, không thất thoát.', keyRisks: ['tồn âm', 'phiếu nhập thiếu chữ ký', 'xuất không đúng công trình', 'vật tư không khớp định mức'], controls: ['kiểm kê định kỳ', 'đối chiếu phiếu giấy với hệ thống', 'cảnh báo tồn âm', 'phân tích xuất vượt định mức'] },
-  { area: 'Quỹ dầu', objective: 'Dầu cấp đúng xe/máy, đúng định mức, đủ nhật trình.', keyRisks: ['cấp vượt định mức', 'không có xe/máy nhận', 'không có nhật trình', 'hóa đơn dầu không khớp lượng cấp'], controls: ['đối chiếu phiếu cấp dầu - nhật trình - định mức', 'cảnh báo chênh lệch', 'kiểm tra tồn quỹ dầu'] },
-  { area: 'Hóa đơn VAT', objective: 'Hóa đơn hợp lệ, đúng thông tin, đúng số học, phục vụ hoạt động công ty.', keyRisks: ['sai MST', 'lệch tiền thuế', 'hóa đơn không phục vụ công trình', 'thiếu thanh toán không tiền mặt khi cần'], controls: ['kiểm tra MST/số hóa đơn', 'VAT math check', 'đối chiếu hợp đồng/chứng từ', 'lưu file XML/PDF'] },
-  { area: 'Báo cáo sếp', objective: 'Báo cáo đúng, kịp thời, có cảnh báo và trách nhiệm xử lý.', keyRisks: ['số liệu Excel rời rạc', 'không có log sửa', 'che giấu khoản vượt ngân sách', 'không rõ người chịu trách nhiệm'], controls: ['dashboard chuẩn', 'audit log', 'khóa kỳ', 'red/yellow/green alert'] }
+  { area: 'Bản quyền & Tài nguyên số (Digital Assets)', objective: 'Đảm bảo asset 3D, âm thanh, kịch bản có bản quyền hợp lệ, không vi phạm IP.', keyRisks: ['sử dụng asset vi phạm bản quyền', 'thiếu chứng từ mua bán license', 'chia sẻ tài nguyên số trái phép'], controls: ['Asset License Registry', 'quét mã nguồn và model 3D trước khi đóng gói', 'phân quyền truy cập kho asset'] },
+  { area: 'Chi phí Cloud & Hạ tầng GPU / API', objective: 'Chi tiêu hạ tầng cloud, GPU server và token API đúng dự toán, không lãng phí.', keyRisks: ['rò rỉ API key', 'chạy script ngốn GPU vô tận', 'chi phí server vượt hạn mức'], controls: ['AI Vault Key Encryption', 'Budget Governor giới hạn token', 'cảnh báo chi phí cloud thời gian thực'] },
+  { area: 'Kho Game Assets & 3D Models', objective: 'Lưu trữ, versioning và phân loại asset 3D chuẩn xác, không thất lạc asset.', keyRisks: ['thiếu texture/shader', 'file 3D quá nặng gây giảm FPS', 'trùng lặp asset trong kho'], controls: ['kiểm kê asset định kỳ', 'tự động nén và tối ưu polygon', 'gắn metadata và version tag cho từng model'] },
+  { area: 'Kho Kịch Bản & Video Thành Phẩm', objective: 'Quản lý kho kịch bản AI, file video render 4K và luồng xuất bản mạng xã hội.', keyRisks: ['kịch bản trùng lặp nội dung', 'video render lỗi encoding', 'lộ video chưa phát hành'], controls: ['kho kịch bản tập trung', 'tự động kiểm duyệt nội dung trước khi render', 'phân quyền xuất bản video'] },
+  { area: 'Doanh Thu Số & Cổng Thanh Toán', objective: 'Doanh thu in-app, subscription và bán bản quyền khớp số liệu cổng thanh toán.', keyRisks: ['lệch đối soát cổng thanh toán', 'gian lận hoàn tiền (chargeback)', 'thiếu hóa đơn VAT điện tử'], controls: ['tự động đối chiếu webhook thanh toán', 'ghi nhận doanh thu theo chuẩn mực kế toán số', 'lưu trữ log giao dịch bất biến'] },
+  { area: 'Báo Cáo Điều Hành CEO', objective: 'Dữ liệu điều hành trung thực, cập nhật thời gian thực, có log kiểm toán minh bạch.', keyRisks: ['báo cáo sai lệch chỉ số MAU/ARR', 'không có audit log', 'che giấu lỗi hệ thống'], controls: ['CEO Command Cockpit', 'Audit log bất biến', 'hệ thống cảnh báo tự động'] }
 ];
 
 export const RISK_CONTROL_MATRIX = [
-  { risk: 'Thanh toán trùng hóa đơn', process: 'Mua hàng - thanh toán', control: 'Chặn trùng MST + số hóa đơn + ngày hóa đơn + tổng tiền', test: 'Lấy mẫu hóa đơn tháng, dò trùng và kiểm tra chứng từ thanh toán', evidence: 'Danh sách hóa đơn, phiếu chi/UNC, biên bản đối chiếu NCC' },
-  { risk: 'Tạm ứng treo quá hạn', process: 'Tạm ứng - hoàn ứng', control: 'Aging report và cảnh báo khoản quá hạn', test: 'Lọc khoản ứng > hạn, kiểm tra phê duyệt gia hạn hoặc chứng từ hoàn ứng', evidence: 'Sổ tạm ứng, đề nghị tạm ứng, bảng kê hoàn ứng' },
-  { risk: 'Vật tư xuất sai công trình', process: 'Kho vật tư', control: 'Mọi phiếu xuất phải có mã công trình và người nhận', test: 'Chọn mẫu phiếu xuất, đối chiếu mã công trình với đề nghị xuất', evidence: 'Phiếu xuất kho, đề nghị cấp vật tư, chữ ký người nhận' },
-  { risk: 'Dầu cấp vượt định mức', process: 'Quỹ dầu', control: 'Đối chiếu lít dầu với nhật trình/ca máy/định mức', test: 'Chọn xe/máy có mức tiêu hao cao, tính chênh lệch và yêu cầu giải trình', evidence: 'Phiếu cấp dầu, nhật trình xe/máy, bảng định mức' },
-  { risk: 'Hóa đơn VAT sai số học', process: 'Thuế - hóa đơn', control: 'Tự kiểm tra trước thuế + thuế = tổng tiền', test: 'Quét hóa đơn có chênh lệch hoặc thuế suất bất thường', evidence: 'File XML/PDF hóa đơn, bảng kiểm tra số học' },
-  { risk: 'Sửa dữ liệu sau khi duyệt', process: 'Kiểm soát hệ thống', control: 'Audit log bắt buộc ghi người sửa, thời điểm, trước/sau, lý do', test: 'Kiểm tra log các giao dịch giá trị lớn đã sửa', evidence: 'Audit log, lịch sử chứng từ, phiếu phê duyệt sửa' }
+  { risk: 'Rò rỉ API Key hoặc Token Cloud', process: 'Chi phí Cloud & Hạ tầng', control: 'Mã hóa AES-256 trong AI Key Vault và auto-lock khi không sử dụng', test: 'Quét toàn bộ codebase và log runtime để đảm bảo 0 rò rỉ secret', evidence: 'Vault Security Report, Audit Log, Git Secret Scan' },
+  { risk: 'Sử dụng Asset 3D không có bản quyền', process: 'Bản quyền & Tài nguyên số', control: 'Bắt buộc gắn License ID và hóa đơn mua tài nguyên vào Kho Game Assets', test: 'Lấy mẫu asset trong dự án game, đối chiếu License với nhà cung cấp', evidence: 'Biên nhận mua asset, file license.txt, metadata model' },
+  { risk: 'Model 3D quá nặng làm sụt giảm FPS', process: 'Kho Game Assets & 3D Models', control: 'Tự động kiểm tra polygon count và dung lượng file GLTF/GLB trước khi build', test: 'Chạy benchmark FPS trên trình duyệt để kiểm tra độ mượt', evidence: 'FPS Benchmark Report, 3D Asset Inspector log' },
+  { risk: 'Render video 4K tiêu tốn tài nguyên quá mức', process: 'Kho Kịch Bản & Video', control: 'Giới hạn độ phân giải và thời lượng render tối đa theo từng phân cảnh', test: 'Kiểm tra log FFmpeg và thời gian hoàn thành tác vụ render', evidence: 'FFmpeg log, Video Processing Queue history' },
+  { risk: 'Lệch số liệu thanh toán in-app / subscription', process: 'Doanh Thu Số', control: 'Tự động đối soát webhook Stripe / VietQR với database nội bộ', test: 'Dò khớp 100% giao dịch thanh toán thành công với đơn hàng đã kích hoạt', evidence: 'Payment Webhook Logs, Sổ cái doanh thu số' },
+  { risk: 'Thay đổi mã nguồn hoặc cấu hình trái phép', process: 'Kiểm Soát Hệ Thống', control: 'Audit log bắt buộc ghi nhận người sửa, timestamp và mã định danh tác vụ', test: 'Kiểm tra lịch sử thay đổi trên git và audit log daemon', evidence: 'Audit Log, Git commit history, Patch Review Session' }
 ];
 
 export const AUDIT_PROGRAM = [
-  { step: '1. Lập phạm vi', work: 'Chọn công trình, kỳ kiểm tra, loại chi phí trọng yếu, người phụ trách.', output: 'Audit scope memo' },
-  { step: '2. Hiểu quy trình', work: 'Vẽ luồng từ phát sinh chi phí đến duyệt thanh toán và báo cáo sếp.', output: 'Process walkthrough' },
-  { step: '3. Nhận diện rủi ro', work: 'Liệt kê rủi ro theo mua hàng, tạm ứng, kho, dầu, VAT, báo cáo.', output: 'Risk register' },
-  { step: '4. Test kiểm soát', work: 'Chọn mẫu, kiểm tra chứng từ, đối chiếu hệ thống, hỏi người liên quan.', output: 'Working papers' },
-  { step: '5. Kết luận phát hiện', work: 'Ghi finding theo điều kiện - tiêu chí - nguyên nhân - ảnh hưởng - kiến nghị.', output: 'Audit findings' },
-  { step: '6. Theo dõi khắc phục', work: 'Giao owner, deadline, bằng chứng đã sửa, trạng thái mở/đóng.', output: 'Follow-up tracker' }
+  { step: '1. Lập phạm vi kiểm toán', work: 'Xác định dự án game/phần mềm, kho asset, kỳ kiểm tra và hạn mức chi phí.', output: 'Digital Audit Scope Memo' },
+  { step: '2. Khảo sát quy trình', work: 'Vẽ luồng từ ý tưởng kịch bản/gameplay đến khi render, đóng gói và thanh toán.', output: 'Process Flow Chart' },
+  { step: '3. Nhận diện rủi ro số', work: 'Liệt kê rủi ro về bản quyền, bảo mật API key, chi phí cloud và tính toàn vẹn dữ liệu.', output: 'Digital Risk Register' },
+  { step: '4. Kiểm thử kiểm soát', work: 'Kiểm tra mã nguồn, đối chiếu license asset, benchmark FPS và log thanh toán.', output: 'Audit Working Papers' },
+  { step: '5. Đánh giá & Kết luận', work: 'Ghi nhận phát hiện theo: Hiện trạng - Tiêu chuẩn - Nguyên nhân - Rủi ro - Khuyến nghị.', output: 'Audit Findings Report' },
+  { step: '6. Khắc phục & Tự chữa lành', work: 'Kích hoạt Self-Healing patch hoặc giao việc cho kỹ sư xử lý triệt để.', output: 'Remediation Tracker' }
 ];
 
 export const FINDING_TEMPLATES = [
-  { title: 'Thiếu chứng từ thanh toán', condition: 'Một số khoản chi đã thanh toán nhưng chưa đủ hóa đơn/phiếu nhập/nghiệm thu.', criteria: 'Quy trình thanh toán yêu cầu đủ hồ sơ trước khi chi.', impact: 'Tăng rủi ro chi phí không hợp lệ và khó giải trình khi quyết toán.', recommendation: 'Chặn thanh toán khi checklist hồ sơ chưa đạt hoặc yêu cầu phê duyệt ngoại lệ.' },
-  { title: 'Tạm ứng treo quá hạn', condition: 'Khoản tạm ứng quá hạn nhưng chưa có hoàn ứng hoặc giải trình.', criteria: 'Tạm ứng phải có hạn hoàn ứng và người chịu trách nhiệm.', impact: 'Tăng rủi ro thất thoát tiền và sai báo cáo dòng tiền.', recommendation: 'Thiết lập aging report, nhắc tự động, khóa tạm ứng mới nếu khoản cũ quá hạn.' },
-  { title: 'Dầu cấp vượt định mức', condition: 'Lượng dầu cấp cho xe/máy vượt định mức nhưng chưa có giải trình.', criteria: 'Cấp dầu phải căn cứ nhật trình và định mức.', impact: 'Nguy cơ thất thoát nhiên liệu và đội chi phí công trình.', recommendation: 'Đối chiếu phiếu cấp dầu - nhật trình - định mức trước khi chốt chi phí.' }
+  { title: 'Tài nguyên 3D chưa gắn License hợp lệ', condition: 'Một số asset trong kho game chưa có hóa đơn hoặc mã bản quyền thương mại.', criteria: 'Mọi tài nguyên số sử dụng trong sản phẩm thương mại phải có license rõ ràng.', impact: 'Nguy cơ bị khiếu nại bản quyền hoặc bị gỡ bỏ khỏi App Store/Steam.', recommendation: 'Rà soát và bổ sung license cho toàn bộ kho asset hoặc thay thế bằng asset tự sinh.' },
+  { title: 'Chi phí Token API vượt ngưỡng ngân sách', condition: 'Mức tiêu thụ token API trong kỳ vượt 20% so với dự toán ban đầu.', criteria: 'Chi phí AI/Cloud phải tuân thủ hạn mức trong Token Governor.', impact: 'Giảm biên lợi nhuận của sản phẩm phần mềm.', recommendation: 'Chuyển các tác vụ nội bộ sang On-Device Local Offline LLM WebGPU ($0).' },
+  { title: 'Asset 3D chưa được nén tối ưu', condition: 'Dung lượng texture và số lượng đa giác của model 3D vượt mức khuyến nghị.', criteria: 'Game 3D web/mobile cần duy trì khung hình ổn định 60FPS.', recommendation: 'Sử dụng công cụ nén tự động trong Glacia Asset Studio để giảm dung lượng file.' }
 ];
 
 export const FOLLOW_UP_TRACKER = [
-  { finding: 'Tạm ứng treo quá hạn', owner: 'Kế toán dự án', deadline: '7 ngày', evidence: 'Bảng kê hoàn ứng hoặc phê duyệt gia hạn', status: 'Open' },
-  { finding: 'Thiếu phiếu nhập kho', owner: 'Thủ kho', deadline: '3 ngày', evidence: 'Phiếu nhập có chữ ký và mã công trình', status: 'In Progress' },
-  { finding: 'Lệch định mức dầu', owner: 'Chỉ huy trưởng', deadline: '5 ngày', evidence: 'Giải trình chênh lệch và nhật trình xe/máy', status: 'Open' }
+  { finding: 'Tài nguyên 3D chưa gắn License', owner: 'Game Art Lead', deadline: '3 ngày', evidence: 'Bổ sung file license.txt và link nguồn asset', status: 'In Progress' },
+  { finding: 'Chi phí API vượt ngưỡng', owner: 'AI Engineer', deadline: '2 ngày', evidence: 'Kích hoạt WebLLM Offline và siết chặt token quota', status: 'Closed' },
+  { finding: 'Tối ưu hóa đa giác model 3D', owner: '3D Artist', deadline: '5 ngày', evidence: 'Log benchmark 60FPS mượt mà trên thiết bị yếu', status: 'Open' }
 ];
 
 export const SAMPLING_GUIDE = [
-  'Ưu tiên chọn mẫu theo rủi ro: giá trị lớn, NCC mới, giao dịch cuối tháng, thiếu mã công trình, sửa sau duyệt.',
-  'Không chỉ chọn mẫu ngẫu nhiên; phải có mẫu trọng yếu và mẫu bất thường.',
-  'Mỗi mẫu kiểm tra phải lưu bằng chứng: chứng từ, người duyệt, ngày duyệt, kết luận.',
-  'Nếu phát hiện sai sót lặp lại, mở rộng mẫu hoặc kiểm tra toàn bộ nhóm giao dịch tương tự.'
+  'Ưu tiên chọn mẫu theo mức độ rủi ro: chi phí API cao, asset thương mại bên thứ ba, giao dịch thanh toán giá trị lớn.',
+  'Kiểm tra 100% các model 3D và kịch bản video xuất bản ra công chúng.',
+  'Mỗi mẫu kiểm tra phải lưu bằng chứng số: hash file, log giao dịch, license ID và chữ ký duyệt.',
+  'Nếu phát hiện sai sót, kích hoạt quy trình tự động cô lập và cập nhật quy tắc phòng ngừa.'
 ];
+

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Search, Globe, ShieldCheck, Link2, AlertTriangle, Sparkles, CheckCircle2 } from 'lucide-react';
 import { groundSearchQuery, GroundedAIResponse } from '../../utils/enterpriseApi';
 
 export default function SearchGroundingPanel() {
@@ -16,31 +17,101 @@ export default function SearchGroundingPanel() {
   };
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#312e8122,#4338ca22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #4338ca44' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🌐 Search Grounding & Fact-Check Engine</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Trả lời AI có dẫn nguồn · Gắn citation vào từng câu · Chống hallucination cho thông tin thị trường</p>
-      </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155', display: 'flex', gap: '0.75rem' }}>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Nhập câu hỏi cần dẫn nguồn..." style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem' }} />
-        <button onClick={handleSearch} disabled={loading} style={{ background: '#4338ca', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>
-          {loading ? 'Đang tìm...' : '🔍 Grounded Search'}
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <Globe className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Công Cụ Dẫn Nguồn &amp; Kiểm Định Dữ Liệu (Search Grounding &amp; Fact-Check)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Grounding AI
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Trả lời AI có dẫn nguồn rõ ràng · Gắn citation vào từng câu · Triệt tiêu hallucination đối với văn bản pháp luật &amp; tài chính.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              100% Verified Citations
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Query Search Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="Nhập câu hỏi cần đối chiếu và dẫn nguồn minh bạch..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+          />
+        </div>
+        <button
+          type="button"
+          onClick={handleSearch}
+          disabled={loading}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-black text-xs transition-all shadow-lg cursor-pointer whitespace-nowrap bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/20 disabled:opacity-50"
+        >
+          <Search className="w-3.5 h-3.5" />
+          <span>{loading ? 'Đang truy vấn...' : '🚀 Grounded Search'}</span>
         </button>
       </div>
+
       {result && (
-        <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-          <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>
-            {result.grounded ? '✅ Grounded Response' : '⚠️ Không đủ nguồn tin'} <span style={{ color: '#94a3b8', fontSize: '0.75rem' }}>(model: {result.modelUsed})</span>
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              {result.grounded ? (
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-amber-400" />
+              )}
+              <span className="font-bold text-xs text-slate-200">
+                {result.grounded ? 'Phản Hồi Đã Được Xác Minh Dẫn Nguồn' : 'Cảnh Báo: Không Đủ Nguồn Tin Xác Thực'}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono font-bold text-slate-400 bg-slate-800/60 px-2.5 py-1 rounded-xl border border-slate-700/60">
+              Model: {result.modelUsed}
+            </span>
           </div>
-          <div style={{ padding: '1.25rem', color: '#cbd5e1', fontSize: '0.875rem', whiteSpace: 'pre-wrap' }}>{result.answerWithCitations}</div>
-          <div style={{ padding: '0 1.25rem 1.25rem' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>Nguồn tham khảo:</div>
-            {result.sources.map((s, i) => (
-              <div key={i} style={{ fontSize: '0.8rem', color: '#60a5fa', marginBottom: '0.25rem' }}>
-                [{i + 1}] {s.title} — <code>{s.url}</code>
+
+          <div className="p-5 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
+            {result.answerWithCitations}
+          </div>
+
+          {result.sources?.length > 0 && (
+            <div className="px-5 pb-5 space-y-2 border-t border-slate-800/40 pt-4">
+              <div className="flex items-center gap-1.5 text-[11px] font-bold text-indigo-300">
+                <Link2 className="w-3.5 h-3.5" />
+                <span>Danh Mục Nguồn Dẫn Chứng:</span>
               </div>
-            ))}
-          </div>
+              <div className="space-y-1.5">
+                {result.sources.map((s, i) => (
+                  <div key={i} className="text-xs text-blue-400 flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 rounded bg-blue-500/10 text-[10px] font-mono font-bold border border-blue-500/20 text-blue-300">
+                      [{i + 1}]
+                    </span>
+                    <span className="font-semibold text-slate-300">{s.title}</span>
+                    <span className="text-[11px] font-mono text-slate-500 truncate max-w-xs">{s.url}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

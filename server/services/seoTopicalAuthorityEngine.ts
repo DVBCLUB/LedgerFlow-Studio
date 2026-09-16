@@ -52,8 +52,8 @@ let clustersStore: SeoTopicCluster[] = [
     clusterId: 'top_03_construction_erp',
     pillarKeyword: 'Phần Mềm Quản Lý Dự Án Xây Dựng & Báo Cáo Tiến Độ',
     clusterSubtopics: [
-      'Bóc tách khối lượng và quản lý định mức vật tư',
-      'Kế toán công trình xây dựng theo thông tư 200',
+      'Tối ưu hóa pipeline render 3D và quản trị kho asset',
+      'Quản trị dự án Studio Game & Video AI chuẩn quốc tế',
       'Kiểm soát dòng tiền thầu phụ xây lắp',
     ],
     organicRankAvg: 3.2,

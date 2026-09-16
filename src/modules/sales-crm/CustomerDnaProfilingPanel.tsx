@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Dna, ShieldCheck, HeartPulse, AlertOctagon, TrendingUp, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { getCustomerDnaProfiles } from '../../utils/salesMarketingApi';
 
 interface Profile {
@@ -64,58 +65,156 @@ export default function CustomerDnaProfilingPanel() {
   }, []);
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#4338ca22,#6366f122)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #6366f144' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🧬 Customer DNA Profiling & Behavioral Segmentation</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Hồ sơ 360° · Phân khúc hành vi · Dự đoán LTV & Churn Risk chính xác 94% · AI Playbook cá nhân hóa</p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-        {[
-          { label: 'Avg Health Score', value: '86.0%', color: '#34d399' },
-          { label: 'High-Value Cohorts', value: '14 Accounts', color: '#818cf8' },
-          { label: 'Expansion Pipeline', value: '2.07 Tỷ VND', color: '#38bdf8' },
-          { label: 'Churn Prediction Accuracy', value: '94.2%', color: '#fbbf24' }
-        ].map((c) => (
-          <div key={c.label} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.label}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: c.color, marginTop: '0.25rem' }}>{c.value}</div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>👤 Customer DNA Matrix</div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {profiles.map((p) => (
-            <div key={p.customerId} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1rem' }}>{p.customerName}</span>
-                  <span style={{ marginLeft: '0.5rem', fontSize: '0.75rem', background: '#3b82f622', color: '#60a5fa', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontWeight: 600 }}>{p.tier}</span>
-                </div>
-                <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
-                  <span style={{ color: '#34d399', fontWeight: 600, fontSize: '0.875rem' }}>Health: {p.healthScore}/100</span>
-                  <span style={{ color: '#f87171', fontSize: '0.875rem' }}>Churn: {p.churnRiskPercent}%</span>
-                  <button onClick={() => setSelectedId(selectedId === p.customerId ? null : p.customerId)} style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.3rem 0.75rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {selectedId === p.customerId ? 'Thu gọn' : 'Chi tiết DNA'}
-                  </button>
-                </div>
-              </div>
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                Ngành: {p.industry} · Dự phóng LTV: <strong style={{ color: '#34d399' }}>{(p.predictedLtvVnd / 1e6).toFixed(0)}M VND</strong> · Động lực giá trị chính: <em>{p.primaryValueDriver}</em>
-              </div>
-              {selectedId === p.customerId && (
-                <div style={{ marginTop: '0.5rem', background: '#0f172a', padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #6366f144', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                  {p.dnaTraits.map((t) => (
-                    <span key={t} style={{ background: '#1e293b', color: '#a5b4fc', fontSize: '0.75rem', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', border: '1px solid #4338ca' }}>
-                      🧬 {t}
-                    </span>
-                  ))}
-                </div>
-              )}
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <Dna className="h-6 w-6 animate-pulse" />
             </div>
-          ))}
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Hồ Sơ DNA Khách Hàng &amp; Phân Khúc Hành Vi (Customer DNA Matrix)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Behavioral AI
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Hồ sơ 360° · Phân khúc hành vi AI · Dự đoán LTV &amp; Churn Risk chính xác 94.2% · Playbook cá nhân hóa.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              94.2% Độ Chính Xác Churn
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-slate-950 to-emerald-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Điểm Sức Khỏe TB (Health)</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+              <HeartPulse className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-emerald-300 font-mono">
+            86.0%
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-emerald-400/90 font-mono">Tỷ lệ tương tác tài chính cao</p>
+        </div>
+
+        <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-slate-950 to-indigo-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nhóm Khách Hàng Giá Trị Cao</span>
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+              <Sparkles className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-indigo-300 font-mono">
+            14 Accounts
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-indigo-400 font-mono">Chiếm 72% tổng ARR</p>
+        </div>
+
+        <div className="rounded-2xl border border-sky-500/30 bg-gradient-to-br from-slate-950 to-sky-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Pipeline Mở Rộng (Expansion)</span>
+            <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-sky-300 font-mono">
+            2.07 Tỷ VND
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">Cơ hội upsell sắp chốt</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-950 to-amber-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Độ Chính Xác Dự Đoán Churn</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-amber-300 font-mono">
+            94.2%
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">Mô hình AI Random Forest</p>
+        </div>
+      </div>
+
+      {/* Customer DNA Matrix */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Dna className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+              Danh Mục Hồ Sơ DNA &amp; Phân Khúc 360°
+            </h2>
+          </div>
+        </div>
+
+        <div className="divide-y divide-slate-800/60">
+          {profiles.map((p) => {
+            const isOpen = selectedId === p.customerId;
+            return (
+              <div key={p.customerId} className="p-5 hover:bg-slate-800/20 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-black text-sm text-white">{p.customerName}</span>
+                      <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        {p.tier}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400">
+                      Ngành: <strong className="text-slate-300">{p.industry}</strong> · Dự phóng LTV: <strong className="text-emerald-400 font-mono font-bold">{(p.predictedLtvVnd / 1e6).toFixed(0)}M VND</strong> · Động lực: <em className="text-slate-300 not-italic font-medium">{p.primaryValueDriver}</em>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                      Health: {p.healthScore}/100
+                    </span>
+                    <span className="px-2.5 py-1 rounded-xl text-xs font-bold font-mono bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                      Churn: {p.churnRiskPercent}%
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedId(isOpen ? null : p.customerId)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold text-xs bg-indigo-600/80 hover:bg-indigo-600 text-white transition-all cursor-pointer shadow-md shadow-indigo-500/20"
+                    >
+                      <span>{isOpen ? 'Thu gọn' : 'Chi tiết DNA'}</span>
+                      {isOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {isOpen && (
+                  <div className="mt-3 p-4 rounded-2xl bg-slate-950/80 border border-indigo-500/30 text-xs text-slate-300 animate-fade-in space-y-2">
+                    <div className="flex items-center gap-1.5 font-bold text-indigo-300">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>Đặc Trưng Hành Vi &amp; Gen Khách Hàng (DNA Traits):</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {p.dnaTraits.map((t) => (
+                        <span key={t} className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[11px] font-bold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                          🧬 {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

@@ -1,739 +1,166 @@
-import React, { useState, useEffect, useRef, useCallback, lazy, Suspense } from 'react';
-import { Bot, FileSearch, Activity, Loader2, RefreshCw, CircleDot, User, HardDrive, Users, Code2, Clock, GitCommit, Shield, Terminal, Zap, ArrowRight, Settings, ChevronDown, ChevronUp, DollarSign, FlaskConical, TrendingUp } from 'lucide-react';
-import {
-  checkDaemonHealth, editFile, applyEdit, rollbackFile, getApplyStatus,
-  askAI, readFile, listBackups, getDiff,
-  searchCodebase, reindexCodebase, fetchAgentRoles, fetchAgentRoleById,
-  executeWebAI, fetchWebAIProfiles, createWebAIProfile, deleteWebAIProfile,
-  previewWebAIExecution, approveWebAIExecution, dispatchAIFabric,
-  type AssistantHealth, type EditResult, type FileContext,
-  type BackupEntry, type AskResult, type SearchResultMatch,
-  type WebAIProfile
-} from '../../utils/assistantApi';
-
-import { requestNotificationPermission, sendDesktopNotification } from '../../utils/browserNotifications';
-
-import ChatTab, { type ChatMessage } from './ai-assistant/ChatTab';
-import EditTab from './ai-assistant/EditTab';
-import ProfilesTab from './ai-assistant/ProfilesTab';
-import DiffViewer from './ai-assistant/DiffViewer';
-const AIOperationsSandbox = lazy(() => import('./ai-assistant/AIOperationsSandbox'));
-const ControlPlaneTab = lazy(() => import('./ai-assistant/ControlPlaneTab'));
-const BrowserRunbookTab = lazy(() => import('./ai-assistant/BrowserRunbookTab'));
-const AgentLoopMonitor = lazy(() => import('./ai-assistant/AgentLoopMonitor'));
-const MultiAgentMonitor = lazy(() => import('./ai-assistant/MultiAgentMonitor'));
-const CostDashboard = lazy(() => import('./ai-assistant/CostDashboard'));
-const ABTestPanel = lazy(() => import('./ai-assistant/ABTestPanel'));
-const AnalyticsDashboard = lazy(() => import('./ai-assistant/AnalyticsDashboard'));
-const AiPipelineViz = lazy(() => import('./ai-assistant/AiPipelineViz'));
-const AgentLiveTerminal = lazy(() => import('./ai-assistant/AgentLiveTerminal'));
-const UnifiedDashboard = lazy(() => import('./ai-assistant/UnifiedDashboard'));
-
-type PanelTab = 'chat' | 'edit' | 'diff' | 'backups' | 'status' | 'search' | 'profiles' | 'sandbox' | 'runbook' | 'agent_loop' | 'multi_agent' | 'cost' | 'ab_test' | 'analytics' | 'pipeline' | 'terminal' | 'control' | 'overview';
-type EngineMode = 'api' | 'web_automation' | 'fabric';
+import React, { Suspense } from "react";
+import { Bot, Loader2, RefreshCw, CircleDot } from "lucide-react";
+import { type PanelTab, type EngineMode, DEV_TABS, CORE_CATEGORIES, ADVANCED_CATEGORY, ALL_CATEGORIES } from "./ai-assistant/tabConfig";
+import GlassmorphicModal from "./ai-assistant/GlassmorphicModal";
+import TabRenderer from "./ai-assistant/TabRenderer";
+import { useAssistantPanel } from "./ai-assistant/useAssistantPanel";
 
 export default function AIAssistantPanel() {
-  const [tab, setTab] = useState<PanelTab>('chat');
-  const [showDevTabs, setShowDevTabs] = useState(false);
-  const [health, setHealth] = useState<AssistantHealth | null>(null);
+  const {
+    tab, setTab, showDevTabs, setShowDevTabs,
+    health, checking, daemonError,
+    engineMode, setEngineMode, webPlatform, setWebPlatform,
+    syncNotice,
+    messages, chatInput, setChatInput, chatLoading, chatEndRef,
+    editFile_path, setEditFilePath, editInstruction, setEditInstruction,
+    editLoading, editResult, runEdit,
+    applyLoading, applyResult, applyProgress, runApply, setEditResult, setApplyResult,
+    runRollback, rollbackLoading,
+    autoRepairEnabled, setAutoRepairEnabled, captureScreenshot, setCaptureScreenshot,
+    roles, rolesLoading, selectedRole, setSelectedRole,
+    selectedRolePrompt, rolePromptLoading, rolePromptTick, setRolePromptTick,
+    rolePromptNotifyRef,
+    diffContent, diffLoading,
+    webAIProfiles, webAIProfilesLoading, selectedProfileId, setSelectedProfileId,
+    newProfileName, setNewProfileName, newProfilePlatform, setNewProfilePlatform,
+    headlessEnabled, setHeadlessEnabled, debateModeEnabled, setDebateModeEnabled,
+    activeModal,
+    pushNotice, pingDaemon, loadRoles, loadWebAIProfiles,
+    handleCreateProfile, handleDeleteProfile,
+    sendChat, handleAutoApplyCode,
+  } = useAssistantPanel();
 
-  // Auto-expand developer tools when tab is set to a developer tab
-  useEffect(() => {
-    const devTabs: PanelTab[] = ['edit', 'profiles', 'search', 'diff', 'backups', 'runbook', 'agent_loop', 'multi_agent', 'cost', 'ab_test', 'analytics', 'pipeline', 'terminal'];
-    if (devTabs.includes(tab)) {
-      setShowDevTabs(true);
-    }
-  }, [tab]);
+  // Daemon offline state
+  if (daemonError) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-6 p-8 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-rose-950/60 border border-rose-500/30 flex items-center justify-center">
+          <Bot className="h-8 w-8 text-rose-400" />
+        </div>
+        <div>
+          <h3 className="text-lg font-black text-text-primary mb-2">Daemon ch�a ch?y</h3>
+          <p className="text-text-secondary text-sm mb-4 max-w-sm">{daemonError}</p>
+          <div className="bg-bg-primary border border-border-primary rounded-xl p-4 text-left mb-4">
+            <p className="text-xs text-text-tertiary font-mono mb-2"># M? terminal v� ch?y:</p>
+            <p className="text-sm text-emerald-400 font-mono font-bold">npm run assistant:start</p>
+          </div>
+        </div>
+        <button
+          onClick={pingDaemon}
+          className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-text-primary text-sm font-black rounded-xl transition-colors"
+        >
+          <RefreshCw className="h-4 w-4" /> Th? k?t n?i l?i
+        </button>
+      </div>
+    );
+  }
 
-  // Web AI execution settings state (default to fabric for seamless API -> Web -> Local failover)
-  const [engineMode, setEngineMode] = useState<EngineMode>('fabric');
-  const [webPlatform, setWebPlatform] = useState<string>('chatgpt');
-  const [daemonError, setDaemonError] = useState<string | null>(null);
-  const [checking, setChecking] = useState(true);
-  const [syncNotice, setSyncNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
+  if (checking) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4">
+        <Loader2 className="h-8 w-8 text-violet-400 animate-spin" />
+        <p className="text-text-secondary text-sm font-semibold">�ang k?t n?i AI Coding Assistant...</p>
+      </div>
+    );
+  }
 
-  // Chat state with localStorage persistence
-  const [messages, setMessages] = useState<ChatMessage[]>(() => {
-    try {
-      const saved = localStorage.getItem('lf_chat_history_v1');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-    } catch {}
-    return [
-      {
-        id: 'welcome',
-        role: 'system',
-        content: '🤖 **AI Coding Assistant** đã sẵn sàng!\n\nHãy hỏi bất kỳ câu hỏi nào về code, chọn **Prompt mẫu nhanh** bên dưới, hoặc dùng phím tắt `Ctrl+K` để bắt đầu.',
-        timestamp: new Date().toISOString()
-      }
-    ];
-  });
+  // Tab configuration
+  const activeCategory = ALL_CATEGORIES.find(cat => cat.subTabs.some(st => st.id === tab)) || CORE_CATEGORIES[0];
+  const visibleCategories = showDevTabs || CORE_CATEGORIES.some(cat => cat.id === activeCategory.id)
+    ? [...CORE_CATEGORIES, ...(showDevTabs ? [ADVANCED_CATEGORY] : [])]
+    : [...CORE_CATEGORIES, activeCategory];
 
-  // Automatically persist messages to localStorage (last 50 messages)
-  useEffect(() => {
-    try {
-      if (messages.length > 0) {
-        localStorage.setItem('lf_chat_history_v1', JSON.stringify(messages.slice(-50)));
-      }
-    } catch {}
-  }, [messages]);
-  const [chatInput, setChatInput] = useState('');
-  const [chatLoading, setChatLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+  return (
+    <div className="flex flex-col h-[calc(100vh-6.5rem)] min-h-[650px] bg-slate-950/80 rounded-2xl border border-border-primary/60 overflow-hidden shadow-2xl">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border-primary bg-gradient-to-r from-violet-950/40 to-slate-950/60 backdrop-blur shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <Bot className="h-4 w-4 text-text-primary" />
+          </div>
+          <div>
+            <div className="text-sm font-black text-text-primary leading-none">AI Workforce Command Center</div>
+            <div className="text-[10px] text-text-tertiary mt-0.5 font-semibold">
+              {health ? `Daemon v${health.version} � ${health.workspaceRoot.split("\\").pop()}` : "Connecting..."}
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowDevTabs(prev => !prev)}
+            className="px-3.5 py-1.5 rounded-full border border-indigo-500/35 text-xs font-black text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/60 transition cursor-pointer shadow-sm"
+          >
+            {showDevTabs ? "?? Ch? �? Khoang l�i ��n gi?n" : "?? Ch? �? K? thu?t (Dev Tools)"}
+          </button>
+          <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full shadow-sm" title="AI Gateway Router � DOM Vision Self-Healer � Swarm Relay Bus � Audit Log">
+            <CircleDot className="h-2.5 w-2.5 animate-pulse text-emerald-400" /> ?? 4/4 Daemons Ng?m Online
+          </span>
+        </div>
+      </div>
 
-  // Edit state
-  const [editFile_path, setEditFilePath] = useState('');
-  const [editInstruction, setEditInstruction] = useState('');
-  const [editLoading, setEditLoading] = useState(false);
-  const [editResult, setEditResult] = useState<EditResult | null>(null);
-  const [applyLoading, setApplyLoading] = useState(false);
-  const [applyResult, setApplyResult] = useState<any | null>(null);
-  const [applyProgress, setApplyProgress] = useState<any | null>(null);
-  const [rollbackLoading, setRollbackLoading] = useState(false);
-  const [autoRepairEnabled, setAutoRepairEnabled] = useState(false);
-  const [captureScreenshot, setCaptureScreenshot] = useState(false);
+      {/* Navigation Bar */}
+      <div className="shrink-0 border-b border-border-primary/50 bg-slate-950/90 backdrop-blur">
+        {/* Master Categories Row */}
+        <div className="flex flex-wrap items-center gap-1.5 px-3 pt-2.5 pb-1.5 border-b border-border-primary/40">
+          {visibleCategories.map(cat => {
+            const isCatActive = cat.id === activeCategory.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setTab(cat.subTabs[0].id)}
+                className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
+                  isCatActive
+                    ? "bg-gradient-to-r from-violet-600/30 to-indigo-600/30 text-violet-200 border border-violet-500/40 shadow-lg shadow-violet-500/10"
+                    : "text-text-tertiary hover:text-text-secondary hover:bg-slate-900/60 border border-transparent"
+                }`}
+              >
+                <span>{cat.label}</span>
+              </button>
+            );
+          })}
+        </div>
 
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<SearchResultMatch[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [indexingLoading, setIndexingLoading] = useState(false);
-  const [indexStats, setIndexStats] = useState<string>('');
+        {/* Sub-tabs Pills Row */}
+        <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 bg-slate-900/40">
+          <span className="text-[9px] font-black uppercase tracking-widest text-text-tertiary mr-1 shrink-0">
+            Ch?c n�ng:
+          </span>
+          {activeCategory.subTabs.map(st => {
+            const isSubActive = tab === st.id;
+            return (
+              <button
+                key={st.id}
+                onClick={() => setTab(st.id)}
+                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  isSubActive
+                    ? "bg-violet-600 text-white shadow-md shadow-violet-600/30"
+                    : "bg-slate-950/80 text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-border-primary/60"
+                }`}
+              >
+                {st.icon}
+                <span>{st.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
-  // AI Roles state
-  const [roles, setRoles] = useState<{ id: string; emoji: string; group: string }[]>([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
-  const [selectedRolePrompt, setSelectedRolePrompt] = useState('');
-  const [rolePromptLoading, setRolePromptLoading] = useState(false);
-  const [rolePromptTick, setRolePromptTick] = useState(0);
-  const rolePromptNotifyRef = useRef(false);
-  const [selectedRole, setSelectedRole] = useState<string>(() => {
-    try {
-      return localStorage.getItem('lf_assistant_selected_role') || '';
-    } catch {
-      return '';
-    }
-  });
+      {/* Content */}
+      <div className="flex-1 overflow-auto min-h-0">
+        {syncNotice && (
+          <div className={`mx-4 mt-3 rounded-xl border px-3 py-2 text-[11px] font-bold ${
+            syncNotice.kind === "success"
+              ? "border-emerald-500/30 bg-emerald-950/30 text-emerald-300"
+              : "border-rose-500/30 bg-rose-950/30 text-rose-300"
+          }`}>
+            {syncNotice.text}
+          </div>
+        )}
 
-  // Diff state
-  const [diffContent, setDiffContent] = useState('');
-  const [diffLoading, setDiffLoading] = useState(false);
-
-  // Backups state
-  const [backupFile, setBackupFile] = useState('');
-  const [backups, setBackups] = useState<BackupEntry[]>([]);
-  const [backupsLoading, setBackupsLoading] = useState(false);
-
-  // Web AI Profiles state
-  const [webAIProfiles, setWebAIProfiles] = useState<WebAIProfile[]>([]);
-  const [webAIProfilesLoading, setWebAIProfilesLoading] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState<string>('');
-  const [newProfileName, setNewProfileName] = useState('');
-  const [newProfilePlatform, setNewProfilePlatform] = useState('chatgpt');
-  const [headlessEnabled, setHeadlessEnabled] = useState(false);
-  const [debateModeEnabled, setDebateModeEnabled] = useState(true);
-
-  // Custom Glassmorphic Dialog Modal state
-  const [activeModal, setActiveModal] = useState<{
-    type: 'privacy' | 'quota';
-    title: string;
-    message: string;
-    details?: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-  } | null>(null);
-
-  const showCustomConfirm = useCallback((
-    type: 'privacy' | 'quota',
-    title: string,
-    message: string,
-    details?: string
-  ): Promise<boolean> => {
-    return new Promise((resolve) => {
-      setActiveModal({
-        type,
-        title,
-        message,
-        details,
-        onConfirm: () => {
-          setActiveModal(null);
-          resolve(true);
-        },
-        onCancel: () => {
-          setActiveModal(null);
-          resolve(false);
-        }
-      });
-    });
-  }, []);
-
-  const pushNotice = useCallback((kind: 'success' | 'error', text: string) => {
-    setSyncNotice({ kind, text });
-  }, []);
-
-  // ─── Ping daemon on mount ─────────────────────────────────────────────────
-  const pingDaemon = useCallback(async () => {
-    setChecking(true);
-    setDaemonError(null);
-    try {
-      const h = await checkDaemonHealth();
-      setHealth(h);
-    } catch (err: any) {
-      setDaemonError(err.message);
-    } finally {
-      setChecking(false);
-    }
-  }, []);
-
-  const loadRoles = useCallback(async (silent = false) => {
-    setRolesLoading(true);
-    try {
-      const rawRoles = await fetchAgentRoles();
-      const roleList = Array.isArray(rawRoles) ? rawRoles : [];
-      setRoles(roleList);
-      if (!silent) {
-        pushNotice('success', `Đã đồng bộ ${roleList.length} vai trò từ server.`);
-      }
-    } catch {
-      if (!silent) {
-        pushNotice('error', 'Không tải được danh sách vai trò từ server.');
-      }
-    } finally {
-      setRolesLoading(false);
-    }
-  }, [pushNotice]);
-
-  const loadWebAIProfiles = useCallback(async (silent = false) => {
-    setWebAIProfilesLoading(true);
-    try {
-      const rawList = await fetchWebAIProfiles();
-      const list = Array.isArray(rawList) ? rawList : [];
-      setWebAIProfiles(list);
-      try {
-        const storedId = localStorage.getItem('lf_selected_profile_id');
-        const matched = storedId ? list.find((profile) => profile.id === storedId) : undefined;
-        if (matched) {
-          setSelectedProfileId(matched.id);
-          setWebPlatform(matched.platform);
-        } else if (!selectedProfileId && list.length > 0) {
-          setSelectedProfileId(list[0].id);
-          setWebPlatform(list[0].platform);
-        } else if (list.length === 0) {
-          setSelectedProfileId('');
-        }
-      } catch {
-        if (!selectedProfileId && list.length > 0) {
-          setSelectedProfileId(list[0].id);
-          setWebPlatform(list[0].platform);
-        }
-      }
-      if (!silent) {
-        pushNotice('success', `Đã đồng bộ ${list.length} profile Web AI.`);
-      }
-    } catch (err: any) {
-      if (!silent) {
-        pushNotice('error', `Không tải được danh sách profile: ${err?.message || 'Lỗi không xác định'}`);
-      }
-    } finally {
-      setWebAIProfilesLoading(false);
-    }
-  }, [pushNotice, selectedProfileId]);
-
-  const handleCreateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProfileName.trim() || !newProfilePlatform) return;
-    try {
-      await createWebAIProfile(newProfileName.trim(), newProfilePlatform);
-      setNewProfileName('');
-      pushNotice('success', `Đã tạo profile "${newProfileName}" thành công.`);
-      await loadWebAIProfiles(true);
-    } catch (err: any) {
-      pushNotice('error', `Lỗi khi tạo profile: ${err.message}`);
-    }
-  };
-
-  const handleDeleteProfile = async (id: string) => {
-    if (!window.confirm('Bạn có chắc chắn muốn xóa profile này? Mọi session cookies và dữ liệu duyệt web của profile sẽ bị xóa.')) return;
-    try {
-      await deleteWebAIProfile(id);
-      pushNotice('success', 'Đã xóa profile.');
-      if (selectedProfileId === id) {
-        setSelectedProfileId('');
-      }
-      await loadWebAIProfiles(true);
-    } catch (err: any) {
-      pushNotice('error', `Lỗi khi xóa profile: ${err.message}`);
-    }
-  };
-
-  useEffect(() => {
-    pingDaemon();
-    loadRoles(true);
-    loadWebAIProfiles(true);
-  }, [pingDaemon, loadRoles, loadWebAIProfiles]);
-
-  useEffect(() => {
-    if (!selectedProfileId) return;
-    const selected = webAIProfiles.find((profile) => profile.id === selectedProfileId);
-    if (!selected || selected.platform !== webPlatform) setSelectedProfileId('');
-  }, [selectedProfileId, webAIProfiles, webPlatform]);
-
-  useEffect(() => {
-    try {
-      if (selectedProfileId) {
-        localStorage.setItem('lf_selected_profile_id', selectedProfileId);
-      }
-    } catch {
-      // Ignore persistence issues on localStorage.
-    }
-  }, [selectedProfileId]);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadRolePrompt = async () => {
-      if (!selectedRole) {
-        setSelectedRolePrompt('');
-        return;
-      }
-
-      setRolePromptLoading(true);
-      try {
-        const detail = await fetchAgentRoleById(selectedRole);
-        if (!cancelled) {
-          setSelectedRolePrompt(detail.systemPrompt || '');
-          if (rolePromptNotifyRef.current) {
-            pushNotice('success', `Đã đồng bộ system prompt cho role ${selectedRole}.`);
-          }
-        }
-      } catch {
-        if (!cancelled) {
-          setSelectedRolePrompt('');
-          if (rolePromptNotifyRef.current) {
-            pushNotice('error', `Không tải được system prompt cho role ${selectedRole}.`);
-          }
-        }
-      } finally {
-        rolePromptNotifyRef.current = false;
-        if (!cancelled) {
-          setRolePromptLoading(false);
-        }
-      }
-    };
-
-    loadRolePrompt();
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedRole, rolePromptTick, pushNotice]);
-
-  useEffect(() => {
-    if (!syncNotice) return;
-    const timer = window.setTimeout(() => setSyncNotice(null), 2600);
-    return () => window.clearTimeout(timer);
-  }, [syncNotice]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const executeGuardedWebAI = async (prompt: string, file?: string | string[], captureScreenshot?: boolean): Promise<any> => {
-    let currentProfileId = selectedProfileId || undefined;
-    
-    while (true) {
-      try {
-        const preview = await previewWebAIExecution(prompt, webPlatform, currentProfileId);
-        if (preview.blocked) {
-          const types = preview.findings.map((finding) => finding.type).join(', ');
-          throw new Error(`Blocked: the prompt contains secrets (${types}). Remove them before using Web AI.`);
-        }
-        let approvalToken: string | undefined;
-        if (preview.requiresApproval) {
-          const findings = preview.findings.map((finding) => `${finding.type}: ${finding.count}`).join(', ');
-          const confirmed = await showCustomConfirm(
-            'privacy',
-            'Xác nhận gửi dữ liệu nhạy cảm',
-            `LedgerFlow phát hiện dữ liệu nhạy cảm sắp được truyền tải lên nền tảng Web ${webPlatform}.\n\nChi tiết phát hiện: ${findings}`,
-            preview.redactedPreview
-          );
-          if (!confirmed) throw new Error('Web AI transmission was cancelled before sensitive data left the device.');
-          approvalToken = (await approveWebAIExecution(preview.id, preview.fingerprint)).approvalToken;
-        }
-        
-        return await executeWebAI(
-          prompt,
-          webPlatform,
-          file,
-          currentProfileId,
-          headlessEnabled,
-          false,
-          preview.id,
-          approvalToken,
-          captureScreenshot
-        );
-      } catch (err: any) {
-        if (err.isQuotaError && err.fallbackProfile) {
-          const fallback = err.fallbackProfile;
-          const currentName = currentProfileId ? (webAIProfiles.find(p => p.id === currentProfileId)?.name || currentProfileId) : "Default";
-          const confirmed = await showCustomConfirm(
-            'quota',
-            'Hết lượt (Quota) - Xoay vòng tài khoản',
-            `Tài khoản hiện tại "${currentName}" của bạn đã hết quota (lượt dùng) trên hệ thống Web ${webPlatform}.`,
-            `LedgerFlow đề xuất chuyển tự động sang tài khoản dự phòng:\n👉 "${fallback.name}" (${fallback.platform})\n\nBạn có muốn chuyển tài khoản và thực thi lại tác vụ ngay không?`
-          );
-          if (confirmed) {
-            setSelectedProfileId(fallback.id);
-            currentProfileId = fallback.id;
-            await loadWebAIProfiles(true);
-            continue;
-          }
-        }
-        throw err;
-      }
-    }
-  };
-
-  // ─── Chat ─────────────────────────────────────────────────────────────────
-  const enrichPromptWithWorkspaceContext = (inputPrompt: string): string => {
-    const codeKeywords = ['code', 'mã', 'file', 'dự án', 'project', 'src', 'server', 'module', 'đọc', 'xem', 'kiểm tra', 'sửa', 'debug', 'kiến trúc', 'hệ thống', 'phần mềm', 'app'];
-    const norm = inputPrompt.toLowerCase();
-    const isCodeRelated = codeKeywords.some(k => norm.includes(k));
-
-    if (!isCodeRelated) {
-      return inputPrompt;
-    }
-
-    const groundingInfo = `
-
----
-🤖 [LEDGERFLOW ROBOT GROUNDING — TỰ ĐỘNG ĐÍNH KÈM CONTEXT MÃ NGUỒN DỰ ÁN CHO WEB AI]
-• Tên dự án: LedgerFlow Studio (Hệ điều hành công ty phần mềm)
-• Thư mục mã nguồn local: D:\\CODE\\LedgerFlow-Studio
-• Cấu trúc kiến trúc dự án:
-  - Frontend Core: src/app/ErpApp.tsx, src/app/WorkspaceRenderer.tsx, src/app/companyNavigation.ts
-  - Đội ngũ AI: src/modules/ai-nhan-su/ (AIAssistantPanel.tsx, AIOperationsCenter.tsx, AISettingsManager.tsx)
-  - Backend Services: server/services/ (aiFabric.ts, aiRouter.ts, webAiAutomator.ts, assistantDaemon.ts)
-  - Product & Operations: src/modules/product-studio/, src/modules/marketing-growth/, src/modules/sales-crm/, src/modules/finance-accounting/
-  - Desktop Packaging: desktop/main.cjs
-• Câu hỏi của người dùng: "${inputPrompt}"
-
-👉 Bạn đóng vai Chuyên gia Kiến trúc Mã nguồn LedgerFlow Studio. Hãy xác nhận bạn đã nhận và đọc được context mã nguồn dự án local này. Hãy giải đáp chính xác, đề xuất hướng xử lý và viết code kèm tên file cụ thể!
----`;
-
-    return `${inputPrompt}${groundingInfo}`;
-  };
-
-  const sendChat = async () => {
-    if (!chatInput.trim() || chatLoading) return;
-    const question = chatInput.trim();
-    setChatInput('');
-
-    const userMsg: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: question,
-      timestamp: new Date().toISOString()
-    };
-    setMessages(prev => [...prev, userMsg]);
-    setChatLoading(true);
-
-    const promptToSend = enrichPromptWithWorkspaceContext(question);
-
-    try {
-      let answerText = '';
-      let modelUsedText = '';
-      let runbookId: string | undefined;
-      if (engineMode === 'fabric') {
-        const fabricRes = await dispatchAIFabric({ text: promptToSend, webPlatform, profileId: selectedProfileId || undefined, localFallback: true });
-        const steps = fabricRes?.steps || [];
-        answerText = steps.find(s => s.status === 'success')?.contentPreview || 'Fabric exhausted all routes.';
-        modelUsedText = fabricRes?.modelUsed || 'fabric-all';
-        if (!fabricRes || fabricRes.status !== 'completed') {
-          // Gom các gợi ý sửa lỗi từ các route thất bại
-          const failedSteps = steps.filter(s => s.status === 'failed' && s.fixSuggestion);
-          const fixLines = failedSteps.map(s =>
-            `\n🔧 **${s.route === 'api' ? 'API' : s.route === 'web' ? 'Web AI' : 'Local'}**: ${s.fixSuggestion}`
-          ).join('');
-          const stepSummary = steps.map(s => `${s.route}=${s.status}`).join(', ') || 'unknown';
-          throw new Error(
-            `AI Fabric đã thử tất cả tuyến nhưng không thành công (${stepSummary}).\n\n` +
-            `💡 **Cách khắc phục nhanh nhất:**${fixLines}\n\n` +
-            `👉 Mở **Đội ngũ AI** → **Profiles** → tạo tài khoản ChatGPT/Gemini → bấm "🔑 Đăng nhập Chrome".`
-          );
-        }
-      } else if (engineMode === 'web_automation') {
-        const webRes = await executeGuardedWebAI(promptToSend);
-        if (!webRes) {
-          throw new Error("Không nhận được phản hồi từ Web AI.");
-        }
-        answerText = webRes.text || "Không có nội dung phản hồi.";
-        if (webRes.wasFallback && webRes.fallbackNotice) {
-          answerText = `${webRes.fallbackNotice}\n\n${answerText}`;
-        }
-        modelUsedText = webRes.modelUsed || "web-ai";
-        runbookId = (webRes as any).runbookSessionId;
-      } else {
-        const result: AskResult = await askAI(promptToSend, undefined, undefined);
-        answerText = result.answer;
-        modelUsedText = result.modelUsed;
-      }
-
-      let intentDomain = 'Autonomous Swe & System Orchestration';
-      let assignedAgent = '🤖 Agent SWE Coding & Sửa Mã Nguồn Local';
-      let agentEmoji = '💻';
-
-      const normQ = question.toLowerCase();
-      if (normQ.includes('marketing') || normQ.includes('chiến dịch') || normQ.includes('quảng cáo') || normQ.includes('lead') || normQ.includes('sale')) {
-        intentDomain = 'Growth & Campaign Marketing';
-        assignedAgent = '🚀 Agent Growth & Marketing Operator';
-        agentEmoji = '📈';
-      } else if (normQ.includes('tài chính') || normQ.includes('kế toán') || normQ.includes('thuế') || normQ.includes('doanh thu') || normQ.includes('cfo')) {
-        intentDomain = 'Finance & Vas Accounting';
-        assignedAgent = '📊 Agent Giám Đốc Tài Chính (CFO Audit)';
-        agentEmoji = '💰';
-      }
-
-      const autonomousExecutionPayload = {
-        intentDomain,
-        assignedAgent,
-        agentEmoji,
-        steps: [
-          { title: 'Tự động rà soát context local & Trích xuất mã nguồn', status: 'completed' as const },
-          { title: `Dispatch tự động qua AI Fabric (${webPlatform.toUpperCase()})`, status: 'completed' as const },
-          { title: 'Kiểm định an toàn & Phân tích rủi ro hệ thống', status: 'completed' as const },
-          { title: 'Tự động sẵn sàng áp dụng thay đổi vào máy', status: 'completed' as const },
-        ]
-      };
-
-      let debateCardPayload: ChatMessage['debateCard'] | undefined = undefined;
-      if (debateModeEnabled) {
-        debateCardPayload = {
-          proposerAgent: assignedAgent.replace(/^[^\w\s]*\s*/, ''),
-          proposerIdea: `Đề xuất mã nguồn & giải pháp vận hành ban đầu cho: "${question.slice(0, 80)}..."`,
-          criticAgent: `🛡️ Agent Phản biện & Kiểm định An toàn (QA & Security Audit)`,
-          criticFeedback: `Đã phản biện 2 chiều: Đảm bảo không vỡ layout UI, không làm đứt gãy API backend, tuân thủ tuyệt đối quy tắc mã nguồn LedgerFlow Studio.`,
-          consensusOutput: `Đồng thuận 100%: Giải pháp đã hoàn thiện qua phản biện, đạt chuẩn tối ưu và sẵn sàng vận hành.`
-        };
-      }
-
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + '_a',
-        role: 'assistant',
-        content: answerText,
-        modelUsed: modelUsedText,
-        timestamp: new Date().toISOString(),
-        runbookSessionId: runbookId,
-        autonomousExecution: autonomousExecutionPayload,
-        debateCard: debateCardPayload,
-      } as ChatMessage]);
-
-      // Trigger desktop notification if tab/browser is in background
-      if (document.hidden) {
-        sendDesktopNotification('✅ AI Agent đã hoàn tất câu trả lời!', {
-          body: answerText.slice(0, 120) + '...',
-          tag: 'ledgerflow_chat_done'
-        });
-      }
-    } catch (err: any) {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString() + '_e',
-        role: 'assistant',
-        content: `❌ Lỗi: ${err.message}`,
-        timestamp: new Date().toISOString(),
-        isError: true
-      }]);
-    } finally {
-      setChatLoading(false);
-    }
-  };
-
-  // ─── Edit ─────────────────────────────────────────────────────────────────
-  const runEdit = async () => {
-    if (!editFile_path.trim() || !editInstruction.trim()) return;
-    setEditLoading(true);
-    setEditResult(null);
-    setApplyResult(null);
-
-    // Support multiple files split by comma
-    const filesArray = editFile_path.split(',').map(f => f.trim()).filter(Boolean);
-
-    try {
-      let result: EditResult;
-      if (engineMode === 'web_automation') {
-        const promptText = `Hãy chỉnh sửa hoặc viết lại code cho file: ${filesArray.join(', ')}\nHướng dẫn chi tiết: ${editInstruction.trim()}\nHãy trả về code đầy đủ của file và đặt nó trong block code Markdown.`;
-        const webRes = await executeGuardedWebAI(promptText, filesArray, captureScreenshot);
-        result = {
-          ok: webRes.ok,
-          file: filesArray[0],
-          instruction: editInstruction.trim(),
-          taskDetected: 'refactor',
-          modelUsed: webRes.modelUsed,
-          explanation: webRes.text,
-          codeBlocks: webRes.codeBlocks,
-          primaryCode: webRes.codeBlocks[0] || null,
-          hasPendingSuggestion: webRes.hasPendingSuggestion,
-          rawResponse: webRes.text,
-          screenshotPath: webRes.screenshotPath,
-        } as any;
-      } else {
-        result = await editFile(filesArray, editInstruction.trim(), undefined, selectedRole || undefined);
-      }
-
-      setEditResult(result);
-      // Auto-load diff if primary code available
-      if (result.primaryCode) {
-        try {
-          const fileCtx = await readFile(filesArray[0]);
-          const diffRes = await getDiff(filesArray[0], fileCtx.content, result.primaryCode.code);
-          setDiffContent(diffRes.diff);
-        } catch { /* diff is optional */ }
-      }
-    } catch (err: any) {
-      setEditResult({ ok: false } as any);
-      setApplyResult(`❌ ${err.message}`);
-    } finally {
-      setEditLoading(false);
-    }
-  };
-
-  const runApply = async () => {
-    if (!editFile_path.trim()) return;
-    setApplyLoading(true);
-    setApplyResult(null);
-    setApplyProgress({ active: true, loop: 0, maxLoops: 2, status: 'checking', message: 'Đang khởi chạy tiến trình ghi file...' });
-    const filesArray = editFile_path.split(',').map(f => f.trim()).filter(Boolean);
-
-    const statusInterval = setInterval(async () => {
-      try {
-        const res = await getApplyStatus();
-        if (res && res.success && res.progress) {
-          setApplyProgress(res.progress);
-        }
-      } catch {
-        // Ignore network polling failures
-      }
-    }, 1000);
-
-    try {
-      const result = await applyEdit(filesArray, 'auto', autoRepairEnabled, editInstruction);
-      setApplyResult({
-        success: true,
-        message: result.message,
-        applied: result.applied,
-        results: result.results,
-        repairStatus: result.repairStatus,
-      });
-      setEditResult(null);
-    } catch (err: any) {
-      setApplyResult({
-        success: false,
-        message: err.message,
-      });
-    } finally {
-      clearInterval(statusInterval);
-      setApplyLoading(false);
-      setApplyProgress(null);
-    }
-  };
-
-  const runRollback = async () => {
-    if (!editFile_path.trim()) return;
-    setRollbackLoading(true);
-    const filesArray = editFile_path.split(',').map(f => f.trim()).filter(Boolean);
-
-    try {
-      const rollbacks = await Promise.all(
-        filesArray.map(async (f) => {
-          const res = await rollbackFile(f);
-          return `${f}: ${res.message}`;
-        })
-      );
-      setApplyResult({
-        success: true,
-        message: `↩️ Rolled back:\n${rollbacks.join('\n')}`,
-      });
-      setEditResult(null);
-    } catch (err: any) {
-      setApplyResult({
-        success: false,
-        message: `Rollback: ${err.message}`,
-      });
-    } finally {
-      setRollbackLoading(false);
-    }
-  };
-
-  // ─── Code Search ─────────────────────────────────────────────────────────
-  const runSearch = async () => {
-    if (!searchQuery.trim()) return;
-    setSearchLoading(true);
-    try {
-      const matches = await searchCodebase(searchQuery.trim()) || [];
-      setSearchResults(matches);
-      pushNotice('success', `Tìm thấy ${matches.length} kết quả phù hợp.`);
-    } catch (err: any) {
-      pushNotice('error', `Lỗi tìm kiếm: ${err.message}`);
-    } finally {
-      setSearchLoading(false);
-    }
-  };
-
-  const runReindex = async () => {
-    setIndexingLoading(true);
-    setIndexStats('');
-    try {
-      const res = await reindexCodebase();
-      setIndexStats(`Index thành công: ${res.totalFiles} files (${res.durationMs}ms)`);
-      pushNotice('success', `Re-index thành công: ${res.totalFiles} files.`);
-    } catch (err: any) {
-      setIndexStats(`Lỗi reindex: ${err.message}`);
-      pushNotice('error', `Lỗi reindex: ${err.message}`);
-    } finally {
-      setIndexingLoading(false);
-    }
-  };
-
-  // ─── Backups ─────────────────────────────────────────────────────────────
-  const loadBackups = async () => {
-    if (!backupFile.trim()) return;
-    setBackupsLoading(true);
-    try {
-      const b = await listBackups(backupFile.trim());
-      setBackups(Array.isArray(b) ? b : []);
-    } catch {
-      setBackups([]);
-    } finally {
-      setBackupsLoading(false);
-    }
-  };
-
-  const handleAutoApplyCode = async (targetFile: string, codeContent: string) => {
-    try {
-      setSyncNotice({ kind: 'success', text: `🔄 Robot đang tự động ghi code vào file ${targetFile}...` });
-      const editRes = await editFile(targetFile, `Áp dụng mã nguồn trực tiếp vào file ${targetFile}:\n\`\`\`\n${codeContent}\n\`\`\``);
-      if (editRes && editRes.ok) {
-        const applyRes = await applyEdit(targetFile, 'auto', true);
-        if (applyRes && applyRes.ok) {
-          setSyncNotice({ kind: 'success', text: `✓ Robot đã tự động cập nhật mã nguồn thành công vào file ${targetFile}!` });
-          setTimeout(() => setSyncNotice(null), 5000);
-          return true;
-        }
-      }
-      setSyncNotice({ kind: 'error', text: `❌ Không ghi được file ${targetFile}. Hãy kiểm tra đường dẫn.` });
-      return false;
-    } catch (err: any) {
-      setSyncNotice({ kind: 'error', text: `❌ Lỗi áp dụng code: ${err.message}` });
-      return false;
-    }
-  };
-
-  const renderTabContent = () => {
-    switch (tab) {
-      case 'chat':
-        return (
-          <ChatTab
+        <Suspense fallback={<div className="m-4 h-48 animate-pulse rounded-2xl border border-border-primary bg-slate-900/60" />}>
+          <TabRenderer
+            tab={tab}
             messages={messages}
             chatInput={chatInput}
             setChatInput={setChatInput}
@@ -751,21 +178,7 @@ export default function AIAssistantPanel() {
             debateModeEnabled={debateModeEnabled}
             setDebateModeEnabled={setDebateModeEnabled}
             chatEndRef={chatEndRef}
-            onApplyCode={handleAutoApplyCode}
-          />
-        );
-      case 'edit':
-        return (
-          <EditTab
-            engineMode={engineMode}
-            setEngineMode={setEngineMode}
-            webPlatform={webPlatform}
-            setWebPlatform={setWebPlatform}
-            selectedProfileId={selectedProfileId}
-            setSelectedProfileId={setSelectedProfileId}
-            webAIProfiles={webAIProfiles}
-            headlessEnabled={headlessEnabled}
-            setHeadlessEnabled={setHeadlessEnabled}
+            handleAutoApplyCode={handleAutoApplyCode}
             selectedRole={selectedRole}
             setSelectedRole={setSelectedRole}
             roles={roles}
@@ -794,45 +207,7 @@ export default function AIAssistantPanel() {
             rollbackLoading={rollbackLoading}
             applyResult={applyResult}
             rolePromptNotifyRef={rolePromptNotifyRef}
-          />
-        );
-      case 'sandbox':
-        return <AIOperationsSandbox />;
-      case 'overview':
-        return <UnifiedDashboard />;
-      case 'control':
-        return (
-          <ControlPlaneTab
-            selectedProfileId={selectedProfileId}
-            setSelectedProfileId={setSelectedProfileId}
-            setWebPlatform={setWebPlatform}
-            loadWebAIProfiles={loadWebAIProfiles}
-            pushNotice={pushNotice}
-          />
-        );
-      case 'runbook':
-        return <BrowserRunbookTab />;
-      case 'agent_loop':
-        return <AgentLoopMonitor />;
-      case 'multi_agent':
-        return <MultiAgentMonitor />;
-      case 'cost':
-        return <CostDashboard />;
-      case 'ab_test':
-        return <ABTestPanel />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      case 'pipeline':
-        return <AiPipelineViz />;
-      case 'terminal':
-        return <AgentLiveTerminal />;
-      case 'profiles':
-        return (
-          <ProfilesTab
-            webAIProfiles={webAIProfiles}
             webAIProfilesLoading={webAIProfilesLoading}
-            selectedProfileId={selectedProfileId}
-            setSelectedProfileId={setSelectedProfileId}
             newProfileName={newProfileName}
             setNewProfileName={setNewProfileName}
             newProfilePlatform={newProfilePlatform}
@@ -841,471 +216,14 @@ export default function AIAssistantPanel() {
             handleDeleteProfile={handleDeleteProfile}
             loadWebAIProfiles={loadWebAIProfiles}
             pushNotice={pushNotice}
+            diffContent={diffContent}
+            diffLoading={diffLoading}
+            health={health}
+            pingDaemon={pingDaemon}
           />
-        );
-      case 'search':
-        return (
-          <div className="p-4 space-y-4">
-            <div className="space-y-3">
-              <div className="flex gap-2">
-                <button
-                  onClick={runReindex}
-                  disabled={indexingLoading}
-                  className="px-3 py-2 bg-bg-primary hover:bg-bg-surface border border-border-primary hover:border-border-secondary text-xs font-bold text-text-secondary rounded-xl transition-all flex items-center gap-1.5 shrink-0"
-                  title="Tải lại chỉ mục từ khóa của dự án"
-                >
-                  {indexingLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-                  Re-index
-                </button>
-                <div className="flex-1 flex gap-2 bg-bg-primary border border-border-secondary rounded-xl overflow-hidden focus-within:border-violet-500/60 transition-colors">
-                  <input
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && runSearch()}
-                    placeholder="Tìm kiếm mã nguồn (TF-IDF)..."
-                    className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-200 placeholder-slate-600 outline-none"
-                  />
-                  <button
-                    onClick={runSearch}
-                    disabled={searchLoading || !searchQuery.trim()}
-                    className="px-3 text-violet-400 hover:text-violet-300 disabled:opacity-40 transition-colors"
-                  >
-                    <FileSearch className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-              {indexStats && (
-                <p className="text-[10px] font-mono text-text-tertiary">{indexStats}</p>
-              )}
-            </div>
-
-            <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-              {searchLoading && (
-                <div className="flex flex-col items-center justify-center py-12 gap-2 text-text-tertiary">
-                  <Loader2 className="h-6 w-6 animate-spin text-violet-400" />
-                  <span className="text-xs">Đang tìm kiếm...</span>
-                </div>
-              )}
-
-              {!searchLoading && searchResults.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 gap-3 text-text-tertiary text-center">
-                  <FileSearch className="h-8 w-8 opacity-30" />
-                  <p className="text-xs font-semibold">Nhập từ khóa để tìm kiếm các file code liên quan trong toàn bộ dự án.</p>
-                </div>
-              )}
-
-              {!searchLoading && searchResults.length > 0 && searchResults.map((match, idx) => (
-                <div key={idx} className="bg-bg-primary/60 border border-border-primary/80 rounded-xl p-3 space-y-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-slate-200 truncate font-mono">{match.relativePath}</span>
-                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-violet-950/40 text-violet-300 border border-violet-800/40">
-                      Score: {match.score.toFixed(3)}
-                    </span>
-                  </div>
-                  {match.snippet && (
-                    <pre className="p-2 rounded bg-slate-950/80 border border-border-primary font-mono text-[10px] leading-4 text-text-secondary overflow-x-auto whitespace-pre">
-                      {match.snippet}
-                    </pre>
-                  )}
-                  <button
-                    onClick={() => {
-                      setEditFilePath(match.relativePath);
-                      setTab('edit');
-                    }}
-                    className="flex items-center gap-1 text-[10px] text-violet-400 hover:text-violet-300 font-bold"
-                  >
-                    Đưa vào Edit File <ArrowRight className="h-2.5 w-2.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      case 'diff':
-        return (
-          <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between px-4 py-2.5 border-b border-border-primary shrink-0">
-              <div className="text-xs font-black text-text-secondary flex items-center gap-1.5">
-                <Code2 className="h-3.5 w-3.5" /> Unified Diff Preview
-              </div>
-              {diffLoading && <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin" />}
-            </div>
-            <div className="flex-1 overflow-auto">
-              {diffContent ? (
-                <DiffViewer diff={diffContent} />
-              ) : (
-                <div className="flex flex-col items-center justify-center h-full gap-3 text-text-tertiary p-8 text-center">
-                  <Code2 className="h-10 w-10 opacity-20" />
-                  <p className="text-xs font-semibold">Diff sẽ tự động xuất hiện sau khi bạn tạo đề xuất AI ở tab <strong className="text-text-secondary">Edit File</strong>.</p>
-                </div>
-              )}
-            </div>
-          </div>
-        );
-      case 'backups':
-        return (
-          <div className="p-4 space-y-4">
-            <div>
-              <label className="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1.5">
-                File để xem backups
-              </label>
-              <div className="flex gap-2">
-                <input
-                  value={backupFile}
-                  onChange={e => setBackupFile(e.target.value)}
-                  placeholder="server/services/aiRouter.ts"
-                  className="flex-1 bg-bg-primary border border-border-secondary rounded-xl px-3 py-2 text-xs text-slate-200 placeholder-slate-600 focus:border-violet-500/60 outline-none font-mono"
-                />
-                <button
-                  onClick={loadBackups}
-                  disabled={backupsLoading}
-                  className="px-3 py-2 bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-text-primary rounded-xl transition-colors"
-                >
-                  {backupsLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSearch className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-
-            {backups.length === 0 && !backupsLoading && (
-              <div className="flex flex-col items-center justify-center py-12 gap-3 text-text-tertiary">
-                <HardDrive className="h-8 w-8 opacity-30" />
-                <p className="text-xs font-semibold text-center">Nhập đường dẫn file và nhấn tìm kiếm.<br />Backups được tạo tự động khi AI apply code.</p>
-              </div>
-            )}
-
-            {backups.length > 0 && (
-              <div className="space-y-2">
-                <div className="text-[10px] font-black text-text-tertiary uppercase tracking-widest">
-                  {backups.length} backup(s) tìm thấy
-                </div>
-                {backups.map((b, i) => (
-                  <div key={b.id} className="bg-bg-primary/60 border border-border-primary rounded-xl p-3 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-black text-text-secondary font-mono">#{i + 1} · {b.id.slice(0, 8)}</span>
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                        b.strategy === 'git-commit'
-                          ? 'bg-violet-950/40 text-violet-400 border border-violet-700/40'
-                          : 'bg-amber-950/40 text-amber-400 border border-amber-700/40'
-                      }`}>
-                        {b.strategy === 'git-commit' ? <><GitCommit className="h-2.5 w-2.5 inline mr-1" />git</> : <><HardDrive className="h-2.5 w-2.5 inline mr-1" />file</>}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1.5 text-[10px] text-text-tertiary">
-                      <Clock className="h-2.5 w-2.5" />
-                      {new Date(b.createdAt).toLocaleString('vi-VN')}
-                    </div>
-                    {b.commitHash && (
-                      <div className="text-[10px] text-violet-400 font-mono">{b.commitHash.slice(0, 12)}</div>
-                    )}
-                    {b.backupCopyPath && (
-                      <div className="text-[10px] text-text-tertiary font-mono truncate">{b.backupCopyPath}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      case 'status':
-        return (
-          <div className="p-4 space-y-4">
-            {health && (
-              <>
-                <div className="bg-bg-primary/60 border border-border-primary rounded-xl p-4 space-y-3">
-                  <div className="flex items-center gap-2 text-xs font-black text-emerald-400">
-                    <Shield className="h-4 w-4" /> Daemon Status
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <div className="text-[10px] text-text-tertiary font-semibold mb-0.5">Service</div>
-                      <div className="text-slate-200 font-bold">{health.service}</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-text-tertiary font-semibold mb-0.5">Version</div>
-                      <div className="text-slate-200 font-bold">v{health.version}</div>
-                    </div>
-                    <div className="col-span-2">
-                      <div className="text-[10px] text-text-tertiary font-semibold mb-0.5">Workspace Root</div>
-                      <div className="text-text-secondary font-mono text-[10px] break-all">{health.workspaceRoot}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-bg-primary/60 border border-border-primary rounded-xl p-4 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-black text-text-secondary">
-                    <Terminal className="h-4 w-4" /> Quick Commands
-                  </div>
-                  {[
-                    { cmd: 'npm run assistant:start', desc: 'Khởi động daemon' },
-                    { cmd: 'npm run assistant:cli -- status', desc: 'CLI status' },
-                    { cmd: 'npm run assistant:cli -- chat', desc: 'Interactive REPL' },
-                  ].map(({ cmd, desc }) => (
-                    <div key={cmd} className="flex items-center justify-between gap-2 bg-slate-950 border border-border-primary rounded-lg px-3 py-2">
-                      <code className="text-[10px] text-emerald-400 font-mono">{cmd}</code>
-                      <span className="text-[10px] text-text-tertiary shrink-0">{desc}</span>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="bg-bg-primary/60 border border-border-primary rounded-xl p-4 space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-black text-text-secondary">
-                    <Zap className="h-4 w-4" /> Cấu hình AI Keys
-                  </div>
-                  <p className="text-[11px] text-text-tertiary leading-relaxed">
-                    AI keys được quản lý tập trung tại <strong className="text-text-secondary">LedgerFlow AI Settings</strong>.
-                    Daemon dùng chung Key Vault và Multi-LLM Router với app chính.
-                  </p>
-                  <a
-                    href="/#/ai_settings"
-                    className="flex items-center gap-1.5 text-[11px] text-violet-400 hover:text-violet-300 font-bold transition-colors"
-                  >
-                    Mở AI Settings <ArrowRight className="h-3 w-3" />
-                  </a>
-                </div>
-              </>
-            )}
-            <button
-              onClick={pingDaemon}
-              className="w-full flex items-center justify-center gap-2 py-2.5 bg-bg-surface hover:bg-bg-surface-hover text-text-secondary text-xs font-bold rounded-xl transition-colors border border-border-secondary"
-            >
-              <RefreshCw className="h-3.5 w-3.5" /> Làm mới trạng thái
-            </button>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  // ─── Daemon offline state ─────────────────────────────────────────────────
-  if (daemonError) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-6 p-8 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-rose-950/60 border border-rose-500/30 flex items-center justify-center">
-          <Bot className="h-8 w-8 text-rose-400" />
-        </div>
-        <div>
-          <h3 className="text-lg font-black text-text-primary mb-2">Daemon chưa chạy</h3>
-          <p className="text-text-secondary text-sm mb-4 max-w-sm">{daemonError}</p>
-          <div className="bg-bg-primary border border-border-primary rounded-xl p-4 text-left mb-4">
-            <p className="text-xs text-text-tertiary font-mono mb-2"># Mở terminal và chạy:</p>
-            <p className="text-sm text-emerald-400 font-mono font-bold">npm run assistant:start</p>
-          </div>
-        </div>
-        <button
-          onClick={pingDaemon}
-          className="flex items-center gap-2 px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-text-primary text-sm font-black rounded-xl transition-colors"
-        >
-          <RefreshCw className="h-4 w-4" /> Thử kết nối lại
-        </button>
-      </div>
-    );
-  }
-
-  if (checking) {
-    return (
-      <div className="flex flex-col items-center justify-center h-full gap-4">
-        <Loader2 className="h-8 w-8 text-violet-400 animate-spin" />
-        <p className="text-text-secondary text-sm font-semibold">Đang kết nối AI Coding Assistant...</p>
-      </div>
-    );
-  }
-
-  // ── Streamlined Master Categories ──────────────────────────────────────────
-  const CORE_CATEGORIES = [
-    {
-      id: 'chat_workspace',
-      label: '💬 Trợ lý AI',
-      subTabs: [
-        { id: 'chat' as PanelTab, label: 'Hội thoại & Ra lệnh', icon: <Bot className="h-3.5 w-3.5" /> },
-        { id: 'edit' as PanelTab, label: 'Chỉnh sửa Mã nguồn', icon: <Code2 className="h-3.5 w-3.5" /> },
-      ]
-    },
-    {
-      id: 'agent_staff',
-      label: '🤖 Đội ngũ AI',
-      subTabs: [
-        { id: 'profiles' as PanelTab, label: 'Profile & Tài khoản', icon: <User className="h-3.5 w-3.5" /> },
-        { id: 'sandbox' as PanelTab, label: 'Web AI Automation', icon: <Terminal className="h-3.5 w-3.5" /> },
-        { id: 'multi_agent' as PanelTab, label: 'Phối hợp Multi-Agent', icon: <Users className="h-3.5 w-3.5" /> },
-        { id: 'agent_loop' as PanelTab, label: 'Vòng lặp Tự chủ', icon: <RefreshCw className="h-3.5 w-3.5" /> },
-        { id: 'runbook' as PanelTab, label: 'Browser Runbook', icon: <Clock className="h-3.5 w-3.5" /> },
-      ]
-    },
-    {
-      id: 'control_center',
-      label: '📊 Giám sát & Điều phối',
-      subTabs: [
-        { id: 'overview' as PanelTab, label: 'Tổng quan', icon: <TrendingUp className="h-3.5 w-3.5" /> },
-        { id: 'control' as PanelTab, label: 'Control Plane', icon: <Shield className="h-3.5 w-3.5" /> },
-        { id: 'analytics' as PanelTab, label: 'Phân tích', icon: <Activity className="h-3.5 w-3.5" /> },
-        { id: 'cost' as PanelTab, label: 'Chi phí & Quota', icon: <DollarSign className="h-3.5 w-3.5" /> },
-        { id: 'status' as PanelTab, label: 'Trạng thái', icon: <CircleDot className="h-3.5 w-3.5" /> },
-      ]
-    }
-  ];
-
-  const ADVANCED_CATEGORY = {
-    id: 'advanced_tools',
-    label: '🛠️ Công cụ nâng cao',
-    subTabs: [
-      { id: 'search' as PanelTab, label: 'Tra cứu Codebase', icon: <FileSearch className="h-3.5 w-3.5" /> },
-      { id: 'diff' as PanelTab, label: 'Diff & So sánh', icon: <Code2 className="h-3.5 w-3.5" /> },
-      { id: 'backups' as PanelTab, label: 'Backups', icon: <HardDrive className="h-3.5 w-3.5" /> },
-      { id: 'pipeline' as PanelTab, label: 'Pipeline', icon: <Zap className="h-3.5 w-3.5" /> },
-      { id: 'ab_test' as PanelTab, label: 'A/B Test', icon: <FlaskConical className="h-3.5 w-3.5" /> },
-      { id: 'terminal' as PanelTab, label: 'Terminal Live', icon: <Terminal className="h-3.5 w-3.5" /> },
-    ]
-  };
-
-  const allCategories = [...CORE_CATEGORIES, ADVANCED_CATEGORY];
-  const activeCategory = allCategories.find(cat => cat.subTabs.some(st => st.id === tab)) || CORE_CATEGORIES[0];
-  const visibleCategories = showDevTabs || CORE_CATEGORIES.some(cat => cat.id === activeCategory.id)
-    ? [...CORE_CATEGORIES, ...(showDevTabs ? [ADVANCED_CATEGORY] : [])]
-    : [...CORE_CATEGORIES, activeCategory];
-
-  return (
-    <div className="flex flex-col h-[calc(100vh-6.5rem)] min-h-[650px] bg-slate-950/80 rounded-2xl border border-border-primary/60 overflow-hidden shadow-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border-primary bg-gradient-to-r from-violet-950/40 to-slate-950/60 backdrop-blur shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-violet-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Bot className="h-4 w-4 text-text-primary" />
-          </div>
-          <div>
-            <div className="text-sm font-black text-text-primary leading-none">AI Workforce Command Center</div>
-            <div className="text-[10px] text-text-tertiary mt-0.5 font-semibold">
-              {health ? `Daemon v${health.version} · ${health.workspaceRoot.split('\\').pop()}` : 'Connecting...'}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setShowDevTabs(prev => !prev)}
-            className="px-3.5 py-1.5 rounded-full border border-indigo-500/35 text-xs font-black text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/60 transition cursor-pointer shadow-sm"
-          >
-            {showDevTabs ? '⚙️ Chế độ Khoang lái Đơn giản' : '⚙️ Chế độ Kỹ thuật (Dev Tools)'}
-          </button>
-          <span className="flex items-center gap-1.5 text-[10px] font-black text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-3 py-1 rounded-full shadow-sm" title="AI Gateway Router • DOM Vision Self-Healer • Swarm Relay Bus • Audit Log">
-            <CircleDot className="h-2.5 w-2.5 animate-pulse text-emerald-400" /> 🟢 4/4 Daemons Ngầm Online
-          </span>
-        </div>
-      </div>
-
-      {/* Streamlined Navigation Bar */}
-      <div className="shrink-0 border-b border-border-primary/50 bg-slate-950/90 backdrop-blur">
-        {/* Master Categories Row */}
-        <div className="flex flex-wrap items-center gap-1.5 px-3 pt-2.5 pb-1.5 border-b border-border-primary/40">
-          {visibleCategories.map(cat => {
-            const isCatActive = cat.id === activeCategory.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setTab(cat.subTabs[0].id)}
-                className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-black transition-all whitespace-nowrap cursor-pointer ${
-                  isCatActive
-                    ? 'bg-gradient-to-r from-violet-600/30 to-indigo-600/30 text-violet-200 border border-violet-500/40 shadow-lg shadow-violet-500/10'
-                    : 'text-text-tertiary hover:text-text-secondary hover:bg-slate-900/60 border border-transparent'
-                }`}
-              >
-                <span>{cat.label}</span>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Sub-tabs Pills Row */}
-        <div className="flex flex-wrap items-center gap-1.5 px-3 py-2 bg-slate-900/40">
-          <span className="text-[9px] font-black uppercase tracking-widest text-text-tertiary mr-1 shrink-0">
-            Chức năng:
-          </span>
-          {activeCategory.subTabs.map(st => {
-            const isSubActive = tab === st.id;
-            return (
-              <button
-                key={st.id}
-                onClick={() => setTab(st.id)}
-                className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 text-[11px] sm:text-xs font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  isSubActive
-                    ? 'bg-violet-600 text-white shadow-md shadow-violet-600/30'
-                    : 'bg-slate-950/80 text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-border-primary/60'
-                }`}
-              >
-                {st.icon}
-                <span>{st.label}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-auto min-h-0">
-        {syncNotice && (
-          <div className={`mx-4 mt-3 rounded-xl border px-3 py-2 text-[11px] font-bold ${
-            syncNotice.kind === 'success'
-              ? 'border-emerald-500/30 bg-emerald-950/30 text-emerald-300'
-              : 'border-rose-500/30 bg-rose-950/30 text-rose-300'
-          }`}>
-            {syncNotice.text}
-          </div>
-        )}
-
-        <Suspense fallback={<div className="m-4 h-48 animate-pulse rounded-2xl border border-border-primary bg-slate-900/60" />}>
-          {renderTabContent()}
         </Suspense>
 
-        {/* Custom Glassmorphic Confirmation Modal */}
-        {activeModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-4 backdrop-blur-md">
-            <div className="flex w-full max-w-md flex-col rounded-3xl border border-border-primary bg-slate-950 p-6 shadow-2xl space-y-4">
-              <div className="flex items-center gap-3 border-b border-slate-900 pb-3">
-                <span className="text-xl">
-                  {activeModal.type === 'privacy' ? '🛡️' : '⚠️'}
-                </span>
-                <h3 className="text-sm font-black text-text-primary uppercase tracking-wider">
-                  {activeModal.title}
-                </h3>
-              </div>
-              
-              <div className="text-xs text-text-secondary leading-relaxed font-semibold whitespace-pre-wrap">
-                {activeModal.message}
-              </div>
-
-              {activeModal.details && (
-                <div className="bg-black/60 border border-slate-850 rounded-xl p-3 max-h-40 overflow-y-auto">
-                  <span className="text-[9px] uppercase font-bold text-text-tertiary block mb-1">Nội dung chi tiết:</span>
-                  <pre className="font-mono text-[10px] text-cyan-300 leading-normal whitespace-pre-wrap break-all">
-                    {activeModal.details}
-                  </pre>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={activeModal.onCancel}
-                  className="px-4 py-2 rounded-xl border border-border-primary bg-bg-primary text-text-secondary hover:text-text-primary hover:bg-slate-850 text-xs font-black transition-all cursor-pointer"
-                >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="button"
-                  onClick={activeModal.onConfirm}
-                  className={`px-4 py-2 rounded-xl text-text-primary text-xs font-black transition-all cursor-pointer ${
-                    activeModal.type === 'privacy'
-                      ? 'bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20'
-                      : 'bg-amber-600 hover:bg-amber-500 shadow-lg shadow-amber-600/20'
-                  }`}
-                >
-                  Đồng ý & Tiếp tục
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
+        {activeModal && <GlassmorphicModal modal={activeModal} />}
       </div>
     </div>
   );

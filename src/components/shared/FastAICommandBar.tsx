@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Sparkles, Mic, Send, X, Bot, CheckCircle2 } from 'lucide-react';
+import { useGlacia } from '../glacia';
+import { glaciaAudio } from '../glacia/glaciaAudioSynth';
+import { listen as sttListen, isSttSupported } from '../glacia/glaciaSpeech';
 
 export default function FastAICommandBar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -7,16 +10,27 @@ export default function FastAICommandBar() {
   const [isListening, setIsListening] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sttStopRef = useRef<(() => void) | null>(null);
+
+  const {
+    sendMessageToGlacia,
+    dispatchGoalToSubAgents,
+    currentEmotion,
+  } = useGlacia();
 
   // Global Shift+Space shortcut listener
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.shiftKey && e.code === 'Space') {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        setIsOpen((prev) => {
+          if (!prev) glaciaAudio.playHologramScan();
+          return !prev;
+        });
       }
       if (e.key === 'Escape' && isOpen) {
         setIsOpen(false);
+        sttStopRef.current?.();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -31,23 +45,47 @@ export default function FastAICommandBar() {
 
   if (!isOpen) return null;
 
-  const handleDispatch = (e: React.FormEvent) => {
+  const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim()) return;
 
-    setStatusMessage(`Đã gửi lệnh tới Đội ngũ AI Staff: "${prompt}"`);
+    const command = prompt.trim();
+    glaciaAudio.playQuantumDispatch();
+    setStatusMessage(`Glacia đang phân rã lệnh và điều phối AI Staff: "${command}"`);
     setPrompt('');
+    
+    // Dispatch to Glacia cognitive engine and sub-agents
+    await sendMessageToGlacia(command);
+
     setTimeout(() => {
       setStatusMessage(null);
       setIsOpen(false);
-    }, 1800);
+    }, 1200);
   };
 
   const toggleVoice = () => {
-    setIsListening((prev) => !prev);
-    if (!isListening) {
-      setPrompt('AI Media, render 3 clip TikTok review Game mới...');
+    if (isListening) {
+      sttStopRef.current?.();
+      setIsListening(false);
+      return;
     }
+
+    if (!isSttSupported()) {
+      setPrompt('Glacia ơi, hãy kiểm tra tiến độ chiến dịch Marketing tuần này!');
+      return;
+    }
+
+    setIsListening(true);
+    glaciaAudio.playCrystalChime(1046.5);
+    sttStopRef.current = sttListen({
+      onInterim: (text) => setPrompt(text),
+      onFinal: (text) => {
+        setPrompt(text);
+        setIsListening(false);
+      },
+      onEnd: () => setIsListening(false),
+      onError: () => setIsListening(false),
+    });
   };
 
   return (
@@ -55,10 +93,10 @@ export default function FastAICommandBar() {
       <div className="w-full max-w-2xl bg-slate-900 border border-indigo-500/40 rounded-2xl shadow-2xl overflow-hidden p-4 space-y-3">
         {/* Top Header */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-indigo-400">
-            <Sparkles className="w-4 h-4" />
-            <span>Fast AI Command Bar (Solo Founder Prompt)</span>
-            <span className="text-[10px] bg-indigo-500/20 px-1.5 py-0.5 rounded text-indigo-300 font-mono">Shift+Space</span>
+          <div className="flex items-center gap-2 text-xs font-bold text-cyan-400">
+            <span className="text-base">{currentEmotion.emoji}</span>
+            <span>Glacia Neural Fast Dispatch</span>
+            <span className="text-[10px] bg-cyan-500/20 px-1.5 py-0.5 rounded text-cyan-300 font-mono">Shift+Space</span>
           </div>
           <button onClick={() => setIsOpen(false)} className="text-slate-500 hover:text-white">
             <X className="w-4 h-4" />
@@ -67,14 +105,14 @@ export default function FastAICommandBar() {
 
         {/* Input Form */}
         <form onSubmit={handleDispatch} className="relative flex items-center gap-2">
-          <Bot className="absolute left-3 w-4 h-4 text-indigo-400" />
+          <Bot className="absolute left-3 w-4 h-4 text-cyan-400" />
           <input
             ref={inputRef}
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder='Gõ lệnh hoặc nói: "AI Media, render 3 clip TikTok Game mới"...'
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-24 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-indigo-500"
+            placeholder='Ra lệnh cho Glacia điều phối 5 AI Staff (VD: "Lập chiến dịch Marketing cho sản phẩm mới")...'
+            className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-24 py-3 text-xs text-white placeholder-slate-500 outline-none focus:border-cyan-500"
           />
 
           <div className="absolute right-2 flex items-center gap-1.5">

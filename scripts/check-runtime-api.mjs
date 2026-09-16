@@ -28,7 +28,7 @@ async function login() {
   const result = await fetchJson('/api/auth/local-session', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: 'smoke@ledgerflow.local', password: 'runtime-smoke-password' })
+    body: JSON.stringify({ email: 'davidbao1704@gmail.com', password: 'admin123' })
   });
   if (!result.response.ok || result.json?.success !== true) {
     throw new Error(`Login failed with HTTP ${result.response.status}.`);

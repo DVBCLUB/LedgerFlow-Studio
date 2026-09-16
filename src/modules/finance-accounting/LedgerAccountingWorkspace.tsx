@@ -11,40 +11,60 @@ import FounderReviewChecklist from './FounderReviewChecklist';
 import DoubleEntryPostingPanel from './DoubleEntryPostingPanel';
 
 export default function LedgerAccountingWorkspace() {
-  const [activeTab, setActiveTab] = useState<'voucher' | 'invoice' | 'deepdive' | 'workbench' | 'lab' | 'reports' | 'posting'>('voucher');
+  const [activeTab, setActiveTab] = useState<'voucher' | 'invoice' | 'deepdive' | 'workbench' | 'lab' | 'reports' | 'posting'>('reports');
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
-  const tabs = [
-    { id: 'voucher' as const, label: 'Trung tâm Hạch toán & Phê duyệt', icon: FileCheck2, desc: 'Lập chứng từ Nợ/Có kép VAS 200/133 & Luồng phê duyệt 6 bước.' },
+  const coreTabs = [
+    { id: 'reports' as const, label: 'Báo cáo tài chính & Hội đồng', icon: FileText, desc: 'Bảng cân đối B01, KQKD B02, lưu chuyển tiền tệ B03 & phân tích.' },
+    { id: 'voucher' as const, label: 'Hạch toán & Phê duyệt', icon: FileCheck2, desc: 'Lập chứng từ Nợ/Có kép VAS 200/133 & Luồng phê duyệt 6 bước.' },
+    { id: 'posting' as const, label: 'Sổ cái & Bút toán kép', icon: FileCheck2, desc: 'Hạch toán Nợ/Có kép tự động theo VAS 200/133.' }
+  ];
+
+  const advancedTabs = [
     { id: 'invoice' as const, label: 'Xử lý Chứng từ AI OCR', icon: ScanLine, desc: 'Split view AI OCR đối chiếu hóa đơn gốc.' },
     { id: 'deepdive' as const, label: 'Chế độ Kế toán VAS', icon: BookOpen, desc: 'Quy định Thông tư 200/133, thuế suất VAT và hàng tồn kho.' },
     { id: 'workbench' as const, label: 'Bàn làm việc dữ liệu', icon: Database, desc: 'Công cụ làm việc và phân tích dữ liệu tùy biến.' },
-    { id: 'lab' as const, label: 'Phòng Lab & Mô phỏng', icon: Beaker, desc: 'Mô phỏng tài chính, what-if và chấm điểm ý tưởng.' },
-    { id: 'reports' as const, label: 'Báo cáo tài chính', icon: FileText, desc: 'Bảng cân đối B01, KQKD B02, lưu chuyển tiền tệ B03 & phân tích.' },
-    { id: 'posting' as const, label: 'Bút toán kép', icon: FileCheck2, desc: 'Hạch toán Nợ/Có kép tự động theo VAS 200/133.' }
+    { id: 'lab' as const, label: 'Phòng Lab & Mô phỏng', icon: Beaker, desc: 'Mô phỏng tài chính, what-if và chấm điểm ý tưởng.' }
   ];
+
+  const visibleTabs = showAdvanced ? [...coreTabs, ...advancedTabs] : coreTabs;
 
   return (
     <div className="space-y-6 select-none animate-fade-in text-text-primary">
-      {/* Premium Tab Selector */}
-      <div className="bg-bg-surface p-1.5 rounded-2xl border border-border-primary flex text-center">
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 py-3.5 rounded-xl text-xs font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-2 cursor-pointer border ${
-                isActive 
-                  ? 'bg-info/15 border-info/30 text-info shadow-md shadow-cyan-500/5' 
-                  : 'bg-transparent border-transparent text-text-secondary hover:text-text-primary'
-              }`}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>{tab.label}</span>
-            </button>
-          );
-        })}
+      {/* Streamlined Tab Selector */}
+      <div className="flex flex-wrap items-center justify-between gap-2 p-1.5 rounded-2xl bg-bg-surface border border-border-primary">
+        <div className="flex flex-wrap items-center gap-1.5 flex-1">
+          {visibleTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-2 px-3.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 cursor-pointer border ${
+                  isActive 
+                    ? 'bg-info/15 border-info/30 text-info shadow-md shadow-cyan-500/5' 
+                    : 'bg-transparent border-transparent text-text-secondary hover:text-text-primary hover:bg-slate-900/40'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setShowAdvanced((prev) => !prev)}
+          className={`px-3 py-1.5 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+            showAdvanced
+              ? 'bg-slate-800 border-indigo-500/40 text-indigo-300'
+              : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          {showAdvanced ? 'Ẩn chuyên sâu' : '+4 Chuyên sâu / Lab'}
+        </button>
       </div>
 
       {/* Renders */}

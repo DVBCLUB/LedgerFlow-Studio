@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { listHITLApprovalRequests, respondToHITLApproval, type ApprovalRequest } from '../../utils/hitlApprovalApi';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,72 +24,24 @@ interface HITLApprovalItem {
   tags: string[];
 }
 
-// ─── Mock Pending Approvals ───────────────────────────────────────────────────
-
-const MOCK_APPROVALS: HITLApprovalItem[] = [
-  {
-    id: 'hitl_001',
-    title: 'Gửi báo giá 120M VND cho Nguyễn Thị Lan',
-    description: 'AI Sales đã sinh báo giá LedgerFlow Enterprise cho lead HOT. Cần CEO duyệt trước khi gửi.',
-    requestedBy: '🤖 AI Sales Agent',
-    riskLevel: 'MEDIUM',
-    targetResource: 'BG-LEAD_001',
-    previewContent: '# Báo giá LedgerFlow Enterprise\n- Gói 12 tháng: 120,000,000 VND\n- Phí triển khai: 15,000,000 VND\n- Tổng cộng: 135,000,000 VND (+VAT)',
-    proposedAction: 'Gửi email báo giá đến lan.nguyen@phuthinh.vn',
-    requestedAt: new Date(Date.now() - 15 * 60000).toISOString(),
-    expiresAt: new Date(Date.now() + 45 * 60000).toISOString(),
-    status: 'pending',
-    workspaceModule: 'Sales & CRM',
-    tags: ['deal', 'proposal', 'email'],
-  },
-  {
-    id: 'hitl_002',
-    title: 'Tự động patch lỗi TypeScript trong apiClient.ts',
-    description: 'AI Dev phát hiện lỗi type mismatch trong aiClient.ts dòng 47. Đã sinh patch sẵn, cần duyệt trước khi apply.',
-    requestedBy: '🤖 AI Dev Agent',
-    riskLevel: 'LOW',
-    targetResource: 'server/services/aiClient.ts:47',
-    previewContent: '```diff\n- const response: any = await fetch(url);\n+ const response: Response = await fetch(url);\n```',
-    proposedAction: 'Apply patch và commit: fix(aiClient): correct Response type annotation',
-    requestedAt: new Date(Date.now() - 8 * 60000).toISOString(),
-    expiresAt: new Date(Date.now() + 52 * 60000).toISOString(),
-    status: 'pending',
-    workspaceModule: 'AI Nhân sự',
-    tags: ['code', 'patch', 'typescript'],
-  },
-  {
-    id: 'hitl_003',
-    title: 'Chi 8,500,000 VND cho Cloud Hosting tháng 9',
-    description: 'AI CFO đề xuất gia hạn Cloud Hosting ($350/tháng = ~8.5M VND). Vượt ngưỡng 5M cần CEO approve.',
-    requestedBy: '🤖 AI CFO Agent',
-    riskLevel: 'MEDIUM',
-    targetResource: 'Budget: Cloud Infrastructure',
-    previewContent: 'Wasabi S3: $50 | Vercel Pro: $150 | Cloud Run: $100 | Supabase: $50 | Total: $350',
-    proposedAction: 'Tạo lệnh chi và ghi nhận vào sổ cái kế toán tháng 9/2026',
-    requiresContext: 'Kiểm tra lại cash balance trước khi approve',
-    requestedAt: new Date(Date.now() - 32 * 60000).toISOString(),
-    expiresAt: new Date(Date.now() + 28 * 60000).toISOString(),
-    status: 'pending',
-    workspaceModule: 'Tài chính - Kế toán',
-    tags: ['expense', 'finance', 'cloud'],
-  },
-  {
-    id: 'hitl_004',
-    title: 'Deploy phiên bản v1.2.0 lên Production',
-    description: 'AI DevOps đã hoàn thành pre-flight checks. Build thành công. Cần founder xác nhận deploy.',
-    requestedBy: '🤖 AI DevOps Agent',
-    riskLevel: 'HIGH',
-    targetResource: 'Production: ledgerflow.app',
-    previewContent: '✅ 291/291 tests passed\n✅ Bundle size: 2.4MB (OK)\n✅ Security scan: clean\n⚠️ DB migration: 2 schema changes',
-    proposedAction: 'Deploy v1.2.0 to production với zero-downtime strategy',
-    requiresContext: 'Đọc release notes trước khi approve',
-    requestedAt: new Date(Date.now() - 5 * 60000).toISOString(),
-    expiresAt: new Date(Date.now() + 55 * 60000).toISOString(),
-    status: 'pending',
-    workspaceModule: 'DevOps',
-    tags: ['deploy', 'production', 'release'],
-  },
-];
+function toInboxItem(request: ApprovalRequest): HITLApprovalItem {
+  const proposedChanges = JSON.stringify(request.proposedChanges || {}, null, 2);
+  return {
+    id: request.requestId,
+    title: request.title,
+    description: request.description,
+    requestedBy: request.requesterRoleId || request.requesterAgentId,
+    riskLevel: request.riskLevel,
+    targetResource: request.actionType,
+    previewContent: proposedChanges === '{}' ? undefined : proposedChanges,
+    proposedAction: request.actionType,
+    requestedAt: request.createdAt,
+    expiresAt: request.expiresAt,
+    status: request.status.toLowerCase() as ApprovalStatus,
+    workspaceModule: request.domain,
+    tags: [request.domain, request.actionType].filter(Boolean),
+  };
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -270,23 +223,20 @@ function ApprovalCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 export default function HITLApprovalInboxPanel() {
-  const [approvals, setApprovals] = useState<HITLApprovalItem[]>(MOCK_APPROVALS);
+  const [approvals, setApprovals] = useState<HITLApprovalItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('pending');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const pendingCount = approvals.filter(a => a.status === 'pending').length;
 
   const fetchApprovals = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/approval-requests').catch(() => null);
-      if (res?.ok) {
-        const data = await res.json();
-        if (data.requests?.length > 0) {
-          // Merge backend approvals with mock if they exist
-          setApprovals(prev => [...data.requests, ...prev.filter(a => !data.requests.find((r: any) => r.id === a.id))]);
-        }
-      }
+      setApprovals((await listHITLApprovalRequests()).map(toInboxItem));
+      setError('');
+    } catch (err: any) {
+      setError(err?.message || 'Không thể tải Approval Inbox.');
     } finally {
       setLoading(false);
     }
@@ -297,18 +247,14 @@ export default function HITLApprovalInboxPanel() {
   }, [fetchApprovals]);
 
   const handleDecide = useCallback(async (id: string, decision: ApprovalDecision, note?: string) => {
-    // Optimistic update
-    setApprovals(prev => prev.map(a => a.id === id ? { ...a, status: decision === 'approved' ? 'approved' : 'rejected' } : a));
-
-    // Try backend
+    setLoading(true);
     try {
-      await fetch(`/api/approval-requests/${id}/${decision}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ note }),
-      }).catch(() => null);
-    } catch {
-      // ignore — optimistic update already applied
+      await respondToHITLApproval(id, decision === 'approved' ? 'APPROVED' : 'REJECTED', note || '');
+      await fetchApprovals();
+    } catch (err: any) {
+      setError(err?.message || 'Không thể lưu quyết định.');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -346,6 +292,8 @@ export default function HITLApprovalInboxPanel() {
           </button>
         </div>
       </div>
+
+      {error && <div className="mb-5 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3 text-xs font-semibold text-rose-200">{error}</div>}
 
       {/* Stats */}
       <div className="grid grid-cols-4 gap-2 mb-5">

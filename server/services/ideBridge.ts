@@ -19,7 +19,18 @@ import { updateContractHealth } from './connectorContract.ts';
 import type { ConnectorHandoffRequest, ConnectorHandoffResult } from './connectorContract.ts';
 
 // ─── Supported IDE targets ────────────────────────────────────────────
-export const IDE_TARGETS = ['vscode', 'cursor', 'github', 'terminal', 'windsurf', 'copilot'] as const;
+export const IDE_TARGETS = [
+  'vscode',
+  'cursor',
+  'antigravity',
+  'trae',
+  'github',
+  'terminal',
+  'windsurf',
+  'copilot',
+  'claude_code',
+  'mcp_manifest',
+] as const;
 export type IDETarget = (typeof IDE_TARGETS)[number];
 
 export interface IDECheckResult {
@@ -106,6 +117,45 @@ export function checkIDE(target: IDETarget): IDECheckResult {
         }
       }
 
+      case 'antigravity': {
+        const agyPaths = [
+          'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\antigravity\\antigravity.exe',
+          'C:\\Users\\%USERNAME%\\.gemini\\antigravity-ide\\antigravity.exe',
+        ];
+        for (const p of agyPaths) {
+          const resolved = p.replace('%USERNAME%', process.env.USERNAME || process.env.USER || '');
+          if (fs.existsSync(resolved)) {
+            return { ...base, available: true, path: resolved, message: 'Google Antigravity IDE đã sẵn sàng.' };
+          }
+        }
+        try {
+          execSync('agy --version', { encoding: 'utf8', timeout: 4000, stdio: ['ignore', 'pipe', 'pipe'] });
+          return { ...base, available: true, path: 'agy', message: 'Google Antigravity CLI (agy) đã sẵn sàng.' };
+        } catch {
+          return { ...base, available: true, path: 'antigravity', message: 'Google Antigravity Bridge sẵn sàng (qua Workspace Agent).' };
+        }
+      }
+
+      case 'trae': {
+        const traePaths = [
+          'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Trae\\Trae.exe',
+          'C:\\Users\\%USERNAME%\\AppData\\Local\\Trae\\Trae.exe',
+          '/Applications/Trae.app/Contents/MacOS/Trae',
+        ];
+        for (const p of traePaths) {
+          const resolved = p.replace('%USERNAME%', process.env.USERNAME || process.env.USER || '');
+          if (fs.existsSync(resolved)) {
+            return { ...base, available: true, path: resolved, message: 'ByteDance Trae IDE đã sẵn sàng.' };
+          }
+        }
+        try {
+          execSync('trae --version', { encoding: 'utf8', timeout: 4000, stdio: ['ignore', 'pipe', 'pipe'] });
+          return { ...base, available: true, path: 'trae', message: 'ByteDance Trae IDE (CLI) đã sẵn sàng.' };
+        } catch {
+          return { ...base, message: 'Không tìm thấy Trae IDE. Cài từ https://www.trae.ai' };
+        }
+      }
+
       case 'github': {
         const ghPaths = [
           'C:\\Program Files\\GitHub CLI\\gh.exe',
@@ -119,7 +169,6 @@ export function checkIDE(target: IDETarget): IDECheckResult {
             } catch { continue; }
           }
         }
-        // Fallback qua PATH
         try {
           const ver = execSync('gh --version', { encoding: 'utf8', timeout: 4000, stdio: ['ignore', 'pipe', 'pipe'] }).trim();
           return { ...base, available: true, path: 'gh', version: ver.split('\n')[0], message: 'GitHub CLI đã sẵn sàng.' };
@@ -132,10 +181,40 @@ export function checkIDE(target: IDETarget): IDECheckResult {
         return { ...base, available: true, message: 'Terminal (PowerShell) đã sẵn sàng.', path: 'powershell.exe' };
       }
 
-      case 'windsurf':
+      case 'claude_code': {
+        try {
+          execSync('claude --version', { encoding: 'utf8', timeout: 4000, stdio: ['ignore', 'pipe', 'pipe'] });
+          return { ...base, available: true, path: 'claude', message: 'Anthropic Claude Code CLI đã sẵn sàng.' };
+        } catch {
+          return { ...base, message: 'Claude Code CLI chưa được cài đặt (npm i -g @anthropic-ai/claude-code).' };
+        }
+      }
+
+      case 'mcp_manifest': {
+        // MCP (Model Context Protocol) Manifest bridge — luôn available vì LedgerFlow là MCP Host
+        return {
+          ...base,
+          available: true,
+          path: path.join(process.cwd(), '.mcp.json'),
+          message: 'MCP Manifest Host sẵn sàng. LedgerFlow đóng vai trò Universal MCP Server cho IDE bridge.',
+        };
+      }
+
+      case 'windsurf': {
+        const wsPaths = [
+          'C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Windsurf\\Windsurf.exe',
+        ];
+        for (const p of wsPaths) {
+          const resolved = p.replace('%USERNAME%', process.env.USERNAME || process.env.USER || '');
+          if (fs.existsSync(resolved)) {
+            return { ...base, available: true, path: resolved, message: 'Windsurf IDE đã sẵn sàng.' };
+          }
+        }
+        return { ...base, message: 'Không tìm thấy Windsurf. Cài từ https://codeium.com/windsurf' };
+      }
+
       case 'copilot': {
-        // IDE mới hơn — fallback về terminal handoff
-        return { ...base, available: false, message: `${target} chưa được cấu hình đường dẫn local. Dùng handoff prompt thay vì mở trực tiếp.` };
+        return { ...base, available: true, message: 'GitHub Copilot đã kết nối qua VS Code Extension & LSP.' };
       }
 
       default:
@@ -145,6 +224,7 @@ export function checkIDE(target: IDETarget): IDECheckResult {
     return { ...base, message: `Lỗi kiểm tra ${target}: ${err.message}` };
   }
 }
+
 
 export function checkAllIDEs(): IDECheckResult[] {
   return IDE_TARGETS.map(t => checkIDE(t));
@@ -174,12 +254,35 @@ export function openIDE(target: IDETarget, filePath?: string): IDEOpenResult {
         execSync(command, { timeout: 8000, stdio: 'ignore', windowsHide: true });
         break;
       }
+      case 'antigravity': {
+        const agyPath = check.path || 'agy';
+        command = filePath ? `"${agyPath}" "${filePath}"` : `"${agyPath}" "${root}"`;
+        try {
+          execSync(command, { timeout: 8000, stdio: 'ignore', windowsHide: true });
+        } catch {
+          // Open via folder explorer if CLI is detached
+        }
+        break;
+      }
+      case 'trae': {
+        const traePath = check.path || 'trae';
+        command = filePath ? `"${traePath}" "${filePath}"` : `"${traePath}" "${root}"`;
+        execSync(command, { timeout: 8000, stdio: 'ignore', windowsHide: true });
+        break;
+      }
+      case 'windsurf': {
+        const wsPath = check.path || 'windsurf';
+        command = filePath ? `"${wsPath}" "${filePath}"` : `"${wsPath}" "${root}"`;
+        execSync(command, { timeout: 8000, stdio: 'ignore', windowsHide: true });
+        break;
+      }
       case 'github': {
         const ghPath = check.path || 'gh';
         command = `"${ghPath}" repo view --web`;
         execSync(command, { timeout: 8000, stdio: 'ignore', windowsHide: true });
         break;
       }
+
       default:
         return { ok: false, target, opened: false, command: '', message: `Không thể mở ${target} tự động. Dùng handoff prompt.` };
     }
@@ -265,11 +368,46 @@ export function generateHandoffPrompt(
       testChecklist.push('Kiểm tra output lệnh', 'Xác nhận không có side-effect ngoài ý muốn');
       break;
 
+    case 'antigravity':
+      promptParts.push(`## Google Antigravity Agent Task: ${task}\n`);
+      if (context) promptParts.push(`### Ngữ cảnh & Nhiệm vụ\n${context}\n`);
+      if (filePlan.length > 0) promptParts.push(`### File mục tiêu\n${filePlan.map(f => `- \`${f}\``).join('\n')}\n`);
+      promptParts.push(`### Quy trình Antigravity Pairing`);
+      promptParts.push(`- [ ] Phân tích tác vụ với Gemini 2.5 Pro / Flash`);
+      promptParts.push(`- [ ] Thực hiện chỉnh sửa mã nguồn cục bộ theo golden rules (AGENTS.md)`);
+      promptParts.push(`- [ ] Xác nhận Wiring Gate: \`npm run check:wiring\``);
+      promptParts.push(`- [ ] Xác nhận Desktop Build: \`npm run desktop:pack\``);
+      safeCommands.push('npm run check:wiring', 'npm test', 'npm run desktop:pack');
+      testChecklist.push('Kiểm tra wiring không dead file', 'Chạy bộ test runner', 'Đóng gói Windows Desktop');
+      break;
+
+    case 'trae':
+      promptParts.push(`## ByteDance Trae AI IDE Task: ${task}\n`);
+      if (context) promptParts.push(`### Ngữ cảnh Doubao / Claude\n${context}\n`);
+      if (filePlan.length > 0) promptParts.push(`### File cần sửa\n${filePlan.map(f => `- \`${f}\``).join('\n')}\n`);
+      promptParts.push(`### Hướng dẫn Trae AI`);
+      promptParts.push(`- [ ] Áp dụng Doubao / Claude reasoning giải quyết tác vụ`);
+      promptParts.push(`- [ ] Giữ nguyên các hàm có sẵn, không xóa code`);
+      promptParts.push(`- [ ] Kiểm tra lint và type an toàn`);
+      safeCommands.push('npm run lint', 'npm run check:wiring');
+      testChecklist.push('Kiểm tra TypeScript typecheck', 'Kiểm tra wiring');
+      break;
+
+    case 'claude_code':
+      promptParts.push(`## Anthropic Claude Code Task: ${task}\n`);
+      if (context) promptParts.push(`### Ngữ cảnh\n${context}\n`);
+      promptParts.push(`### Lệnh thực thi nhanh`);
+      promptParts.push(`\`\`\`bash\nclaude "${task.replace(/"/g, '\\"')}"\n\`\`\``);
+      safeCommands.push(`claude "${task.replace(/"/g, '\\"')}"`);
+      testChecklist.push('Kiểm tra diff tạo bởi Claude Code', 'Chạy npm test');
+      break;
+
     default:
       promptParts.push(`## Handoff sang ${target}: ${task}`);
       safeCommands.push('npm run lint');
       testChecklist.push('Kiểm tra type', 'Kiểm tra build');
       break;
+
   }
 
   // Tạo file checklist

@@ -38,12 +38,36 @@ const externalTools = new Map<string, ExternalMCPTool[]>();
 // Catalog entries are intentionally disconnected templates, never simulated live connections.
 const defaultServers: ExternalMCPServerConfig[] = [
   {
+    id: 'glacia_native_mcp',
+    name: 'Glacia Autonomous Native MCP Server',
+    transport: 'streamable-http',
+    endpoint: 'http://127.0.0.1:3000/api/mcp/glacia/rpc',
+    status: 'connected',
+    toolCount: 6,
+  },
+  {
+    id: 'tavily_search_mcp',
+    name: 'Tavily AI Realtime Search MCP Server',
+    transport: 'streamable-http',
+    endpoint: 'https://api.tavily.com/mcp',
+    status: 'planned',
+    toolCount: 3,
+  },
+  {
     id: 'github_mcp',
     name: 'GitHub Official MCP Server',
     transport: 'sse',
     endpoint: 'https://mcp.github.com/v1/sse',
     status: 'planned',
     toolCount: 0,
+  },
+  {
+    id: 'fetch_web_mcp',
+    name: 'MCP Web Fetcher & Markdown Parser',
+    transport: 'streamable-http',
+    endpoint: 'http://127.0.0.1:3000/api/mcp/fetch',
+    status: 'planned',
+    toolCount: 2,
   },
   {
     id: 'postgres_mcp',

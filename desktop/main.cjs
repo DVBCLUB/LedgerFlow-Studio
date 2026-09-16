@@ -38,6 +38,9 @@ if (!gotTheLock) {
   app.quit();
 }
 
+const rawAppendFileSync = fs.appendFileSync.bind(fs);
+const rawMkdirSync = fs.mkdirSync.bind(fs);
+
 function getLogFilePath() {
   if (!logFilePath) {
     logFilePath = path.join(app.getPath('userData'), 'desktop-startup.log');
@@ -48,14 +51,15 @@ function getLogFilePath() {
 function logDesktop(message, error) {
   try {
     const details = error ? `\n${String(error?.stack || error)}` : '';
-    fs.mkdirSync(app.getPath('userData'), { recursive: true });
-    fs.appendFileSync(
-      getLogFilePath(),
+    const logPath = getLogFilePath();
+    rawMkdirSync(app.getPath('userData'), { recursive: true });
+    rawAppendFileSync(
+      logPath,
       `[${new Date().toISOString()}] ${message}${details}\n`,
       'utf-8'
     );
   } catch {
-    // Logging must never stop startup.
+    // Logging must never stop startup or block event loop.
   }
 }
 
@@ -111,12 +115,16 @@ function redirectRuntimeStorageToUserData() {
   const mapRuntimePath = (targetPath) => {
     if (typeof targetPath !== 'string') return targetPath;
     
-    // Quick check to bypass node_modules, dist, and desktop paths
+    // Quick check to bypass node_modules, dist, desktop paths, and already redirected userData paths
     if (targetPath.includes('node_modules') || targetPath.includes('dist') || targetPath.includes('desktop')) {
       return targetPath;
     }
     
     const absPath = path.resolve(targetPath);
+    if (absPath.startsWith(userDataDir)) {
+      return targetPath;
+    }
+    
     const fileName = path.basename(absPath);
     
     if (runtimeFiles.has(fileName)) {
@@ -141,9 +149,7 @@ function redirectRuntimeStorageToUserData() {
           fileName.includes('_registry');
           
         if (isWritablePattern && fileName !== 'package.json') {
-          const redirectedPath = path.join(userDataDir, fileName);
-          logDesktop(`Dynamically redirecting runtime path: ${targetPath} -> ${redirectedPath}`);
-          return redirectedPath;
+          return path.join(userDataDir, fileName);
         }
       }
     }
@@ -495,10 +501,14 @@ async function createMainWindow() {
   });
 
   mainWindow.webContents.on('console-message', (_event, details) => {
-    const message = typeof details === 'object'
-      ? `[renderer:${details.level}] ${details.message} (${details.sourceId || 'unknown'}:${details.lineNumber || 0})`
-      : `[renderer] ${String(details)}`;
-    logDesktop(message);
+    // Only persist errors and critical warnings to disk to keep the event loop ultra-fast and avoid disk saturation
+    const level = typeof details === 'object' ? details.level : 0;
+    if (level >= 2) {
+      const message = typeof details === 'object'
+        ? `[renderer:${details.level}] ${details.message} (${details.sourceId || 'unknown'}:${details.lineNumber || 0})`
+        : `[renderer] ${String(details)}`;
+      logDesktop(message);
+    }
   });
 
   mainWindow.webContents.on('did-fail-load', (_event, errorCode, errorDescription, validatedURL, isMainFrame) => {

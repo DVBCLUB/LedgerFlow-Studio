@@ -19,6 +19,7 @@ import { appendAuditEvent } from './auditLog.ts';
 import { getAgentRole } from './agentRoles.ts';
 import { callAI } from './aiClient.ts';
 import { emitTelemetryEvent } from './agentTelemetryStream.ts';
+import { adjustTrustScore } from './glaciaAutonomyGate.ts';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -339,3 +340,94 @@ export async function listDAGWorkflows(limit = 20): Promise<DAGWorkflowExecution
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
     .slice(0, limit);
 }
+
+/**
+ * Approve a DAG node currently in waiting_approval state.
+ * Awards trust score to Glacia and continues workflow execution.
+ */
+export async function approveDAGNode(workflowId: string, nodeId: string): Promise<DAGWorkflowExecution> {
+  await writeQueue.catch(() => undefined);
+  const wf = store.workflows[workflowId];
+  if (!wf) throw new Error(`DAG Workflow "${workflowId}" not found.`);
+
+  const node = wf.nodes[nodeId];
+  if (!node) throw new Error(`DAG Node "${nodeId}" not found in workflow "${workflowId}".`);
+  if (node.status !== 'waiting_approval') {
+    throw new Error(`DAG Node "${nodeId}" is not waiting for approval (current status: ${node.status}).`);
+  }
+
+  // Clear approval barrier
+  node.requiresApproval = false;
+  node.status = 'pending';
+  wf.status = 'running';
+  wf.updatedAt = new Date().toISOString();
+
+  // Award trust score for approved mission
+  adjustTrustScore('approved');
+
+  emitTelemetryEvent({
+    category: 'agent_runtime',
+    eventType: 'dag_node_approved',
+    source: `dag:${workflowId}:${nodeId}`,
+    summary: `DAG Node "${node.name}" approved by founder. Resuming workflow.`,
+  });
+
+  appendAuditEvent({
+    actor: 'founder',
+    workspace: 'product_studio',
+    action: 'DAG_NODE_APPROVED',
+    target: `${workflowId}/${nodeId}`,
+    risk: 'LOW',
+    status: 'approved',
+    summary: `DAG Node "${node.name}" approved by founder.`,
+    evidence: { name: node.name, agentRole: node.agentRole },
+  }).catch(() => undefined);
+
+  queueSave();
+  return advanceDAGWorkflow(workflowId);
+}
+
+/**
+ * Reject a DAG node currently in waiting_approval state.
+ * Applies double trust penalty to Glacia and marks node as failed.
+ */
+export async function rejectDAGNode(workflowId: string, nodeId: string, reason = 'Rejected by founder'): Promise<DAGWorkflowExecution> {
+  await writeQueue.catch(() => undefined);
+  const wf = store.workflows[workflowId];
+  if (!wf) throw new Error(`DAG Workflow "${workflowId}" not found.`);
+
+  const node = wf.nodes[nodeId];
+  if (!node) throw new Error(`DAG Node "${nodeId}" not found in workflow "${workflowId}".`);
+
+  node.status = 'failed';
+  node.error = reason;
+  node.completedAt = new Date().toISOString();
+  wf.status = 'failed';
+  wf.summary = `DAG workflow rejected at node "${node.name}": ${reason}`;
+  wf.updatedAt = new Date().toISOString();
+
+  // Apply penalty
+  adjustTrustScore('rejected');
+
+  emitTelemetryEvent({
+    category: 'agent_runtime',
+    eventType: 'dag_node_rejected',
+    source: `dag:${workflowId}:${nodeId}`,
+    summary: `DAG Node "${node.name}" rejected by founder: ${reason}`,
+  });
+
+  appendAuditEvent({
+    actor: 'founder',
+    workspace: 'product_studio',
+    action: 'DAG_NODE_REJECTED',
+    target: `${workflowId}/${nodeId}`,
+    risk: 'MEDIUM',
+    status: 'rejected',
+    summary: `DAG Node "${node.name}" rejected: ${reason}`,
+    evidence: { name: node.name, agentRole: node.agentRole, reason },
+  }).catch(() => undefined);
+
+  queueSave();
+  return wf;
+}
+

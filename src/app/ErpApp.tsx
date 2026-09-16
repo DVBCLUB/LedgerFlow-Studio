@@ -18,6 +18,7 @@ import {
   Rocket,
   Search,
   Settings,
+  Sparkles,
   Sun,
   UsersRound,
   UserCircle,
@@ -32,6 +33,8 @@ import AgenticStatusBar from '../components/shared/AgenticStatusBar';
 import { useTheme } from '../hooks/useTheme';
 import { Suspense, lazy } from 'react';
 import { LanguageProvider, useLanguage } from '../context';
+import { useGlacia } from '../components/glacia';
+import { glaciaModuleBridge } from '../components/glacia/glaciaModuleBridge';
 
 export { IconMap };
 
@@ -45,6 +48,10 @@ const OnboardingQuickTour = lazy(() => import('../components/shared/OnboardingQu
 const ApprovalToastSystem = lazy(() => import('../components/shared/ApprovalToastSystem'));
 const MobileVibeDesktopBridgeDock = lazy(() => import('../components/shared/MobileVibeDesktopBridgeDock'));
 const MobileVibeApp = lazy(() => import('../modules/mobile-vibe/MobileVibeApp'));
+const GlaciaCompanion = lazy(() => import('../components/glacia/GlaciaCompanion'));
+const GlaciaCommandCockpit = lazy(() => import('../components/glacia/GlaciaCommandCockpit'));
+const GlaciaEmbodiedGuide = lazy(() => import('../components/glacia/GlaciaEmbodiedGuide'));
+const GlaciaProactiveSentinel = lazy(() => import('../components/glacia/GlaciaProactiveSentinel'));
 
 
 // Màu group cho sidebar departments
@@ -114,6 +121,12 @@ function tabFromHash(): TabType {
 
 function ErpAppContent() {
   const { language, setLanguage, t } = useLanguage();
+  const {
+    toggleCockpit,
+    currentEmotion,
+    virtualProfile,
+    openLiveVoiceCall,
+  } = useGlacia();
   const [isMobileVibeMode, setIsMobileVibeMode] = useState(() => {
     const raw = window.location.hash.replace(/^#\/?/, '').toLowerCase();
     return raw === 'mobile' || raw === 'vibe' || raw.startsWith('mobile') || raw.startsWith('vibe');
@@ -170,6 +183,17 @@ function ErpAppContent() {
   }, []);
 
   useEffect(() => {
+    glaciaModuleBridge.updateActiveWorkspace(activeTab);
+  }, [activeTab]);
+
+  useEffect(() => {
+    const unsub = glaciaModuleBridge.registerNavigationListener((tab) => {
+      setActiveTab(tab as TabType);
+    });
+    return unsub;
+  }, []);
+
+  useEffect(() => {
     async function initDB() {
       try {
         await loadDatabaseFromServer();
@@ -199,28 +223,61 @@ function ErpAppContent() {
     return () => clearTimeout(timer);
   }, [activeTab]);
 
+  const [ceoMode, setCeoMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('lf_ceo_mode');
+      return saved !== null ? saved === 'true' : true; // default true for CEO
+    } catch {
+      return true;
+    }
+  });
+
+  const toggleCeoMode = () => {
+    setCeoMode((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('lf_ceo_mode', String(next));
+      } catch {}
+      return next;
+    });
+  };
+
   const navigation = useMemo(() => {
-    return COMPANY_WORKSPACES.map((item) => ({
-      tab: item.tab,
-      label: item.label,
-      shortLabel: item.shortLabel,
-      description: item.description,
-      dept: MODULES.find((m) => m.tab === item.tab)?.dept ?? 'tools',
-      icon: IconMap[item.iconName] || Building2,
-      badgeColor: MODULES.find((m) => m.tab === item.tab)?.badgeColor,
-    }));
+    return COMPANY_WORKSPACES.map((item) => {
+      const mod = MODULES.find((m) => m.tab === item.tab);
+      return {
+        tab: item.tab,
+        label: item.label,
+        shortLabel: item.shortLabel,
+        description: item.description,
+        dept: mod?.dept ?? 'tools',
+        icon: IconMap[item.iconName] || Building2,
+        badgeColor: mod?.badgeColor,
+        ceoVisible: mod?.ceoVisible !== false,
+      };
+    });
   }, []);
 
-  // Group navigation by department
+  // Group navigation by department with ceoMode filter
   const groupedNavigation = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase('vi-VN');
     return DEPARTMENTS.map((dept) => {
       const items = navigation
         .filter((item) => item.dept === dept.key)
-        .filter((item) => !normalized || `${item.label} ${item.description}`.toLocaleLowerCase('vi-VN').includes(normalized));
+        .filter((item) => {
+          // If searching, show all matching items
+          if (normalized) {
+            return `${item.label} ${item.description}`.toLocaleLowerCase('vi-VN').includes(normalized);
+          }
+          // In CEO mode, only show ceoVisible workspaces unless user turned off ceoMode
+          if (ceoMode && !item.ceoVisible) {
+            return false;
+          }
+          return true;
+        });
       return { dept, items };
     }).filter((group) => group.items.length > 0);
-  }, [query, navigation]);
+  }, [query, navigation, ceoMode]);
 
   const current = useMemo(() => {
     return navigation.find((item) => item.tab === activeTab) ?? navigation[0] ?? {
@@ -272,7 +329,6 @@ function ErpAppContent() {
   return (
     <div className="min-h-screen bg-[#09090b] text-slate-300 font-sans selection:bg-indigo-500/30 flex">
       <Suspense fallback={null}>
-        <GlobalCommandSpotlight />
         <UniversalCEOCommandPalette
           isOpen={isCommandPaletteOpen}
           onClose={() => setIsCommandPaletteOpen(false)}
@@ -442,6 +498,43 @@ function ErpAppContent() {
             );
           })}
         </div>
+
+        {/* ── Sidebar Footer Mode Switch ── */}
+        <div className="p-2 border-t border-white/5 space-y-1">
+          <button
+            onClick={toggleCeoMode}
+            title={ceoMode ? 'Đang ở Giao diện CEO (Tinh gọn). Bấm để mở Chế độ Quản trị Toàn diện' : 'Đang ở Chế độ Quản trị. Bấm để bật Giao diện CEO (Tinh gọn)'}
+            className={`w-full flex items-center gap-2 rounded-xl text-xs font-bold transition-all ${
+              collapsed ? 'justify-center p-2' : 'px-3 py-2'
+            } ${
+              ceoMode
+                ? 'bg-indigo-950/50 border border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/50 shadow-sm'
+                : 'bg-slate-900/50 border border-slate-800 text-slate-400 hover:bg-slate-800'
+            }`}
+          >
+            <Sparkles className={`w-3.5 h-3.5 shrink-0 ${ceoMode ? 'text-indigo-400 animate-pulse' : 'text-slate-500'}`} />
+            {!collapsed && (
+              <span className="truncate">
+                {ceoMode ? '⚡ CEO View (Gọn)' : '🏢 Admin View'}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={toggleCollapsed}
+            className={`w-full hidden lg:flex items-center gap-2 rounded-xl text-xs font-medium text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-all ${
+              collapsed ? 'justify-center p-2' : 'px-3 py-1.5'
+            }`}
+            title={collapsed ? 'Mở rộng thanh bên' : 'Thu gọn thanh bên'}
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : (
+              <>
+                <ChevronLeft className="w-4 h-4" />
+                <span>Thu gọn thanh bên</span>
+              </>
+            )}
+          </button>
+        </div>
       </aside>
 
       {/* ═══════════════════════════════════════════════════
@@ -538,14 +631,35 @@ function ErpAppContent() {
               >
                 <NeuralNotificationCenter />
               </Suspense>
-              <button
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-white/10 text-slate-500 hover:text-white hover:border-white/20 transition-colors"
-                style={{ background: 'rgba(255,255,255,0.04)' }}
-                title={t('nav.voice', 'Giao tiếp Giọng nói với AI (Hold to speak)')}
-                onClick={() => alert('Đang lắng nghe: "Agent Marketing, báo cáo chiến dịch hôm nay"...')}
-              >
-                <Mic className="w-4 h-4" />
-              </button>
+
+              {/* Unified Glacia 3D Cockpit & Voice Suite */}
+              <div className="flex items-center rounded-xl bg-gradient-to-r from-cyan-950/80 via-slate-900/90 to-indigo-950/80 border border-cyan-400/40 p-0.5 shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:border-cyan-400/70 transition-all">
+                <button
+                  onClick={toggleCockpit}
+                  className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-bold text-cyan-300 hover:text-white transition-all cursor-pointer select-none"
+                  title="Mở Khoang Chỉ Huy Glacia 3D (Ctrl+Space / Alt+G)"
+                >
+                  <div className="w-5 h-5 rounded-full overflow-hidden border border-cyan-300/80 shrink-0">
+                    <img src="/glacia-avatar.png" alt="Glacia" className="w-full h-full object-cover" />
+                  </div>
+                  <span className="text-xs">{currentEmotion.emoji}</span>
+                  <span className="hidden md:inline font-bold">Glacia 3D</span>
+                  <span className="hidden lg:inline px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-[9px] text-cyan-200 border border-cyan-400/30">
+                    {virtualProfile.trustScore} XP
+                  </span>
+                </button>
+
+                <div className="h-4 w-px bg-cyan-500/30" />
+
+                <button
+                  onClick={openLiveVoiceCall}
+                  className="p-1 px-2 text-cyan-300 hover:text-white hover:bg-cyan-500/20 rounded-r-lg transition-colors cursor-pointer"
+                  title="Đàm thoại Giọng nói Trực tiếp với Glacia 3D (Alt + V)"
+                >
+                  <Mic className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
               <button
                 onClick={() => {
                   window.location.hash = isMobileVibeMode ? '/ceo_command' : '/mobile';
@@ -591,7 +705,7 @@ function ErpAppContent() {
                 <MobileVibeApp />
               </Suspense>
             ) : (
-              <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} onNavigate={navigate} />
+              <WorkspaceRenderer activeSegment={activeTab} activeRole={activeRole} isSoloMode={isSoloMode} onNavigate={navigate} />
             )}
           </div>
         </main>
@@ -603,6 +717,10 @@ function ErpAppContent() {
         <OnboardingQuickTour />
         <ApprovalToastSystem />
         <MobileVibeDesktopBridgeDock />
+        <GlaciaCompanion />
+        <GlaciaCommandCockpit />
+        <GlaciaEmbodiedGuide />
+        <GlaciaProactiveSentinel />
       </Suspense>
     </div>
   );

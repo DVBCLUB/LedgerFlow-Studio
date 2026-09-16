@@ -72,6 +72,7 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     // Product Studio Subtabs
     'subtab.product_studio.portfolio': '📦 Danh mục Sản phẩm',
     'subtab.product_studio.ideation': '💡 Phòng Ý tưởng & Nghiên cứu',
+    'subtab.product_studio.continuous_pmf_heatmap': '🔥 Bản Đồ Phù Hợp Thị Trường (PMF)',
     'subtab.product_studio.games_ml': '🎮 Studio Game & Model AI',
     'subtab.product_studio.game_builder': '🛠️ Lắp ráp Game & App',
     'subtab.product_studio.smoke_test': '🧪 Kiểm thử Sản phẩm',
@@ -79,17 +80,20 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     // Marketing & Growth Subtabs
     'subtab.marketing_growth.campaigns': '🚀 Chiến dịch Tăng trưởng',
     'subtab.marketing_growth.content': '✍️ Tự động hóa Nội dung',
+    'subtab.marketing_growth.competitor_radar': '🎯 Radar Đối Thủ Cạnh Tranh',
     'subtab.marketing_growth.video_studio': '🎥 Studio Video AI',
 
     // Sales & CRM Subtabs
     'subtab.sales_crm.funnel_lab': '🎯 Phễu Chuyển đổi Khách hàng',
+    'subtab.sales_crm.customer_health': '❤️ Sức Khỏe Khách Hàng & Giữ Chân',
     'subtab.sales_crm.pricing_ltv': '💰 Báo giá & Giá trị LTV',
     'subtab.sales_crm.referral_nps': '🤝 Đối tác & Chỉ số NPS',
 
     // Finance & Accounting Subtabs
-    'subtab.finance_accounting.ledger': '📖 Sổ Kế toán & Nhật ký Thu chi',
+    'subtab.finance_accounting.cashflow': '📈 1. Doanh Thu, Dòng Tiền & VietQR',
+    'subtab.finance_accounting.cashflow_forecast': '🔮 2. Dự Báo Dòng Tiền & Runway',
+    'subtab.finance_accounting.ledger': '📖 3. Sổ Kế toán & Báo Cáo VAS',
     'subtab.finance_accounting.reports': '📊 Báo cáo Tài chính VAS',
-    'subtab.finance_accounting.cashflow': '📈 Dự báo Dòng tiền',
     'subtab.finance_accounting.founder_control': '🛡️ Điểm Kiểm soát Founder',
     'subtab.finance_accounting.approval': '✍️ Duyệt Chi phí',
     'subtab.finance_accounting.audit': '🔍 Kiểm toán Chứng từ',
@@ -106,7 +110,9 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     'subtab.documents_approval.evidence': '📑 Bằng chứng & Audit Trail',
 
     // AI Factory Subtabs
-    'subtab.ai_factory.command': '🤖 Trung tâm Điều phối AI',
+    'subtab.ai_factory.command': '🤖 Trợ lý CEO & Đội ngũ AI',
+    'subtab.ai_factory.autonomous_flywheel': '🚀 Vòng Lặp Tự Vận Hành',
+    'subtab.ai_factory.nexus_cockpit': '⚡ Trung Tâm Điều Phối AI',
     'subtab.ai_factory.builder': '⚙️ Lắp ráp Agent',
     'subtab.ai_factory.automation': '⚡ Quy trình Tự động hóa',
     'subtab.ai_factory.governance': '🛡️ Quản trị & Phân quyền AI',
@@ -114,16 +120,18 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     'subtab.ai_factory.advanced': '📊 Giám sát Kỹ thuật',
 
     // Analytics Subtabs
+    'subtab.analytics.predictive_revenue': '🔮 1. Dự Báo Doanh Thu 90 Ngày',
+    'subtab.analytics.simulations': '🎲 2. Mô phỏng Doanh nghiệp & Thử nghiệm',
+    'subtab.analytics.python_sandbox': '🐍 3. Phân Tích Dữ Liệu & Sandbox',
     'subtab.analytics.dashboard': '📈 Báo cáo Tổng hợp',
-    'subtab.analytics.simulations': '🎲 Mô phỏng Kinh doanh',
     'subtab.analytics.data_engineering': '💾 Xử lý Dữ liệu',
-    'subtab.analytics.ai_sandbox': '🧪 AI Playground',
-    'subtab.analytics.python_sandbox': '🐍 Python Sandbox',
+    'subtab.analytics.ai_sandbox': '🧪 Không Gian Thử Nghiệm Mô Hình AI',
 
     // System Settings Subtabs
-    'subtab.system_settings.general': '⚙️ Cấu hình Hệ thống',
-    'subtab.system_settings.security': '🛡️ Bảo mật & Phân quyền',
-    'subtab.system_settings.connectors': '🔌 Kết nối External',
+    'subtab.system_settings.general': '⚙️ Doanh Nghiệp & Tài Khoản',
+    'subtab.system_settings.security': '🛡️ Bảo Mật & Kho Khóa AI Vault',
+    'subtab.system_settings.connectors': '🔌 Tích Hợp Dịch Vụ Ngoài & Ngân Hàng',
+    'subtab.system_settings.delegation_matrix': '⚖️ Phân Quyền & Giới Hạn Tự Trị AI',
     'subtab.system_settings.dev_ops': '🚀 GitOps & Release',
     'subtab.system_settings.recovery_ops': '🛠️ Khôi phục Dữ liệu',
 
@@ -212,6 +220,7 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     // Product Studio Subtabs
     'subtab.product_studio.portfolio': '📦 Product Portfolio',
     'subtab.product_studio.ideation': '💡 Ideation & Research Lab',
+    'subtab.product_studio.continuous_pmf_heatmap': '🔥 PMF Heatmap & Market Fit',
     'subtab.product_studio.games_ml': '🎮 Game & AI Model Studio',
     'subtab.product_studio.game_builder': '🛠️ App & Game Builder',
     'subtab.product_studio.smoke_test': '🧪 Product Smoke Test',
@@ -219,17 +228,20 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     // Marketing & Growth Subtabs
     'subtab.marketing_growth.campaigns': '🚀 Growth Campaigns',
     'subtab.marketing_growth.content': '✍️ Content Automation',
+    'subtab.marketing_growth.competitor_radar': '🎯 Competitor Radar',
     'subtab.marketing_growth.video_studio': '🎥 AI Video Studio',
 
     // Sales & CRM Subtabs
     'subtab.sales_crm.funnel_lab': '🎯 Customer Conversion Funnel',
+    'subtab.sales_crm.customer_health': '❤️ Customer Health & Retention',
     'subtab.sales_crm.pricing_ltv': '💰 Quotes & Customer LTV',
     'subtab.sales_crm.referral_nps': '🤝 Partners & NPS Metrics',
 
     // Finance & Accounting Subtabs
-    'subtab.finance_accounting.ledger': '📖 Accounting Ledger & Journals',
+    'subtab.finance_accounting.cashflow': '📈 1. Revenue, Cashflow & VietQR',
+    'subtab.finance_accounting.cashflow_forecast': '🔮 2. Cashflow Forecast & Runway',
+    'subtab.finance_accounting.ledger': '📖 3. Accounting Ledger & VAS Reports',
     'subtab.finance_accounting.reports': '📊 VAS Financial Statements',
-    'subtab.finance_accounting.cashflow': '📈 Cashflow Forecasting',
     'subtab.finance_accounting.founder_control': '🛡️ Founder Control Points',
     'subtab.finance_accounting.approval': '✍️ Expense Approvals',
     'subtab.finance_accounting.audit': '🔍 Document Audit',
@@ -246,7 +258,9 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     'subtab.documents_approval.evidence': '📑 Evidence & Audit Trail',
 
     // AI Factory Subtabs
-    'subtab.ai_factory.command': '🤖 AI Workforce Command Center',
+    'subtab.ai_factory.command': '🤖 CEO Assistant & AI Workforce',
+    'subtab.ai_factory.autonomous_flywheel': '🚀 Autonomous Flywheel Loop',
+    'subtab.ai_factory.nexus_cockpit': '⚡ AI Nexus Cockpit',
     'subtab.ai_factory.builder': '⚙️ Agent Assembly Builder',
     'subtab.ai_factory.automation': '⚡ Process Automation & Robots',
     'subtab.ai_factory.governance': '🛡️ AI Governance & Access',
@@ -254,16 +268,18 @@ const TRANSLATIONS: Record<LanguageMode, Record<string, string>> = {
     'subtab.ai_factory.advanced': '📊 Technical Monitoring & Logs',
 
     // Analytics Subtabs
+    'subtab.analytics.predictive_revenue': '🔮 1. 90-Day Predictive Revenue',
+    'subtab.analytics.simulations': '🎲 2. Business Simulation Engine',
+    'subtab.analytics.python_sandbox': '🐍 3. Python & SQL Sandbox',
     'subtab.analytics.dashboard': '📈 Executive Dashboard',
-    'subtab.analytics.simulations': '🎲 Business Simulation Engine',
     'subtab.analytics.data_engineering': '💾 Data Engineering Workbench',
-    'subtab.analytics.ai_sandbox': '🧪 AI Playground',
-    'subtab.analytics.python_sandbox': '🐍 Python & SQL Sandbox',
+    'subtab.analytics.ai_sandbox': '🧪 AI Model Testing Sandbox',
 
     // System Settings Subtabs
-    'subtab.system_settings.general': '⚙️ System Configuration',
-    'subtab.system_settings.security': '🛡️ Security & Permissions',
-    'subtab.system_settings.connectors': '🔌 External Connectors',
+    'subtab.system_settings.general': '⚙️ Enterprise & Accounts',
+    'subtab.system_settings.security': '🛡️ Security & AI Key Vault',
+    'subtab.system_settings.connectors': '🔌 External Integrations & Banking',
+    'subtab.system_settings.delegation_matrix': '⚖️ Governance & AI Autonomy',
     'subtab.system_settings.dev_ops': '🚀 GitOps & Release Pipeline',
     'subtab.system_settings.recovery_ops': '🛠️ Data Maintenance & Recovery',
 

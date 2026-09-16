@@ -4,6 +4,7 @@ import './index.css';
 
 import { DynamicModuleProvider } from './context/DynamicModuleContext';
 import { AIWorkforceProvider } from './context/AIWorkforceContext';
+import { GlaciaProvider } from './components/glacia';
 
 const LocalLoginGate = lazy(() => import('./components/LocalLoginGate'));
 const ErpApp = lazy(() => import('./app/ErpApp'));
@@ -65,7 +66,9 @@ function App() {
           <LocalLoginGate>
             <DynamicModuleProvider>
               <AIWorkforceProvider>
-                <ErpApp />
+                <GlaciaProvider>
+                  <ErpApp />
+                </GlaciaProvider>
               </AIWorkforceProvider>
             </DynamicModuleProvider>
           </LocalLoginGate>

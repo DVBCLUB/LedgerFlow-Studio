@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 
 export type SoftwareFactoryAssetKind = "code" | "package" | "media" | "document" | "release" | "log";
 export type SoftwareFactoryAssetStatus = "new" | "checked" | "linked" | "stored";

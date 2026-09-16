@@ -21,9 +21,9 @@ export const FRAUD_CONTROLS = [
 ];
 
 export const REFERRAL_MESSAGES = [
-  { title: 'Cho kế toán dịch vụ', text: 'Em có tool giúp khách xây dựng nhỏ theo dõi chi phí công trình, tạm ứng, hồ sơ thiếu và báo cáo sếp. Anh/chị có khách nào đang làm Excel/Zalo thủ công thì em demo miễn phí.' },
+  { title: 'Cho kế toán dịch vụ', text: 'Em có tool giúp các Studio Game và Creator tự động hóa sản xuất game 3D, video 4K $0 chi phí. Anh/chị có khách nào đang làm Excel/Zalo thủ công thì em demo miễn phí.' },
   { title: 'Cho kế toán trưởng', text: 'Nếu anh/chị thấy phần mềm giúp giảm thời gian tổng hợp hoặc kiểm soát chứng từ tốt hơn, cho em xin giới thiệu tới một đồng nghiệp đang gặp bài toán tương tự.' },
-  { title: 'Cho chủ doanh nghiệp', text: 'Phần mềm tập trung 5 chỉ số: ngân sách, tạm ứng, công nợ, hồ sơ thiếu, quỹ dầu. Nếu công ty anh/chị đang khó xem tiền công trình, em demo thử 15 phút.' }
+  { title: 'Cho chủ doanh nghiệp', text: 'Phần mềm tập trung 5 chỉ số: kho game 3D, video 4K, AI agent và dòng tiền tự trị 24/7. Nếu studio anh/chị quan tâm, em demo thử 15 phút.' }
 ];
 
 export const PARTNER_ONBOARDING = [

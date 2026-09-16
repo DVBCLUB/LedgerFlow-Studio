@@ -1,38 +1,39 @@
 export const FUNNEL_STAGES = [
-  { stage: 'Traffic', goal: 'Kéo đúng người vào xem: kế toán trưởng, kế toán dự án, chủ doanh nghiệp xây dựng.', metric: 'Website visits / group views / message opens', leak: 'Nội dung quá chung, không nói đúng nỗi đau công trình.' },
-  { stage: 'Lead', goal: 'Lấy phản hồi hoặc thông tin liên hệ.', metric: 'Reply rate / form submits / Zalo messages', leak: 'CTA mơ hồ, khách chưa thấy lợi ích demo.' },
-  { stage: 'Demo', goal: 'Cho khách thấy dashboard bằng dữ liệu mẫu hoặc file đã ẩn.', metric: 'Demo booked / demo attended', leak: 'Demo quá dài hoặc không đúng nỗi đau khách.' },
-  { stage: 'Proposal', goal: 'Gửi giá tách phần mềm, triển khai, migrate, support.', metric: 'Proposal sent / accepted', leak: 'Báo giá không chứng minh ROI hoặc phạm vi không rõ.' },
-  { stage: 'Paid', goal: 'Khách thanh toán và onboarding thành công.', metric: 'Paid customers / activation', leak: 'Onboarding yếu, người dùng không nhập dữ liệu thật.' }
+  { stage: 'Traffic', goal: 'Kéo đúng người xem: Indie game developers, AI video creators, SaaS founders.', metric: 'Website visits / YouTube views / GitHub stars', leak: 'Nội dung quá chung chung, không phô diễn được đồ họa và tốc độ sinh AI.' },
+  { stage: 'Lead', goal: 'Lấy thông tin liên hệ hoặc đăng ký dùng thử 1-Click.', metric: 'Reply rate / form submits / Telegram join rate', leak: 'CTA mơ hồ, khách chưa thấy trải nghiệm game/video ngay trên web.' },
+  { stage: 'Demo', goal: 'Cho khách chơi thử Game 3D 60FPS hoặc xem Video 4K sinh trong 10 giây.', metric: 'Interactive Sandbox played / Video generated', leak: 'Demo quá dài hoặc không cho tương tác trực tiếp.' },
+  { stage: 'Proposal', goal: 'Gửi bảng giá gói Studio, License Engine hoặc Custom AI Agent.', metric: 'Proposal sent / accepted', leak: 'Báo giá không làm nổi bật lợi thế $0 chi phí cloud.' },
+  { stage: 'Paid', goal: 'Khách thanh toán bản quyền và kích hoạt studio thành công.', metric: 'Paid customers / activation', leak: 'Onboarding chậm, người dùng chưa xuất được file standalone.' }
 ];
 
 export const CHANNELS = [
-  { channel: 'Zalo/Facebook group kế toán', bestFor: 'Tìm nỗi đau thật, khảo sát, kéo demo nhỏ.', content: 'Checklist hồ sơ thiếu, mẫu báo cáo sếp, case tạm ứng treo.' },
-  { channel: 'Referral từ kế toán dịch vụ', bestFor: 'Lead có niềm tin cao.', content: 'Demo 15 phút + hoa hồng rõ ràng.' },
-  { channel: 'Cold outreach', bestFor: 'Tìm công ty xây dựng nhỏ theo danh sách.', content: 'Tin nhắn ngắn nói đúng nỗi đau, xin demo.' },
-  { channel: 'SEO/blog', bestFor: 'Nuôi dưỡng dài hạn.', content: 'Bài hướng dẫn tạm ứng, VAT, hồ sơ thanh toán, kho/dầu.' },
-  { channel: 'YouTube/TikTok ngắn', bestFor: 'Giải thích bằng màn hình thực tế.', content: 'Before/after Excel rối → dashboard sếp.' }
+  { channel: 'Cộng đồng Game Dev & AI Creator', bestFor: 'Tìm kiếm nhu cầu thực tế, chia sẻ bản demo 3D tương tác.', content: 'Video gameplay 60FPS, showcase Avatar 3D, prompt sinh phim ngắn 4K.' },
+  { channel: 'Giới thiệu từ nhà phát triển (Referral)', bestFor: 'Khách hàng có độ tin cậy và gắn kết cao.', content: 'Demo 5 phút trực tiếp + chia sẻ mã nguồn mẫu.' },
+  { channel: 'Social Media (TikTok / YouTube Shorts / X)', bestFor: 'Lan tỏa viral với các video kỹ xảo AI đỉnh cao.', content: 'Clip ngắn so sánh: code thủ công 7 ngày vs Glacia sinh trong 10 giây.' },
+  { channel: 'SEO & Technical Blog', bestFor: 'Thu hút traffic tự nhiên dài hạn cho từ khóa công nghệ.', content: 'Bài viết về Three.js, WebGL/WebGPU, WebAudio Synth và Local Offline LLM.' },
+  { channel: 'Kênh Discord / Telegram Studio', bestFor: 'Tương tác trực tiếp và cập nhật phiên bản mới hàng ngày.', content: 'Bản tin sáng 6:00 AM, teaser tính năng và hỗ trợ kỹ thuật.' }
 ];
 
 export const CTA_LIBRARY = [
-  { title: 'Demo 15 phút', text: 'Xem thử dashboard công trình trong 15 phút', why: 'Ít rào cản, không ép mua ngay.' },
-  { title: 'Checklist miễn phí', text: 'Tải checklist hồ sơ thanh toán công trình', why: 'Hợp cho lead lạnh và kế toán đang tìm mẫu.' },
-  { title: 'File mẫu đã ẩn', text: 'Gửi một file mẫu đã ẩn thông tin để dựng demo đúng quy trình', why: 'Chuyển lead từ tò mò sang nhu cầu thật.' },
-  { title: 'Báo cáo sếp 5 dòng', text: 'Nhận mẫu báo cáo sếp: ngân sách, tạm ứng, công nợ, hồ sơ thiếu, quỹ dầu', why: 'Đánh thẳng vào giá trị ra quyết định.' }
+  { title: 'Chơi Game 3D Ngay', text: 'Trải nghiệm ngay bản game 3D 60FPS trực tiếp trên trình duyệt', why: 'Không cần cài đặt, thấy ngay sức mạnh engine.' },
+  { title: 'Biên Kịch Phim 1-Click', text: 'Nhập 1 câu ý tưởng để nhận ngay kịch bản 5 phân cảnh 4K', why: 'Gây ấn tượng tức thì với nhà sáng tạo nội dung.' },
+  { title: 'Tải Game HTML5 Độc Lập', text: 'Tải ngay 1 file .HTML chạy offline hoàn chỉnh không cần server', why: 'Chứng minh giải pháp $0 chi phí hosting.' },
+  { title: 'Đàm Thoại Trực Tiếp', text: 'Gọi điện và nói chuyện 2 chiều trực tiếp với Robot Glacia', why: 'Trải nghiệm trí tuệ nhân tạo thế hệ mới với độ trễ <150ms.' }
 ];
 
 export const CONTENT_ANGLES = [
-  { angle: 'Tạm ứng treo', hook: 'Cuối tháng vẫn không biết ai còn treo tạm ứng?', offer: 'Dashboard aging tạm ứng và nhắc hoàn ứng.' },
-  { angle: 'Hồ sơ thiếu', hook: 'Thanh toán rồi mới phát hiện thiếu nghiệm thu/hóa đơn?', offer: 'Checklist hồ sơ trước khi duyệt chi.' },
-  { angle: 'Quỹ dầu', hook: 'Cấp dầu nhiều nhưng không khớp nhật trình xe/máy?', offer: 'Cảnh báo dầu vượt định mức.' },
-  { angle: 'Báo cáo sếp', hook: 'Mất nửa ngày gom Excel để báo cáo công trình?', offer: 'Báo cáo 5 KPI trong vài phút.' },
-  { angle: 'Kho vật tư', hook: 'Nhập xuất tồn lệch nhưng không biết lệch từ phiếu nào?', offer: 'Luồng nhập/xuất/tồn có cảnh báo âm kho.' }
+  { angle: 'Tốc độ phát triển', hook: 'Mất cả tháng để làm 1 bản demo game 3D?', offer: 'Glacia sinh thế giới Procedural 3D và Boss AI chỉ trong vài giây.' },
+  { angle: 'Chi phí sản xuất phim', hook: 'Chi phí thuê diễn viên và dựng phim quá đắt đỏ?', offer: 'Tạo mẫu Avatar 3D và kịch bản phân cảnh 4K tự động.' },
+  { angle: 'Chạy Offline $0', hook: 'Lo ngại chi phí API OpenAI/Claude tăng phi mã?', offer: 'Động cơ WebLLM / ONNX chạy trực tiếp trên GPU máy tính với $0 chi phí.' },
+  { angle: 'Đóng gói 1-Click', hook: 'Gặp khó khăn khi xuất bản game đa nền tảng?', offer: 'Xuất file HTML5 Standalone chơi được trên cả PC và Mobile.' },
+  { angle: 'Kho Tài Nguyên Số', hook: 'Quản lý kho game assets, kho kịch bản và video rời rạc?', offer: 'Kho tài nguyên số tập trung, tự động nén và đồng bộ vào dự án.' }
 ];
 
 export const FUNNEL_FIXES = [
-  { problem: 'Traffic có nhưng ít lead', fix: 'Đổi hook từ “phần mềm kế toán” sang nỗi đau cụ thể: tạm ứng treo/hồ sơ thiếu.' },
-  { problem: 'Lead trả lời nhưng không demo', fix: 'Đưa demo xuống 15 phút và nói rõ không cần thay phần mềm hiện tại.' },
-  { problem: 'Demo xong không mua', fix: 'Tính ROI bằng giờ tiết kiệm/tháng và rủi ro giảm được.' },
-  { problem: 'Khách mua nhưng không dùng', fix: 'Onboarding 7 ngày: tạo công trình, nhập 5 khoản chi, xuất báo cáo sếp.' },
-  { problem: 'Chi phí marketing cao', fix: 'Ưu tiên referral và nội dung case thật trước quảng cáo trả phí.' }
+  { problem: 'Traffic có nhưng ít lead', fix: 'Đổi hook từ giới thiệu tính năng sang video trải nghiệm thực tế chơi game/làm phim.' },
+  { problem: 'Lead xem nhưng chưa tương tác', fix: 'Mở ngay khung chơi game 60FPS trực tiếp không bắt đăng nhập.' },
+  { problem: 'Demo xong chưa quyết định', fix: 'Chứng minh ROI bằng số giờ lập trình tiết kiệm được và chi phí $0 vĩnh viễn.' },
+  { problem: 'Khách đăng ký nhưng chưa dùng sâu', fix: 'Onboarding 3 bước: chọn Archetype 3D, sinh kịch bản phim, xuất file HTML5.' },
+  { problem: 'Chi phí marketing cao', fix: 'Tận dụng kênh lan tỏa hữu cơ qua video demo viral trên TikTok/Shorts.' }
 ];
+

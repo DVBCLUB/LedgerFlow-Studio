@@ -162,3 +162,40 @@ export function verifyFoundryAsset(cid: string, signature: string) {
 export function assetFileUrl(cid: string): string {
   return `/api/asset-foundry/assets/${encodeURIComponent(cid)}/file`;
 }
+
+// ── $0 Free Tool Robot APIs (Blender, Game Binding, Video Stage, Canva, FFmpeg) ──
+export function generateBlender3DScript(spec: Record<string, unknown>) {
+  return request<{ ok: boolean; script: string; tool: string; error?: string }>('/api/asset-foundry/free-tools/blender', {
+    method: 'POST',
+    body: JSON.stringify(spec),
+  });
+}
+
+export function bridge3DToGameBinding(spec: Record<string, unknown>, platform: string = 'hybrid') {
+  return request<{ ok: boolean; binding: any; error?: string }>('/api/asset-foundry/free-tools/game-binding', {
+    method: 'POST',
+    body: JSON.stringify({ spec, platform }),
+  });
+}
+
+export function bridge3DToVideoBinding(spec: Record<string, unknown>, options?: Record<string, unknown>) {
+  return request<{ ok: boolean; binding: any; error?: string }>('/api/asset-foundry/free-tools/video-binding', {
+    method: 'POST',
+    body: JSON.stringify({ spec, options }),
+  });
+}
+
+export function generateCanvaGraphicPlan(payload: Record<string, unknown>) {
+  return request<{ ok: boolean; plan: any; error?: string }>('/api/asset-foundry/free-tools/graphic-plan', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export function generateFfmpegRenderScript(payload: Record<string, unknown>) {
+  return request<{ ok: boolean; videoScript: any; error?: string }>('/api/asset-foundry/free-tools/ffmpeg-script', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+

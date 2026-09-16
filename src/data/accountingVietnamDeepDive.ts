@@ -71,7 +71,7 @@ export const VIETNAM_ACCOUNTING_DEEP_DIVE: DeepDiveCard[] = [
     scope: 'So sánh bình quân gia quyền, FIFO và đích danh trong mô phỏng giá vốn.',
     learningGoal: 'Người học thấy cùng một nghiệp vụ xuất kho có thể tạo giá vốn khác nhau nếu phương pháp tính giá khác nhau.',
     documents: ['chính sách tồn kho', 'phiếu nhập kho', 'phiếu xuất kho', 'thẻ kho', 'bảng tính giá xuất kho', 'biên bản kiểm kê'],
-    simulatedEntries: ['Nợ 632 / Có 156 khi xuất bán hàng hóa', 'Nợ 621 / Có 152 khi xuất vật tư cho công trình/sản xuất', 'Nợ 154 / Có 621/622/623/627 khi kết chuyển chi phí dự án'],
+    simulatedEntries: ['Nợ 632 / Có 156 khi xuất bán hàng hóa', 'Nợ 621 / Có 152 khi xuất tài nguyên số cho dự án sản xuất game/video', 'Nợ 154 / Có 621/622/623/627 khi kết chuyển chi phí dự án'],
     redFlags: ['đổi phương pháp giữa kỳ không có duyệt', 'âm kho vẫn tính giá vốn', 'sổ kho và kế toán không đối chiếu'],
     controlQuestions: ['phương pháp nào đang được policy duyệt?', 'ảnh hưởng COGS và gross margin là bao nhiêu?', 'có phát sinh âm kho hoặc lệch kiểm kê không?']
   },

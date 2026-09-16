@@ -17,7 +17,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFaceTracking, UseFaceTrackingOptions } from './hooks/useFaceTracking';
 import { avatarManager, AvatarConfig } from './services/avatarService';
-import { AvatarEmotion } from '../../../server/services/aiAvatarConnector';
+import { AvatarEmotion } from '../../../core/types/glaciaAvatar';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -102,7 +102,7 @@ export const FaceTrackingDemo: React.FC<{
         const cameraInfos = devices.map((device): CameraInfo => ({
           id: device.deviceId,
           label: device.label || `Camera ${cameras.length + 1}`,
-          facing: device.facingMode || 'unknown',
+          facing: ((device as unknown as { facingMode?: string }).facingMode || 'unknown') as CameraInfo['facing'],
         }));
         setCameras(cameraInfos);
         
@@ -241,7 +241,7 @@ export const FaceTrackingDemo: React.FC<{
       const cameraInfos = devices.map((device): CameraInfo => ({
         id: device.deviceId,
         label: device.label || `Camera ${cameras.length + 1}`,
-        facing: device.facingMode || 'unknown',
+        facing: ((device as unknown as { facingMode?: string }).facingMode || 'unknown') as CameraInfo['facing'],
       }));
       setCameras(cameraInfos);
     } catch (err) {

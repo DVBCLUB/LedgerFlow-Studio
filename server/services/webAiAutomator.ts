@@ -4,6 +4,14 @@ import fs from 'fs';
 import { WebAiSessionManager, type WebAIProfileStatus } from './webAiSessionManager.ts';
 import { classifyWebAIPageText, parseQuotaResetTime } from './webAiPolicy.ts';
 import { registerProfile, reportProfileSuccess, reportProfileError, isProfileAvailable } from './webAiReliability.ts';
+import { typeWithHumanCadence, streamVoiceDictation, humanMoveAndClick } from './glaciaHumanCadenceEngine.ts';
+import {
+  getOrRotateFingerprint,
+  applyFingerprintToPage,
+  detectPlatformFromUrl,
+  PLATFORM_CADENCE_PROFILES,
+  type BrowserFingerprint,
+} from './glaciaStealthFingerprintRotator.ts';
 
 // Polyfill for esbuild keepNames __name helper (tsx + esbuild 0.28 compat)
 (globalThis as any).__name ??= function __name(target: any, value: string) {
@@ -270,20 +278,51 @@ export function extractCodeBlocks(text: string, defaultTargetFile?: string): Web
  * Configure page with anti-detection (stealth) settings to evade bot detection
  * Stealth Engine V2 — industry-grade anti-fingerprinting
  */
-export async function applyStealthSettings(page: Page): Promise<void> {
+/**
+ * Auto-detect platform from a page URL and apply the optimized cadence profile.
+ */
+export function getPlatformCadenceForUrl(url: string) {
+  const platformName = detectPlatformFromUrl(url);
+  return PLATFORM_CADENCE_PROFILES[platformName] ?? PLATFORM_CADENCE_PROFILES['generic'];
+}
+
+/**
+ * Simulate natural micro-scroll behavior — scroll the page slightly up/down
+ * as if the user is reading before submitting. Avoids static viewport detection.
+ */
+export async function simulateMicroScroll(page: Page): Promise<void> {
+  try {
+    const scrollSteps = 2 + Math.floor(Math.random() * 3); // 2-4 scroll steps
+    for (let i = 0; i < scrollSteps; i++) {
+      const direction = Math.random() > 0.3 ? 1 : -1; // mostly scroll down
+      const pixels = 40 + Math.floor(Math.random() * 120); // 40-160px
+      await page.evaluate((dy: number) => window.scrollBy({ top: dy, behavior: 'smooth' }), direction * pixels);
+      await new Promise(r => setTimeout(r, 300 + Math.random() * 600)); // 300-900ms between scrolls
+    }
+  } catch { /* non-fatal */ }
+}
+
+export async function applyStealthSettings(page: Page, targetUrl?: string): Promise<void> {
+  // ── Fingerprint Rotation: get or rotate fingerprint per session ──
+  const platformName = targetUrl ? detectPlatformFromUrl(targetUrl) : 'generic';
+  const { fingerprint, wasRotated } = getOrRotateFingerprint(platformName, 3);
+  if (wasRotated) {
+    console.log(`[Glacia Stealth] 🔄 Fingerprint rotated → ${fingerprint.fingerprintId.slice(0, 8)} (${platformName})`);
+  }
+
   const CHROME_VERSION = '131.0.0.0';
-  const USER_AGENT = `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${CHROME_VERSION} Safari/537.36`;
-  
-  // Set User Agent
-  await page.setUserAgent(USER_AGENT);
+  const USER_AGENT = fingerprint.userAgent;
+
+  // Apply full fingerprint (UA, viewport, language headers, navigator overrides)
+  await applyFingerprintToPage(page, fingerprint);
 
   // CDP-level UserAgent override — syncs UA across all DevTools APIs
   try {
     const client = await page.createCDPSession();
     await client.send('Network.setUserAgentOverride', {
       userAgent: USER_AGENT,
-      acceptLanguage: 'vi-VN,vi;q=0.9,en-US;q=0.8,en;q=0.7',
-      platform: 'Win32',
+      acceptLanguage: fingerprint.acceptLanguage,
+      platform: fingerprint.platform,
       userAgentMetadata: {
         brands: [
           { brand: 'Google Chrome', version: '131' },
@@ -295,7 +334,7 @@ export async function applyStealthSettings(page: Page): Promise<void> {
           { brand: 'Chromium', version: CHROME_VERSION },
         ],
         fullVersion: CHROME_VERSION,
-        platform: 'Windows',
+        platform: fingerprint.platform.includes('Mac') ? 'macOS' : 'Windows',
         platformVersion: '15.0.0',
         architecture: 'x86',
         model: '',
@@ -308,9 +347,6 @@ export async function applyStealthSettings(page: Page): Promise<void> {
   } catch {
     // CDP session may not be available in all environments
   }
-
-  // Set default viewport to normal dimensions
-  await page.setViewport({ width: 1280, height: 800 });
 
   // ── Critical: define __name in browser context via RAW STRING ──
   // Dùng string (không qua tsx transpile) để tránh vòng lặp __name
@@ -644,6 +680,9 @@ async function _executeWebAIAutomationCore(
     screenshotPath?: string;
     filesToUpload?: string[];
     newConversation?: boolean;
+    interactionMode?: 'stealth_human' | 'voice_dictation' | 'fast_direct';
+    baseWpm?: number;
+    typoRate?: number;
   }
 ): Promise<WebAIResult> {
   const config = PLATFORMS[platformName.toLowerCase()];
@@ -949,149 +988,194 @@ async function _executeWebAIAutomationCore(
     await page.keyboard.press('Escape');
     await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 500)));
 
-    // 5-Tier Smart Input Insertion Engine V5 (insertText + React Fiber + Shadow DOM + Clipboard + Native + Keyboard)
-    console.log('[Web AI] Typing prompt into AI chat web window via 5-Tier Smart Engine V5...');
-    await page.evaluate(
-      (selector, text) => {
-        function queryDeep(root: any, sel: string): any {
+    const interactionMode = options?.interactionMode || 'stealth_human';
+    let textInsertedSuccessfully = false;
+
+    if (interactionMode === 'voice_dictation') {
+      console.log('[Web AI] 🎙️ Chế độ Voice Dictation streaming: Chèn văn bản theo cụm từ để né bot telemetry...');
+      try {
+        const dictRes = await streamVoiceDictation(page, inputSelectorToUse, promptText);
+        console.log(`[Web AI] Đã stream ${dictRes.chunksCount} cụm từ giọng nói trong ${dictRes.durationMs}ms.`);
+        textInsertedSuccessfully = true;
+      } catch (err: any) {
+        console.warn(`[Web AI] Voice dictation warning, fallback: ${err.message}`);
+      }
+    } else if (interactionMode === 'stealth_human') {
+      console.log('[Web AI] 👤 Chế độ Human Cadence Typing: Gõ phím mô phỏng người thật với Gaussian jitter & typo auto-correct...');
+      try {
+        const typeRes = await typeWithHumanCadence(page, inputSelectorToUse, promptText, {
+          baseWpm: options?.baseWpm || 62,
+          typoRate: options?.typoRate || 0.018,
+          allowTypoCorrection: true,
+        });
+        console.log(`[Web AI] Đã gõ ${typeRes.typedLength} ký tự (${typeRes.typosCount} lỗi sửa) trong ${typeRes.durationMs}ms.`);
+        textInsertedSuccessfully = true;
+      } catch (err: any) {
+        console.warn(`[Web AI] Human typing warning, fallback: ${err.message}`);
+      }
+    }
+
+    if (!textInsertedSuccessfully) {
+      // 5-Tier Smart Input Insertion Engine V5 (insertText + React Fiber + Shadow DOM + Clipboard + Native + Keyboard)
+      console.log('[Web AI] Typing prompt into AI chat web window via 5-Tier Smart Engine V5...');
+      await page.evaluate(
+        (selector, text) => {
+          function queryDeep(root: any, sel: string): any {
+            try {
+              const direct = (root as Element).querySelector?.(sel);
+              if (direct) return direct;
+            } catch {}
+            const elements = Array.from((root as Element).querySelectorAll?.('*') || []);
+            for (const el of elements) {
+              if ((el as any).shadowRoot) {
+                const shadowMatch = queryDeep((el as any).shadowRoot, sel);
+                if (shadowMatch) return shadowMatch;
+              }
+            }
+            return null;
+          }
+
+          function getContent(el: any): string {
+            return (el.value || el.innerText || el.textContent || '').trim();
+          }
+
+          const element = (queryDeep(document, selector) || document.querySelector(selector)) as any;
+          if (!element) return;
+          
+          try { element.focus(); } catch {}
+          // Select all existing text first so insertion replaces it
+          try { document.execCommand('selectAll', false); } catch {}
+
+          // Tier 0: document.execCommand('insertText') — triggers React onChange natively
           try {
-            const direct = (root as Element).querySelector?.(sel);
+            document.execCommand('insertText', false, text);
+            if (getContent(element).includes(text.slice(0, 15))) {
+              element.dispatchEvent(new Event('input', { bubbles: true }));
+              return; // Success!
+            }
+          } catch {}
+
+          // Tier 0b: React Fiber direct injection
+          try {
+            const fiberKey = Object.keys(element).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
+            if (fiberKey) {
+              const fiber = (element as any)[fiberKey];
+              const props = fiber?.memoizedProps || fiber?.return?.memoizedProps;
+              if (props?.onChange) {
+                props.onChange({ target: { value: text }, currentTarget: { value: text } });
+                if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+                  const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
+                  if (nativeSetter) nativeSetter.call(element, text);
+                  else element.value = text;
+                } else {
+                  element.innerText = text;
+                }
+                element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+                if (getContent(element).includes(text.slice(0, 15))) return; // Success!
+              }
+            }
+          } catch {}
+
+          // Tier 1: Clipboard Event Paste
+          try {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/plain', text);
+            const pasteEvent = new ClipboardEvent('paste', {
+              clipboardData: dataTransfer,
+              bubbles: true,
+              cancelable: true
+            });
+            element.dispatchEvent(pasteEvent);
+          } catch (e) {
+            // Tier 1 non-fatal
+          }
+
+          if (getContent(element).includes(text.slice(0, 15))) {
+            element.dispatchEvent(new Event('input', { bubbles: true }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+          }
+
+          // Tier 2: Native Input Value Setter + Event Dispatching
+          if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+            const nativeSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLTextAreaElement.prototype,
+              'value'
+            )?.set || Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+            
+            if (nativeSetter) {
+              nativeSetter.call(element, text);
+            } else {
+              element.value = text;
+            }
+            element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          } else {
+            // Tier 3: ContentEditable InnerText
+            element.innerText = text;
+            element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
+            element.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        },
+        inputSelectorToUse,
+        promptText
+      );
+
+      // Tier 4: Verify if text was inserted correctly (with Shadow DOM deep search)
+      const isTextInserted = await page.evaluate((selector) => {
+        function queryDeep(root: Document | Element | ShadowRoot, sel: string): Element | null {
+          try {
+            const direct = root.querySelector(sel);
             if (direct) return direct;
           } catch {}
-          const elements = Array.from((root as Element).querySelectorAll?.('*') || []);
+          const elements = Array.from(root.querySelectorAll('*'));
           for (const el of elements) {
-            if ((el as any).shadowRoot) {
-              const shadowMatch = queryDeep((el as any).shadowRoot, sel);
+            if (el.shadowRoot) {
+              const shadowMatch = queryDeep(el.shadowRoot, sel);
               if (shadowMatch) return shadowMatch;
             }
           }
           return null;
         }
+        const el = (queryDeep(document, selector) || document.querySelector(selector)) as any;
+        if (!el) return false;
+        const content = el.value || el.innerText || el.textContent;
+        return content && content.trim().length > 0;
+      }, inputSelectorToUse);
 
-        function getContent(el: any): string {
-          return (el.value || el.innerText || el.textContent || '').trim();
-        }
-
-        const element = (queryDeep(document, selector) || document.querySelector(selector)) as any;
-        if (!element) return;
-        
-        try { element.focus(); } catch {}
-        // Select all existing text first so insertion replaces it
-        try { document.execCommand('selectAll', false); } catch {}
-
-        // Tier 0: document.execCommand('insertText') — triggers React onChange natively
+      if (!isTextInserted) {
+        console.log('[Web AI] Fast insertion tier failed. Falling back to Tier 4 native keyboard typing...');
         try {
-          document.execCommand('insertText', false, text);
-          if (getContent(element).includes(text.slice(0, 15))) {
-            element.dispatchEvent(new Event('input', { bubbles: true }));
-            return; // Success!
-          }
-        } catch {}
-
-        // Tier 0b: React Fiber direct injection
-        try {
-          const fiberKey = Object.keys(element).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
-          if (fiberKey) {
-            const fiber = (element as any)[fiberKey];
-            const props = fiber?.memoizedProps || fiber?.return?.memoizedProps;
-            if (props?.onChange) {
-              props.onChange({ target: { value: text }, currentTarget: { value: text } });
-              if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
-                const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set;
-                if (nativeSetter) nativeSetter.call(element, text);
-                else element.value = text;
-              } else {
-                element.innerText = text;
-              }
-              element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
-              if (getContent(element).includes(text.slice(0, 15))) return; // Success!
-            }
-          }
-        } catch {}
-
-        // Tier 1: Clipboard Event Paste
-        try {
-          const dataTransfer = new DataTransfer();
-          dataTransfer.setData('text/plain', text);
-          const pasteEvent = new ClipboardEvent('paste', {
-            clipboardData: dataTransfer,
-            bubbles: true,
-            cancelable: true
-          });
-          element.dispatchEvent(pasteEvent);
-        } catch (e) {
-          // Tier 1 non-fatal
+          await page.focus(inputSelectorToUse);
+          await page.keyboard.type(promptText, { delay: 0 });
+        } catch (err: any) {
+          console.warn(`[Web AI] Tier 4 typing warning: ${err.message}`);
         }
-
-        if (getContent(element).includes(text.slice(0, 15))) {
-          element.dispatchEvent(new Event('input', { bubbles: true }));
-          element.dispatchEvent(new Event('change', { bubbles: true }));
-          return;
-        }
-
-        // Tier 2: Native Input Value Setter + Event Dispatching
-        if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
-          const nativeSetter = Object.getOwnPropertyDescriptor(
-            window.HTMLTextAreaElement.prototype,
-            'value'
-          )?.set || Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
-          
-          if (nativeSetter) {
-            nativeSetter.call(element, text);
-          } else {
-            element.value = text;
-          }
-          element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
-          element.dispatchEvent(new Event('change', { bubbles: true }));
-        } else {
-          // Tier 3: ContentEditable InnerText
-          element.innerText = text;
-          element.dispatchEvent(new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }));
-          element.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      },
-      inputSelectorToUse,
-      promptText
-    );
-
-    // Tier 4: Verify if text was inserted correctly (with Shadow DOM deep search)
-    const isTextInserted = await page.evaluate((selector) => {
-      function queryDeep(root: Document | Element | ShadowRoot, sel: string): Element | null {
-        try {
-          const direct = root.querySelector(sel);
-          if (direct) return direct;
-        } catch {}
-        const elements = Array.from(root.querySelectorAll('*'));
-        for (const el of elements) {
-          if (el.shadowRoot) {
-            const shadowMatch = queryDeep(el.shadowRoot, sel);
-            if (shadowMatch) return shadowMatch;
-          }
-        }
-        return null;
-      }
-      const el = (queryDeep(document, selector) || document.querySelector(selector)) as any;
-      if (!el) return false;
-      const content = el.value || el.innerText || el.textContent;
-      return content && content.trim().length > 0;
-    }, inputSelectorToUse);
-
-    if (!isTextInserted) {
-      console.log('[Web AI] Fast insertion tier failed. Falling back to Tier 4 native keyboard typing...');
-      try {
-        await page.focus(inputSelectorToUse);
-        await page.keyboard.type(promptText, { delay: 0 });
-      } catch (err: any) {
-        console.warn(`[Web AI] Tier 4 typing warning: ${err.message}`);
       }
     }
 
     // Submit Prompt
-    await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 800)));
-    console.log('[Web AI] Submitting prompt...');
-    
     let submitted = false;
-    submitted = await page.evaluate((selectors) => {
+
+    if (interactionMode === 'stealth_human' || interactionMode === 'voice_dictation') {
+      console.log('[Web AI] Con người dừng nhẹ đọc lại câu trước khi gửi (Human Review Pause)...');
+      await new Promise((resolve) => setTimeout(resolve, 1400 + Math.random() * 800));
+
+      for (const s of sendSelectors) {
+        if (!s) continue;
+        const clicked = await humanMoveAndClick(page, s);
+        if (clicked) {
+          submitted = true;
+          break;
+        }
+      }
+    } else {
+      await page.evaluate(() => new Promise((resolve) => setTimeout(resolve, 800)));
+    }
+
+    if (!submitted) {
+      console.log('[Web AI] Submitting prompt...');
+      submitted = await page.evaluate((selectors) => {
       function queryDeep(root: Document | Element | ShadowRoot, sel: string): Element | null {
         try {
           const direct = root.querySelector(sel);
@@ -1153,6 +1237,7 @@ async function _executeWebAIAutomationCore(
 
       return false;
     }, sendSelectors);
+    }
 
     if (!submitted) {
       console.log('[Web AI] Send button click failed or disabled. Trying Enter key fallback...');
@@ -1616,6 +1701,9 @@ export async function executeWebAIAutomation(
     screenshotPath?: string;
     filesToUpload?: string[];
     newConversation?: boolean;
+    interactionMode?: 'stealth_human' | 'voice_dictation' | 'fast_direct';
+    baseWpm?: number;
+    typoRate?: number;
   }
 ): Promise<WebAIResult> {
   const MAX_RETRIES = 2;

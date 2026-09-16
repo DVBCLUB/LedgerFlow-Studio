@@ -116,7 +116,7 @@ export const VAS_KNOWLEDGE_PACKS: KnowledgePackSeed[] = [
   {
     id: 'vas-advances-reimbursements',
     title: 'Tạm ứng và hoàn ứng',
-    whenToUse: 'Khi mô phỏng chi phí dự án, công trình hoặc nhân sự xin ứng tiền trước.',
+    whenToUse: 'Khi mô phỏng chi phí dự án phần mềm/game hoặc nhân sự xin ứng tiền trước.',
     commonMistakes: ['ứng mới khi khoản cũ chưa hoàn', 'không giới hạn tuổi nợ tạm ứng', 'thiếu chứng từ hoàn ứng'],
     checklist: ['Khoản cũ đã hoàn chưa?', 'Có chứng từ hợp lệ không?', 'Có phê duyệt vượt hạn mức không?', 'Có rule chặn ứng mới không?'],
     disclaimer: 'Cần kiểm tra quy chế tài chính nội bộ và yêu cầu chứng từ thực tế trước khi ghi nhận.',

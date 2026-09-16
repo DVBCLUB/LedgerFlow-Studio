@@ -24,6 +24,8 @@ import {
   runSoloFounderNightlySweeperRobot,
   runViralContentCrossPublisherRobot,
   runRevenueLeakReconciliationRobot,
+  runCustomerChurnPredictorRobot,
+  runCodeQualityPatrolBot,
 } from './autonomousCompanyRobots.ts';
 
 function isEntityType(value: unknown): value is BusinessEntityType {
@@ -174,6 +176,26 @@ export function registerBusinessRoutes(app: Express): void {
       res.json({ success: true, report });
     } catch (err: any) {
       res.status(500).json({ success: false, error: err.message || 'Lỗi chạy Revenue Leak Robot.' });
+    }
+  });
+
+  // These Founder Control actions generate analysis and draft approval work only.
+  // They never contact customers or change financial records without a later approval.
+  app.post('/api/autonomous-robots/customer-churn', async (_req: Request, res: Response) => {
+    try {
+      const report = await runCustomerChurnPredictorRobot();
+      res.json({ success: true, report });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Lỗi chạy Customer Churn Robot.' });
+    }
+  });
+
+  app.post('/api/autonomous-robots/code-quality', async (_req: Request, res: Response) => {
+    try {
+      const report = await runCodeQualityPatrolBot();
+      res.json({ success: true, report });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message || 'Lỗi chạy Code Quality Robot.' });
     }
   });
 }

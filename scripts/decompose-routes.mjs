@@ -65,6 +65,7 @@ const domains = [
     patterns: [
       /^\/api\/simulation\/digital-twin\//,
       /^\/api\/robot\//,
+      /^\/api\/robot\/free\//,
       /^\/api\/flywheel\//,
       /^\/api\/self-healing\//
     ]
@@ -143,6 +144,15 @@ const domains = [
       /^\/api\/privacy\//,
       /^\/api\/radar\//,
       /^\/api\/ollama\/local\//
+    ]
+  },
+  {
+    name: 'costDashboardRoutes',
+    fn: 'registerCostDashboardRoutes',
+    file: 'server/services/costDashboardRoutes.ts',
+    patterns: [
+      /^\/api\/cost\//,
+      /^\/api\/ai\/two-tier\//
     ]
   }
 ];
@@ -272,6 +282,7 @@ const orchestratorCode = `/**
  *  - mediaContentRoutes.ts
  *  - revenueCommerceRoutes.ts
  *  - privacyComplianceRoutes.ts
+ *  - costDashboardRoutes.ts
  */
 
 import type { Express } from 'express';
@@ -283,6 +294,7 @@ import { registerConnectorIntegrationRoutes } from './connectorIntegrationRoutes
 import { registerMediaContentRoutes } from './mediaContentRoutes.ts';
 import { registerRevenueCommerceRoutes } from './revenueCommerceRoutes.ts';
 import { registerPrivacyComplianceRoutes } from './privacyComplianceRoutes.ts';
+import { registerCostDashboardRoutes } from './costDashboardRoutes.ts';
 
 export function registerAgentSystemRoutes(app: Express): void {
   registerAgentLoopRoutes(app);
@@ -293,8 +305,9 @@ export function registerAgentSystemRoutes(app: Express): void {
   registerMediaContentRoutes(app);
   registerRevenueCommerceRoutes(app);
   registerPrivacyComplianceRoutes(app);
+  registerCostDashboardRoutes(app);
 
-  console.log('✅ Agent system routes registered (8 decoupled domain sub-routers active)');
+  console.log('✅ Agent system routes registered (9 decoupled domain sub-routers active)');
 }
 `;
 

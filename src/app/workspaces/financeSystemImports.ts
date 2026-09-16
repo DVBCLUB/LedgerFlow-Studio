@@ -3,7 +3,6 @@ import React from 'react';
 export const LedgerAccountingWorkspace = React.lazy(() => import('../../modules/finance-accounting/LedgerAccountingWorkspace'));
 export const RevenueDashboard = React.lazy(() => import('../../modules/finance-accounting/RevenueDashboard'));
 export const AccountingVietnam = React.lazy(() => import('../../modules/finance-accounting/AccountingVietnam'));
-export const CostDashboard = React.lazy(() => import('../../modules/ai-nhan-su/ai-assistant/CostDashboard'));
 export const TaxAuditSimulator = React.lazy(() => import('../../modules/finance-accounting/TaxAuditSimulator'));
 export const SystemSettingsPanel = React.lazy(() => import('../../modules/system-settings/SystemSettingsPanel'));
 export const SystemSOPRunbookPanel = React.lazy(() => import('../../modules/system-settings/SystemSOPRunbookPanel'));

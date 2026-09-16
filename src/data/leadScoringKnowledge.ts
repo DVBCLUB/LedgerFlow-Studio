@@ -1,47 +1,47 @@
 export const LEAD_FIT_CRITERIA = [
-  { factor: 'Đúng ngành', weight: 25, detail: 'Xây dựng, cơ điện, thầu phụ, kế toán dịch vụ có khách xây dựng.' },
-  { factor: 'Nỗi đau rõ', weight: 30, detail: 'Có tạm ứng treo, báo cáo sếp chậm, hồ sơ thiếu, lệch kho/dầu.' },
-  { factor: 'Quyền quyết định', weight: 20, detail: 'Kế toán trưởng, chủ doanh nghiệp, người được giao cải tiến quy trình.' },
-  { factor: 'Khả năng trả tiền', weight: 15, detail: 'Có nhiều công trình/người dùng hoặc đang tốn nhiều giờ tổng hợp.' },
-  { factor: 'Timing', weight: 10, detail: 'Đang cuối tháng, quyết toán, kiểm tra nội bộ, hoặc vừa gặp lỗi chứng từ.' }
+  { factor: 'Đúng ngành', weight: 25, detail: 'Studio Game, Phần mềm SaaS, Kênh sản xuất Video AI, Agency Digital.' },
+  { factor: 'Nỗi đau rõ', weight: 30, detail: 'Chi phí GPU/Cloud cao, quản lý kho asset/kịch bản rời rạc, thiếu tự động hóa.' },
+  { factor: 'Quyền quyết định', weight: 20, detail: 'Founder, Lead Game Developer, Creative Director, Trưởng nhóm AI.' },
+  { factor: 'Khả năng trả tiền', weight: 15, detail: 'Có nhiều dự án game/video hoặc đang tốn nhiều giờ biên kịch và lập trình.' },
+  { factor: 'Timing', weight: 10, detail: 'Đang chuẩn bị ra mắt tựa game mới, sản xuất chuỗi video 4K hoặc mở rộng studio.' }
 ];
 
 export const BEHAVIOR_SIGNALS = [
   { signal: 'Xin demo bằng dữ liệu thật đã ẩn', points: 30, action: 'Hot lead: hẹn demo ngay và hỏi file mẫu.' },
-  { signal: 'Hỏi giá/phí triển khai', points: 25, action: 'Chuẩn bị báo giá tách phần mềm và triển khai.' },
-  { signal: 'Nhắc đến tạm ứng treo/hồ sơ thiếu', points: 20, action: 'Demo đúng module CommandCenter.' },
-  { signal: 'Đang dùng Excel/Zalo thủ công', points: 15, action: 'Demo nhập nhanh và báo cáo sếp.' },
+  { signal: 'Hỏi giá/phí bản quyền sản phẩm', points: 25, action: 'Chuẩn bị báo giá gói phần mềm và tài nguyên studio.' },
+  { signal: 'Nhắc đến quản lý kho asset/video AI', points: 20, action: 'Demo đúng module Creative Studio HUD.' },
+  { signal: 'Đang làm thủ công bằng nhiều tool rời rạc', points: 15, action: 'Demo tự động hóa 1-Click và xuất code.' },
   { signal: 'Chỉ hỏi cho biết', points: 5, action: 'Nuôi dưỡng bằng case/checklist, chưa push sale.' }
 ];
 
 export const LEAD_EXAMPLES = [
-  { name: 'Kế toán trưởng công ty xây dựng', company: 'Nhà thầu dân dụng nhỏ', fit: 92, pain: 'Báo cáo sếp chậm, tạm ứng treo 300 triệu', next: 'Demo dashboard ngân sách và hoàn ứng.' },
-  { name: 'Chủ doanh nghiệp cơ điện', company: 'MEP 30 nhân sự', fit: 85, pain: 'Không biết công trình nào lãi/lỗ', next: 'Gửi brief 5 KPI cho sếp.' },
-  { name: 'Thủ kho công trường', company: 'Công trình HCM', fit: 68, pain: 'Phiếu dầu và vật tư dễ lệch', next: 'Demo form nhập nhanh và quỹ dầu.' },
-  { name: 'Sinh viên kế toán', company: 'Cá nhân', fit: 35, pain: 'Muốn học thử', next: 'Đưa vào nhóm nuôi dưỡng, chưa bán gói công ty.' }
+  { name: 'Lead Developer Studio Game', company: 'Indie Game Studio 10 nhân sự', fit: 92, pain: 'Tốn nhiều thời gian thiết kế bản đồ 3D và Boss AI', next: 'Demo xưởng game Procedural 3D và xuất HTML5.' },
+  { name: 'Creative Director Video Agency', company: 'Media Production House', fit: 88, pain: 'Chi phí thuê diễn viên và biên kịch video cao', next: 'Demo Avatar 3D và Trình biên kịch 1-Click.' },
+  { name: 'Solo SaaS Founder', company: 'Khởi nghiệp công nghệ', fit: 85, pain: 'Cần AI tự động hóa vận hành và đàm thoại realtime', next: 'Demo Glacia Duplex Voice và Offline LLM $0.' },
+  { name: 'Sinh viên lập trình', company: 'Cá nhân học tập', fit: 40, pain: 'Muốn học thử Three.js và làm game', next: 'Đưa vào nhóm cộng đồng mã nguồn mở.' }
 ];
 
 export const NEXT_ACTION_RULES = [
-  { score: '80-100', label: 'Hot', action: 'Gọi hoặc hẹn demo trong ngày. Xin file mẫu đã ẩn thông tin.' },
-  { score: '60-79', label: 'Warm', action: 'Gửi case đúng nỗi đau và hỏi 3 câu chẩn đoán.' },
-  { score: '40-59', label: 'Nurture', action: 'Gửi checklist, template, mời xem demo nhóm.' },
-  { score: '0-39', label: 'Low fit', action: 'Không tốn nhiều thời gian; theo dõi sau.' }
+  { score: '80-100', label: 'Hot', action: 'Gọi hoặc hẹn demo trong ngày. Trực tiếp chạy demo Creative Studio.' },
+  { score: '60-79', label: 'Warm', action: 'Gửi video demo tính năng và hỏi 3 câu chẩn đoán nhu cầu.' },
+  { score: '40-59', label: 'Nurture', action: 'Gửi template game/video mẫu, mời tham gia cộng đồng.' },
+  { score: '0-39', label: 'Low fit', action: 'Không tốn nhiều thời gian; tự động gửi bản tin công nghệ.' }
 ];
 
 export const QUALIFICATION_QUESTIONS = [
-  'Anh/chị đang theo dõi chi phí công trình bằng gì?',
-  'Khoản nào đang đau nhất: tạm ứng, hóa đơn, kho, dầu, công nợ hay báo cáo sếp?',
-  'Ai là người duyệt cuối nếu dùng thử phần mềm?',
-  'Mỗi tháng mất bao nhiêu giờ để tổng hợp báo cáo?',
-  'Anh/chị có thể gửi một file mẫu đã ẩn thông tin để demo đúng quy trình không?'
+  'Anh/chị đang quản lý kho dự án phần mềm/game bằng công cụ gì?',
+  'Khâu nào đang tốn nhiều nguồn lực nhất: lập trình gameplay, tạo hình 3D, biên kịch video hay chi phí cloud?',
+  'Ai là người duyệt quyết định triển khai công nghệ mới trong studio?',
+  'Mỗi tháng studio mất bao nhiêu giờ cho các tác vụ thủ công lặp lại?',
+  'Anh/chị có muốn thử nghiệm tính năng sinh kịch bản phim 4K và game 3D 1-click không?'
 ];
 
 export const DISQUALIFY_RULES = [
-  'Không có nỗi đau cụ thể, chỉ hỏi cho biết.',
-  'Không có quyền quyết định và không giới thiệu được người quyết định.',
-  'Không có dữ liệu công trình hoặc không dùng thường xuyên.',
-  'Muốn phần mềm full ERP miễn phí ngay từ đầu.',
-  'Yêu cầu tích hợp phức tạp nhưng không có ngân sách triển khai.'
+  'Không có nhu cầu phát triển sản phẩm công nghệ hoặc sáng tạo nội dung.',
+  'Không có quyền quyết định và không kết nối được người phụ trách kỹ thuật.',
+  'Không có dự án thực tế hoặc không có kế hoạch phát hành sản phẩm.',
+  'Muốn toàn bộ hệ sinh thái mà không có định hướng kinh doanh rõ ràng.',
+  'Yêu cầu tùy biến quá dị biệt ngoài phạm vi của Studio.'
 ];
 
 export interface PersonaCanvasField {
@@ -52,12 +52,12 @@ export interface PersonaCanvasField {
 }
 
 export const PERSONA_CANVAS_TEMPLATE: PersonaCanvasField[] = [
-  { id: 'role', label: 'Vai trò', prompt: 'Người này là ai trong doanh nghiệp?', example: 'Kế toán trưởng, founder, sales operator, kế toán dịch vụ.' },
-  { id: 'job', label: 'Job-to-be-done', prompt: 'Họ thuê sản phẩm để hoàn thành việc gì?', example: 'Mỗi sáng biết công trình/chi phí/lead nào cần xử lý trước.' },
-  { id: 'pain', label: 'Pain hiện tại', prompt: 'Điều gì đang làm họ mất thời gian, tiền hoặc uy tín?', example: 'Dữ liệu rời rạc, báo cáo chậm, không rõ ai đang giữ tạm ứng.' },
-  { id: 'trigger', label: 'Trigger mua', prompt: 'Sự kiện nào khiến họ phải tìm giải pháp ngay?', example: 'Cuối tháng, quyết toán, sếp hỏi báo cáo, audit nội bộ, lead rớt nhiều.' },
-  { id: 'current_solution', label: 'Cách làm hiện tại', prompt: 'Họ đang dùng gì trước LedgerFlow?', example: 'Excel, Zalo, MISA, AppSheet, email, file drive.' },
-  { id: 'success_metric', label: 'Thành công đo bằng gì', prompt: 'Sau 14 ngày, họ biết tool có đáng dùng bằng chỉ số nào?', example: 'Giảm giờ tổng hợp, tăng demo booked, xuất được daily brief, đóng review loop.' },
+  { id: 'role', label: 'Vai trò', prompt: 'Người này là ai trong doanh nghiệp?', example: 'Founder, Lead Game Dev, Creative Director, AI Engineer.' },
+  { id: 'job', label: 'Job-to-be-done', prompt: 'Họ thuê sản phẩm để hoàn thành việc gì?', example: 'Mỗi ngày tạo game 3D, sinh kịch bản video viral và tự động hóa vận hành.' },
+  { id: 'pain', label: 'Pain hiện tại', prompt: 'Điều gì đang làm họ mất thời gian, tiền hoặc uy tín?', example: 'Dữ liệu rời rạc, chi phí nhân sự và API đắt đỏ, tiến độ dự án chậm.' },
+  { id: 'trigger', label: 'Trigger mua', prompt: 'Sự kiện nào khiến họ phải tìm giải pháp ngay?', example: 'Chuẩn bị phát hành game mới, cần sản xuất hàng loạt video ngắn hoặc tối ưu ngân sách.' },
+  { id: 'current_solution', label: 'Cách làm hiện tại', prompt: 'Họ đang dùng gì trước LedgerFlow?', example: 'Code thủ công, thuê ngoài đắt đỏ, ghép nối nhiều công cụ rời rạc.' },
+  { id: 'success_metric', label: 'Thành công đo bằng gì', prompt: 'Sau 14 ngày, họ biết tool có đáng dùng bằng chỉ số nào?', example: 'Xuất được game 3D hoàn chỉnh, render video 4K chi phí $0, tăng tốc độ phát triển 5x.' },
   { id: 'objection', label: 'Objection chính', prompt: 'Lý do gì làm họ chưa mua?', example: 'Sợ lộ dữ liệu, đã có MISA/Excel, không có thời gian học, ngân sách thấp.' },
   { id: 'proof', label: 'Bằng chứng cần thấy', prompt: 'Họ cần thấy artifact nào để tin?', example: 'Dashboard mẫu, checklist, email sequence, báo cáo sếp, case ẩn danh.' },
 ];

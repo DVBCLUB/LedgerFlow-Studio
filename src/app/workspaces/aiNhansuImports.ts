@@ -25,3 +25,8 @@ export const AgentROIDashboard = React.lazy(() => import('../../modules/ai-nhan-
 export const MultiFactoryDashboard = React.lazy(() => import('../../modules/ai-nhan-su/MultiFactoryDashboard'));
 export const TelegramBotControlPanel = React.lazy(() => import('../../modules/ai-nhan-su/TelegramBotControlPanel'));
 export const AgentKernelPanel = React.lazy(() => import('../../modules/ai-nhan-su/AgentKernelPanel'));
+
+// ── New: Cost Dashboard & Free Tool Robot ──
+export const CostDashboard = React.lazy(() => import('../../modules/ai-nhan-su/ai-assistant/CostDashboard'));
+export const FreeToolRobotPanel = React.lazy(() => import('../../modules/ai-nhan-su/components/FreeToolRobotPanel'));
+export const RobotWorkflowTab = React.lazy(() => import('../../modules/ai-nhan-su/ai-assistant/RobotWorkflowTab'));

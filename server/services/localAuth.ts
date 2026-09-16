@@ -152,10 +152,11 @@ export function clearLocalSession(req: Request, res: Response) {
   res.setHeader("Set-Cookie", cookieValue("", 0));
 }
 
-export function readLocalServerSession(req: Request) {
-  pruneRevokedTokens();
-  const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+export const SESSION_COOKIE_NAME = SESSION_COOKIE;
+
+export function validateSessionToken(token: string): { email: string; role: LocalRole; loggedInAt: string } | null {
   if (!token) return null;
+  pruneRevokedTokens();
   if (revokedTokens.has(token)) return null;
 
   const signed = readSignedToken(token);
@@ -168,6 +169,12 @@ export function readLocalServerSession(req: Request) {
     return null;
   }
   return { email: session.email, role: session.role, loggedInAt: session.loggedInAt };
+}
+
+export function readLocalServerSession(req: Request) {
+  const token = parseCookies(req.headers.cookie)[SESSION_COOKIE];
+  if (!token) return null;
+  return validateSessionToken(token);
 }
 
 export function readRequestPrincipal(req: Request): { id: string; role: LocalRole } | null {
@@ -190,4 +197,43 @@ export function requireRoles(...roles: LocalRole[]) {
 export function requireLocalAuth(req: Request, res: Response, next: NextFunction) {
   if (readRequestPrincipal(req)) return next();
   return res.status(401).json({ success: false, error: "Authentication required." });
+}
+
+export function registerAuthRoutes(app: any) {
+  app.post("/api/auth/local-session", (req: Request, res: Response) => {
+    const { email, password } = req.body || {};
+    if (!email || !password) {
+      return res.status(400).json({ success: false, error: "Email and password are required." });
+    }
+    const result = createLocalSession(email, password);
+    if (!result) {
+      return res.status(401).json({ success: false, error: "Email hoặc mật khẩu không đúng." });
+    }
+    setLocalSessionCookie(res, result.token);
+    return res.json({
+      success: true,
+      session: result.session,
+      usesDevPassword: result.usesDevPassword,
+    });
+  });
+
+  app.get("/api/auth/session", (req: Request, res: Response) => {
+    const session = readLocalServerSession(req);
+    return res.json({ success: true, session: session || null });
+  });
+
+  app.get("/api/auth/local-session", (req: Request, res: Response) => {
+    const session = readLocalServerSession(req);
+    return res.json({ success: true, session: session || null });
+  });
+
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    clearLocalSession(req, res);
+    return res.json({ success: true, message: "Logged out successfully." });
+  });
+
+  app.delete("/api/auth/local-session", (req: Request, res: Response) => {
+    clearLocalSession(req, res);
+    return res.json({ success: true, message: "Logged out successfully." });
+  });
 }

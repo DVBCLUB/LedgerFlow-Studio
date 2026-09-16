@@ -191,7 +191,7 @@ export const AI_PLG_ANALYSIS_PROMPT = (userData: {
   alertsTriggered: number;
 }) => PLG_RECOMMENDATION_PROMPT(`
 - Ngày đã dùng: ${userData.daysActive}
-- Dự án/công trình đã tạo: ${userData.projectsCreated}
+- Dự án game/phần mềm đã tạo: ${userData.projectsCreated}
 - Giao dịch/artifacts đã nhập/tạo: ${userData.transactionsEntered}
 - Báo cáo đã xuất: ${userData.reportsExported}
 - Cảnh báo/brief đã nhận: ${userData.alertsTriggered}

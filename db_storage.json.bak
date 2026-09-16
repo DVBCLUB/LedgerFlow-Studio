@@ -1,0 +1,153 @@
+{
+  "guerrilla_unexpected_ideas": [
+    {
+      "id": "idea_saas_vietqr",
+      "title": "VietQR Auto-Ledger - Đồng bộ đối soát shop online nhỏ",
+      "type": "saas",
+      "nicheAudience": "Chủ shop bán hàng facebook live, kinh doanh hộ cá thể không rành ERP nặng nề",
+      "pricePoint": 35000,
+      "speedRating": 9,
+      "costRating": 10,
+      "marketPain": 9,
+      "viralPotential": 8,
+      "description": "Ứng dụng siêu nhỏ sử dụng Webhook ngân hàng tự do bóc tách cú pháp chuyển khoản VietQR, đối chiếu với trạng thái tồn kho rồi tự động gán nhãn trạng thái hạch toán thông qua bảng SQLite thô của Chrome Extension.",
+      "guerrillaScore": 9.2,
+      "createdAt": "2026-06-01",
+      "aiBlueprint": "### 🚀 BẢN THIẾT KẾ CHIẾN THUẬT DU KÍCH - VIETQR AUTO-LEDGER\n\n## 1. DATA SCIENCE & BIG DATA (Trụ cột Dữ Liệu)\n- **Star Schema Tối Giản**: Xây dựng bảng sự kiện `fact_bank_transactions` liên kết trực tiếp với bảng chiều khách hàng `dim_orders`.\n- **Phân Tích Báo Cáo**: Dùng pandas lọc bỏ các giao dịch lỗi do nội dung chuyển khoản sai cấu trúc, gán nhãn tỷ lệ đối khớp tự động thành công (Auto-Match Rate).\n\n## 2. BUSINESS ANALYSIS (Trụ cột Nghiệp Vụ)\n- **Nỗi đau khách hàng**: Shop nhỏ bị trôi bill chuyển khoản, mất nhiều giờ ngồi dò sao kê tay trên app ngân hàng.\n- **Quy trình tối giản**: Quét VietQR -> Tạo mã giao dịch duy nhất nhập vào mô tả chuyển khoản -> Webhook bắt giao dịch đẩy lên database -> Bot gửi tin nhắn xác nhận.\n\n## 3. FINANCIAL ACCOUNTING (Trụ cột Kinh Tế & Chi Phí 0đ)\n- **Giá bán rẻ số lượng lớn**: Chỉ **35.000đ/tháng** (bằng 1 cốc cà phê vỉa hè). Nhắm tới mục tiêu 2.050 cửa hàng sử dụng tạo ra **71.750.000 VNĐ MRR** ổn định.\n- **Hạ tầng 0đ**: Lưu trữ database trên Supabase Free Tier, chạy backend trên Vercel Serverless. Chi phí vận hành máy chủ thực tế hàng tháng là 0 VNĐ.\n- **Cổng thanh toán**: Tận dụng VietQR mở của SeABank/VietinBank để nhận tiền nạp tự động không tốn 1,5%-3% phí cổng trung gian như thẻ tín dụng.\n\n## 4. PROGRAMMING STACK (Trụ cột Lập Trình Siêu Tốc)\n- **Frontend/Backend**: Sử dụng React + Vite + Express cùng thư viện Tailwind CSS. Đóng gói thêm 1 Chrome Extension nhỏ để tự động parse sao kê thủ công trong web ngân hàng mà không cần API ngân hàng chính thống đắt đỏ.\n- **Mốc thời gian đóng gói**: 5 ngày làm việc độc lập.\n\n## 5. MACHINE LEARNING & AI INTEGRATION (Trụ Cột Thông Minh)\n- **AI Phân Tích Thông Minh**: Tích hợp một model NLP phân cụm siêu nhẹ để phân nhóm tự động các nội dung khách ghi sai cú pháp (ví dụ: \"chuc muong sinh nhat\", \"tra tien ao\", \"ck do giay\") để gán đúng mã đơn hàng khả thi nhất. Thuật toán chạy suy luận trực tiếp trên client để giảm chi phí máy chủ AI."
+    },
+    {
+      "id": "idea_game_hcmc",
+      "title": "Sài Gòn Rush: Kẹt Xe Không Lối Thoát",
+      "type": "game",
+      "nicheAudience": "Học sinh, sinh viên và dân văn phòng chơi xả stress trong lúc chờ kẹt xe tan tầm",
+      "pricePoint": 15000,
+      "speedRating": 10,
+      "costRating": 9,
+      "marketPain": 8,
+      "viralPotential": 10,
+      "description": "Game Hyper-casual 2D màn hình dọc, người chơi điều khiển shipper vượt qua bẫy hố ga, các rào chắn \"lô cốt\", bò thả trôi, đón nhận thời tiết mưa ngập nước vỉa hè để giật đồ ăn giao kịp giờ. Càng kẹt xe càng đông thách thức kịch bộc.",
+      "guerrillaScore": 9.3,
+      "createdAt": "2026-06-02",
+      "aiBlueprint": "### 🚀 BẢN THIẾT KẾ CHIẾN THUẬT DU KÍCH - SÀI GÒN RUSH\n\n## 1. DATA SCIENCE & BIG DATA (Trụ cột Dữ Liệu)\n- **Quản Trị Người Dùng**: Dùng SQLite lưu trữ số điểm kỷ lục địa phương, ghi nhận hành vi \"va chạm\" để vẽ biểu đồ phân phối khó dễ của các màn chơi (Difficulty Curve Analytics).\n\n## 2. BUSINESS ANALYSIS (Trụ cột Nghiệp Vụ)\n- **Nỗi đau**: Sự đồng điệu và giải trí tức thời. Game thủ giải trí nhanh trong 1-3 phút mà không cần suy nghĩ nặng nề.\n- **Cơ chế giữ chân**: Tích haptic rung mạnh khi shipper đâm trúng ổ gà, sfX âm thanh tiếng còi xe inh ỏi thân thuộc của phố phường Việt Nam.\n\n## 3. FINANCIAL ACCOUNTING (Trụ cột Kinh Tế & Chi Phí 0đ)\n- **Giá bán thu hoạch**: Cho tải miễn phí có kèm quảng cáo interstitial xen kẽ nhẹ nhàng sau mỗi 4 lượt chơi. Người chơi có thể trả **15.000 VNĐ** một lần duy nhất để tắt quảng cáo vĩnh viễn và tặng skin \"Shipper Ninja Gió\".\n- **Hạ tầng 0đ**: Game offline chạy trực tiếp trên thiết bị (Edge computing), sử dụng AdMob để gắn quảng cáo. Chi phí duy trì server là 0 VNĐ.\n\n## 4. PROGRAMMING STACK (Trụ cột Lập Trình Siêu Tốc)\n- **Engine**: Sử dụng Godot Engine hoặc Cocos Creator siêu nhẹ để compile bản Android/WebGL trong 6 ngày.\n- **Tài Nguyên Asset**: Dùng AI Generation để tự vẽ nhân vật chibi và các background phố xá quận 1, quận 3.\n\n## 5. MACHINE LEARNING & AI INTEGRATION (Trụ Cột Thông Minh)\n- **Hệ Thống Tránh Hack**: Tích hợp một mạng nơ-ron hồi quy cực nhẹ (Sequential MLP) nạp On-device lưu trữ lịch sử vuốt màn hình để phân biệt giữa người chơi tay thật và auto-clicker gian lận điểm thưởng."
+    }
+  ],
+  "lf_db_users": [
+    {
+      "id": "user-1",
+      "fullName": "Nguyễn Solo Founder",
+      "role": "Solo Founder",
+      "email": "founder@ledgerflow.vn",
+      "status": "Active"
+    },
+    {
+      "id": "user-2",
+      "fullName": "Lê Kế Toán",
+      "role": "Kế toán trưởng",
+      "email": "accounting@ledgerflow.vn",
+      "status": "Active"
+    },
+    {
+      "id": "user-3",
+      "fullName": "Trần Dev",
+      "role": "Lead Developer",
+      "email": "dev@ledgerflow.vn",
+      "status": "Active"
+    }
+  ],
+  "lf_db_projects": [
+    {
+      "id": "proj-1",
+      "name": "LedgerFlow Studio Dashboard",
+      "platform": "Web App",
+      "status": "Beta",
+      "budget": 150000000,
+      "ownerId": "user-1",
+      "createdAt": "2026-05-01"
+    },
+    {
+      "id": "proj-2",
+      "name": "Flappy Bird ML AI Game",
+      "platform": "WebGL Game",
+      "status": "Release",
+      "budget": 45000000,
+      "ownerId": "user-3",
+      "createdAt": "2026-05-10"
+    },
+    {
+      "id": "proj-3",
+      "name": "VietNam Taxes Toolkit",
+      "platform": "Mobile App",
+      "status": "Prototype",
+      "budget": 75000000,
+      "ownerId": "user-2",
+      "createdAt": "2026-05-15"
+    }
+  ],
+  "lf_db_transactions": [
+    {
+      "id": "tx-1",
+      "projectId": "proj-1",
+      "amount": 120000000,
+      "type": "Thu",
+      "gateway": "Stripe",
+      "date": "2026-05-01"
+    },
+    {
+      "id": "tx-2",
+      "projectId": "proj-2",
+      "amount": 15000000,
+      "type": "Thu",
+      "gateway": "VietQR",
+      "date": "2026-05-15"
+    },
+    {
+      "id": "tx-3",
+      "projectId": "proj-1",
+      "amount": 24000500,
+      "type": "Chi",
+      "gateway": "Tiền mặt",
+      "date": "2026-05-18"
+    },
+    {
+      "id": "tx-4",
+      "projectId": "proj-3",
+      "amount": 8500000,
+      "type": "Chi",
+      "gateway": "MoMo",
+      "date": "2026-05-22"
+    }
+  ],
+  "lf_db_assets": [
+    {
+      "id": "asset-1",
+      "filename": "hero_banner.png",
+      "type": "PNG Image",
+      "size": 2048,
+      "projectId": "proj-1"
+    },
+    {
+      "id": "asset-2",
+      "filename": "nn_weights.bin",
+      "type": "Binary Model",
+      "size": 40960,
+      "projectId": "proj-2"
+    },
+    {
+      "id": "asset-3",
+      "filename": "tax_schedule_2026.xlsx",
+      "type": "Excel Sheet",
+      "size": 512,
+      "projectId": "proj-3"
+    }
+  ],
+  "ledgerflow_advisory_actions": {
+    "action_1": false,
+    "action_2": true,
+    "action_3": true,
+    "action_4": false,
+    "action_5": false,
+    "action_6": true,
+    "action_7": true,
+    "action_8": true
+  }
+}

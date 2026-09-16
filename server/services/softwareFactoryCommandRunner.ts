@@ -1,7 +1,7 @@
 import { exec } from "child_process";
-import { createSoftwareFactoryAsset, type SoftwareFactoryAssetRecord } from "./softwareFactoryAssetService";
-import { appendSoftwareFactoryExecutionLog, getSoftwareFactoryExecution } from "./softwareFactoryExecutionService";
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { createSoftwareFactoryAsset, type SoftwareFactoryAssetRecord } from "./softwareFactoryAssetService.ts";
+import { appendSoftwareFactoryExecutionLog, getSoftwareFactoryExecution } from "./softwareFactoryExecutionService.ts";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 
 export type SoftwareFactoryCommandKind = "typecheck" | "lint" | "test" | "build" | "preview";
 export type SoftwareFactoryCommandStatus = "queued" | "running" | "complete" | "failed";

@@ -32,7 +32,7 @@ let callsStore: HelpdeskCallRecord[] = [
     durationSeconds: 142,
     sentiment: 'POSITIVE',
     resolutionStatus: 'RESOLVED_BY_AI',
-    transcriptSummary: 'Khách hàng hỏi cách xuất báo cáo dòng tiền công trình theo TT200. Voice AI đã hướng dẫn và gửi link tải file Excel trực tiếp qua Zalo.',
+    transcriptSummary: 'Khách hàng hỏi cách xuất bản game 3D WebGL và video 4K. Voice AI đã hướng dẫn và gửi link tải asset trực tiếp qua Telegram.',
     timestamp: new Date(Date.now() - 1000 * 60 * 35).toISOString(),
   },
   {

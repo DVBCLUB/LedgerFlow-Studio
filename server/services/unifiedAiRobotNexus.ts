@@ -21,6 +21,36 @@ import { generateGameAssetBundle, type GameAssetBundle, type GameGenre } from '.
 import { generateVideoProject, type VideoProject } from './videoProductionPipeline.ts';
 import { checkIDE, type IDETarget } from './ideBridge.ts';
 import { captureGoldenTrajectory } from './aiApprenticeDistillationEngine.ts';
+import { callAI, type CallAIResult } from './aiClient.ts';
+import { classifyTask, type TaskClassification } from './aiClassifierEngine.ts';
+import {
+  generateBlenderPythonScript,
+  generateGraphicDesignAutomationPlan,
+  generateFfmpegVideoScript,
+  createBlenderRobotExecutionPlan,
+  createFfmpegRobotExecutionPlan,
+  createGraphicRobotExecutionPlan,
+  executeRobotScript,
+  type BlenderCharacterSpec,
+  type GraphicDesignAutomationPlan,
+  type FfmpegVideoRenderScript,
+  type RobotExecutionPlan,
+} from './freeToolRobotBridge.ts';
+
+export {
+  generateBlenderPythonScript,
+  generateGraphicDesignAutomationPlan,
+  generateFfmpegVideoScript,
+  createBlenderRobotExecutionPlan,
+  createFfmpegRobotExecutionPlan,
+  createGraphicRobotExecutionPlan,
+  executeRobotScript,
+  type BlenderCharacterSpec,
+  type GraphicDesignAutomationPlan,
+  type FfmpegVideoRenderScript,
+  type RobotExecutionPlan,
+};
+
 
 export interface IdeHandoffExport {
   target: 'cursor' | 'antigravity' | 'vscode' | 'claude_code' | 'mcp_manifest';
@@ -397,6 +427,68 @@ echo "Video hoàn thành tại final_output_${id}.mp4!"
   return spec;
 }
 
+/**
+ * 2.4 Sinh Đặc Tả Nhân Vật 3D / Digital Human (Three.js WebGL, Viseme LipSync, DeepSeek/ByteDance Brain)
+ */
+export interface VirtualBeing3DManifest {
+  id: string;
+  name: string;
+  archetype: 'Digital Human' | 'Interactive AI Avatar' | 'Embodied AI Agent' | 'Virtual Being';
+  renderEngine: 'threejs_webgl' | 'webgpu_canvas' | 'gaussian_splatting_3d';
+  visemeLipSync: {
+    enabled: boolean;
+    standardPhonemes: string[];
+    audioSamplingRate: number;
+  };
+  cognitiveBrainConfig: {
+    primaryProvider: 'deepseek' | 'bytedance' | 'gemini' | 'anthropic';
+    reasoningModel: string;
+    temperature: number;
+  };
+  animationBlendTrees: Array<{ clipName: string; durationSec: number; loop: boolean }>;
+  cyberBiologyVitals: {
+    heartRateBpm: number;
+    neuralCoherence: number;
+    empathyEQIndex: number;
+  };
+  generatedAt: string;
+}
+
+export function generate3DVirtualBeingManifest(
+  name: string,
+  archetype?: 'Digital Human' | 'Interactive AI Avatar' | 'Embodied AI Agent' | 'Virtual Being'
+): VirtualBeing3DManifest {
+  return {
+    id: `avatar3d_${Date.now()}`,
+    name,
+    archetype: archetype || 'Digital Human',
+    renderEngine: 'threejs_webgl',
+    visemeLipSync: {
+      enabled: true,
+      standardPhonemes: ['A', 'E', 'I', 'O', 'U', 'M', 'B', 'P', 'F', 'V', 'TH', 'L'],
+      audioSamplingRate: 44100,
+    },
+    cognitiveBrainConfig: {
+      primaryProvider: 'deepseek',
+      reasoningModel: 'deepseek-reasoner',
+      temperature: 0.6,
+    },
+    animationBlendTrees: [
+      { clipName: 'idle_breathing', durationSec: 3.5, loop: true },
+      { clipName: 'speaking_expressive', durationSec: 2.0, loop: true },
+      { clipName: 'thought_gaze_up', durationSec: 1.8, loop: false },
+      { clipName: 'gesturing_ui_point', durationSec: 2.2, loop: false },
+    ],
+    cyberBiologyVitals: {
+      heartRateBpm: 76,
+      neuralCoherence: 98,
+      empathyEQIndex: 94,
+    },
+    generatedAt: new Date().toISOString(),
+  };
+}
+
+
 // ─── 3. NEXUS TELEMETRY & ZERO-LAG SYSTEM HEALTH ───
 export function getNexusSystemHealth(): NexusSystemHealth {
   const memory = process.memoryUsage();
@@ -423,3 +515,42 @@ export function getNexusSystemHealth(): NexusSystemHealth {
     lastOrchestratedAt: new Date().toISOString(),
   };
 }
+
+export interface NexusTwoTierExecutionResult {
+  taskId: string;
+  classification: TaskClassification;
+  aiResult: CallAIResult;
+  executedAt: string;
+}
+
+/**
+ * Điều phối tác vụ robot / AI qua kiến trúc Routing 2 tầng
+ */
+export async function orchestrateTaskWithTwoTierNexus(
+  prompt: string,
+  options?: { taskHint?: string; systemPrompt?: string }
+): Promise<NexusTwoTierExecutionResult> {
+  const taskId = `nexus_${Date.now()}`;
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+
+  if (options?.systemPrompt) {
+    messages.push({ role: 'system', content: options.systemPrompt });
+  }
+  messages.push({ role: 'user', content: prompt });
+
+  const classification = await classifyTask(messages);
+
+  const aiResult = await callAI(messages, {
+    enableTwoTierRouting: true,
+    forceTier: classification.recommendedTier,
+    task: (options?.taskHint as any) || 'coding',
+  });
+
+  return {
+    taskId,
+    classification,
+    aiResult,
+    executedAt: new Date().toISOString(),
+  };
+}
+

@@ -149,15 +149,15 @@ export const QUERY_BUILDER_EXPLANATION_STEPS: QueryBuilderExplanationStep[] = [
 export const QUERY_BUILDER_RECIPES: QueryBuilderRecipe[] = [
   {
     id: 'project_cost_summary',
-    title: 'Tổng hợp chi phí theo công trình',
-    businessQuestion: 'Công trình nào đang dùng nhiều chi phí nhất?',
+    title: 'Tổng hợp chi phí theo dự án Studio',
+    businessQuestion: 'Dự án game/phần mềm nào đang tiêu hao ngân sách nhiều nhất?',
     sourceTable: 'project_costs',
     selectFields: ['project_code', 'cost_type', 'SUM(amount) AS total_amount'],
     filters: ['transaction_date BETWEEN :fromDate AND :toDate'],
     groupBy: ['project_code', 'cost_type'],
     sortBy: ['total_amount DESC'],
     sampleSql: 'SELECT project_code, cost_type, SUM(amount) AS total_amount FROM project_costs WHERE transaction_date BETWEEN :fromDate AND :toDate GROUP BY project_code, cost_type ORDER BY total_amount DESC;',
-    plainVietnamese: 'Lấy chi phí trong khoảng ngày, gom theo công trình và loại chi phí, rồi xếp từ lớn đến nhỏ.'
+    plainVietnamese: 'Lấy chi phí trong khoảng ngày, gom theo dự án và loại tài nguyên, rồi xếp từ lớn đến nhỏ.'
   },
   {
     id: 'open_document_items',
@@ -188,13 +188,13 @@ export const QUERY_BUILDER_RECIPES: QueryBuilderRecipe[] = [
 export const PIVOT_SIMULATION_TEMPLATES: PivotSimulationTemplate[] = [
   {
     id: 'pivot_project_costs',
-    title: 'Pivot chi phí theo công trình và loại chi phí',
+    title: 'Pivot chi phí theo dự án và loại tài nguyên',
     sourceDataset: 'project_costs',
     rows: ['project_code'],
     columns: ['cost_type'],
     values: ['SUM(amount)'],
     filters: ['transaction_date', 'document_status'],
-    insights: ['Công trình nào chi nhiều nhất', 'Loại chi phí nào chiếm tỷ trọng lớn', 'Dòng nào cần bổ sung hồ sơ']
+    insights: ['Dự án nào chi phí cao nhất', 'Loại chi phí nào chiếm tỷ trọng lớn', 'Dòng nào cần bổ sung hồ sơ']
   },
   {
     id: 'pivot_customer_revenue',

@@ -60,36 +60,62 @@ export async function generateGroundedResponse(
   ];
 
   let rawAnswer = '';
-  let modelUsed = 'fabric';
+  let modelUsed = 'gemini-2.5-flash';
   const sources: GroundingSource[] = [];
 
   try {
-    const res = await callAI(messages, { model: 'ai-assistant' });
+    const res = await callAI(messages, {
+      model: 'ai-assistant',
+      preferredProvider: 'gemini',
+      preferredModel: 'gemini-2.5-flash',
+    });
     rawAnswer = (res.content || res.text || '').trim();
     modelUsed = res.modelUsed || modelUsed;
+
+    // Trích xuất metadata thực tế từ Google Search Grounding nếu Gemini trả về
+    const groundingMeta = (res.raw as any)?.candidates?.[0]?.groundingMetadata;
+    if (groundingMeta?.groundingChunks?.length) {
+      for (const chunk of groundingMeta.groundingChunks) {
+        if (chunk.web?.uri && !sources.some((s) => s.url === chunk.web.uri)) {
+          sources.push({
+            title: chunk.web.title || chunk.web.uri,
+            url: chunk.web.uri,
+            snippet: chunk.web.title || 'Nguồn trích dẫn trực tiếp từ Google Search.',
+          });
+        }
+      }
+    }
   } catch (err: any) {
     rawAnswer = `Grounding query error: ${err.message}`;
   }
 
-  // Simulated web grounding sources if query asks about current state/laws/SDKs
+  // Fallback web grounding sources if query asks about current state/laws/SDKs
   const lowerQuery = userQuery.toLowerCase();
-  if (lowerQuery.includes('thông tư') || lowerQuery.includes('thuế') || lowerQuery.includes('vas') || lowerQuery.includes('2026')) {
-    sources.push({
-      title: 'Cổng thông tin Điện tử Bộ Tài chính (mof.gov.vn)',
-      url: 'https://mof.gov.vn/webcenter/portal/btc',
-      snippet: 'Quy định hướng dẫn VAS 200 và chính sách thuế giá trị gia tăng cập nhật.',
-    });
-    sources.push({
-      title: 'Tổng cục Thuế Việt Nam (gdt.gov.vn)',
-      url: 'https://gdt.gov.vn/wps/portal',
-      snippet: 'Hướng dẫn kê khai thuế GTGT và hóa đơn điện tử Nghị định 123/Thông tư 78.',
-    });
-  } else if (lowerQuery.includes('cursor') || lowerQuery.includes('gemini') || lowerQuery.includes('react') || lowerQuery.includes('node')) {
-    sources.push({
-      title: 'Official Developer Documentation',
-      url: 'https://ai.google.dev/docs',
-      snippet: 'Gemini 3.0 API documentation, search grounding and agentic tools.',
-    });
+  if (sources.length === 0) {
+    if (lowerQuery.includes('thông tư') || lowerQuery.includes('thuế') || lowerQuery.includes('vas') || lowerQuery.includes('2026')) {
+      sources.push({
+        title: 'Cổng thông tin Điện tử Bộ Tài chính (mof.gov.vn)',
+        url: 'https://mof.gov.vn/webcenter/portal/btc',
+        snippet: 'Quy định hướng dẫn VAS 200 và chính sách thuế giá trị gia tăng cập nhật.',
+      });
+      sources.push({
+        title: 'Tổng cục Thuế Việt Nam (gdt.gov.vn)',
+        url: 'https://gdt.gov.vn/wps/portal',
+        snippet: 'Hướng dẫn kê khai thuế GTGT và hóa đơn điện tử Nghị định 123/Thông tư 78.',
+      });
+    } else if (lowerQuery.includes('cursor') || lowerQuery.includes('gemini') || lowerQuery.includes('react') || lowerQuery.includes('node') || lowerQuery.includes('google')) {
+      sources.push({
+        title: 'Official Developer Documentation & Google AI',
+        url: 'https://ai.google.dev/docs',
+        snippet: 'Gemini API documentation, real-time search grounding and agentic tools.',
+      });
+    } else {
+      sources.push({
+        title: `Google Search: ${userQuery.slice(0, 30)}`,
+        url: `https://www.google.com/search?q=${encodeURIComponent(userQuery)}`,
+        snippet: 'Tra cứu trực tiếp thông qua Google Search Grounding.',
+      });
+    }
   }
 
   // Format citations into answer

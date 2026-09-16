@@ -28,7 +28,7 @@ export function getB2bMarketplaceData(): B2bMarketplaceData {
     totalEcosystemGmvVnd: 1_250_000_000,
     activeDevelopersCount: 38,
     modules: [
-      { moduleId: 'mod_bom_construction', name: 'Định mức Dự toán & BOM Vật tư Xây dựng TT10/2019', author: 'Vinaconex Engineering Hub', category: 'Industry BOM', priceMonthlyVnd: 490_000, activeInstallsCount: 420, ratingScore: 4.9, verified: true },
+      { moduleId: 'mod_bom_construction', name: 'Kho Asset 3D & Blueprint Game Engine Shader TT-3D', author: 'Epic Game Assets Global', category: 'Industry BOM', priceMonthlyVnd: 490_000, activeInstallsCount: 420, ratingScore: 4.9, verified: true },
       { moduleId: 'mod_misa_sync_agent', name: 'MISA AMIS & SME Real-Time 2-Way Syncer', author: 'OpenConnector Lab', category: 'Connector', priceMonthlyVnd: 290_000, activeInstallsCount: 890, ratingScore: 4.8, verified: true },
       { moduleId: 'mod_tax_audit_shield', name: 'Khiên Thẩm tra Rủi ro Thuế TT80 Chuyên sâu', author: 'Big-4 AI Advisory', category: 'AI Agent Skill', priceMonthlyVnd: 890_000, activeInstallsCount: 310, ratingScore: 5.0, verified: true }
     ],

@@ -30,7 +30,7 @@ export function getHyperPersonalizationData(): HyperPersonalizationData {
     openRatePercent: 78.4,
     replyRatePercent: 34.2,
     campaigns: [
-      { campaignId: 'hyp_01', accountName: 'Tổng Công ty Xây dựng Sông Đà', industry: 'Xây dựng', customHook: 'Giải pháp tự động hóa đối soát 3 chiều PO-GRN cho 40+ công trình', recommendedSolution: 'LedgerFlow Enterprise Construction Suite', projectedRoiPercent: 320, channel: 'Email', status: 'dispatched' },
+      { campaignId: 'hyp_01', accountName: 'Studio Game & Hoạt Hình 3D Aurora', industry: 'Xây dựng', customHook: 'Giải pháp tự động hóa sản xuất Game 3D & Video 4K cho 40+ dự án sáng tạo', recommendedSolution: 'LedgerFlow Studio Master Suite', projectedRoiPercent: 320, channel: 'Email', status: 'dispatched' },
       { campaignId: 'hyp_02', accountName: 'Pharmacity Partner Group', industry: 'Dược phẩm', customHook: 'Tự động hóa đối soát hóa đơn thuế TT78 cho chuỗi 100+ nhà thuốc', recommendedSolution: 'Pharma POS & VAT Reconciler', projectedRoiPercent: 410, channel: 'Zalo OA', status: 'dispatched' }
     ],
     lastGeneratedAt: new Date().toISOString()

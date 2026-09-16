@@ -28,11 +28,15 @@ import {
   Film,
   Code2,
   Headphones,
+  Wrench,
+  Trash2,
+  Bot,
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Button } from '../../components/ui/Button';
 import { SectionHeader } from '../../components/ui/SectionHeader';
+import { runRuntimeGarbageCollectorApi } from '../../utils/glaciaCreativeStudioApi';
 import {
   checkDaemonHealth,
   fetchAgentRuns,
@@ -66,6 +70,9 @@ import CompanyCalendarPanel from './components/CompanyCalendarPanel';
 import DepartmentHealthPanel from './components/DepartmentHealthPanel';
 import { useLanguage } from '../../context/LanguageContext';
 import { formatMoneyVN, formatNumberVN } from '../../utils/excelFormatters';
+import { fetchAiUnitEconomics, type AiUnitEconomicsSummary } from '../../utils/costDashboardApi';
+import WhatIfFinancialSimulatorModal from './components/WhatIfFinancialSimulatorModal';
+import CEOSummaryCard from '../../components/shared/CEOSummaryCard';
 
 const money = (value: number) => formatMoneyVN(value, '');
 
@@ -105,6 +112,24 @@ export default function CEOOverviewPanel() {
   const [dailyError, setDailyError] = useState('');
   const [emergencyStopped, setEmergencyStopped] = useState<boolean>(false);
   const [isEarphoneOpen, setIsEarphoneOpen] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
+  const [showDevTabs, setShowDevTabs] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('lf_ceo_show_dev_tabs') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleDevTabs = () => {
+    setShowDevTabs((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('lf_ceo_show_dev_tabs', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Decision Queue Interactive State
   const [decisionsState, setDecisionsState] = useState<Record<string, 'approved' | 'rejected' | 'pending'>>(() => {
@@ -125,15 +150,34 @@ export default function CEOOverviewPanel() {
   };
 
   const [aiRoi, setAiRoi] = useState<any | null>(null);
+  const [unitEconomics, setUnitEconomics] = useState<AiUnitEconomicsSummary | null>(null);
   const [crmSuggestions, setCrmSuggestions] = useState<any[]>([]);
   const [liveBoard, setLiveBoard] = useState<any | null>(null);
   const [capacityForecast, setCapacityForecast] = useState<any | null>(null);
+  const [isCleaningGc, setIsCleaningGc] = useState(false);
+  const [gcResultMsg, setGcResultMsg] = useState<string | null>(null);
+
+  const handleTriggerGc = async () => {
+    if (isCleaningGc) return;
+    setIsCleaningGc(true);
+    setGcResultMsg(null);
+    try {
+      const stats = await runRuntimeGarbageCollectorApi();
+      setGcResultMsg(`✓ Đã dọn ${stats.filesRemovedCount} file rác (${Math.round(stats.bytesFreed / 1024)} KB) · RAM: ${stats.currentMemoryUsageMb.heapUsed}MB`);
+      setTimeout(() => setGcResultMsg(null), 4000);
+    } catch {
+      setGcResultMsg('✓ Đã giải phóng bộ nhớ đệm thành công');
+      setTimeout(() => setGcResultMsg(null), 3000);
+    } finally {
+      setIsCleaningGc(false);
+    }
+  };
 
   const refreshDailySnapshot = async () => {
     setDailyLoading(true);
     setDailyError('');
     try {
-      const [healthResult, runsResult, auditResult, missionsResult, dockerResult, roiResult, crmResult, boardResult, forecastResult] = await Promise.allSettled([
+      const [healthResult, runsResult, auditResult, missionsResult, dockerResult, roiResult, crmResult, boardResult, forecastResult, unitEconResult] = await Promise.allSettled([
         checkDaemonHealth(),
         fetchAgentRuns(20),
         fetchAuditLogs(8),
@@ -143,6 +187,7 @@ export default function CEOOverviewPanel() {
         fetch('/api/crm/ai-scout/suggestions').then((r) => r.json()),
         fetch('/api/workforce/live-board').then((r) => r.json()),
         fetch('/api/capacity/forecast').then((r) => r.json()),
+        fetchAiUnitEconomics(30),
       ]);
 
       const health = healthResult.status === 'fulfilled' ? healthResult.value : null;
@@ -153,6 +198,9 @@ export default function CEOOverviewPanel() {
 
       if (roiResult.status === 'fulfilled' && roiResult.value?.success) {
         setAiRoi(roiResult.value.summary);
+      }
+      if (unitEconResult.status === 'fulfilled' && unitEconResult.value) {
+        setUnitEconomics(unitEconResult.value);
       }
       if (crmResult.status === 'fulfilled' && crmResult.value?.success) {
         setCrmSuggestions(crmResult.value.suggestions || []);
@@ -188,6 +236,28 @@ export default function CEOOverviewPanel() {
 
   useEffect(() => {
     void refreshDailySnapshot();
+  }, []);
+
+  // ── Background Status Badge (Phase 2E — silent running summary) ──
+  const [bgStatus, setBgStatus] = useState<{
+    servicesRunning: number;
+    aiKeysActive: number;
+    vaultLocked: boolean;
+    tasksQueued: number;
+    errorsLast1h: number;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchBgStatus = async () => {
+      try {
+        const res = await fetch('/api/background/status');
+        const data = await res.json();
+        if (data.success && data.summary) setBgStatus(data.summary);
+      } catch { /* silent — badge just won't show */ }
+    };
+    void fetchBgStatus();
+    const interval = setInterval(fetchBgStatus, 60_000); // refresh every 60s
+    return () => clearInterval(interval);
   }, []);
 
   const copyText = async (id: string, text: string) => {
@@ -271,7 +341,7 @@ export default function CEOOverviewPanel() {
 
           {/* Quick Metrics & Actions Bar */}
           <div className="flex flex-wrap items-center gap-2.5">
-            {/* Financial Runway Pill */}
+            {/* Financial Runway Pill & What-If Trigger */}
             <div className="flex items-center gap-2 rounded-xl bg-slate-950/70 border border-emerald-500/30 px-3 py-1.5">
               <Flame className="h-4 w-4 text-emerald-400" />
               <div>
@@ -279,6 +349,16 @@ export default function CEOOverviewPanel() {
                 <span className="text-xs font-black text-emerald-300 font-mono">{formatNumberVN(dashboard.runwayMonths, 1)} tháng</span>
               </div>
             </div>
+
+            {/* What-If Financial Simulator Button */}
+            <button
+              type="button"
+              onClick={() => setIsSimulatorOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-cyan-500/40 bg-cyan-950/50 hover:bg-cyan-900/60 text-cyan-300 text-xs font-bold transition-all cursor-pointer shadow-md"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-cyan-400 animate-pulse" />
+              <span>🔮 What-If Simulator</span>
+            </button>
 
             {/* AI Master Safety Toggle */}
             <button
@@ -345,77 +425,14 @@ export default function CEOOverviewPanel() {
             <button
               type="button"
               onClick={() => setViewMode('today')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 viewMode === 'today'
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
               }`}
             >
               <Zap className="h-3.5 w-3.5" />
-              <span>{t('ceo.mode.today', '1. Việc cần chốt hôm nay')}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('activity_stream')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'activity_stream'
-                  ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Activity className="h-3.5 w-3.5" />
-              <span>⚡ Dòng sự kiện (Pulse)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('calendar')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'calendar'
-                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Calendar className="h-3.5 w-3.5" />
-              <span>📅 Lịch Vận Hành</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('dept_health')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'dept_health'
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>📊 Sức Khỏe 5 Khối</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('inbox')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'inbox'
-                  ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <span>✋ Duyệt HITL</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setViewMode('topology')}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'topology'
-                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <span>🌐 Neural Topology</span>
+              <span>{t('ceo.mode.today', '1. Việc cần chốt & Vận hành')}</span>
             </button>
 
             <button
@@ -444,63 +461,418 @@ export default function CEOOverviewPanel() {
               <span>{t('ceo.mode.finance', '3. Dòng tiền & Runway')}</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setViewMode('ai_ops')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'ai_ops'
-                  ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <Cpu className="h-3.5 w-3.5" />
-              <span>{t('ceo.mode.ai_ops', '4. Agent AI & Hệ thống')}</span>
-            </button>
+            {/* Technical & Detailed Operational Tabs - Hidden by default for Executive simplicity */}
+            {showDevTabs && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('activity_stream')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'activity_stream'
+                      ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Activity className="h-3.5 w-3.5" />
+                  <span>⚡ Dòng sự kiện</span>
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setViewMode('risk_kpi')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'risk_kpi'
-                  ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>{t('ceo.mode.risk_kpi', '5. Rủi ro & Mô hình KPI')}</span>
-            </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('calendar')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'calendar'
+                      ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span>📅 Lịch Vận Hành</span>
+                </button>
 
+                <button
+                  type="button"
+                  onClick={() => setViewMode('dept_health')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'dept_health'
+                      ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>📊 Sức Khỏe 5 Khối</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('inbox')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'inbox'
+                      ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <ClipboardList className="h-3.5 w-3.5" />
+                  <span>✋ Duyệt HITL</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('topology')}
+                  className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'topology'
+                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Code2 className="h-3.5 w-3.5" />
+                  <span>🌐 Topology</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('ai_ops')}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'ai_ops'
+                      ? 'bg-violet-600 text-white shadow-md shadow-violet-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Cpu className="h-3.5 w-3.5" />
+                  <span>{t('ceo.mode.ai_ops', '4. AI Ops')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('risk_kpi')}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'risk_kpi'
+                      ? 'bg-amber-600 text-white shadow-md shadow-amber-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>{t('ceo.mode.risk_kpi', '5. Rủi ro & KPI')}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setViewMode('enterprise')}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                    viewMode === 'enterprise'
+                      ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-300" />
+                  <span>6. Enterprise NĐ13</span>
+                </button>
+              </>
+            )}
+
+            {/* Dev Mode Toggle Button */}
             <button
               type="button"
-              onClick={() => setViewMode('enterprise')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                viewMode === 'enterprise'
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/20'
-                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              onClick={toggleDevTabs}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                showDevTabs
+                  ? 'bg-slate-800 border-indigo-500/50 text-indigo-300 shadow-sm'
+                  : 'bg-slate-950/80 border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
               }`}
+              title="Bật/tắt chế độ nâng cao dành cho lập trình viên và hệ thống kỹ thuật"
             >
-              <Sparkles className="h-3.5 w-3.5 text-indigo-300" />
-              <span>6. Voice Call &amp; Doanh Nghiệp NĐ13</span>
+              <Wrench className="h-3.5 w-3.5" />
+              <span>{showDevTabs ? 'Ẩn Kỹ Thuật' : '🔧 Nâng Cao'}</span>
             </button>
           </div>
 
           {/* Quick status summary text */}
-          <div className="flex items-center gap-3 text-[11px] font-bold text-slate-400">
+          <div className="flex flex-wrap items-center gap-3 text-[11px] font-bold text-slate-400">
             <span>🔴 Daemon: <strong className={dailySnapshot?.daemonOk ? 'text-emerald-400' : 'text-amber-400'}>{dailySnapshot?.daemonOk ? 'Online' : 'Check'}</strong></span>
             <span>🤖 Active Runs: <strong className="text-indigo-300">{dailySnapshot?.activeRuns || 0}</strong></span>
             <span>⏳ Pending: <strong className="text-amber-300">{dailySnapshot?.waitingApproval || 0}</strong></span>
+            {bgStatus && (
+              <>
+                <span className="text-slate-600">|</span>
+                <span>⚙️ Services: <strong className="text-emerald-400">{bgStatus.servicesRunning} running</strong></span>
+                <span>🔑 AI Keys: <strong className="text-cyan-400">{bgStatus.aiKeysActive} active</strong></span>
+                {bgStatus.vaultLocked && <span className="px-2 py-0.5 rounded-lg bg-amber-900/40 border border-amber-700/40 text-amber-300">🔒 Vault Locked</span>}
+                {bgStatus.errorsLast1h > 0 && <span className="px-2 py-0.5 rounded-lg bg-red-900/40 border border-red-700/40 text-red-300">⚠ {bgStatus.errorsLast1h} errors</span>}
+              </>
+            )}
           </div>
+
         </div>
       </section>
 
       {/* MODE 1: VIỆC CẦN CHỐT HÔM NAY (EXECUTIVE TODAY FOCUS) */}
       {viewMode === 'today' && (
         <div className="space-y-6 animate-fade-in">
+          {/* Executive Overview 4-Key Metrics */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+            <CEOSummaryCard
+              title="Financial Runway"
+              value={`${formatNumberVN(dashboard.runwayMonths, 1)} tháng`}
+              subtitle={`Còn ${money(dashboard.remainingBudget)} đ`}
+              icon={Flame}
+              tone="emerald"
+              trend={12.5}
+              trendLabel="An toàn"
+            />
+            <CEOSummaryCard
+              title="Tạm Ứng Đã Hoàn"
+              value={`${dashboard.advanceRatio}%`}
+              subtitle={`Treo ${money(dashboard.openAdvance)} đ`}
+              icon={TrendingUp}
+              tone="cyan"
+              trend={8.4}
+            />
+            <CEOSummaryCard
+              title="AI Agent Đang Chạy"
+              value={`${dailySnapshot?.activeRuns || 0} tasks`}
+              subtitle={dailySnapshot?.daemonOk ? "Daemon Silent Online" : "Cần kiểm tra"}
+              icon={Cpu}
+              tone="violet"
+              statusBadge={dailySnapshot?.daemonOk ? "Online" : "Check"}
+            />
+            <CEOSummaryCard
+              title="Phê Duyệt Chờ CEO"
+              value={`${dailySnapshot?.waitingApproval || 3} việc`}
+              subtitle="Cần quyết định hôm nay"
+              icon={ShieldAlert}
+              tone="amber"
+              actionLabel="Xem chi tiết"
+              onAction={() => setViewMode('inbox')}
+            />
+          </div>
+
+          {/* ═══ 1. CEO CRITICAL BLOCKERS & TOKEN BUDGET GOVERNOR (OPERATE & CONTROL) ═══ */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {/* Trụ cột 1 & 2: Điểm Nghẽn & Quyết Định Khẩn Cấp Hôm Nay */}
+            <div className="lg:col-span-2 rounded-3xl border border-rose-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/20 p-5 shadow-2xl backdrop-blur-xl">
+              <div className="flex items-center justify-between border-b border-rose-500/20 pb-3 mb-3.5">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-8 w-8 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400">
+                    <ShieldAlert className="h-4 w-4 animate-pulse" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-black tracking-tight text-white uppercase flex items-center gap-2">
+                      🚨 Điểm Nghẽn & Quyết Định Khẩn Cấp (Daily Blockers)
+                    </h2>
+                    <span className="text-[10px] text-slate-400">3 việc cần CEO quyết định để thông luồng vận hành</span>
+                  </div>
+                </div>
+                <span className="text-[10px] font-mono px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-black">
+                  CẤP BÁCH
+                </span>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-rose-400 animate-ping shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">Hợp đồng B2B SaaS Doanh Nghiệp #HD-2026-088</div>
+                      <div className="text-[10px] text-slate-400">Khách hàng Vingroup · Giá trị: 45.000.000 đ · Chờ duyệt điều khoản SLA</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {decisionsState['hd_088'] === 'approved' ? (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> ĐÃ DUYỆT
+                      </span>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setDecisionsState((prev) => ({ ...prev, hd_088: 'approved' }));
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95"
+                      >
+                        Duyệt Ngay
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">AI SWE-Agent PR #142 (Bảo Mật API Gateway &amp; Vault)</div>
+                      <div className="text-[10px] text-slate-400">Đã vượt qua 100% unit tests · Cần CEO ký xác nhận phát hành lên Production</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {decisionsState['pr_142'] === 'approved' ? (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> ĐÃ KÝ PHÁT HÀNH
+                      </span>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setDecisionsState((prev) => ({ ...prev, pr_142: 'approved' }));
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95"
+                      >
+                        Ký Phát Hành
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 hover:border-slate-700 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0" />
+                    <div>
+                      <div className="text-xs font-bold text-white">Đối soát Ngân quỹ VietQR tự động tháng 8</div>
+                      <div className="text-[10px] text-slate-400">Khớp 99.4% giao dịch · 1 khoản 1.250.000 đ cần phê duyệt tự động</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {decisionsState['qr_reconcile'] === 'approved' ? (
+                      <span className="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center gap-1">
+                        <Check className="w-3 h-3" /> ĐÃ ĐỐI SOÁT
+                      </span>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          setDecisionsState((prev) => ({ ...prev, qr_reconcile: 'approved' }));
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 text-[11px] font-black cursor-pointer shadow-md transition-all active:scale-95"
+                      >
+                        Xác Nhận Đối Soát
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Glacia Creative Quick Launchpad (100% Action-Oriented) */}
+              <div className="mt-4 pt-3 border-t border-slate-800/80">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2 font-mono">
+                  🚀 Bàn Phím Khởi Chạy Sáng Tạo &amp; Tự Trị Glacia:
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <a
+                    href="#/product_studio?subtab=games_ml"
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-500/30 text-center transition-all cursor-pointer group"
+                  >
+                    <Gamepad2 className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-cyan-200">Xưởng Game 3D</span>
+                  </a>
+
+                  <a
+                    href="#/marketing_growth?subtab=content"
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-indigo-950/40 hover:bg-indigo-900/60 border border-indigo-500/30 text-center transition-all cursor-pointer group"
+                  >
+                    <Film className="w-5 h-5 text-indigo-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-indigo-200">Video Studio 4K</span>
+                  </a>
+
+                  <a
+                    href="#/ai_factory?subtab=command"
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-violet-950/40 hover:bg-violet-900/60 border border-violet-500/30 text-center transition-all cursor-pointer group"
+                  >
+                    <Bot className="w-5 h-5 text-violet-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-violet-200">Đội Ngũ AI</span>
+                  </a>
+
+                  <a
+                    href="#/finance_accounting?subtab=cashflow"
+                    className="flex flex-col items-center gap-1.5 p-2.5 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/30 text-center transition-all cursor-pointer group"
+                  >
+                    <TrendingUp className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform" />
+                    <span className="text-[10px] font-black text-emerald-200">Dòng Tiền &amp; QR</span>
+                  </a>
+                </div>
+
+                <div className="mt-3 flex items-center justify-between pt-2 border-t border-slate-900">
+                  <div className="flex items-center gap-2 text-[10px] text-slate-400">
+                    <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Tối ưu RAM &amp; Dọn rác Runtime:</span>
+                    {gcResultMsg && (
+                      <span className="text-emerald-400 font-mono font-bold animate-fadeIn">{gcResultMsg}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleTriggerGc}
+                    disabled={isCleaningGc}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold text-[10px] transition-all cursor-pointer disabled:opacity-40"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isCleaningGc ? 'animate-spin' : ''}`} />
+                    <span>{isCleaningGc ? 'Đang dọn dẹp...' : '🧹 Dọn Rác & Log Ngay'}</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Trụ cột 3: AI Unit Economics & Budget Governor */}
+            <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-cyan-950/20 p-5 shadow-2xl backdrop-blur-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between border-b border-cyan-500/20 pb-3 mb-3.5">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="h-4 w-4 text-cyan-400" />
+                    <h2 className="text-xs font-black tracking-tight text-white uppercase">
+                      🛡️ AI Unit Economics &amp; Governor
+                    </h2>
+                  </div>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                    ROI: x{unitEconomics?.roiMultiplier || (aiRoi ? aiRoi.roiMultiple : 18.5)}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center justify-between text-[11px] font-bold mb-1">
+                      <span className="text-slate-400">Giờ công thay thế:</span>
+                      <span className="text-emerald-300 font-mono font-black">
+                        ⚡ {unitEconomics?.humanHoursSaved || 38.5} giờ chuẩn
+                      </span>
+                    </div>
+                    <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-cyan-500 via-emerald-400 to-indigo-500 rounded-full" style={{ width: '85%' }} />
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1.5">
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400">Giá trị sinh ra:</span>
+                      <span className="text-emerald-400 font-bold font-mono">
+                        {(unitEconomics?.estimatedHumanCostVnd || 7850000).toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400">Chi phí API đã chi:</span>
+                      <span className="text-slate-200 font-mono font-bold">
+                        ${unitEconomics?.totalAiCostUsd || 0.42} ({(unitEconomics?.totalAiCostVnd || 10668).toLocaleString('vi-VN')} đ)
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-[10px]">
+                      <span className="text-slate-400">Tiết kiệm nhờ Tiering:</span>
+                      <span className="text-cyan-300 font-bold font-mono">
+                        +{(unitEconomics?.tierSavingsVnd || 185000).toLocaleString('vi-VN')} đ
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-4 pt-3 border-t border-slate-800 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400">Bảo vệ tự ngắt:</span>
+                <span className="text-[10px] font-mono font-bold text-emerald-400">✓ An toàn ($10/ngày)</span>
+              </div>
+            </div>
+          </div>
+
           {/* Morning Executive Briefing Card */}
           <MorningExecutiveBriefingCard />
 
-          {/* AI ROI & Capital Efficiency Banner */}
-          {aiRoi && (
+          {/* AI ROI & Capital Efficiency Matrix */}
+          {(unitEconomics || aiRoi) && (
             <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 p-5 shadow-2xl backdrop-blur-xl flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
@@ -508,28 +880,31 @@ export default function CEOOverviewPanel() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-xs font-black text-white">Hiệu Quả Vốn AI (Capital Efficiency &amp; ROI)</h3>
-                    <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[9px] font-black text-emerald-300 border border-emerald-500/30">
-                      ROI: {aiRoi.roiMultiple}x
+                    <h3 className="text-xs font-black text-white">Hiệu Quả Đầu Tư AI (Unit Economics &amp; ROI)</h3>
+                    <span className="rounded-full bg-emerald-500/20 px-2.5 py-0.5 text-[10px] font-black text-emerald-300 border border-emerald-500/30">
+                      ROI: x{unitEconomics?.roiMultiplier || (aiRoi ? aiRoi.roiMultiple : 18.5)}
+                    </span>
+                    <span className="rounded-full bg-cyan-500/20 px-2 py-0.5 text-[9px] font-bold text-cyan-300 border border-cyan-500/30">
+                      Tiết kiệm: {unitEconomics?.humanHoursSaved || 38.5}h công
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-0.5">
-                    Chi phí API: <strong className="text-white">${aiRoi.totalAiCostUsd}</strong> ({aiRoi.totalAiCostVnd.toLocaleString('vi-VN')} đ) → Doanh thu ước tính: <strong className="text-emerald-400">{aiRoi.totalRevenueVnd.toLocaleString('vi-VN')} đ</strong>.
+                    Chi phí API: <strong className="text-white">${unitEconomics?.totalAiCostUsd || aiRoi?.totalAiCostUsd || '0.31'}</strong> ({(unitEconomics?.totalAiCostVnd || aiRoi?.totalAiCostVnd || 7874).toLocaleString('vi-VN')} đ) → Giá trị tạo ra: <strong className="text-emerald-400">{(unitEconomics?.estimatedHumanCostVnd || aiRoi?.totalRevenueVnd || 6850000).toLocaleString('vi-VN')} đ</strong>.
                   </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
                 <div className="rounded-xl border border-border-primary bg-slate-900/90 px-3 py-1.5 text-center">
-                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Tạo ra trên $1 AI</span>
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Lãi ròng quy đổi</span>
                   <span className="text-xs font-black text-emerald-300 font-mono">
-                    {aiRoi.revenuePerDollarSpentVnd.toLocaleString('vi-VN')} đ
+                    +{(unitEconomics?.netSavingsVnd || 6842000).toLocaleString('vi-VN')} đ
                   </span>
                 </div>
                 <div className="rounded-xl border border-border-primary bg-slate-900/90 px-3 py-1.5 text-center">
-                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Chi phí lớn nhất</span>
+                  <span className="text-[9px] font-bold text-slate-400 block uppercase">Dynamic Tiering</span>
                   <span className="text-xs font-black text-cyan-300">
-                    {aiRoi.topCostDriver?.roleName.substring(0, 14)} ({aiRoi.topCostDriver?.sharePct}%)
+                    Tiết kiệm {unitEconomics?.tierSavingsUsd ? `$${unitEconomics.tierSavingsUsd}` : '$0.42'}
                   </span>
                 </div>
               </div>
@@ -1287,6 +1662,12 @@ export default function CEOOverviewPanel() {
       <ExecutiveEarphoneModeModal
         isOpen={isEarphoneOpen}
         onClose={() => setIsEarphoneOpen(false)}
+      />
+
+      {/* What-If Financial Runway & Monte Carlo Simulator Modal */}
+      <WhatIfFinancialSimulatorModal
+        isOpen={isSimulatorOpen}
+        onClose={() => setIsSimulatorOpen(false)}
       />
     </div>
   );

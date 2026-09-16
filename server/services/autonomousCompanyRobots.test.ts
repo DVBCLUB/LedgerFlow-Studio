@@ -71,8 +71,9 @@ test('autonomousCompanyRobots - runRevenueLeakReconciliationRobot identifies ove
 });
 
 test('autonomousCompanyRobots - runCustomerChurnPredictorRobot identifies at-risk accounts', async () => {
+  const customerId = `cust_churn_sample_${Date.now()}_${Math.random().toString(16).slice(2)}`;
   upsertBusinessEntity({
-    id: 'cust_churn_sample',
+    id: customerId,
     type: 'customer',
     data: {
       name: 'Công ty TNHH Vận Tải An Phát',
@@ -85,7 +86,7 @@ test('autonomousCompanyRobots - runCustomerChurnPredictorRobot identifies at-ris
   assert.ok(churnReport.totalCustomersAnalyzed >= 1);
   assert.ok(churnReport.atRiskCount >= 1);
 
-  const matched = churnReport.atRiskCustomers.find((c) => c.customerId === 'cust_churn_sample');
+  const matched = churnReport.atRiskCustomers.find((c) => c.customerId === customerId);
   assert.ok(matched);
   assert.ok(matched?.riskScore >= 40);
   assert.ok(matched?.draftRetentionMessage.includes('Công ty TNHH Vận Tải An Phát'));
@@ -107,5 +108,4 @@ test('autonomousCompanyRobots - runCompetitorIntelligenceBot generates market in
   assert.ok(report.executiveActionPlan.length >= 1);
   assert.ok(report.markdownReport.includes('Phân Tích Đối Thủ & Thị Trường'));
 });
-
 

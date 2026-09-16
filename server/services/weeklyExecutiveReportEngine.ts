@@ -154,5 +154,39 @@ ${schedule.slice(0, 3).map((s) => `- 📅 **${s.title}:** ${new Date(s.scheduled
     },
   });
 
+  cachedWeeklyReport = report;
   return report;
 }
+
+let cachedWeeklyReport: WeeklyExecutiveReport | null = null;
+let weeklyReportTimer: NodeJS.Timeout | null = null;
+
+export function getLatestWeeklyExecutiveReport(): WeeklyExecutiveReport {
+  if (!cachedWeeklyReport) {
+    try {
+      cachedWeeklyReport = generateWeeklyExecutiveReport();
+    } catch {
+      // Fallback if needed
+      cachedWeeklyReport = generateWeeklyExecutiveReport();
+    }
+  }
+  return cachedWeeklyReport;
+}
+
+export function scheduleWeeklyExecutiveReport(intervalMs: number = 7 * 24 * 60 * 60 * 1000): void {
+  if (weeklyReportTimer) return;
+  try {
+    cachedWeeklyReport = generateWeeklyExecutiveReport();
+  } catch {}
+  weeklyReportTimer = setInterval(() => {
+    try {
+      cachedWeeklyReport = generateWeeklyExecutiveReport();
+    } catch (err) {
+      console.warn('[WeeklyExecutiveReport] Background generation warning:', err);
+    }
+  }, intervalMs);
+  if (weeklyReportTimer.unref) {
+    weeklyReportTimer.unref();
+  }
+}
+

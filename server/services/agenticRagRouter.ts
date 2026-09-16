@@ -270,6 +270,35 @@ function buildContextFromResults(results: MemorySearchResult[], query: string): 
   return parts.join('\n');
 }
 
+/**
+ * Retrieve directly from Glacia Distilled Lessons & Ingested Docs
+ */
+export function retrieveFromGlaciaKnowledge(query: string): { lessonsContext: string; docsContext: string; combinedContext: string } {
+  let lessonsContext = '';
+  let docsContext = '';
+
+  try {
+    const { searchKnowledgeLessons } = require('./glaciaKnowledgeDistiller.ts');
+    const lessons = searchKnowledgeLessons(query, 3);
+    if (lessons.length > 0) {
+      lessonsContext = '### 💡 Glacia Verified Distilled Lessons:\n' +
+        lessons.map((l: any, i: number) => `${i + 1}. **${l.summary}**\n- Vấn đề: ${l.query}\n- Giải pháp: ${l.solution}${l.codeSnippet ? `\n\`\`\`\n${l.codeSnippet}\n\`\`\`` : ''}`).join('\n\n');
+    }
+  } catch {}
+
+  try {
+    const { searchSimilar } = require('./vectorEmbeddingStore.ts');
+    const docs = searchSimilar('glacia_docs', query, 3, 0.1);
+    if (docs.length > 0) {
+      docsContext = '### 📚 Glacia Ingested Documentation Snippets:\n' +
+        docs.map((d: any, i: number) => `${i + 1}. [${d.document.metadata?.targetName || 'Doc'}]\n${d.document.content.slice(0, 400)}...`).join('\n\n');
+    }
+  } catch {}
+
+  const combinedContext = [lessonsContext, docsContext].filter(Boolean).join('\n\n');
+  return { lessonsContext, docsContext, combinedContext };
+}
+
 // ─── Enriched dispatch (RAG-aware) ──────────────────────────────────
 
 export async function dispatchWithRag(
@@ -277,11 +306,17 @@ export async function dispatchWithRag(
   systemInstruction?: string,
   options: RagOptions & { webPlatform?: string; profileId?: string } = {}
 ): Promise<{ fabricResult: any; ragResult: AgenticRagResult }> {
-  // Run RAG first
-  const ragResult = await agenticRetrieve(query, '', options);
+  // 1. Run Glacia Knowledge base lookup
+  const glaciaKnowledge = retrieveFromGlaciaKnowledge(query);
+
+  // 2. Run RAG
+  const ragResult = await agenticRetrieve(query, glaciaKnowledge.combinedContext, options);
 
   // Build enriched context
   let enrichedInstruction = systemInstruction || '';
+  if (glaciaKnowledge.combinedContext) {
+    enrichedInstruction = `${enrichedInstruction}\n\n${glaciaKnowledge.combinedContext}`;
+  }
   if (ragResult.finalContext) {
     enrichedInstruction = `${enrichedInstruction}\n\n${ragResult.finalContext}`;
   }

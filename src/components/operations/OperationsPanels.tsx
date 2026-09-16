@@ -121,12 +121,12 @@ export function ProjectPortfolioPanel() {
   );
 }
 
-// ─── 2. Procurement & Logistics Panel ────────────────────────────────────────
+// ─── 2. Studio Assets & Compute Governor Panel ────────────────────────────────────────
 export function ProcurementLogisticsPanel() {
   const [requests, setRequests] = useState([
-    { id: 'PR-101', item: 'Server Infrastructure (AWS Savings)', qty: 1, cost: 2400, status: 'pending' },
-    { id: 'PR-102', item: 'Thép Pomina Phi 14 (Dự án)', qty: 25, cost: 18500, status: 'approved' },
-    { id: 'PR-103', item: 'Nhiên liệu Dầu DO 0.05S (Xe lu)', qty: 800, cost: 650, status: 'pending' }
+    { id: 'PR-101', item: 'GPU Server H100 Cloud Instance (AI Training)', qty: 1, cost: 2400, status: 'pending' },
+    { id: 'PR-102', item: 'Gói 3D Sci-Fi & Character Asset Pack', qty: 5, cost: 850, status: 'approved' },
+    { id: 'PR-103', item: 'Bản quyền Voice & Sound FX WebAudio Synthesizer', qty: 1, cost: 350, status: 'pending' }
   ]);
 
   const handleAction = (id: string, action: 'approved' | 'rejected') => {
@@ -140,20 +140,20 @@ export function ProcurementLogisticsPanel() {
           <ShoppingCart className="h-5 w-5" />
         </div>
         <div>
-          <h2 className="text-sm font-black text-white uppercase tracking-wider">Procurement & Inventory</h2>
-          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Quản lý yêu cầu mua sắm thiết bị, kho vận vật tư và duyệt khoản chi mua ngoài.</p>
+          <h2 className="text-sm font-black text-white uppercase tracking-wider">Kho Phần Mềm, Game Assets &amp; Hạ Tầng GPU</h2>
+          <p className="text-[11px] text-slate-400 font-semibold mt-0.5">Quản lý kho tài nguyên số, 3D models, bản quyền âm thanh và duyệt ngân sách Cloud GPU / AI Token.</p>
         </div>
       </div>
 
       {/* Purchase Requests */}
       <div className="space-y-3">
-        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Yêu cầu mua sắm vật tư (Purchase Requests)</h3>
+        <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Yêu cầu cấp phát tài nguyên &amp; Cloud (Asset &amp; GPU Requests)</h3>
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left text-xs font-semibold text-slate-300">
             <thead>
               <tr className="border-b border-white/10 text-slate-400 text-[10px] uppercase font-black tracking-wider">
                 <th className="py-2.5 px-3">Mã PR</th>
-                <th className="py-2.5 px-3">Mặt hàng / Thiết bị</th>
+                <th className="py-2.5 px-3">Tài nguyên / Gói dịch vụ</th>
                 <th className="py-2.5 px-3 text-right">Chi phí</th>
                 <th className="py-2.5 px-3 text-center">Trạng thái</th>
                 <th className="py-2.5 px-3 text-center">Hành động</th>
@@ -203,41 +203,41 @@ export function ProcurementLogisticsPanel() {
         </div>
       </div>
 
-      {/* Warehouse Ledger & Fuel Fund */}
+      {/* Warehouse Ledger & Compute Fund */}
       <div className="grid gap-6 md:grid-cols-2 pt-2 text-left">
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Sổ kho (Warehouse Ledger)</h3>
+          <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Kho Tài Nguyên Số &amp; Game Assets</h3>
           <div className="space-y-2 text-xs">
             <div className="p-3 bg-slate-950/30 border border-slate-850 rounded-xl flex justify-between">
               <div>
-                <strong className="text-white block">Thép cuộn Pomina</strong>
+                <strong className="text-white block">3D Character Archetypes (Glacia/Titan)</strong>
                 <span className="text-[10px] text-slate-500">Tồn kho khả dụng</span>
               </div>
-              <span className="text-sm font-black text-cyan-300">120 Tấn</span>
+              <span className="text-sm font-black text-cyan-300">5 Bộ Model</span>
             </div>
             <div className="p-3 bg-slate-950/30 border border-slate-850 rounded-xl flex justify-between">
               <div>
-                <strong className="text-white block">Thiết bị Router Cisco</strong>
-                <span className="text-[10px] text-slate-500">Tồn kho dự phòng</span>
+                <strong className="text-white block">Kịch Bản Phim AI &amp; Shaders Three.js</strong>
+                <span className="text-[10px] text-slate-500">Kho lưu trữ số</span>
               </div>
-              <span className="text-sm font-black text-cyan-300">12 Bộ</span>
+              <span className="text-sm font-black text-cyan-300">120 Scripts</span>
             </div>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Quỹ Nhiên Liệu (Fuel Fund)</h3>
-            <span className="rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase text-cyan-300 border border-cyan-500/25">Construction template</span>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 text-left">Quỹ Điện Toán &amp; Token AI (Compute Fund)</h3>
+            <span className="rounded-full bg-cyan-500/15 px-2.5 py-0.5 text-[9px] font-black uppercase text-cyan-300 border border-cyan-500/25">Studio template</span>
           </div>
           <div className="p-4 bg-slate-950/30 border border-slate-850 rounded-xl space-y-3">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400 font-bold">Dung lượng quỹ dầu dự trữ:</span>
-              <span className="font-black text-white">45,000 Lít</span>
+              <span className="text-slate-400 font-bold">Dung lượng Token &amp; GPU dự trữ:</span>
+              <span className="font-black text-white">45,000,000 Tokens</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400 font-bold">Đã phân phối các công trường:</span>
-              <span className="font-black text-cyan-300">28,500 Lít</span>
+              <span className="text-slate-400 font-bold">Đã phân bổ cho Game &amp; Video 4K:</span>
+              <span className="font-black text-cyan-300">28,500,000 Tokens</span>
             </div>
             <div className="h-1.5 w-full rounded-full bg-slate-800 overflow-hidden mt-2">
               <div className="h-full rounded-full bg-cyan-500" style={{ width: '63%' }} />

@@ -96,4 +96,56 @@ export function registerAssetFoundryRoutes(app: Express): void {
       res.status(500).json({ success: false, error: err.message });
     }
   });
+
+  // ── $0 Free Tool Robot Operators (Blender, Game Binding, Video Stage, Canva, FFmpeg) ──
+  app.post('/api/asset-foundry/free-tools/blender', async (req: Request, res: Response) => {
+    try {
+      const { generateBlenderPythonScript } = await import('./freeToolRobotBridge.ts');
+      const script = generateBlenderPythonScript(req.body || { characterName: 'GlaciaModel' });
+      res.json({ success: true, ok: true, script, tool: 'blender_bpy' });
+    } catch (err: any) {
+      res.status(500).json({ success: false, ok: false, error: err.message });
+    }
+  });
+
+  app.post('/api/asset-foundry/free-tools/game-binding', async (req: Request, res: Response) => {
+    try {
+      const { bridge3DCharacterToGame } = await import('./freeToolRobotBridge.ts');
+      const binding = bridge3DCharacterToGame(req.body?.spec || { characterName: 'Hero' }, req.body?.platform || 'hybrid');
+      res.json({ success: true, ok: true, binding });
+    } catch (err: any) {
+      res.status(500).json({ success: false, ok: false, error: err.message });
+    }
+  });
+
+  app.post('/api/asset-foundry/free-tools/video-binding', async (req: Request, res: Response) => {
+    try {
+      const { bridge3DCharacterToVideoStage } = await import('./freeToolRobotBridge.ts');
+      const binding = bridge3DCharacterToVideoStage(req.body?.spec || { characterName: 'VirtualMC' }, req.body?.options);
+      res.json({ success: true, ok: true, binding });
+    } catch (err: any) {
+      res.status(500).json({ success: false, ok: false, error: err.message });
+    }
+  });
+
+  app.post('/api/asset-foundry/free-tools/graphic-plan', async (req: Request, res: Response) => {
+    try {
+      const { generateGraphicDesignAutomationPlan } = await import('./freeToolRobotBridge.ts');
+      const plan = generateGraphicDesignAutomationPlan(req.body || { title: 'Launch Poster' });
+      res.json({ success: true, ok: true, plan });
+    } catch (err: any) {
+      res.status(500).json({ success: false, ok: false, error: err.message });
+    }
+  });
+
+  app.post('/api/asset-foundry/free-tools/ffmpeg-script', async (req: Request, res: Response) => {
+    try {
+      const { generateFfmpegVideoScript } = await import('./freeToolRobotBridge.ts');
+      const videoScript = generateFfmpegVideoScript(req.body || { outputName: 'video_render' });
+      res.json({ success: true, ok: true, videoScript });
+    } catch (err: any) {
+      res.status(500).json({ success: false, ok: false, error: err.message });
+    }
+  });
 }
+

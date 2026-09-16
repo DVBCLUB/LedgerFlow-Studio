@@ -5,7 +5,7 @@ export const NPS_SEGMENTS = [
 ];
 
 export const FEEDBACK_CATEGORIES = [
-  { name: 'Nhập liệu khó', signal: 'Người dùng than nhiều trường, không hiểu mã công trình/NCC.', fix: 'Tạo form nhập nhanh, mặc định giá trị, hướng dẫn bằng ví dụ.' },
+  { name: 'Nhập liệu khó', signal: 'Người dùng than nhiều trường, không hiểu mã dự án/NCC.', fix: 'Tạo form nhập nhanh, mặc định giá trị, hướng dẫn bằng ví dụ.' },
   { name: 'Báo cáo chưa đúng ý sếp', signal: 'Xuất báo cáo nhưng vẫn phải sửa Excel.', fix: 'Hỏi 5 chỉ số sếp cần, tạo mẫu báo cáo cố định.' },
   { name: 'Thiếu chứng từ', signal: 'Không biết hồ sơ nào thiếu hóa đơn/nghiệm thu/phiếu kho.', fix: 'Thêm checklist hồ sơ và cảnh báo khi nhập.' },
   { name: 'Chạy chậm hoặc lỗi build', signal: 'Mở app chậm, thao tác lag, lỗi khi deploy.', fix: 'Ưu tiên performance, giảm module nặng, kiểm tra build.' },
@@ -13,7 +13,7 @@ export const FEEDBACK_CATEGORIES = [
 ];
 
 export const REVIEW_RESPONSE_TEMPLATES = [
-  { title: 'Phản hồi review tốt', text: 'Cảm ơn anh/chị đã phản hồi. Em sẽ giữ module báo cáo/tạm ứng/hồ sơ thiếu ổn định hơn và tiếp tục tối ưu theo quy trình kế toán công trình thực tế.' },
+  { title: 'Phản hồi review tốt', text: 'Cảm ơn anh/chị đã phản hồi. Em sẽ giữ module báo cáo/tạm ứng/hồ sơ thiếu ổn định hơn và tiếp tục tối ưu theo quy trình quản trị dự án Studio thực tế.' },
   { title: 'Phản hồi review trung bình', text: 'Cảm ơn anh/chị đã góp ý. Em muốn hỏi thêm phần nào đang làm mất thời gian nhất: nhập liệu, báo cáo sếp, chứng từ, hay tốc độ app để ưu tiên sửa đúng chỗ.' },
   { title: 'Phản hồi review xấu', text: 'Em xin lỗi vì trải nghiệm chưa tốt. Em sẽ ghi nhận lỗi này thành ticket ưu tiên, phản hồi lại hướng xử lý và thời gian sửa cụ thể để anh/chị kiểm tra lại.' },
   { title: 'Xin testimonial', text: 'Nếu phần mềm đã giúp anh/chị giảm thời gian tổng hợp hoặc kiểm soát hồ sơ tốt hơn, cho em xin 2-3 dòng nhận xét ngắn để làm case study được không ạ?' }

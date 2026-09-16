@@ -1,4 +1,4 @@
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 
 export type SoftwareFactoryRunStatus = "draft" | "queued" | "running" | "review" | "complete" | "blocked";
 export type SoftwareFactoryWorkType = "planning" | "coding" | "qa" | "media" | "launch";

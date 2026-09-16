@@ -3,7 +3,7 @@ import fs from "fs";
 import os from "os";
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from "./runtimePaths.ts";
 
-export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek" | "mistral" | "together" | "perplexity" | "xai" | "runway" | "luma" | "leonardo" | "elevenlabs" | "replicate" | "midjourney" | "flux1" | "kling" | "sora" | "pika" | "hailuo";
+export type AIProviderName = "gemini" | "groq" | "openrouter" | "anthropic" | "ollama" | "openai" | "deepseek" | "bytedance" | "mistral" | "together" | "perplexity" | "xai" | "runway" | "luma" | "leonardo" | "elevenlabs" | "replicate" | "midjourney" | "flux1" | "kling" | "sora" | "pika" | "hailuo";
 
 export interface AIProviderDefinition {
   id: AIProviderName;
@@ -139,6 +139,15 @@ const SUPPORTED_PROVIDERS: AIProviderDefinition[] = [
     docsUrl: "https://platform.deepseek.com/api_keys",
     note: "Dùng API key từ DeepSeek. Hỗ trợ các model deepseek-chat, deepseek-reasoner.",
   },
+  {
+    id: "bytedance",
+    label: "ByteDance Doubao / Volcengine",
+    requiresApiKey: true,
+    defaultModel: "doubao-pro-32k",
+    docsUrl: "https://www.volcengine.com/product/ark",
+    note: "ByteDance Doubao LLM & CapCut video AI ecosystem.",
+  },
+
   {
     id: "groq",
     label: "Groq",
@@ -637,20 +646,46 @@ function maskKey(key: string): string {
 }
 
 async function readVault(): Promise<VaultFile> {
+  const readPath = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json");
   try {
-    const readPath = resolveRuntimeReadPathFromEnv("AI_KEY_VAULT_FILE", "ai_keys.vault.json");
-    if (!fs.existsSync(readPath)) return { version: 1, entries: [], security: { mode: "local" } };
+    if (!fs.existsSync(readPath)) {
+      const backupPath = `${readPath}.bak`;
+      if (fs.existsSync(backupPath)) {
+        try {
+          const rawBak = await fs.promises.readFile(backupPath, "utf-8");
+          const parsed = JSON.parse(rawBak) as VaultFile;
+          if (parsed.version === 1 && Array.isArray(parsed.entries)) {
+            return { ...parsed, security: normalizeSecurity(parsed.security) };
+          }
+        } catch {}
+      }
+      return { version: 1, entries: [], security: { mode: "local" } };
+    }
     const raw = await fs.promises.readFile(readPath, "utf-8");
     const parsed = JSON.parse(raw) as VaultFile;
     if (parsed.version !== 1 || !Array.isArray(parsed.entries)) return { version: 1, entries: [], security: { mode: "local" } };
     return { ...parsed, security: normalizeSecurity(parsed.security) };
   } catch (err: any) {
-    throw new Error(`Không đọc được AI key vault: ${err.message || err}`);
+    const backupPath = `${readPath}.bak`;
+    if (fs.existsSync(backupPath)) {
+      try {
+        const rawBak = await fs.promises.readFile(backupPath, "utf-8");
+        const parsed = JSON.parse(rawBak) as VaultFile;
+        if (parsed.version === 1 && Array.isArray(parsed.entries)) {
+          return { ...parsed, security: normalizeSecurity(parsed.security) };
+        }
+      } catch {}
+    }
+    return { version: 1, entries: [], security: { mode: "local" } };
   }
 }
 
 async function writeVault(vault: VaultFile): Promise<void> {
   ensureRuntimeRootSync();
+  const backupFile = `${VAULT_FILE}.bak`;
+  if (fs.existsSync(VAULT_FILE)) {
+    await fs.promises.copyFile(VAULT_FILE, backupFile).catch(() => undefined);
+  }
   await fs.promises.writeFile(VAULT_FILE, JSON.stringify(vault, null, 2), { encoding: "utf-8", mode: 0o600 });
 }
 

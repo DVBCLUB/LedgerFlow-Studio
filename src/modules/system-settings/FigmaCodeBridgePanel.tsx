@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Palette, Code2, Sparkles, RefreshCw, CheckCircle2, ArrowRight, Layers, FileCode } from 'lucide-react';
 import { importFigmaComponent, FigmaConversionResult } from '../../utils/knowledgeIntegrationsApi';
 
 export default function FigmaCodeBridgePanel() {
@@ -16,29 +17,96 @@ export default function FigmaCodeBridgePanel() {
   };
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#312e8122,#4338ca22)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #4338ca44' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🎨 Figma → React Code Bridge</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Chuyển design token & layout Figma thành JSX + CSS Variables · Đồng bộ component tự động</p>
-      </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-        <input value={figmaUrl} onChange={(e) => setFigmaUrl(e.target.value)} placeholder="Figma URL" style={{ background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem' }} />
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <input value={componentName} onChange={(e) => setComponentName(e.target.value)} placeholder="Component name" style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem' }} />
-          <button onClick={handleImport} disabled={loading} style={{ background: '#4338ca', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.5rem', cursor: 'pointer', fontWeight: 600 }}>
-            {loading ? 'Đang import...' : '🎨 Import Figma'}
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <Palette className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Cầu Nối Thiết Kế Figma Sang React (Figma &rarr; React Code Bridge)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Design Token Sync
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Chuyển đổi Design Tokens &amp; Layout Figma thành mã JSX + CSS Variables — Tự động đồng bộ React component.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Chuẩn JSX &amp; Tailwind
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Input Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl space-y-4">
+        <div className="space-y-1">
+          <label className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+            Figma Design URL &amp; Component Name
+          </label>
+          <input
+            type="text"
+            value={figmaUrl}
+            onChange={(e) => setFigmaUrl(e.target.value)}
+            placeholder="https://figma.com/file/..."
+            className="w-full bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors font-mono"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            type="text"
+            value={componentName}
+            onChange={(e) => setComponentName(e.target.value)}
+            placeholder="Tên React Component (VD: LedgerFlowDashboard)"
+            className="flex-1 bg-slate-950/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-xs text-white placeholder-slate-600 focus:outline-none focus:border-indigo-500/50 transition-colors font-mono"
+          />
+          <button
+            type="button"
+            onClick={handleImport}
+            disabled={loading}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs transition-all shadow-lg cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/20 whitespace-nowrap"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            <span>{loading ? 'Đang Import...' : '🎨 Import Figma Sang React'}</span>
           </button>
         </div>
       </div>
+
+      {/* Result Cards */}
       {result && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-          <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155' }}>
-            <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.75rem' }}>Design Tokens</div>
-            <pre style={{ margin: 0, color: '#38bdf8', fontSize: '0.8rem', fontFamily: 'monospace' }}>{JSON.stringify(result.designTokens, null, 2)}</pre>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Layers className="w-4 h-4 text-cyan-400" />
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+                Design Tokens Trích Xuất
+              </h2>
+            </div>
+            <pre className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-cyan-300 font-mono text-[11px] overflow-x-auto">
+              {JSON.stringify(result.designTokens, null, 2)}
+            </pre>
           </div>
-          <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155' }}>
-            <div style={{ fontWeight: 600, color: '#e2e8f0', marginBottom: '0.75rem' }}>Generated JSX — {result.componentName}</div>
-            <pre style={{ margin: 0, color: '#34d399', fontSize: '0.8rem', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>{result.jsxCode}</pre>
+
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl">
+            <div className="flex items-center gap-2 mb-3">
+              <Code2 className="w-4 h-4 text-emerald-400" />
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+                Mã Nguồn JSX Sinh Tự Động ({result.componentName})
+              </h2>
+            </div>
+            <pre className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-emerald-300 font-mono text-[11px] overflow-x-auto whitespace-pre-wrap">
+              {result.jsxCode}
+            </pre>
           </div>
         </div>
       )}

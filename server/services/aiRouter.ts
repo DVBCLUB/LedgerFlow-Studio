@@ -1,6 +1,9 @@
 import { getEnabledAIKeyEntries, setAIKeyStatus, type AIProviderName, type DecryptedAIKeyEntry } from "./aiKeyVault.ts";
 import type { CallAIOptions, CallAIResult, ChatMessage, NormalizedToolCall, ToolSpec } from "./aiClient.ts";
 import { appendAIUsageLog, type AIUsageMode } from "./aiUsageLog.ts";
+import { classifyTask, computePromptHash, getCachedAIResponse, setCachedAIResponse, type ModelTier, type TaskClassification } from "./aiClassifierEngine.ts";
+import { evaluateBudgetTierDowngrade } from "./costGovernor.ts";
+import { recordTwoTierMetric } from "./costObservability.ts";
 
 // ─── Circuit Breaker ─────────────────────────────────────────────────────────
 // Prevents hammering a failed provider on every request.
@@ -208,9 +211,61 @@ export function clearRouterDedupCache(): void {
 }
 
 export async function callAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): Promise<CallAIResult> {
+  const promptHash = computePromptHash(messages, options);
+
+  // 0. Check SHA-256 Prompt Cache for zero-cost instant response
+  if (!options.bypassCache && !options.tools?.length) {
+    const cachedResponse = getCachedAIResponse(promptHash);
+    if (cachedResponse) {
+      recordTwoTierMetric({ tier: 'tier_free_local', isCached: true });
+      return {
+        content: cachedResponse.content,
+        text: cachedResponse.content,
+        modelUsed: cachedResponse.modelUsed,
+        provider: cachedResponse.modelUsed?.split("/")[0],
+        model: cachedResponse.modelUsed,
+        raw: { source: "sha256_prompt_cache" },
+        isCached: true,
+        tierUsed: "tier_free_local",
+        classificationReason: "Cache hit: Identical prompt returned at $0 cost",
+      };
+    }
+  }
+
+  // 1. Tier-1 Classification Layer (< 1s)
+  let classification: TaskClassification | undefined;
+  let effectiveTier: ModelTier = options.forceTier || "tier_balanced";
+  let isDowngraded = false;
+
+  if (options.enableTwoTierRouting !== false) {
+    classification = await classifyTask(messages, options);
+    effectiveTier = options.forceTier || classification.recommendedTier;
+
+    // 2. Budget Governor Check & Auto-Downgrade
+    const budgetAssessment = evaluateBudgetTierDowngrade(effectiveTier);
+    if (budgetAssessment.downgraded) {
+      effectiveTier = budgetAssessment.tier;
+      isDowngraded = true;
+    }
+  }
+
+  recordTwoTierMetric({
+    tier: effectiveTier,
+    isCached: false,
+    isDowngraded,
+    promptTokens: countPromptChars(messages) / 4,
+  });
+
+
+  // Map effective tier to router options
+  const effectiveOptions: CallAIOptions = {
+    ...options,
+    model: effectiveTier === "tier_flagship" ? "ai-assistant-pro" : (options.model || "ai-assistant"),
+  };
+
   // Check dedup cache (unless tools or streaming are requested)
-  if (!options.tools?.length) {
-    const cacheKey = getRouterCacheKey(messages, options);
+  if (!effectiveOptions.tools?.length) {
+    const cacheKey = getRouterCacheKey(messages, effectiveOptions);
     const cached = routerDedupCache.get(cacheKey);
     if (cached && cached.expiresAt > Date.now()) {
       return cached.result;
@@ -218,7 +273,7 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
   }
 
   const entries = await getEnabledAIKeyEntries();
-  const orderedEntries = orderEntriesByPolicy(entries, options);
+  const orderedEntries = orderEntriesByPolicy(entries, effectiveOptions);
   const errors: string[] = [];
   const skipped: string[] = [];
   const promptChars = countPromptChars(messages);
@@ -231,14 +286,28 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
     }
     const started = Date.now();
     try {
-      const result = await callProvider(entry, messages, options);
+      const result = await callProvider(entry, messages, effectiveOptions);
       onCircuitSuccess(circuitKey);
       await setAIKeyStatus(entry.id, "ok");
       await logEntry(entry, "call", "ok", started, result.modelUsed || entry.model, promptChars, result.content.length);
-      const callResult: CallAIResult = { content: result.content, modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`, raw: result.raw, toolCalls: result.toolCalls || [] };
-      if (!options.tools?.length) {
-        const cacheKey = getRouterCacheKey(messages, options);
+      const callResult: CallAIResult = {
+        content: result.content,
+        modelUsed: `${entry.provider}/${result.modelUsed || entry.model || "default"}`,
+        raw: result.raw,
+        toolCalls: result.toolCalls || [],
+        tierUsed: effectiveTier,
+        classificationReason: classification?.reasoning,
+        isCached: false,
+      };
+
+      if (!effectiveOptions.tools?.length) {
+        const cacheKey = getRouterCacheKey(messages, effectiveOptions);
         routerDedupCache.set(cacheKey, { result: callResult, expiresAt: Date.now() + ROUTER_CACHE_TTL_MS });
+        setCachedAIResponse(promptHash, {
+          content: result.content,
+          modelUsed: callResult.modelUsed || "default",
+          tokenUsage: { inputTokens: Math.ceil(promptChars / 4), outputTokens: Math.ceil(result.content.length / 4) },
+        });
       }
       return callResult;
     } catch (err: any) {
@@ -253,16 +322,26 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
   if (entries.length === 0) {
     const started = Date.now();
     try {
-      const result = await callLiteLLMProxy(messages, options);
+      const result = await callLiteLLMProxy(messages, effectiveOptions);
       await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: result.modelUsed, mode: "call", status: "ok", latencyMs: Date.now() - started, promptChars, outputChars: result.content.length });
-      if (!options.tools?.length) {
-        const cacheKey = getRouterCacheKey(messages, options);
-        routerDedupCache.set(cacheKey, { result, expiresAt: Date.now() + ROUTER_CACHE_TTL_MS });
+      const proxyResult: CallAIResult = {
+        ...result,
+        tierUsed: effectiveTier,
+        classificationReason: classification?.reasoning,
+        isCached: false,
+      };
+      if (!effectiveOptions.tools?.length) {
+        const cacheKey = getRouterCacheKey(messages, effectiveOptions);
+        routerDedupCache.set(cacheKey, { result: proxyResult, expiresAt: Date.now() + ROUTER_CACHE_TTL_MS });
+        setCachedAIResponse(promptHash, {
+          content: result.content,
+          modelUsed: result.modelUsed || "litellm-proxy",
+        });
       }
-      return result;
+      return proxyResult;
     } catch (err: any) {
       const isQuota = isQuotaLikeError(err);
-      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: options.model, mode: "call", status: isQuota ? "quota" : "error", latencyMs: Date.now() - started, promptChars, outputChars: 0, error: err.message || String(err) });
+      await appendAIUsageLog({ provider: "litellm-proxy", label: DEFAULT_PROXY_URL, model: effectiveOptions.model, mode: "call", status: isQuota ? "quota" : "error", latencyMs: Date.now() - started, promptChars, outputChars: 0, error: err.message || String(err) });
       errors.push(`litellm-proxy -> ${err.message || err}`);
     }
   }
@@ -270,6 +349,7 @@ export async function callAIWithFallback(messages: ChatMessage[], options: CallA
   const allErrors = [...errors, ...skipped.map(s => `[skipped] ${s}`)];
   throw new ProviderError(`Không còn provider/key AI khả dụng. Chi tiết: ${allErrors.join(" | ") || "Chưa cấu hình key AI."}`, 429, { errors, skipped });
 }
+
 
 export async function* streamAIWithFallback(messages: ChatMessage[], options: CallAIOptions = {}): AsyncGenerator<string, void, unknown> {
   const entries = await getEnabledAIKeyEntries();
@@ -386,6 +466,7 @@ async function callProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[],
   if (entry.provider === "gemini") return callGemini(entry, messages, options);
   if (entry.provider === "openai") return callOpenAICompatible(entry, messages, options, "https://api.openai.com/v1/chat/completions");
   if (entry.provider === "deepseek") return callOpenAICompatible(entry, messages, options, "https://api.deepseek.com/chat/completions");
+  if (entry.provider === "bytedance") return callOpenAICompatible(entry, messages, options, "https://ark.cn-beijing.volces.com/api/v3/chat/completions");
   if (entry.provider === "groq") return callOpenAICompatible(entry, messages, options, "https://api.groq.com/openai/v1/chat/completions");
   if (entry.provider === "openrouter") return callOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return callAnthropic(entry, messages, options);
@@ -400,6 +481,7 @@ function streamProvider(entry: DecryptedAIKeyEntry, messages: ChatMessage[], opt
   if (entry.provider === "gemini") return streamGemini(entry, messages, options);
   if (entry.provider === "openai") return streamOpenAICompatible(entry, messages, options, "https://api.openai.com/v1/chat/completions");
   if (entry.provider === "deepseek") return streamOpenAICompatible(entry, messages, options, "https://api.deepseek.com/chat/completions");
+  if (entry.provider === "bytedance") return streamOpenAICompatible(entry, messages, options, "https://ark.cn-beijing.volces.com/api/v3/chat/completions");
   if (entry.provider === "groq") return streamOpenAICompatible(entry, messages, options, "https://api.groq.com/openai/v1/chat/completions");
   if (entry.provider === "openrouter") return streamOpenAICompatible(entry, messages, options, "https://openrouter.ai/api/v1/chat/completions", { "HTTP-Referer": "http://localhost:3000", "X-Title": "LedgerFlow Studio" });
   if (entry.provider === "anthropic") return streamAnthropic(entry, messages, options);
@@ -458,22 +540,57 @@ async function* streamOpenAICompatible(entry: DecryptedAIKeyEntry, messages: Cha
 async function callAnthropic(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): Promise<ProviderCallResult> {
   if (!entry.apiKey) throw new ProviderError("Anthropic API key is empty.", 401, undefined, "anthropic");
   const model = entry.model || resolveDefaultModel(entry.provider, options.model);
-  const response = await fetch(entry.baseUrl || "https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": entry.apiKey, "anthropic-version": "2023-06-01" }, body: JSON.stringify(buildAnthropicRequest(messages, options, model, false)) });
+  const response = await fetch(entry.baseUrl || "https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": entry.apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "prompt-caching-2024-07-31"
+    },
+    body: JSON.stringify(buildAnthropicRequest(messages, options, model, false))
+  });
   const data = await readJson(response); if (!response.ok) throw providerHttpError("anthropic", response.status, data);
   return { content: Array.isArray(data?.content) ? data.content.map((p: any) => p.text || "").join("") : "", modelUsed: data?.model || model, raw: data, toolCalls: parseAnthropicToolCalls(data) };
 }
 async function* streamAnthropic(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): AsyncGenerator<string, void, unknown> {
   if (!entry.apiKey) throw new ProviderError("Anthropic API key is empty.", 401, undefined, "anthropic");
   const model = entry.model || resolveDefaultModel(entry.provider, options.model);
-  const response = await fetch(entry.baseUrl || "https://api.anthropic.com/v1/messages", { method: "POST", headers: { "Content-Type": "application/json", "x-api-key": entry.apiKey, "anthropic-version": "2023-06-01" }, body: JSON.stringify(buildAnthropicRequest(messages, options, model, true)) });
+  const response = await fetch(entry.baseUrl || "https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": entry.apiKey,
+      "anthropic-version": "2023-06-01",
+      "anthropic-beta": "prompt-caching-2024-07-31"
+    },
+    body: JSON.stringify(buildAnthropicRequest(messages, options, model, true))
+  });
   if (!response.ok || !response.body) throw providerHttpError("anthropic", response.status, await readJson(response));
   for await (const event of parseSSE(response)) { if (event?.type === "content_block_delta" && event.delta?.text) yield event.delta.text; }
 }
 function buildAnthropicRequest(messages: ChatMessage[], options: CallAIOptions, model: string, stream: boolean): Record<string, unknown> {
-  const system = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n") || undefined;
+  const rawSystem = messages.filter(m => m.role === "system").map(m => m.content).join("\n\n");
+  let system: unknown = undefined;
+  if (rawSystem) {
+    // If system prompt is large (>1000 chars), enable ephemeral prompt caching
+    if (rawSystem.length > 1000) {
+      system = [
+        {
+          type: "text",
+          text: rawSystem,
+          cache_control: { type: "ephemeral" }
+        }
+      ];
+    } else {
+      system = rawSystem;
+    }
+  }
+
   const anthropicMessages = messages.filter(m => m.role !== "system").map(m => ({ role: m.role === "assistant" ? "assistant" : "user", content: m.content }));
   return { model, system, messages: anthropicMessages, temperature: options.temperature ?? 0.7, max_tokens: options.maxTokens ?? 1024, stream, tools: options.tools?.length ? toAnthropicTools(options.tools) : undefined, tool_choice: options.tools?.length ? toAnthropicToolChoice(options.toolChoice) : undefined };
 }
+
 
 async function callOllama(entry: DecryptedAIKeyEntry, messages: ChatMessage[], options: CallAIOptions): Promise<ProviderCallResult> {
   const model = entry.model || resolveDefaultModel(entry.provider, options.model);
@@ -622,6 +739,9 @@ function resolveDefaultModel(provider: AIProviderName, requested?: CallAIOptions
   if (provider === "gemini") return pro ? "gemini-2.5-pro" : "gemini-2.5-flash";
   if (provider === "openai") return pro ? "gpt-4o" : "gpt-4o-mini";
   if (provider === "deepseek") return pro ? "deepseek-reasoner" : "deepseek-chat";
+  if (provider === "bytedance") {
+    return "doubao-lite-32k"; // Default: lite for speed, vision for multimedia
+  }
   if (provider === "groq") return pro ? "llama-3.3-70b-versatile" : "llama-3.1-8b-instant";
   if (provider === "openrouter") return pro ? "meta-llama/llama-3.1-70b-instruct:free" : "meta-llama/llama-3.1-8b-instruct:free";
   if (provider === "anthropic") return pro ? "claude-3-7-sonnet" : "claude-3-5-haiku-latest";

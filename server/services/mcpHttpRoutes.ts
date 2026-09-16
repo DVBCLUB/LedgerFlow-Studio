@@ -123,4 +123,57 @@ export function registerMCPHttpRoutes(app: Express) {
     }).catch(() => undefined);
     return res.status(result.ok ? 200 : 400).json({ success: result.ok, result });
   });
+
+  // ═══════════════════════════════════════════════════════════
+  // GLACIA NATIVE MCP SERVER ENDPOINTS (JSON-RPC 2.0 / MCP SPEC)
+  // ═══════════════════════════════════════════════════════════
+
+  // GET /api/mcp/glacia/manifest — MCP Server Manifest
+  app.get('/api/mcp/glacia/manifest', async (_req: Request, res: Response) => {
+    try {
+      const { getGlaciaMcpManifest } = await import('./glaciaMcpNativeServer.ts');
+      res.json(getGlaciaMcpManifest());
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // GET /api/mcp/glacia/tools — Danh sách công cụ
+  app.get('/api/mcp/glacia/tools', async (_req: Request, res: Response) => {
+    try {
+      const { getGlaciaMcpManifest } = await import('./glaciaMcpNativeServer.ts');
+      const manifest = getGlaciaMcpManifest();
+      res.json({ success: true, tools: manifest.tools });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // POST /api/mcp/glacia/rpc — MCP Standard JSON-RPC 2.0 Endpoint
+  app.post('/api/mcp/glacia/rpc', async (req: Request, res: Response) => {
+    try {
+      const { handleGlaciaMcpJsonRpc } = await import('./glaciaMcpNativeServer.ts');
+      const rpcResponse = await handleGlaciaMcpJsonRpc(req.body);
+      res.json(rpcResponse);
+    } catch (err: any) {
+      res.status(500).json({
+        jsonrpc: '2.0',
+        id: req.body?.id ?? null,
+        error: { code: -32603, message: err.message },
+      });
+    }
+  });
+
+  // POST /api/mcp/glacia/tools/execute — Thực thi trực tiếp Tool từ UI
+  app.post('/api/mcp/glacia/tools/execute', async (req: Request, res: Response) => {
+    try {
+      const { executeGlaciaMcpTool } = await import('./glaciaMcpNativeServer.ts');
+      const { name, args } = req.body || {};
+      if (!name) return res.status(400).json({ success: false, error: 'tool name is required' });
+      const result = await executeGlaciaMcpTool(name, args || {});
+      res.json({ success: true, result });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
 }

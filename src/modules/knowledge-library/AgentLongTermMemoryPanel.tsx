@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Database, Search, Save, Sparkles, CheckCircle2, BookmarkCheck, ArrowRight } from 'lucide-react';
 import { searchAgentMemory, saveAgentMemory, LessonLearned } from '../../utils/knowledgeIntegrationsApi';
 
 export default function AgentLongTermMemoryPanel() {
@@ -25,32 +26,107 @@ export default function AgentLongTermMemoryPanel() {
   };
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#1e1b4b22,#3730a322)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #3730a344' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🧠 Agent Long-Term Memory & Lesson Bank</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Bộ nhớ dài hạn cho AI Agents · Củng cố bài học · Suy giảm trí nhớ theo thời gian (decay factor)</p>
-      </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155', display: 'flex', gap: '0.75rem' }}>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearch()} placeholder="Tìm kiếm bài học..." style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem' }} />
-        <button onClick={handleSearch} style={{ background: '#3730a3', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>🔍 Tìm</button>
-        <button onClick={handleSave} disabled={saving} style={{ background: '#059669', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>
-          {saving ? 'Đang lưu...' : '💾 Lưu bài học'}
-        </button>
-      </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📚 Bài học đã ghi nhớ ({results.length})</div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {results.map((l) => (
-            <div key={l.id} style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontWeight: 700, color: '#e2e8f0' }}>{l.topic}</span>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>confidence {l.confidence} · {l.category}</span>
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <Database className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Bộ Nhớ Dài Hạn &amp; Ngân Hàng Bài Học Cho Agent (Long-Term Memory)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Agent Memory Bank
+                </span>
               </div>
-              <div style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>{l.insight}</div>
-              <div style={{ fontSize: '0.8rem', color: '#38bdf8' }}>→ {l.recommendedAction}</div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Bộ nhớ dài hạn cho AI Agents · Củng cố bài học thực tiễn · Suy giảm trí nhớ theo thời gian (Decay Factor).
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {results.length} Bài Học Lưu Trữ
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Query Search & Save Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl flex flex-col sm:flex-row items-center gap-3">
+        <div className="relative flex-1 w-full">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+            placeholder="Tìm kiếm bài học trong bộ nhớ dài hạn..."
+            className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <button
+            type="button"
+            onClick={handleSearch}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-black text-xs transition-all shadow-lg cursor-pointer whitespace-nowrap bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-indigo-500/20"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Tìm Kiếm</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={saving}
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl font-black text-xs transition-all shadow-lg cursor-pointer whitespace-nowrap bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white shadow-emerald-500/20 disabled:opacity-50"
+          >
+            <Save className="w-3.5 h-3.5" />
+            <span>{saving ? 'Đang lưu...' : '💾 Lưu Bài Học Mới'}</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Results List Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <BookmarkCheck className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+              Danh Mục Bài Học Đã Ghi Nhớ ({results.length})
+            </h2>
+          </div>
+        </div>
+
+        <div className="divide-y divide-slate-800/60">
+          {results.map((l) => (
+            <div key={l.id} className="p-5 hover:bg-slate-800/20 transition-colors space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <span className="font-black text-sm text-white">{l.topic}</span>
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                    {l.category}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-xl text-[10px] font-bold font-mono bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+                    conf {l.confidence}
+                  </span>
+                </div>
+              </div>
+              <p className="text-xs text-slate-300">{l.insight}</p>
+              <div className="flex items-center gap-1.5 text-xs text-sky-400 font-medium">
+                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                <span>Hành động khuyến nghị: {l.recommendedAction}</span>
+              </div>
             </div>
           ))}
-          {!results.length && <div style={{ padding: '1.5rem', color: '#64748b', textAlign: 'center' }}>Chưa có bài học nào.</div>}
+          {!results.length && (
+            <div className="p-8 text-center text-xs text-slate-500 font-medium">
+              Chưa có bài học nào được lưu trong ngân hàng bộ nhớ.
+            </div>
+          )}
         </div>
       </div>
     </div>

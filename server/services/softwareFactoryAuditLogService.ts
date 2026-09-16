@@ -1,4 +1,4 @@
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 
 export type SoftwareFactoryAuditLevel = "info" | "success" | "warning" | "error";
 export type SoftwareFactoryAuditArea = "run" | "execution" | "provider" | "asset" | "release" | "command" | "git" | "system";

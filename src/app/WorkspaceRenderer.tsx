@@ -60,6 +60,7 @@ import {
   Camera,
 } from 'lucide-react';
 import { TabType, RoleType } from './companyNavigation';
+import { SUB_TABS_CONFIG, SEGMENT_CORE_IDS, classifySubtabTier, type WorkspaceSubtab, type WorkspaceSubtabTier } from './workspaceSubtabConfig';
 import { resolveWorkspaceSubTab } from './workspaceSubtabAliases';
 import WorkspaceSubNavigation from '../components/shared/WorkspaceSubNavigation';
 import SimplePanelCard from '../components/shared/SimplePanelCard';
@@ -75,6 +76,10 @@ const ProjectPortfolioPanel = React.lazy(() => import('../components/operations/
 const IndustryTemplatePanel = React.lazy(() => import('../components/operations/IndustryTemplatePanel'));
 const ProcurementLogisticsPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.ProcurementLogisticsPanel })));
 const HRAdminPanel = React.lazy(() => import('../components/operations/OperationsPanels').then((module) => ({ default: module.HRAdminPanel })));
+const UnifiedActivityStreamPanel = React.lazy(() => import('../modules/command-center/components/UnifiedActivityStreamPanel'));
+const DepartmentHealthPanel = React.lazy(() => import('../modules/command-center/components/DepartmentHealthPanel'));
+const CompanyCalendarPanel = React.lazy(() => import('../modules/command-center/components/CompanyCalendarPanel'));
+const FounderControlPanel = React.lazy(() => import('../modules/command-center/FounderControlPanel'));
 
 const {
   LedgerAccountingWorkspace,
@@ -218,6 +223,7 @@ const DistributionLeadBoard = React.lazy(() => import('../modules/sales-crm/comp
 const PricingOfferBuilder = React.lazy(() => import('../modules/sales-crm/components/PricingOfferBuilder'));
 const AccountingVietnam = React.lazy(() => import('../modules/finance-accounting/AccountingVietnam'));
 const CostDashboard = React.lazy(() => import('../modules/ai-nhan-su/ai-assistant/CostDashboard'));
+const FreeToolRobotPanel = React.lazy(() => import('../modules/ai-nhan-su/components/FreeToolRobotPanel'));
 const ProductLaunchChecklist = React.lazy(() => import('../modules/marketing-growth/components/ProductLaunchChecklist'));
 const AIWorkforceCommandCenter = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceCommandCenter'));
 const AIWorkforceMissionControl = React.lazy(() => import('../modules/ai-nhan-su/AIWorkforceMissionControl'));
@@ -250,6 +256,11 @@ const FinancialIncidentPlaybookPanel = React.lazy(() => import('../modules/finan
 const BusinessAbTestingPanel = React.lazy(() => import('../modules/analytics-models-sandbox/BusinessAbTestingPanel'));
 const PluginMarketplacePanel = React.lazy(() => import('../modules/system-settings/PluginMarketplacePanel'));
 const ConstitutionalConsensusBoardPanel = React.lazy(() => import('../modules/command-center/ConstitutionalConsensusBoardPanel'));
+const CEOCommandCenter = React.lazy(() => import('../components/command/CEOCommandCenter'));
+const BlockersDashboard = React.lazy(() => import('../components/operations/BlockersDashboard'));
+const DailyBlockersPanel = React.lazy(() => import('../components/operations/DailyBlockersPanel'));
+const BudgetGovernorPanel = React.lazy(() => import('../components/control/BudgetGovernorPanel'));
+const EmergencyKillSwitchPanel = React.lazy(() => import('../components/control/EmergencyKillSwitchPanel'));
 const SelfHealingInfraPanel = React.lazy(() => import('../modules/system-settings/SelfHealingInfraPanel'));
 const VirtualBranchManagerPanel = React.lazy(() => import('../modules/command-center/VirtualBranchManagerPanel'));
 const AutonomousSelfMutationPanel = React.lazy(() => import('../modules/system-settings/AutonomousSelfMutationPanel'));
@@ -380,7 +391,6 @@ const FigmaCodeBridgePanel = React.lazy(() => import('../modules/system-settings
 
 
 type Tone = 'slate' | 'cyan' | 'emerald' | 'amber' | 'rose' | 'violet';
-type WorkspaceSubtab = { id: string; label: string; icon?: LucideIcon };
 type CardConfig = {
   eyebrow: string;
   title: string;
@@ -397,211 +407,6 @@ type StaticWorkspaceConfig = {
   compactNoticeOn?: string;
 };
 
-const SUB_TABS_CONFIG: Record<string, readonly WorkspaceSubtab[]> = {
-  ceo_command: [
-    { id: 'overview', label: 'Tổng quan hôm nay', icon: Briefcase },
-    { id: 'today', label: 'Việc cần quyết định', icon: Activity },
-    { id: 'autonomous_command', label: 'Autonomous Command', icon: Bot },
-    { id: 'standup_rhythm', label: 'Founder Rhythm', icon: ClipboardList },
-    { id: 'boardroom', label: '⚖️ Hội Đồng Biểu Quyết', icon: Scale },
-    { id: 'branches', label: '🏢 Chi Nhánh & Franchise', icon: GitBranch },
-    { id: 'second_brain', label: '🧠 Founder Second-Brain', icon: Sparkles },
-    { id: 'advisory_council', label: '🏛️ Hội Đồng Cố Vấn Chiến Lược', icon: Users2 },
-    { id: 'mobile_dashboard', label: '📱 CEO Mobile Dashboard', icon: Activity },
-    { id: 'voice_command', label: '🎤 Voice Command Center', icon: Mic },
-    { id: 'board_deck', label: '📊 AI Board Deck & Investor Memo', icon: BarChart3 },
-    { id: 'okr_engine', label: '🎯 Autonomous OKR & Strategic Execution', icon: Target },
-    { id: 'spatial_boardroom', label: '🕶️ Spatial 3D Boardroom VR', icon: Sparkles },
-    { id: 'singularity', label: '👑 The Sentient Singularity (100)', icon: Sparkles },
-    { id: 'earphone_audio', label: '🎧 Executive Earphone Briefing (117)', icon: Headphones },
-    { id: 'company_cloner', label: '🏢 Company-in-a-Box Cloner (121)', icon: Building2 },
-    { id: 'escalation_center', label: '🚨 Trung Tâm Leo Thang Sự Cố', icon: ShieldAlert },
-  ],
-  knowledge_library: [
-    { id: 'library', label: 'Kho tri thức Gốc & SOP', icon: BookOpen },
-    { id: 'rag_simulator', label: 'RAG Sandbox & Live Chat', icon: Database },
-    { id: 'operating_layer', label: 'Operating Layer & Case Bank', icon: Network },
-    { id: 'inter_agent_protocol', label: '💬 Inter-Agent Chat', icon: UsersRound },
-    { id: 'swarm_orchestrator', label: '🤖 Swarm Relay & Robot Node', icon: Bot },
-    { id: 'auto_harvest', label: '🧠 Thu Hoạch Tri Thức Tự Học', icon: Sparkles },
-    { id: 'semantic_search', label: '🔍 Semantic RAG Search 2.0', icon: Search },
-    { id: 'market_localization', label: '🌐 Bản Địa Hóa i18n & Đa Ngôn Ngữ', icon: Globe2 },
-    { id: 'success_academy', label: '🎓 Học Viện Khách Hàng AI Academy', icon: GraduationCap },
-    { id: 'knowledge_graph', label: '🧠 Đồ Thị Tri Thức Graph Mesh', icon: Network },
-    { id: 'notion_obsidian', label: '🧠 Notion & Obsidian Bridge (118)', icon: BookOpen },
-    { id: 'agent_memory', label: '🧠 Bộ Nhớ Dài Hạn AI Agent', icon: Database },
-    { id: 'knowledge_rag', label: '🔎 Knowledge RAG Pipeline', icon: Search },
-    { id: 'continuous_learning', label: '🧠 Continuous Learning Engine', icon: Sparkles },
-    { id: 'search_grounding', label: '🌐 Search Grounding & Dẫn Nguồn', icon: Globe2 },
-  ],
-  product_studio: [
-    { id: 'portfolio', label: '🗺️ Lộ trình SaaS & Product Roadmap', icon: FolderKanban },
-    { id: 'ideation', label: '💡 Studio Ý tưởng & AI Feasibility', icon: Lightbulb },
-    { id: 'games_ml', label: '🎮 Studio Game & ML Workbench', icon: Gamepad2 },
-    { id: 'game_builder', label: '🛠️ Game Studio Builder', icon: Sparkles },
-    { id: 'game_assets', label: '🎨 Xưởng Tài Sản Game AI (5-in-1)', icon: Sparkles },
-    { id: 'smoke_test', label: '🧪 Vaporware & Smoke Test Lab', icon: TestTubeDiagonal },
-    { id: 'entitlements', label: '📦 Feature Flags & Gating SaaS', icon: Award },
-    { id: 'b2b_marketplace', label: '🛒 B2B App & Module Marketplace', icon: FolderKanban },
-    { id: 'asset_foundry', label: '🏭 Asset Foundry (ADF)', icon: Sparkles },
-    { id: 'zero_touch', label: '🔁 Zero-Touch Product-to-Revenue Loop', icon: Rocket },
-    { id: 'auto_launch', label: '🚀 1-Click Auto Launch Pipeline (103)', icon: Rocket },
-    { id: 'synergy_bus', label: '⚡ Cross-Asset Synergy Bus (104)', icon: Sparkles },
-    { id: 'game_qa', label: '🎮 Game QA & Bug Density (108)', icon: Gamepad2 },
-    { id: 'mobile_publish', label: '📱 Mobile Store Publish (110)', icon: Smartphone },
-    { id: 'game_store', label: '🎮 Steam & Itch.io Store (111)', icon: Gamepad2 },
-    { id: 'pmf_heatmap', label: '📊 Continuous PMF Heatmap (115)', icon: BarChart3 },
-  ],
-  marketing_growth: [
-    { id: 'campaigns', label: '🚀 1. Chiến Dịch & Phễu Chuyển Đổi', icon: Rocket },
-    { id: 'content', label: '✍️ 2. Nội Dung & SEO AI', icon: Mail },
-    { id: 'video_studio', label: '🎬 3. Studio Video & Xuất Bản', icon: Film },
-    { id: 'competitor_radar', label: '📡 4. Radar Đối Thủ & Battle Cards', icon: Target },
-    { id: 'social_swarm', label: '🎬 5. Video Ngắn & Social Swarm', icon: Video },
-    { id: 'seo', label: '🌐 6. SEO Topical Authority & Schema', icon: Globe2 },
-    { id: 'brand_radar', label: '📡 7. Uy Tín Thương Hiệu & PR Radar', icon: Radio },
-    { id: 'marketing_bot', label: '📡 8. Telegram & WhatsApp Broadcast', icon: Radio },
-    { id: 'video_production', label: '🎬 9. Video Studio 9:16 & Auto-Publish', icon: Film },
-    { id: 'hyper_personalization', label: '🎪 10. Hyper-Personalization 1-to-1', icon: Mail },
-    { id: 'war_room', label: '🔬 11. War Room Đối Thủ & Intel', icon: Target },
-    { id: 'demand_scanner', label: '📡 12. Quét Nhu Cầu Radar (101)', icon: Radio },
-    { id: 'vmaf_video', label: '🎬 13. Netflix VMAF Quality (109)', icon: Film },
-  ],
-  sales_crm: [
-    { id: 'live_pipeline', label: '🚀 Pipeline Live & AI Proposal', icon: Target },
-    { id: 'revenue_flywheel', label: '⚡ Revenue Flywheel & Upsell', icon: TrendingUp },
-    { id: 'funnel_lab', label: '🎯 Phễu Khách Hàng & Lead Scoring', icon: Target },
-    { id: 'pricing_ltv', label: '💰 Báo Giá, Gói Đăng Ký & LTV', icon: BarChart3 },
-    { id: 'referral_nps', label: '🤝 Đại Lý, Affiliate & NPS', icon: UsersRound },
-    { id: 'support', label: '🎧 CSKH Tự Động & Hỗ Trợ 24/7', icon: UsersRound },
-    { id: 'customer_health', label: '❤️ Điểm Sức Khỏe & Churn Risk', icon: HeartPulse },
-    { id: 'helpdesk', label: '📞 Tổng Đài Thoại AI & Zalo OA', icon: PhoneCall },
-    { id: 'affiliate_commission', label: '🤝 Đại Lý & Hoa Hồng 15%', icon: UsersRound },
-    { id: 'voice_sentiment', label: '❤️ NPS, CSAT & Cảm Xúc Giọng Nói', icon: Smile },
-    { id: 'loyalty_gamification', label: '🏆 Gamification & Điểm Thưởng Viral', icon: Award },
-    { id: 'plg_conversion', label: '🚀 PLG Conversion & Upsell Trigger', icon: TrendingUp },
-    { id: 'customer_dna', label: '🧬 Customer DNA Profiling 360°', icon: Sparkles },
-    { id: 'partner_reseller', label: '🤝 Đại Lý & Đối Tác Bán Lại', icon: UsersRound },
-    { id: 'pricing_optimization', label: '🧪 Tối Ưu Hóa Giá & Độ Co Giãn', icon: BarChart3 },
-    { id: 'voice_bridge', label: '🎙️ Đàm Thoại Song Ngữ Quốc Tế', icon: PhoneCall },
-    { id: 'vc_matcher', label: '💰 AI Pitch Deck & VC Matcher (122)', icon: DollarSign },
-  ],
-  finance_accounting: [
-    { id: 'cashflow', label: '📈 1. Doanh Thu, Dòng Tiền & VietQR', icon: TrendingUp },
-    { id: 'cashflow_forecast', label: '🔮 2. Dự Báo Dòng Tiền & Runway', icon: TrendingUp },
-    { id: 'ledger', label: '📊 3. Sổ Cái & Báo Cáo VAS 200/133', icon: Database },
-    { id: 'tax_simulator', label: '🛡️ 4. Quản Trị Thuế & Duyệt Chi Phí', icon: ShieldCheck },
-    { id: 'incidents', label: '🚨 5. Sự Cố & Playbook Khẩn Cấp', icon: ShieldAlert },
-    { id: 'global_adapter', label: '🌐 6. Chuẩn Kép IFRS / VAS & Đa Ngoại Tệ', icon: Globe2 },
-    { id: 'tax_shield', label: '🛡️ 7. Thẩm Tra & Khiên Thuế TT80', icon: ShieldCheck },
-    { id: 'vendor_settlement', label: '📦 8. Đối Soát Nhà Cung Cấp 3-Way', icon: Truck },
-    { id: 'investors', label: '💼 9. Quan Hệ Nhà Đầu Tư & Cap Table', icon: UsersRound },
-    { id: 'treasury', label: '🏦 10. Kho Bạc & Quét Lãi Suất 5.2%', icon: Landmark },
-    { id: 'ma_valuation', label: '💼 11. M&A Pipeline & Định Giá', icon: Briefcase },
-    { id: 'cross_border_vat', label: '🌐 12. Thuế Xuyên Biên Giới Reverse Charge', icon: Globe2 },
-    { id: 'esg_carbon', label: '🌱 13. Kế Toán Carbon & ESG Net-Zero', icon: Leaf },
-    { id: 'crypto_treasury', label: '🪙 14. Kho Bạc Crypto & Web3 Settlement', icon: Coins },
-    { id: 'subscription_billing', label: '💳 15. Subscription Billing & Dunning', icon: CreditCard },
-    { id: 'revenue_recognition', label: '💰 16. Phân Bổ Doanh Thu IFRS 15 / ASC 606', icon: BarChart3 },
-    { id: 'credit_scoring', label: '🏦 17. Chấm Điểm Tín Dụng & Vốn Lưu Động', icon: Landmark },
-    { id: 'carbon_offset', label: '🌍 18. Sàn Tín Chỉ Carbon & ESG Net-Zero', icon: Leaf },
-    { id: 'vdr_room', label: '💼 19. Phòng Dữ Liệu Ảo VDR Series A', icon: Briefcase },
-    { id: 'iot_scale', label: '📡 20. Cân Điện Tử & Cổng RFID Kho', icon: Activity },
-    { id: 'transfer_pricing', label: '🌐 21. Thuế Chuyển Giá & DTAA', icon: Globe2 },
-    { id: 'drone_lidar', label: '🚁 22. Drone LiDAR Kiểm Kê Bãi', icon: Activity },
-    { id: 'zk_audit', label: '🛡️ 23. Kiểm Toán Bảo Mật zk-SNARKs', icon: ShieldCheck },
-    { id: 'yield_sweep', label: '⚡ 24. Quét Lãi Suất Nhàn Rỗi Qua Đêm', icon: Landmark },
-    { id: 'smart_escrow', label: '📜 25. Smart Contract Escrow EVM', icon: Coins },
-    { id: 'capital_allocation', label: '🧮 26. Phân Bổ Vốn Tự Trị (DSGE + CCC)', icon: Coins },
-    { id: 'revenue_orchestrator', label: '🔁 27. Điều Phối Doanh Thu Tự Trị (102)', icon: TrendingUp },
-  ],
-  projects_delivery: [
-    { id: 'portfolio', label: 'Danh mục dự án', icon: FolderKanban },
-    { id: 'industry_templates', label: 'Mẫu ngành', icon: Database },
-    { id: 'admin_ops', label: 'Admin Ops', icon: UsersRound },
-  ],
-  documents_approval: [
-    { id: 'approvals', label: 'Luồng phê duyệt', icon: CheckCircle },
-    { id: 'audit', label: 'Kiểm soát hồ sơ', icon: ShieldCheck },
-    { id: 'evidence', label: 'Audit trail', icon: FileCheck2 },
-    { id: 'clm', label: '📑 Hợp Đồng & AI Redline (CLM)', icon: FileText },
-  ],
-  ai_factory: [
-    { id: 'autonomous_flywheel', label: '🚀 Vòng Lặp Tự Vận Hành', icon: Zap },
-    { id: 'nexus_cockpit', label: '⚡ AI-Robot Nexus & Studio', icon: Activity },
-    { id: 'command', label: '🤖 Trợ lý CEO & Đội ngũ AI', icon: Bot },
-    { id: 'apprentice_lab', label: '🎓 Học Việc Local AI & Mẫu Vàng', icon: GraduationCap },
-    { id: 'automation', label: '🦾 Robot Tự Động Hóa & DOM Vision', icon: Activity },
-    { id: 'governance', label: '🛡️ Quản Trị, Chat Liên AI & Giám Sát', icon: ShieldCheck },
-    { id: 'recruiting', label: '🧑‍💼 Tuyển Dụng & Đánh Giá Ứng Viên', icon: UserCheck },
-    { id: 'ai_bonus', label: '🏆 Quỹ Thưởng & ESOP Hiệu Suất AI', icon: Award },
-    { id: 'revenue_sharing', label: '🤖 Chia Sẻ Doanh Thu AI Creator 70/30', icon: Coins },
-    { id: 'genetic_prompts', label: '🧬 Đột Biến Prompt Di Truyền', icon: Sparkles },
-    { id: 'agent_consensus', label: '🗳️ Multi-Agent BFT Consensus (114)', icon: UsersRound },
-    { id: 'gpu_scheduler', label: '🎮 Multi-Factory GPU Scheduler (120)', icon: Cpu },
-  ],
-  analytics: [
-    { id: 'python_sandbox', label: '🧪 1. Python & SQL Sandbox AI', icon: Code },
-    { id: 'ai_sandbox', label: '🤖 2. Gemini Reasoning & Prompt Lab', icon: TestTubeDiagonal },
-    { id: 'simulations', label: '📈 3. Mô Phỏng Doanh Nghiệp & A/B Test', icon: Target },
-    { id: 'predictive_revenue', label: '🔮 4. Dự Báo Doanh Thu 90 Ngày AI', icon: TrendingUp },
-    { id: 'macro_stress', label: '🌪️ 5. Stress Test Kinh Tế Vĩ Mô 10 Năm', icon: Target },
-  ],
-  system_settings: [
-    { id: 'delegation_matrix', label: '⚖️ Phân Quyền & Giải Quyết Xung Đột AI', icon: Scale },
-    { id: 'sop_runbook', label: '📖 Quy Trình Vận Hành (SOP)', icon: BookOpen },
-    { id: 'general', label: 'Hệ thống & Cấu hình', icon: Settings },
-    { id: 'security', label: 'Bảo mật & Phân quyền', icon: ShieldCheck },
-    { id: 'connectors', label: 'Tích hợp & Kết nối', icon: Network },
-    { id: 'dev_ops', label: 'GitOps & Phát hành', icon: Rocket },
-    { id: 'recovery_ops', label: 'Bảo trì & Khôi phục', icon: FileCheck2 },
-    { id: 'ip_guard', label: '📜 Bản Quyền & Cục SHTT', icon: Award },
-    { id: 'edge_cdn', label: '🌍 Global Edge CDN Anycast', icon: Globe2 },
-    { id: 'llm_arbitrage', label: '💰 LLM Cost Arbitrage & Token', icon: Cpu },
-    { id: 'multi_cloud', label: '🌐 Multi-Cloud Mesh & DR RPO < 1s', icon: Cloud },
-    { id: 'soc_threat', label: '🚨 SOC & Săn Lùng Nguy Cơ Zero-Day', icon: ShieldAlert },
-    { id: 'prompt_firewall', label: '🔥 Tường Lửa Prompt & Guardrails', icon: ShieldCheck },
-    { id: 'chaos_engineering', label: '⚡ Diễn Tập Sự Cố & Chaos Engineering', icon: Zap },
-    { id: 'ai_dev_copilot', label: '💻 AI Dev Copilot & AST Refactor Hub', icon: Code },
-    { id: 'db_sharding', label: '🗄️ DB Auto-Sharding & Active Replicas', icon: Database },
-    { id: 'pwa_offline', label: '📶 PWA Offline Sync & Service Worker', icon: Wifi },
-    { id: 'tenant_onboarding', label: '🌐 Multi-Tenant Onboarding Automation', icon: Users2 },
-    { id: 'code_review_pr', label: '🤖 AI Code Review & PR Automation', icon: Code },
-    { id: 'webhook_hub', label: '🔗 Webhook & Integration Hub (Zapier)', icon: Network },
-    { id: 'iac_architect', label: '🏗️ IaC & Cloud Architecture Generator', icon: Rocket },
-    { id: 'agent_red_team', label: '🛡️ AI Agent Red-Teaming & Jailbreak Shield', icon: ShieldCheck },
-    { id: 'contract_intelligence', label: '💼 AI Contract Intelligence & Legal Risk', icon: FileCheck2 },
-    { id: 'privacy_pdpa', label: '🔐 Bảo Mật Dữ Liệu & PDPA/GDPR', icon: ShieldCheck },
-    { id: 'tech_debt', label: '🔭 Nợ Kỹ Thuật & Migration Roadmap', icon: Code },
-    { id: 'no_code_bpa', label: '🔄 Tự Động Hóa Quy Trình No-Code (BPA)', icon: Zap },
-    { id: 'erp_sync', label: '🔄 Đồng Bộ 2 Chiều ERP (MISA, Fast)', icon: Database },
-    { id: 'post_quantum', label: '🛡️ Mã Hóa Hậu Lượng Tử (Kyber)', icon: ShieldCheck },
-    { id: 'patent_drafting', label: '📜 Soạn Thảo Hồ Sơ Sáng Chế AI', icon: FileText },
-    { id: 'satellite_mesh', label: '🛰️ Vệ Tinh Starlink & Mesh Xa Bờ', icon: Globe2 },
-    { id: 'a11y_audit', label: '♿ WCAG 2.2 AA A11y (105)', icon: ShieldCheck },
-    { id: 'web_vitals', label: '⚡ Core Web Vitals (106)', icon: Activity },
-    { id: 'iso_quality', label: '🏆 ISO 25010 Benchmark (107)', icon: Award },
-    { id: 'open_source', label: '📦 Open Source Registry (112)', icon: Package },
-    { id: 'edge_compute', label: '🌐 Edge Compute & Load Balancer (113)', icon: Globe2 },
-    { id: 'api_federation', label: '⚡ GraphQL Federation Gateway (116)', icon: Network },
-    { id: 'telemetry_stream', label: '⚡ Real-Time Telemetry Stream (119)', icon: Activity },
-    { id: 'vision_surveillance', label: '📸 AI Computer Vision Cam (123)', icon: Camera },
-    { id: 'cross_chain_liquidity', label: '🪙 Cross-Chain RWA Yield (124)', icon: Coins },
-    { id: 'circuit_breaker', label: '🔌 Agent Circuit Breaker', icon: Zap },
-    { id: 'code_diff', label: '🔀 AI Code Diff & Refactoring', icon: Code },
-    { id: 'one_click_deploy', label: '🚀 One-Click Deploy Service', icon: Rocket },
-    { id: 'self_healing_doctor', label: '🩺 System Self-Healing Doctor', icon: ShieldCheck },
-    { id: 'cloud_cost', label: '💸 Cloud Cost & Credit Optimizer', icon: Cpu },
-    { id: 'robot_session_guard', label: '🤖 Web Robot Session Guard', icon: Bot },
-    { id: 'media_hybrid', label: '🎬 AI Media Hybrid Connectors', icon: Film },
-    { id: 'figma_bridge', label: '🎨 Figma → React Code Bridge', icon: Sparkles },
-  ],
-  operations: [
-    { id: 'portfolio', label: 'Project Portfolio', icon: FolderKanban },
-    { id: 'industry_templates', label: 'Industry Templates', icon: Database },
-    { id: 'admin_ops', label: 'Admin Ops', icon: UsersRound },
-  ],
-};
 
 const DEFAULT_SUBTAB: Record<string, string> = Object.fromEntries(
   Object.entries(SUB_TABS_CONFIG).map(([key, tabs]) => [key, tabs[0]?.id || 'overview']),
@@ -676,27 +481,29 @@ function LoadingFallback() {
 
 function WorkspaceHero({ title, description, chips = [] }: { title: string; description: string; chips?: string[] }) {
   return (
-    <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-indigo-950/20 p-6 text-left shadow-2xl shadow-black/40 backdrop-blur-xl transition-all">
+    <section className="relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-indigo-950/20 p-4 sm:p-5 text-left shadow-xl shadow-black/30 backdrop-blur-xl transition-all">
       {/* Dual ambient radial glows */}
-      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-gradient-to-br from-indigo-500/15 to-purple-500/0 blur-2xl" />
-      <div className="pointer-events-none absolute -left-16 -bottom-16 h-56 w-56 rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-2xl" />
+      <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br from-indigo-500/15 to-purple-500/0 blur-2xl" />
+      <div className="pointer-events-none absolute -left-16 -bottom-16 h-40 w-40 rounded-full bg-gradient-to-tr from-cyan-500/10 to-transparent blur-2xl" />
       
       <div className="relative z-10">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
-          <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">LedgerFlow OS Enterprise</p>
-        </div>
-        <h1 className="text-2xl font-black tracking-tight text-white">{title}</h1>
-        <p className="mt-2.5 max-w-3xl text-xs font-semibold leading-6 text-slate-300/90">{description}</p>
-        {chips.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {chips.map((chip) => (
-              <span key={chip} className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-indigo-300 shadow-sm transition-transform hover:scale-105">
-                {chip}
-              </span>
-            ))}
+        <div className="flex items-center justify-between gap-2 mb-1.5">
+          <div className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.7)]" />
+            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-cyan-300">LedgerFlow OS Enterprise</p>
           </div>
-        )}
+          {chips.length > 0 && (
+            <div className="hidden sm:flex flex-wrap gap-1.5">
+              {chips.map((chip) => (
+                <span key={chip} className="rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-indigo-300 shadow-sm">
+                  {chip}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+        <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">{title}</h1>
+        <p className="mt-1.5 max-w-3xl text-xs font-semibold leading-relaxed text-slate-300/90">{description}</p>
       </div>
     </section>
   );
@@ -750,6 +557,8 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
   if (subtab === 'earphone_audio' || subtab === 'earphone' || subtab === 'whisper') return <ExecutiveEarphoneAudioBriefingPanel />;
   if (subtab === 'escalation_center' || subtab === 'escalation' || subtab === 'alerting') return <AutonomousEscalationPanel />;
   if (subtab === 'company_cloner' || subtab === 'cloner' || subtab === 'franchising') return <CompanyInABoxClonerPanel />;
+  if (subtab === 'budget_governor' || subtab === 'governor') return <BudgetGovernorPanel />;
+  if (subtab === 'kill_switch' || subtab === 'emergency_stop') return <EmergencyKillSwitchPanel />;
   if (subtab === 'agm_governance' || subtab === 'shareholders' || subtab === 'resolutions') return <AgmGovernancePanel />;
   if (subtab === 'boardroom' || subtab === 'consensus' || subtab === 'delphi') {
     return (
@@ -765,18 +574,38 @@ function CommandCenterWorkspace({ subtab, staticConfig }: { subtab: string; stat
       </div>
     );
   }
-  if (subtab === 'overview') {
+  if (subtab === 'activity_stream' || subtab === 'pulse') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <UnifiedActivityStreamPanel />
+      </div>
+    );
+  }
+  if (subtab === 'dept_health' || subtab === 'health') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <DepartmentHealthPanel />
+      </div>
+    );
+  }
+  if (subtab === 'calendar' || subtab === 'operating_calendar') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <CompanyCalendarPanel />
+      </div>
+    );
+  }
+  if (subtab === 'overview' || subtab === 'today') {
     return (
       <div className="space-y-5">
-        <BusinessHubPanel />
         <CEOOverviewPanel />
-        <WeeklyExecutiveReportPanel />
       </div>
     );
   }
   if (subtab === 'autonomous_command') {
     return (
       <div className="space-y-5">
+        <FounderControlPanel />
         <AiAgentControlCenter />
         <NorthStarMetricBuilder />
         <ExecutiveBoardroomPanel />
@@ -811,7 +640,7 @@ function ProductStudioWorkspace({ subtab, staticConfig }: { subtab: string; stat
   if (subtab === 'game_qa' || subtab === 'bug_density' || subtab === 'playtest') return <GameQaBugDensityPanel />;
   if (subtab === 'mobile_publish' || subtab === 'app_store' || subtab === 'google_play') return <MobileBuildPublishPanel />;
   if (subtab === 'game_store' || subtab === 'steam' || subtab === 'itch_io') return <GameStorePublishPanel />;
-  if (subtab === 'pmf_heatmap' || subtab === 'pmf' || subtab === 'sean_ellis') return <ContinuousPmfHeatmapPanel />;
+  if (subtab === 'continuous_pmf_heatmap' || subtab === 'pmf_heatmap' || subtab === 'pmf' || subtab === 'sean_ellis') return <ContinuousPmfHeatmapPanel />;
   return <StaticWorkspace config={staticConfig} subtab={subtab} />;
 }
 
@@ -1273,7 +1102,6 @@ function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'automation') {
     return (
       <div className="space-y-5 animate-fade-in text-left">
-        <RobotDOMVisionPanel />
         <UniversalProjectRobotDock />
         <AutomationRulesPanel />
       </div>
@@ -1285,12 +1113,23 @@ function AIWorkforceWorkspace({ subtab }: { subtab: string }) {
       <div className="space-y-5 animate-fade-in text-left">
         <WorkflowPanel />
         <AIDispatchPanel />
-        <A2AMailboxPanel />
-        <AgentKernelPanel />
         <InterAgentProtocolPanel />
-        <SwarmRelayOrchestratorPanel />
-        <TelegramBotControlPanel />
-        <AIWorkforceAdvancedWorkspace />
+      </div>
+    );
+  }
+
+  if (subtab === 'cost_dashboard') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <CostDashboard />
+      </div>
+    );
+  }
+
+  if (subtab === 'robot_workflow') {
+    return (
+      <div className="space-y-5 animate-fade-in text-left">
+        <FreeToolRobotPanel />
       </div>
     );
   }
@@ -1466,23 +1305,20 @@ function AnalyticsWorkspace({ subtab }: { subtab: string }) {
       <div className="space-y-5 animate-fade-in text-left">
         <GeminiPlayground />
         <PromptPlayground />
-        <AIEcosystemArchitecture />
-        <LiveThoughtStreamViewer />
       </div>
     );
   }
   if (subtab === 'simulations') return <AnalyticsSimulationsWorkspace />;
   if (subtab === 'predictive_revenue' || subtab === 'revenue_forecast' || subtab === 'arr_monte_carlo') return <PredictiveRevenuePanel />;
   if (subtab === 'macro_stress' || subtab === 'stress_test' || subtab === 'dsge_simulation') return <MacroeconomicStressSimulatorPanel />;
+  if (subtab === 'data_workbench' || subtab === 'data_science') return <AnalyticsDataEngineeringWorkspace />;
+  if (subtab === 'project_memory' || subtab === 'decision_log') return <ProjectMemoryDecisionLog />;
   // python_sandbox is default
   return (
     <div className="space-y-5 animate-fade-in text-left">
       <PythonSandbox />
-      <CustomDataWorkbench />
-      <ProjectMemoryDecisionLog />
-      <Analytics3DLab />
-      <AIObservabilityDashboard />
       <FinancialChartsModelPanel />
+      <ProjectMemoryDecisionLog />
     </div>
   );
 }
@@ -1786,6 +1622,50 @@ function SettingsRecoveryWorkspace() {
   );
 }
 
+function SettingsDevOpsInfrastructureWorkspace() {
+  const [activeGroup, setActiveGroup] = useState<'devops' | 'recovery'>('devops');
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center gap-2 p-2 rounded-2xl bg-slate-950/80 border border-border-primary">
+        <button
+          type="button"
+          onClick={() => setActiveGroup('devops')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'devops'
+              ? 'bg-cyan-500/20 text-cyan-200 border border-cyan-500/40 shadow-sm shadow-cyan-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>⚙️ Dev Ops & CI/CD</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveGroup('recovery')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            activeGroup === 'recovery'
+              ? 'bg-rose-500/20 text-rose-200 border border-rose-500/40 shadow-sm shadow-rose-500/10'
+              : 'text-text-secondary hover:text-text-primary hover:bg-slate-900 border border-transparent'
+          }`}
+        >
+          <span>🔄 Recovery & Rollback</span>
+        </button>
+      </div>
+
+      {activeGroup === 'devops' && (
+        <div className="space-y-5 animate-fade-in">
+          <SettingsDevOpsWorkspace />
+        </div>
+      )}
+      {activeGroup === 'recovery' && (
+        <div className="space-y-5 animate-fade-in">
+          <SettingsRecoveryWorkspace />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SettingsWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'chaos_engineering' || subtab === 'fault_injection' || subtab === 'chaos') return <ChaosEngineeringPanel />;
   if (subtab === 'ai_dev_copilot' || subtab === 'refactor' || subtab === 'ast_copilot') return <AiDevCopilotPanel />;
@@ -1832,15 +1712,22 @@ function SettingsWorkspace({ subtab }: { subtab: string }) {
   if (subtab === 'connectors') return <SettingsConnectorsWorkspace />;
   if (subtab === 'dev_ops') return <SettingsDevOpsWorkspace />;
   if (subtab === 'recovery_ops') return <SettingsRecoveryWorkspace />;
+  if (subtab === 'devops_infrastructure') return <SettingsDevOpsInfrastructureWorkspace />;
+  if (subtab === 'readiness' || subtab === 'features') {
+    return (
+      <div className="space-y-5 animate-fade-in">
+        <ReleaseReadinessPanel />
+        <FeatureRegistryPanel />
+        <AIIntegrationHealthPanel />
+        <ApiConnectionHealthMatrix />
+      </div>
+    );
+  }
   // general is default
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 animate-fade-in">
       <SystemOverviewDaemonPanel />
       <SystemSettingsPanel />
-      <AIIntegrationHealthPanel />
-      <ApiConnectionHealthMatrix />
-      <ReleaseReadinessPanel />
-      <FeatureRegistryPanel />
     </div>
   );
 }
@@ -1859,6 +1746,9 @@ function OperationsWorkspace({ subtab }: { subtab: string }) {
 }
 
 function ProjectsDeliveryWorkspace({ subtab }: { subtab: string }) {
+  if (subtab === 'blockers' || subtab === 'daily_blockers' || subtab === 'critical_path') {
+    return <DailyBlockersPanel />;
+  }
   if (subtab === 'industry_templates') {
     return (
       <div className="space-y-5">
@@ -1947,18 +1837,21 @@ function LegacyWorkspace() {
 interface WorkspaceRendererProps {
   activeSegment: TabType;
   activeRole?: RoleType;
+  isSoloMode?: boolean;
   onNavigate?: (tab: TabType, subTab?: string) => void;
 }
 
 export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }: WorkspaceRendererProps) {
   const { t } = useLanguage();
   const [activeSubTabs, setActiveSubTabs] = useState<Record<string, string>>(() => ({ ...DEFAULT_SUBTAB }));
-  const subTabs = useMemo(() => {
+  const [showAdvancedSubtabs, setShowAdvancedSubtabs] = useState(false);
+
+  const { allSubTabs, visibleSubTabs, advancedCount } = useMemo(() => {
     const rawSubTabs = SUB_TABS_CONFIG[activeSegment] || [];
     const isTechRole = ['devops', 'agentops'].includes(activeRole);
     const isPowerUser = ['all', 'founder', 'admin'].includes(activeRole);
     const isFinanceRole = ['cfo', 'accountant', 'finance'].includes(activeRole);
-    return rawSubTabs
+    const filtered = rawSubTabs
       .filter((tab) => {
         // system_settings: hide dev_ops and recovery_ops from non-tech roles
         if (activeSegment === 'system_settings') {
@@ -1982,11 +1875,32 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
       })
       .map((tab) => {
         const translatedLabel = t(`subtab.${activeSegment}.${tab.id}`, tab.label);
-        return { ...tab, label: translatedLabel };
+        const tier = classifySubtabTier(tab, activeSegment);
+        return { ...tab, label: translatedLabel, tier };
       });
-  }, [activeSegment, activeRole, t]);
-  const validSubTabIds = useMemo(() => subTabs.map((tab) => tab.id), [subTabs]);
-  const currentSubTabId = resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds) || subTabs[0]?.id || '';
+
+    const core = filtered.filter((tab) => tab.tier === 'core');
+    const advanced = filtered.filter((tab) => tab.tier === 'advanced');
+    const dev = filtered.filter((tab) => tab.tier === 'dev');
+
+    // Available tabs: exclude dev tabs for executive/standard roles unless tech role
+    const availablePool = isTechRole ? filtered : filtered.filter((tab) => tab.tier !== 'dev');
+    const availableAdvanced = isTechRole ? filtered.filter((tab) => tab.tier !== 'core') : advanced;
+
+    const currentActiveId = activeSubTabs[activeSegment];
+    const currentIsAdvanced = availableAdvanced.some((tab) => tab.id === currentActiveId);
+
+    const visible = (showAdvancedSubtabs || currentIsAdvanced || core.length === 0) ? availablePool : core;
+
+    return {
+      allSubTabs: filtered,
+      visibleSubTabs: visible,
+      advancedCount: availableAdvanced.length,
+    };
+  }, [activeSegment, activeRole, activeSubTabs, showAdvancedSubtabs, t]);
+
+  const validSubTabIds = useMemo(() => allSubTabs.map((tab) => tab.id), [allSubTabs]);
+  const currentSubTabId = resolveWorkspaceSubTab(activeSegment, activeSubTabs[activeSegment], validSubTabIds) || visibleSubTabs[0]?.id || '';
 
   React.useEffect(() => {
     const match = window.location.hash.match(/\?subtab=([^&]+)/);
@@ -2010,7 +1924,16 @@ export default function WorkspaceRenderer({ activeSegment, activeRole = 'all' }:
 
   return (
     <div key={`${activeSegment}-${currentSubTabId}`} className="space-y-6 animate-fade-in transition-all duration-300">
-      {subTabs.length > 1 && <WorkspaceSubNavigation tabs={subTabs} activeTab={currentSubTabId} onChange={handleSubTabChange} />}
+      {allSubTabs.length > 1 && (
+        <WorkspaceSubNavigation
+          tabs={visibleSubTabs}
+          activeTab={currentSubTabId}
+          onChange={handleSubTabChange}
+          onToggleAdvanced={() => setShowAdvancedSubtabs((prev) => !prev)}
+          showAdvanced={showAdvancedSubtabs}
+          advancedCount={advancedCount}
+        />
+      )}
       <Suspense fallback={<LoadingFallback />}>
         {staticConfig && !['ceo_command', 'ai_factory', 'marketing_growth', 'sales_crm', 'product_studio'].includes(activeSegment) && <StaticWorkspace config={staticConfig} subtab={currentSubTabId} />}
         {activeSegment === 'ceo_command' && staticConfig && <CommandCenterWorkspace subtab={currentSubTabId} staticConfig={staticConfig} />}

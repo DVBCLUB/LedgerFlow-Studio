@@ -105,11 +105,11 @@ const INDUSTRY_TEMPLATES: Record<IndustryTemplateId, IndustryTemplateConfig> = {
   },
   construction: {
     id: 'construction',
-    name: 'Dự án Công trình (Gói Mẫu Phụ)',
-    description: 'Dành cho dự án hạ tầng, xây lắp và công trình thi công.',
+    name: 'Dự án Studio Game & Phim AI (Gói Mẫu Phụ)',
+    description: 'Dành cho dự án game 3D, kỹ xảo điện ảnh và video giải trí AI.',
     isDefault: false,
     primaryAccounts: [
-      { code: '154', name: 'Chi phí Thi công Công trình Dở dang', category: 'Asset', description: 'Chi phí vật tư, máy thi công, thầu phụ' },
+      { code: '154', name: 'Chi phí Phát triển Game & Phim AI Dở dang', category: 'Asset', description: 'Chi phí license 3D, server GPU, diễn hoạt AI' },
       { code: '331', name: 'Phải trả Nhà thầu phụ / Đội thi công', category: 'Liability', description: 'Công nợ nhà thầu phụ' },
       { code: '131', name: 'Phải thu Theo Nghiệm thu Đợt', category: 'Asset', description: 'Công nợ khối lượng nghiệm thu' },
     ],

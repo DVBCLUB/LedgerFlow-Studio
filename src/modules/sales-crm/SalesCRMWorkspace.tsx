@@ -39,11 +39,11 @@ interface ProposalRecord {
 
 const MOCK_LEADS: Lead[] = [
   {
-    id: 'lead_001', fullName: 'Nguyễn Thị Lan', company: 'Công ty TNHH Xây Dựng Phú Thịnh',
+    id: 'lead_001', fullName: 'Nguyễn Thị Lan', company: 'Studio Game & Phim AI Phú Thịnh',
     email: 'lan.nguyen@phuthinh.vn', phone: '0901 234 567', source: 'facebook',
     productInterest: 'LedgerFlow Enterprise', budgetVnd: 120_000_000, status: 'demo_scheduled',
     priority: 'HOT', score: 92, assignedTo: '🤖 AI Sales', lastContactedAt: '2026-08-21',
-    nextFollowUpAt: '2026-08-24', notes: 'Quan tâm kế toán công trình, muốn demo tuần này',
+    nextFollowUpAt: '2026-08-24', notes: 'Quan tâm Studio Game 3D & Video AI, muốn demo tuần này',
     createdAt: '2026-08-18T10:00:00Z',
   },
   {

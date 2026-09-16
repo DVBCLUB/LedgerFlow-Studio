@@ -21,8 +21,95 @@ import { exportIdeContext, generateCrossPlatformAppBlueprint, generatePcAndMobil
 import { scanLeadsAndProposeFollowups } from './crmAiScoutService.ts';
 import { calculateAiRoiSummary } from './aiRoiAnalytics.ts';
 import { meshLatencyHistogram, getEventLog, getSubscriberCount, flushEventLog } from './agentEventBus.ts';
+import { cancelTask, executeParallel, executeTask, executeWorkflowDAG, getCompletedTasks, getOrchestrationMetrics, getQueuedTasks } from './glaciaOrchestrationEngine.ts';
+import { queryAIActionLedger } from './aiActionLedger.ts';
+import { loadAutonomyState } from './glaciaAutonomyGate.ts';
+
+const GLACIA_TASK_TYPES = new Set([
+  'skill_execute', 'vision_analyze', 'web_research', 'self_heal', 'swarm_shift',
+  'telegram_command', 'multi_model_reason', 'auto_program', 'blender_render',
+  'video_generate', 'banner_design',
+]);
+const GLACIA_TASK_PRIORITIES = new Set(['critical', 'high', 'normal', 'low']);
+
+function isSafeGlaciaPayload(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
+}
+
+function isValidGlaciaTask(task: any): boolean {
+  return Boolean(task)
+    && GLACIA_TASK_TYPES.has(task.type)
+    && isSafeGlaciaPayload(task.payload)
+    && (task.priority === undefined || GLACIA_TASK_PRIORITIES.has(task.priority));
+}
+
+function validateGlaciaDag(nodes: unknown[]): string | null {
+  const ids = new Set<string>();
+  for (const node of nodes as any[]) {
+    if (!isValidGlaciaTask(node) || typeof node.id !== 'string' || !/^[a-zA-Z0-9_-]{1,80}$/.test(node.id)) {
+      return 'Each DAG node needs a unique safe id, supported type, object payload and valid priority.';
+    }
+    if (ids.has(node.id)) return `Duplicate DAG node id: ${node.id}.`;
+    ids.add(node.id);
+  }
+  for (const node of nodes as any[]) {
+    if (node.dependsOn !== undefined && (!Array.isArray(node.dependsOn) || node.dependsOn.some((dependency: unknown) => typeof dependency !== 'string' || !ids.has(dependency) || dependency === node.id))) {
+      return `Invalid dependency list for DAG node: ${node.id}.`;
+    }
+  }
+  return null;
+}
 
 export function registerConnectorIntegrationRoutes(app: Express): void {
+  // ── Glacia orchestration: one audited, autonomy-gated robot entrypoint ──
+  app.post('/api/glacia/orchestrate/execute', async (req: Request, res: Response) => {
+    const { type, payload, priority, maxRetries } = req.body || {};
+    if (!isValidGlaciaTask({ type, payload, priority })) {
+      return res.status(400).json({ success: false, error: 'A supported task type and object payload are required.' });
+    }
+    try {
+      const task = await executeTask(type as any, payload, priority, Number.isInteger(maxRetries) && maxRetries >= 0 && maxRetries <= 3 ? maxRetries : 2);
+      res.json({ success: task.status === 'completed', task });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err?.message || 'Glacia orchestration failed.' });
+    }
+  });
+
+  app.post('/api/glacia/orchestrate/parallel', async (req: Request, res: Response) => {
+    const tasks = req.body?.tasks;
+    if (!Array.isArray(tasks) || tasks.length === 0 || tasks.length > 12 || tasks.some((task) => !isValidGlaciaTask(task))) {
+      return res.status(400).json({ success: false, error: 'tasks must contain 1 to 12 items.' });
+    }
+    try { res.json({ success: true, tasks: await executeParallel(tasks) }); }
+    catch (err: any) { res.status(500).json({ success: false, error: err?.message || 'Parallel execution failed.' }); }
+  });
+
+  app.post('/api/glacia/orchestrate/dag', async (req: Request, res: Response) => {
+    const nodes = req.body?.nodes;
+    const validationError = Array.isArray(nodes) ? validateGlaciaDag(nodes) : 'nodes must be an array.';
+    if (!Array.isArray(nodes) || nodes.length === 0 || nodes.length > 20 || validationError) {
+      return res.status(400).json({ success: false, error: validationError || 'nodes must contain 1 to 20 items.' });
+    }
+    try {
+      const result = await executeWorkflowDAG(typeof req.body?.workflowId === 'string' ? req.body.workflowId : `glacia-dag-${Date.now()}`, nodes);
+      res.json({ success: result.success, result });
+    } catch (err: any) { res.status(500).json({ success: false, error: err?.message || 'DAG execution failed.' }); }
+  });
+
+  app.get('/api/glacia/orchestrate/metrics', (_req: Request, res: Response) => res.json({ success: true, metrics: getOrchestrationMetrics() }));
+  app.get('/api/glacia/orchestrate/tasks', (_req: Request, res: Response) => res.json({ success: true, queued: getQueuedTasks(), completed: getCompletedTasks() }));
+  app.get('/api/glacia/orchestrate/trust-report', (req: Request, res: Response) => {
+    const requestedLimit = Number(req.query.limit);
+    const limit = Number.isInteger(requestedLimit) ? Math.min(Math.max(requestedLimit, 1), 100) : 30;
+    const audit = queryAIActionLedger({ domain: 'glacia_orchestration', limit });
+    res.json({ success: true, autonomy: loadAutonomyState(), audit });
+  });
+  app.post('/api/glacia/orchestrate/cancel', (req: Request, res: Response) => {
+    const taskId = typeof req.body?.taskId === 'string' ? req.body.taskId : '';
+    const success = Boolean(taskId) && cancelTask(taskId);
+    res.status(success ? 200 : 404).json({ success });
+  });
+
   // ── System Events & Telemetry ──
   app.get('/api/system/events/history', (_req: Request, res: Response) => {
     res.json({ success: true, events: getSystemEventHistory() });

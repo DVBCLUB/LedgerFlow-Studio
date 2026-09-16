@@ -1,6 +1,6 @@
 export const AI_USE_CASES = [
   { name: 'Trợ lý kiểm tra hồ sơ thanh toán', input: 'Đề nghị thanh toán, hợp đồng, nghiệm thu, hóa đơn, phiếu kho', output: 'Thiếu gì, rủi ro gì, có được thanh toán chưa', guardrail: 'AI chỉ gợi ý, kế toán trưởng duyệt cuối.' },
-  { name: 'Phân loại chi phí tự động', input: 'Mô tả phát sinh, NCC, công trình, số tiền', output: 'Loại chi phí, tài khoản gợi ý, chứng từ cần kèm', guardrail: 'Không tự ghi sổ nếu chưa có người kiểm tra.' },
+  { name: 'Phân loại chi phí tự động', input: 'Mô tả phát sinh, NCC, dự án sản phẩm/game, số tiền', output: 'Loại chi phí, tài khoản gợi ý, chứng từ cần kèm', guardrail: 'Không tự ghi sổ nếu chưa có người kiểm tra.' },
   { name: 'Cảnh báo VAT', input: 'Hóa đơn, thuế suất, tiền trước thuế, tiền thuế', output: 'Dòng nghi sai thuế, sai số học, thiếu mã hóa đơn', guardrail: 'Không tự kết luận pháp lý nếu thiếu chứng từ gốc.' },
   { name: 'Tóm tắt báo cáo sếp', input: 'Ngân sách, tạm ứng, công nợ, hồ sơ thiếu, cảnh báo', output: 'Bản tóm tắt 5 dòng và việc cần duyệt', guardrail: 'Không lộ dữ liệu cá nhân/nhạy cảm khi dùng cloud AI.' },
   { name: 'Phát hiện bất thường quỹ dầu/kho', input: 'Phiếu cấp dầu, nhật trình xe, nhập xuất tồn', output: 'Xe/máy hoặc vật tư có chênh lệch bất thường', guardrail: 'Phải đối chiếu với người giữ kho trước khi kết luận.' }
@@ -17,7 +17,7 @@ export const AI_GUARDRAILS = [
 
 export const PROMPT_TEMPLATES = [
   { title: 'Kiểm tra hồ sơ thanh toán', prompt: 'Bạn là kiểm soát viên nội bộ. Dựa trên dữ liệu hồ sơ, hãy trả về JSON gồm missingDocs, riskLevel, reason, suggestedAction, needsHumanReview.' },
-  { title: 'Phân loại chi phí công trình', prompt: 'Bạn là kế toán xây dựng. Hãy phân loại khoản chi theo vật tư, nhân công, máy thi công, nhiên liệu, HCNS hoặc khác; gợi ý tài khoản và chứng từ cần có.' },
+  { title: 'Phân loại chi phí dự án Studio', prompt: 'Bạn là kế toán quản trị Studio. Hãy phân loại khoản chi theo license 3D, server GPU, API tokens, nhân sự hoặc khác; gợi ý tài khoản và chứng từ cần có.' },
   { title: 'Tóm tắt báo cáo sếp', prompt: 'Tóm tắt dữ liệu thành 5 dòng: ngân sách, tạm ứng, công nợ, hồ sơ thiếu, rủi ro cần duyệt hôm nay.' },
   { title: 'Cảnh báo hóa đơn VAT', prompt: 'Kiểm tra số hóa đơn, thuế suất, tiền trước thuế, tiền thuế, tổng tiền. Trả về dòng nghi ngờ và lý do.' }
 ];

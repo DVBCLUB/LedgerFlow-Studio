@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { DollarSign, ShieldCheck, AlertTriangle, XCircle, TrendingDown, Cpu, Sparkles } from 'lucide-react';
 import { getCloudCostOptimizer, ProviderCreditStatus } from '../../utils/enterpriseApi';
 
 const MOCK: ProviderCreditStatus[] = [
@@ -16,59 +17,171 @@ export default function CloudCostCreditsOptimizerPanel() {
     }).catch(() => {});
   }, []);
 
-  const statusColor = (s: string) => (s === 'HEALTHY' ? '#34d399' : s === 'WARNING_80' ? '#fbbf24' : '#f87171');
-
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#1e1b4b22,#3730a322)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #3730a344' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>💸 Cloud Cost & Credit Optimizer</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Giám sát ngân sách tín dụng AI providers · Cảnh báo WARNING_80% · Tối ưu routing giữa các model</p>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-        {[
-          { label: 'Active Providers', value: String(providers.length), color: '#60a5fa' },
-          { label: 'Healthy', value: String(providers.filter((p) => p.alertStatus === 'HEALTHY').length), color: '#34d399' },
-          { label: 'Warning 80%', value: String(providers.filter((p) => p.alertStatus === 'WARNING_80').length), color: '#fbbf24' },
-          { label: 'Exhausted', value: String(providers.filter((p) => p.alertStatus === 'EXHAUSTED').length), color: '#f87171' },
-        ].map((c) => (
-          <div key={c.label} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.label}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: c.color, marginTop: '0.25rem' }}>{c.value}</div>
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <DollarSign className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Tối Ưu Hóa Chi Phí &amp; Tín Dụng AI Cloud (Cost Optimizer)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  Smart Routing
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Giám sát ngân sách tín dụng các nhà cung cấp AI — Cảnh báo ngưỡng 80% và tự động định tuyến thông minh để tiết kiệm chi phí.
+              </p>
+            </div>
           </div>
-        ))}
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {providers.length} Nhà Cung Cấp
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-950 to-blue-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nhà Cung Cấp AI</span>
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+              <Cpu className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-blue-300 font-mono">
+            {providers.length}
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">OpenAI, Anthropic, Groq</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-slate-950 to-emerald-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ngân Sách Tốt (Healthy)</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-emerald-300 font-mono">
+            {providers.filter((p) => p.alertStatus === 'HEALTHY').length}
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-emerald-400/90 font-mono">Hoạt động bình thường</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-950 to-amber-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Cảnh Báo &ge; 80%</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-amber-300 font-mono">
+            {providers.filter((p) => p.alertStatus === 'WARNING_80').length}
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">Sắp chạm ngưỡng ngân sách</p>
+        </div>
+
+        <div className="rounded-2xl border border-rose-500/30 bg-gradient-to-br from-slate-950 to-rose-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hết Ngân Sách (Exhausted)</span>
+            <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400">
+              <XCircle className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-rose-300 font-mono">
+            {providers.filter((p) => p.alertStatus === 'EXHAUSTED').length}
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-rose-400">Tự động chuyển tiếp fallback</p>
+        </div>
       </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📊 Provider Credit Status</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ color: '#64748b', textAlign: 'left' }}>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Provider</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Budget</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Used</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Remaining</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Usage</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {providers.map((p) => (
-              <tr key={p.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                <td style={{ padding: '0.75rem 1rem', color: '#e2e8f0', fontWeight: 600 }}>{p.providerName}</td>
-                <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>${p.monthlyBudgetUsd}</td>
-                <td style={{ padding: '0.75rem 1rem', color: '#cbd5e1' }}>${p.usedUsd}</td>
-                <td style={{ padding: '0.75rem 1rem', color: '#34d399' }}>${p.remainingUsd}</td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <div style={{ width: '100%', height: '6px', background: '#334155', borderRadius: '3px' }}>
-                    <div style={{ width: `${Math.round(p.usageRatio * 100)}%`, height: '100%', background: statusColor(p.alertStatus), borderRadius: '3px' }} />
-                  </div>
-                </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <span style={{ color: statusColor(p.alertStatus), fontWeight: 600, fontSize: '0.8rem' }}>{p.alertStatus}</span>
-                </td>
+
+      {/* Table Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+              Chi Tiết Sử Dụng Ngân Sách Các Nhà Cung Cấp
+            </h2>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <th className="px-5 py-3.5">Nhà Cung Cấp</th>
+                <th className="px-5 py-3.5">Hạn Mức Tháng</th>
+                <th className="px-5 py-3.5">Đã Chi Tiêu</th>
+                <th className="px-5 py-3.5">Còn Lại</th>
+                <th className="px-5 py-3.5 w-1/4">Tỷ Lệ Tiêu Dùng</th>
+                <th className="px-5 py-3.5 text-right">Trạng Thái</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {providers.map((p) => {
+                const isHealthy = p.alertStatus === 'HEALTHY';
+                const isWarning = p.alertStatus === 'WARNING_80';
+                return (
+                  <tr key={p.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-white flex items-center gap-2">
+                      <Cpu className="w-4 h-4 text-slate-400" />
+                      {p.providerName}
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-400 font-mono">
+                      ${p.monthlyBudgetUsd}
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-200 font-mono font-bold">
+                      ${p.usedUsd}
+                    </td>
+                    <td className="px-5 py-3.5 text-emerald-400 font-mono font-bold">
+                      ${p.remainingUsd}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-[10px] font-mono text-slate-400">
+                          <span>{Math.round(p.usageRatio * 100)}%</span>
+                        </div>
+                        <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all duration-500 ${
+                              isHealthy
+                                ? 'bg-emerald-500'
+                                : isWarning
+                                ? 'bg-amber-500'
+                                : 'bg-rose-500'
+                            }`}
+                            style={{ width: `${Math.min(100, Math.round(p.usageRatio * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        isHealthy
+                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                          : isWarning
+                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                          : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isHealthy ? 'bg-emerald-400' : isWarning ? 'bg-amber-400' : 'bg-rose-400'}`} />
+                        {p.alertStatus}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

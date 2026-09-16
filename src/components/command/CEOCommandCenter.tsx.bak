@@ -1,0 +1,321 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  AlertTriangle, BarChart3, Briefcase, ChevronDown, ChevronRight,
+  DollarSign, Power, RotateCcw, ShieldOff, Zap,
+} from 'lucide-react';
+import { useResizablePanel } from '../../hooks/useResizablePanel';
+import { fetchAgentRuntimeMetrics, setAgentRuntimeEmergencyStop } from '../../utils/assistantApi';
+
+/* ─── Types ─────────────────────────────────────────────── */
+type SystemStatus = 'normal' | 'warning' | 'critical' | 'error';
+
+/* ─── Mini Status Dot ───────────────────────────────────── */
+function StatusIndicator({ status, label }: { status: SystemStatus; label: string }) {
+  const dotColor: Record<SystemStatus, string> = {
+    normal: 'bg-emerald-500 shadow-emerald-500/50',
+    warning: 'bg-amber-500 shadow-amber-500/50',
+    critical: 'bg-rose-500 shadow-rose-500/50',
+    error: 'bg-red-600 shadow-red-600/50',
+  };
+  return (
+    <div className="flex items-center gap-2" title={label}>
+      <span className={`relative flex h-2.5 w-2.5 ${status === 'normal' ? '' : 'animate-pulse'}`}>
+        <span className={`absolute inline-flex h-full w-full rounded-full opacity-75 ${dotColor[status]}`} />
+        <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${dotColor[status]}`} />
+      </span>
+      <span className="text-[10px] font-semibold uppercase text-slate-400">{label}</span>
+    </div>
+  );
+}
+
+/* ─── Emergency Kill-Switch Panel ───────────────────────── */
+function EmergencyKillSwitchPanel() {
+  const [emergencyActive, setEmergencyActive] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [reason, setReason] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const checkStatus = useCallback(async () => {
+    try {
+      const metrics = await fetchAgentRuntimeMetrics();
+      setEmergencyActive(metrics?.emergencyStop ?? false);
+    } catch { /* daemon offline */ }
+  }, []);
+
+  useEffect(() => {
+    void checkStatus();
+    const id = setInterval(() => void checkStatus(), 10000);
+    return () => clearInterval(id);
+  }, [checkStatus]);
+
+  const handleToggleEmergencyStop = async () => {
+    if (!emergencyActive && !showConfirm) { setShowConfirm(true); return; }
+    setLoading(true);
+    try {
+      const newState = !emergencyActive;
+      await setAgentRuntimeEmergencyStop(newState, reason || undefined);
+      setEmergencyActive(newState);
+      setShowConfirm(false);
+      setReason('');
+    } catch (err) { console.error('Failed to toggle emergency stop:', err); }
+    finally { setLoading(false); }
+  };
+
+  const handleReset = async () => {
+    setLoading(true);
+    try {
+      await setAgentRuntimeEmergencyStop(false);
+      setEmergencyActive(false);
+      setShowConfirm(false);
+      setReason('');
+    } catch (err) { console.error('Failed to reset emergency stop:', err); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div className={`rounded-2xl border p-4 shadow-lg backdrop-blur-xl transition-all duration-500 ${
+      emergencyActive
+        ? 'border-red-500/50 bg-gradient-to-br from-red-950/40 via-slate-900 to-red-950/30'
+        : 'border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950/80'
+    }`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={`h-9 w-9 rounded-xl flex items-center justify-center border transition-all ${
+            emergencyActive
+              ? 'bg-red-500/30 border-red-500/50 text-red-400 animate-pulse'
+              : 'bg-slate-900 border-slate-700 text-slate-500'
+          }`}>
+            {emergencyActive ? <ShieldOff className="h-4 w-4" /> : <Zap className="h-4 w-4" />}
+          </div>
+          <div>
+            <h3 className="text-[11px] font-black tracking-tight text-white uppercase flex items-center gap-2">
+              <span>🛡️ Emergency Kill-Switch</span>
+              {emergencyActive && (
+                <span className="px-1.5 py-0.5 rounded-full bg-red-500/30 text-red-300 text-[8px] border border-red-500/40 animate-pulse">ACTIVE</span>
+              )}
+            </h3>
+            <p className="text-[10px] text-slate-400 mt-0.5">
+              {emergencyActive ? 'Tất cả Agentic Loops đã bị dừng khẩn cấp' : 'Dừng khẩn cấp toàn bộ AI Agents nếu phát hiện hành vi bất thường'}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {emergencyActive ? (
+            <button type="button" onClick={handleReset} disabled={loading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-black cursor-pointer shadow-md transition-all disabled:opacity-50">
+              <RotateCcw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} /> Khôi Phục
+            </button>
+          ) : (
+            <button type="button" onClick={handleToggleEmergencyStop} disabled={loading}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-black cursor-pointer shadow-md transition-all hover:shadow-rose-500/30">
+              <Power className="h-3 w-3" /> Dừng Khẩn Cấp
+            </button>
+          )}
+        </div>
+      </div>
+      {showConfirm && (
+        <div className="mt-3 p-3 rounded-2xl border border-red-500/30 bg-red-950/20 space-y-2 animate-fade-in">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="text-xs font-bold text-red-300">Xác nhận Dừng Khẩn Cấp</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">Hành động này sẽ dừng toàn bộ AI Agent đang chạy.</p>
+            </div>
+          </div>
+          <input type="text" value={reason} onChange={(e) => setReason(e.target.value)}
+            placeholder="Lý do dừng khẩn cấp (tùy chọn)..."
+            className="w-full px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-white text-[10px] placeholder-slate-500 focus:outline-none focus:border-red-500/50" />
+          <div className="flex items-center gap-2 justify-end">
+            <button type="button" onClick={() => setShowConfirm(false)}
+              className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-bold cursor-pointer">Hủy</button>
+            <button type="button" onClick={handleToggleEmergencyStop} disabled={loading}
+              className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-[10px] font-black cursor-pointer disabled:opacity-50 flex items-center gap-1">
+              {loading ? 'Đang xử lý...' : 'Xác nhận Dừng'}
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+/* ─── Budget Governor Panel ─────────────────────────────── */
+function BudgetGovernorPanel() {
+  return (
+    <div className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950/20 p-4 shadow-lg backdrop-blur-xl">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="h-7 w-7 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+            <DollarSign className="h-3.5 w-3.5" />
+          </div>
+          <div>
+            <h2 className="text-[10px] font-black tracking-tight text-white uppercase">💰 Budget Governor</h2>
+            <p className="text-[9px] text-slate-400">Token cost & runtime spending</p>
+          </div>
+        </div>
+        <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-black">TRACKING</span>
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold text-slate-400 uppercase">Tuần này</span>
+            <span className="flex items-center gap-0.5 text-[9px] text-emerald-400"><BarChart3 className="h-2.5 w-2.5" /> +2.3%</span>
+          </div>
+          <p className="text-base font-black text-white mt-0.5">$12.80</p>
+          <div className="mt-1.5 h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-full w-[12.8%] rounded-full bg-emerald-500" />
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-2.5">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold text-slate-400 uppercase">Tháng này</span>
+            <span className="flex items-center gap-0.5 text-[9px] text-rose-400"><BarChart3 className="h-2.5 w-2.5" /> -5.1%</span>
+          </div>
+          <p className="text-base font-black text-white mt-0.5">$48.25</p>
+          <div className="mt-1.5 h-1 rounded-full bg-slate-800 overflow-hidden">
+            <div className="h-full w-[12%] rounded-full bg-amber-500" />
+          </div>
+        </div>
+        <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-2.5">
+          <span className="text-[9px] font-bold text-slate-400 uppercase">AI Runs</span>
+          <p className="text-base font-black text-white mt-0.5">7</p>
+          <div className="mt-1.5 flex gap-0.5">
+            <span className="h-1 flex-1 rounded-full bg-emerald-500" />
+            <span className="h-1 flex-1 rounded-full bg-emerald-500" />
+            <span className="h-1 flex-1 rounded-full bg-emerald-500" />
+            <span className="h-1 flex-1 rounded-full bg-amber-500" />
+            <span className="h-1 flex-1 rounded-full bg-slate-700" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+/* ─── Main CEO Command Center ───────────────────────────── */
+export default function CEOCommandCenter() {
+  const [systemStatus, setSystemStatus] = useState<SystemStatus>('normal');
+  const [statusLabel, setStatusLabel] = useState('Tất cả hệ thống hoạt động bình thường');
+  const [showEmergency, setShowEmergency] = useState(false);
+  const [budgetCollapsed, setBudgetCollapsed] = useState(false);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    overview: true,
+  });
+
+  const { panelWidth, panelRef, handleRef, isResizing } = useResizablePanel({
+    minWidth: 280,
+    maxWidth: 800,
+    initialWidth: 480,
+  });
+
+  // Poll system health
+  useEffect(() => {
+    const checkHealth = async () => {
+      try {
+        const metrics = await fetchAgentRuntimeMetrics();
+        if (metrics?.emergencyStop) {
+          setSystemStatus('critical');
+          setStatusLabel('⚠️ EMERGENCY STOP ACTIVE — AI Agents đã bị dừng khẩn cấp');
+          setShowEmergency(true);
+        } else if (metrics?.activeRuns && metrics.activeRuns > 5) {
+          setSystemStatus('warning');
+          setStatusLabel(`⚠️ ${metrics.activeRuns} AI runs đang hoạt động — cần theo dõi`);
+          setShowEmergency(false);
+        } else {
+          setSystemStatus('normal');
+          setStatusLabel('✅ Tất cả hệ thống hoạt động bình thường');
+          setShowEmergency(false);
+        }
+      } catch {
+        setSystemStatus('error');
+        setStatusLabel('🔴 Không thể kết nối đến AI Daemon');
+        setShowEmergency(false);
+      }
+    };
+    void checkHealth();
+    const id = setInterval(checkHealth, 15000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Auto-collapse budget after 8 seconds
+  useEffect(() => {
+    if (!budgetCollapsed) {
+      const timer = setTimeout(() => setBudgetCollapsed(true), 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [budgetCollapsed]);
+
+  const toggleSection = (key: string) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  return (
+    <div
+      ref={panelRef}
+      className={`relative rounded-3xl border border-indigo-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950/20 p-5 shadow-2xl backdrop-blur-xl transition-all ${
+        isResizing ? 'select-none' : ''
+      }`}
+      style={{ width: panelWidth }}
+    >
+      {/* Drag handle */}
+      <div
+        ref={handleRef}
+        className="absolute right-0 top-0 bottom-0 w-1.5 cursor-col-resize hover:bg-indigo-500/30 active:bg-indigo-500/50 rounded-r-3xl transition-colors"
+      />
+
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400">
+            <Briefcase className="h-5 w-5" />
+          </div>
+          <div>
+            <h2 className="text-sm font-black tracking-tight text-white uppercase">CEO Command Center</h2>
+            <StatusIndicator status={systemStatus} label={statusLabel} />
+          </div>
+        </div>
+      </div>
+
+      {/* Collapsible: Overview */}
+      <div className="space-y-3">
+        <button
+          type="button"
+          onClick={() => toggleSection('overview')}
+          className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors cursor-pointer"
+        >
+          {expandedSections['overview'] ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          Tổng Quan Hệ Thống
+        </button>
+        {expandedSections['overview'] && (
+          <div className="space-y-3 animate-fade-in">
+            {/* Emergency Kill-Switch — only when status is not normal */}
+            {showEmergency && systemStatus !== 'normal' && <EmergencyKillSwitchPanel />}
+
+            {/* Budget Governor — auto-collapsible */}
+            {!budgetCollapsed ? (
+              <BudgetGovernorPanel />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setBudgetCollapsed(false)}
+                className="w-full text-left rounded-xl border border-slate-800 bg-slate-950/60 p-2.5 hover:border-emerald-500/30 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <DollarSign className="h-3.5 w-3.5 text-emerald-400" />
+                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors">💰 Budget Governor</span>
+                  </div>
+                  <span className="text-[9px] text-slate-500 group-hover:text-slate-300">Nhấn để xem chi tiết</span>
+                </div>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+

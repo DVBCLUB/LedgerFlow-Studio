@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { randomUUID } from 'node:crypto';
 import {
   publishAutomatedReleaseHandoff,
   getReleaseHandoffPackage,
@@ -7,8 +8,9 @@ import {
 } from './automatedHandoffPublisher.ts';
 
 test('publishAutomatedReleaseHandoff packages features and calculates SHA-256 checksum', async () => {
+  const version = `v1.${randomUUID().slice(0, 6)}.0`;
   const pkg = await publishAutomatedReleaseHandoff({
-    version: 'v1.50.0',
+    version,
     title: 'Autonomous System Level 5 Core',
     author: 'AI Workforce Lead',
     features: [
@@ -22,14 +24,14 @@ test('publishAutomatedReleaseHandoff packages features and calculates SHA-256 ch
   });
 
   assert.ok(pkg.id.startsWith('rel_'));
-  assert.equal(pkg.version, 'v1.50.0');
+  assert.equal(pkg.version, version);
   assert.ok(pkg.checksum.length === 64); // SHA-256 hex string length
   assert.ok(pkg.markdownContent.includes('SHA-256 Checksum:'));
 
   const retrieved = getReleaseHandoffPackage(pkg.id);
   assert.equal(retrieved?.id, pkg.id);
 
-  const retrievedByVer = getReleaseHandoffPackage('v1.50.0');
+  const retrievedByVer = getReleaseHandoffPackage(version);
   assert.equal(retrievedByVer?.id, pkg.id);
 });
 

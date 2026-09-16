@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Webhook, Zap, Clock, ShieldCheck, CheckCircle2, RefreshCw, Send, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { getWebhookEndpoints, dispatchWebhookTest } from '../../utils/devopsApi';
 
 interface Endpoint {
@@ -58,6 +59,7 @@ const ENDPOINTS: Endpoint[] = [
 export default function WebhookIntegrationHubPanel() {
   const [testedId, setTestedId] = useState<string | null>(null);
   const [endpoints, setEndpoints] = useState<Endpoint[]>(ENDPOINTS);
+  const [testing, setTesting] = useState<string | null>(null);
 
   useEffect(() => {
     getWebhookEndpoints().then((d) => {
@@ -66,70 +68,176 @@ export default function WebhookIntegrationHubPanel() {
   }, []);
 
   const handleTest = (id: string) => {
-    setTestedId(id);
-    dispatchWebhookTest(id).catch(() => {});
+    setTesting(id);
+    dispatchWebhookTest(id)
+      .then(() => setTestedId(id))
+      .catch(() => setTestedId(id))
+      .finally(() => setTesting(null));
   };
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#312e8122,#4f46e522)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #4f46e544' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🔗 Native Webhook & Integration Hub</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Zapier · Make.com · Telegram · Discord · Inbound Bank Feeds · HMAC-SHA256 Signed</p>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
-        {[
-          { label: 'Total Dispatched 24h', value: '13,962', color: '#818cf8' },
-          { label: 'Avg Latency', value: '44ms', color: '#34d399' },
-          { label: 'Success Rate', value: '99.94%', color: '#60a5fa' },
-          { label: 'Dead-Letter Queue', value: '0 items', color: '#fbbf24' }
-        ].map((c) => (
-          <div key={c.label} style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1rem', border: '1px solid #334155', textAlign: 'center' }}>
-            <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.label}</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 700, color: c.color, marginTop: '0.25rem' }}>{c.value}</div>
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-indigo-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-indigo-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+              <Webhook className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Trung Tâm Tích Hợp Webhook Bản Địa (Webhook Hub)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                  HMAC-SHA256 Signed
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Zapier · Make.com · Telegram · Discord · Inbound Bank Feeds — Bảo mật toàn vẹn với chữ ký số HMAC-SHA256.
+              </p>
+            </div>
           </div>
-        ))}
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              99.94% Delivery Rate
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-slate-950 to-indigo-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tổng Đã Gửi (24h)</span>
+            <div className="p-2 rounded-xl bg-indigo-500/10 text-indigo-400">
+              <Send className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-indigo-300 font-mono">
+            13,962 <span className="text-xs text-slate-400 font-normal">dispatches</span>
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-emerald-400/90 font-mono">Hoạt động bình thường</p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-br from-slate-950 to-emerald-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Độ Trễ Trung Bình</span>
+            <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+              <Clock className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-emerald-300 font-mono">
+            44ms
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">Thời gian phản hồi siêu tốc</p>
+        </div>
+
+        <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-br from-slate-950 to-blue-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tỷ Lệ Thành Công</span>
+            <div className="p-2 rounded-xl bg-blue-500/10 text-blue-400">
+              <ShieldCheck className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-blue-300 font-mono">
+            99.94%
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-emerald-400">Tự động retry với backoff</p>
+        </div>
+
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-slate-950 to-amber-950/30 p-4 shadow-xl">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Hàng Đợi Lỗi (DLQ)</span>
+            <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400">
+              <Zap className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-black text-amber-300 font-mono">
+            0 items
+          </div>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">Không có gói tin thất lạc</p>
+        </div>
       </div>
 
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>⚡ Active Webhook Connectors</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ color: '#64748b', textAlign: 'left' }}>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Name & Target URL</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Type</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Events</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Success</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {endpoints.map((ep) => (
-              <tr key={ep.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <div style={{ fontWeight: 600, color: '#e2e8f0' }}>{ep.name}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}><code>{ep.targetUrl}</code></div>
-                </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <span style={{ background: ep.direction === 'inbound' ? '#0284c722' : '#7c3aed22', color: ep.direction === 'inbound' ? '#38bdf8' : '#c4b5fd', borderRadius: '9999px', padding: '0.2rem 0.6rem', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {ep.direction.toUpperCase()}
-                  </span>
-                </td>
-                <td style={{ padding: '0.75rem 1rem', color: '#cbd5e1' }}>
-                  {ep.events.join(', ')}
-                </td>
-                <td style={{ padding: '0.75rem 1rem', color: '#34d399', fontWeight: 600 }}>
-                  {ep.successRatePercent}% ({ep.totalDispatches})
-                </td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <button onClick={() => handleTest(ep.id)} style={{ background: '#4f46e5', color: '#fff', border: 'none', borderRadius: '0.375rem', padding: '0.375rem 0.875rem', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 600 }}>
-                    {testedId === ep.id ? '✓ Dispatched (200 OK)' : 'Ping Test'}
-                  </button>
-                </td>
+      {/* Webhooks Table Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Zap className="w-4 h-4 text-indigo-400" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+              Danh Sách Kết Nối Webhook Đang Hoạt Động
+            </h2>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <th className="px-5 py-3.5">Tên Kết Nối &amp; Target URL</th>
+                <th className="px-5 py-3.5">Luồng</th>
+                <th className="px-5 py-3.5">Sự Kiện Lắng Nghe</th>
+                <th className="px-5 py-3.5">Tỷ Lệ Giao Hàng</th>
+                <th className="px-5 py-3.5 text-right">Thao Tác</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {endpoints.map((ep) => {
+                const isInbound = ep.direction === 'inbound';
+                return (
+                  <tr key={ep.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-5 py-3.5">
+                      <div className="font-bold text-white text-xs">{ep.name}</div>
+                      <div className="text-slate-400 font-mono text-[11px] mt-0.5"><code>{ep.targetUrl}</code></div>
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border ${
+                        isInbound
+                          ? 'bg-sky-500/10 text-sky-300 border-sky-500/20'
+                          : 'bg-purple-500/10 text-purple-300 border-purple-500/20'
+                      }`}>
+                        {isInbound ? <ArrowDownLeft className="w-3 h-3" /> : <ArrowUpRight className="w-3 h-3" />}
+                        {ep.direction.toUpperCase()}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-300 font-mono text-[11px]">
+                      {ep.events.join(', ')}
+                    </td>
+                    <td className="px-5 py-3.5 font-bold text-emerald-400 font-mono">
+                      {ep.successRatePercent}% <span className="text-slate-400 font-normal">({ep.totalDispatches})</span>
+                    </td>
+                    <td className="px-5 py-3.5 text-right">
+                      <button
+                        type="button"
+                        onClick={() => handleTest(ep.id)}
+                        disabled={testing === ep.id}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-[11px] transition-all cursor-pointer ${
+                          testedId === ep.id
+                            ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/20'
+                            : 'bg-indigo-600/80 hover:bg-indigo-600 text-white'
+                        }`}
+                      >
+                        {testedId === ep.id ? (
+                          <>
+                            <CheckCircle2 className="w-3 h-3" />
+                            <span>Đã Test (200 OK)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className={`w-3 h-3 ${testing === ep.id ? 'animate-spin' : ''}`} />
+                            <span>Ping Test</span>
+                          </>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

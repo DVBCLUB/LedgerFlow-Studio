@@ -31,6 +31,7 @@ import {
   AI_WORKFORCE_UPGRADE_BACKLOG,
 } from '../../data/aiWorkforceCommandCenter';
 import { daemonFetch } from '../../utils/assistantApi';
+import AIWorkforceLiveOperationsPanel from './AIWorkforceLiveOperationsPanel';
 
 const statusStyles: Record<string, string> = {
   live: 'border-emerald-500/30 bg-emerald-500/10 text-emerald-200',
@@ -165,6 +166,7 @@ export default function AIWorkforceCommandCenter() {
 
   return (
     <div className="space-y-6">
+      <AIWorkforceLiveOperationsPanel />
       <ShellCard className="overflow-hidden border-violet-500/20 bg-gradient-to-br from-violet-950/30 via-slate-950 to-cyan-950/20">
         <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr] xl:items-start">
           <div>

@@ -12,7 +12,7 @@ export * from './GlaciaContext';
 export * from './GlaciaVirtualBeingState';
 export * from './hooks/useRealTimeConversation';
 export * from './services/avatarService';
-export * from '../../server/services/aiAvatarConnector';
+export * from '../../../core/types/glaciaAvatar';
 
 // Common Glacia types
 import type { VoiceMoodType } from './glaciaVoiceEngine';
@@ -64,7 +64,7 @@ export type {
   ConversationContext,
   StreamingResponse,
   RealTimeConversationState,
-} from '../../server/services/aiAvatarConnector';
+} from '../../../core/types/glaciaAvatar';
 
 // Human Avatar 3D types
 export type {

@@ -62,18 +62,23 @@ async function requestLocalSession(email: string, password: string): Promise<{ s
 }
 
 export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
-  const initialSession = useMemo(() => readLocalSession(), []);
-  const initialEmail = useMemo(() => localStorage.getItem(EMAIL_KEY) || '', []);
-  const [session, setSession] = useState<LocalSession | null>(initialSession);
-  const [email, setEmail] = useState(initialEmail);
+  const [session, setSession] = useState<LocalSession | null>(() => readLocalSession());
+  const [email, setEmail] = useState<string>(() => {
+    try {
+      return localStorage.getItem(EMAIL_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [usesDevPassword, setUsesDevPassword] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isCheckingSession, setIsCheckingSession] = useState(Boolean(initialSession));
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(() => Boolean(readLocalSession()));
 
   useEffect(() => {
-    if (!initialSession) {
+    const currentSession = readLocalSession();
+    if (!currentSession) {
       setIsCheckingSession(false);
       return;
     }
@@ -98,7 +103,7 @@ export function LocalAuthProvider({ children }: { children: React.ReactNode }) {
       .finally(() => {
         setIsCheckingSession(false);
       });
-  }, [initialSession]);
+  }, []);
 
   const login = async (event: React.FormEvent) => {
     event.preventDefault();

@@ -17,7 +17,7 @@
 
 import * as THREE from 'three';
 import { AvatarState, AvatarManager, avatarManager } from './avatarService';
-import { AvatarEmotion, HeadGesture, HandGesture, BodyGesture } from '../../../../server/services/aiAvatarConnector';
+import { AvatarEmotion, HeadGesture, HandGesture, BodyGesture } from '../../../../core/types/glaciaAvatar';
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -263,7 +263,7 @@ export class FaceTrackingService {
   private onEmotionChange: ((emotion: AvatarEmotion, confidence: number) => void) | null = null;
   private onPoseChange: ((pose: HeadPose) => void) | null = null;
 
-  constructor(avatarManager?: AvatarManager, options: FaceTrackingOptions = {}, modelConfig: ModelConfig = {}) {
+  constructor(avatarManager?: AvatarManager, options: FaceTrackingOptions = {}, modelConfig: Partial<ModelConfig> = {}) {
     this.avatarManager = avatarManager || null;
     
     this.options = {
@@ -567,7 +567,7 @@ export class FaceTrackingService {
       
       // Wait for video to be ready
       await new Promise((resolve) => {
-        if (this.videoElement?.readyState >= HTMLVideoElement.HAVE_CURRENT_DATA) {
+        if (this.videoElement && this.videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
           resolve(void 0);
         } else {
           this.videoElement?.addEventListener('loadeddata', () => resolve(void 0));
@@ -1135,7 +1135,7 @@ export class FaceTrackingService {
   private analyzeExpression(detection: any, landmarks: FacialLandmarks): FacialExpression {
     // Get expressions from face-api.js if available
     if (detection.expressions) {
-      const apiExpressions = detection.expressions;
+      const apiExpressions = detection.expressions as Record<string, number>;
       const emotions: Record<string, number> = {};
       let maxEmotion = '';
       let maxConfidence = 0;
@@ -1621,49 +1621,49 @@ export class FaceTrackingService {
   /**
    * Set callback for face detection
    */
-  onDetected(callback: (detection: FaceDetection) => void): void {
+  onDetected(callback: ((detection: FaceDetection) => void) | null): void {
     this.onFaceDetected = callback;
   }
 
   /**
    * Set callback for face lost
    */
-  onLost(callback: () => void): void {
+  onLost(callback: (() => void) | null): void {
     this.onFaceLost = callback;
   }
 
   /**
    * Set callback for tracking start
    */
-  onStart(callback: () => void): void {
+  onStart(callback: (() => void) | null): void {
     this.onTrackingStart = callback;
   }
 
   /**
    * Set callback for tracking stop
    */
-  onStop(callback: () => void): void {
+  onStop(callback: (() => void) | null): void {
     this.onTrackingStop = callback;
   }
 
   /**
    * Set callback for error
    */
-  onErrorCallback(callback: (error: Error) => void): void {
+  onErrorCallback(callback: ((error: Error) => void) | null): void {
     this.onError = callback;
   }
 
   /**
    * Set callback for emotion change
    */
-  onEmotionChangeCallback(callback: (emotion: AvatarEmotion, confidence: number) => void): void {
+  onEmotionChangeCallback(callback: ((emotion: AvatarEmotion, confidence: number) => void) | null): void {
     this.onEmotionChange = callback;
   }
 
   /**
    * Set callback for pose change
    */
-  onPoseChangeCallback(callback: (pose: HeadPose) => void): void {
+  onPoseChangeCallback(callback: ((pose: HeadPose) => void) | null): void {
     this.onPoseChange = callback;
   }
 
@@ -1721,19 +1721,3 @@ export class FaceTrackingService {
  * Singleton instance of FaceTrackingService
  */
 export const faceTrackingService = new FaceTrackingService();
-
-// ============================================================================
-// EXPORT TYPES
-// ============================================================================
-
-export type {
-  FaceDetection,
-  FacialLandmarks,
-  HeadPose,
-  EyeTracking,
-  MouthTracking,
-  FacialExpression,
-  FaceTrackingOptions,
-  FaceTrackingState,
-  ModelConfig,
-};

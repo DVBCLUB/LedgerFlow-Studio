@@ -3,6 +3,11 @@ import { Bot, Cable, Database, PlayCircle, Rocket, Terminal, Zap } from 'lucide-
 
 import FactoryBackendRuntimePanel from './FactoryBackendRuntimePanel';
 import FactoryCommandRunnerPanel from './FactoryCommandRunnerPanel';
+import FactoryHealthSummaryPanel from './FactoryHealthSummaryPanel';
+import FactoryConnectorMatrixPanel from './FactoryConnectorMatrixPanel';
+import FactoryExecutionDecisionPanel from './FactoryExecutionDecisionPanel';
+import FactoryAuditLogPanel from './FactoryAuditLogPanel';
+import FactoryOperatorGuidePanel from './FactoryOperatorGuidePanel';
 import { FACTORY_APPROVAL_GATES, pendingApprovalCount } from './factoryApprovalCatalog';
 import { FACTORY_ASSET_RECORDS, countFactoryAssets } from './factoryAssetCatalog';
 import { FACTORY_IDE_RUNNER_STEPS, getFactoryRunnerProgress } from './factoryIdeRunnerCatalog';
@@ -201,6 +206,16 @@ function SoftwareFactoryAutomationBrief() {
 
 
 
+
+    <section className="space-y-4">
+      <FactoryHealthSummaryPanel />
+      <FactoryConnectorMatrixPanel />
+      <FactoryBackendRuntimePanel />
+      <FactoryExecutionDecisionPanel />
+      <FactoryCommandRunnerPanel />
+      <FactoryAuditLogPanel />
+      <FactoryOperatorGuidePanel />
+    </section>
 
     <section className="grid gap-3 md:grid-cols-4">
       <Card><p className="text-[10px] font-black uppercase tracking-[0.22em] text-text-tertiary">Mục tiêu</p><p className="mt-2 text-2xl font-black text-text-primary">Từ ý tưởng đến phát hành</p><p className="mt-1 text-[11px] font-bold text-text-tertiary">Tập trung tạo sản phẩm có thể duyệt và đóng gói.</p></Card>

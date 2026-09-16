@@ -372,4 +372,14 @@ router.post("/seed", (_req, res) => {
   res.json({ ok: true, runs, stats: getSoftwareFactoryStats() });
 });
 
+router.post("/pipeline/execute", async (req, res) => {
+  try {
+    const { executeSoftwareFactoryPipeline } = await import("./softwareFactoryPipelineService.ts");
+    const result = await executeSoftwareFactoryPipeline(req.body || {});
+    res.json({ ok: true, result });
+  } catch (err: any) {
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

@@ -201,3 +201,39 @@ html, body {
 body {
   text-rendering: optimizeSpeed;
 }
+
+/* ==========================================================================
+   GLACIA 3D ROBOT MASCOT & HOLOGRAM ANIMATIONS
+   ========================================================================== */
+
+@keyframes glacia-float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes glacia-crystal-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.4), inset 0 0 10px rgba(129, 140, 248, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 35px rgba(56, 189, 248, 0.7), inset 0 0 18px rgba(129, 140, 248, 0.5);
+  }
+}
+
+@keyframes glacia-hologram-scan {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(250%);
+    opacity: 0;
+  }
+}

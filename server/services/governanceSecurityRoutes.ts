@@ -153,11 +153,16 @@ export function registerGovernanceSecurityRoutes(app: Express): void {
 
   app.post('/api/delegation/approval/respond', (req: Request, res: Response) => {
     const { requestId, status, reviewerNote, signatureKey } = req.body || {};
-    if (!requestId || !status) {
-      return res.status(400).json({ success: false, error: 'requestId and status required' });
+    if (!requestId || !['APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ success: false, error: 'requestId and status (APPROVED or REJECTED) required' });
     }
-    const result = respondToApprovalRequest(requestId, status, reviewerNote || '', signatureKey);
-    res.json({ success: true, ...result });
+    try {
+      const reviewer = typeof signatureKey === 'string' && signatureKey.trim() ? signatureKey.trim() : 'davidbao1704@gmail.com';
+      const result = respondToApprovalRequest(requestId, status, reviewer, typeof reviewerNote === 'string' ? reviewerNote : '');
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      res.status(400).json({ success: false, error: error?.message || 'Unable to respond to approval request.' });
+    }
   });
 
   app.post('/api/delegation/pipeline/bridge', (req: Request, res: Response) => {

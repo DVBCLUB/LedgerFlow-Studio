@@ -40,7 +40,7 @@ const INSIGHTS: LearningInsight[] = [
     source: 'sales_outcome',
     agentRole: 'AI Sales',
     topic: 'Chốt hợp đồng công ty xây dựng',
-    lessonSummary: 'Khách hàng xây dựng ưu tiên tính năng kế toán công trình và hóa đơn điện tử TT78 hơn là CRM.',
+    lessonSummary: 'Khách hàng Studio Game ưu tiên tính năng xuất bản WebGL 60FPS và tự động hóa video 4K $0 chi phí hơn là CRM truyền thống.',
     actionableRule: 'Khi tư vấn khách hàng xây dựng, tập trung demo phân hệ Dự án & Xuất hóa đơn TT78 trước.',
     confidence: 0.95,
     occurrences: 12,

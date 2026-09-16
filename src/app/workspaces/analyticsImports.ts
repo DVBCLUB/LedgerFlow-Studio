@@ -21,3 +21,4 @@ export const MoatDefensibilityTracker = React.lazy(() => import('../../modules/a
 export const MoRReadinessChecklist = React.lazy(() => import('../../modules/analytics-models-sandbox/MoRReadinessChecklist'));
 export const StrategicLabsMini = React.lazy(() => import('../../modules/analytics-models-sandbox/StrategicLabsMini'));
 export const ExecutiveBoardroomPanel = React.lazy(() => import('../../modules/analytics-models-sandbox/ExecutiveBoardroomPanel'));
+export const ProjectMemoryDecisionLog = React.lazy(() => import('../../modules/analytics-models-sandbox/ProjectMemoryDecisionLog'));

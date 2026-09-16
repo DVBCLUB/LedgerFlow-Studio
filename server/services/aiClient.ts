@@ -49,6 +49,10 @@ export interface CallAIOptions {
   maxTokens?: number;
   tools?: ToolSpec[];
   toolChoice?: "auto" | "required" | { name: string };
+  /** 2-Tier Routing options */
+  enableTwoTierRouting?: boolean;
+  forceTier?: "tier_free_local" | "tier_cheap" | "tier_balanced" | "tier_flagship";
+  bypassCache?: boolean;
 }
 
 export interface CallAIResult {
@@ -63,6 +67,11 @@ export interface CallAIResult {
   usage?: unknown;
   toolCalls?: NormalizedToolCall[];
   raw: unknown;
+  /** 2-Tier Routing metadata */
+  tierUsed?: "tier_free_local" | "tier_cheap" | "tier_balanced" | "tier_flagship";
+  isCached?: boolean;
+  classificationReason?: string;
+  estimatedCostUsd?: number;
 }
 
 /**

@@ -30,7 +30,7 @@ export const FOUNDER_SIMULATOR_SCENARIOS = [
     id: 'construction-advance',
     name: 'Xây dựng/dự án: tạm ứng và vượt ngân sách',
     industry: 'Xây dựng/dự án',
-    description: 'Mô phỏng chi phí công trình, tạm ứng treo, hoàn ứng và rủi ro vượt dự toán.',
+    description: 'Mô phỏng chi phí dự án game/video, ngân sách GPU/API và tiến độ phát triển.',
     inputs: ['ngân sách', 'chi phí thực tế', 'tạm ứng', 'đã hoàn ứng'],
     outputs: ['budget used', 'advance aging risk', 'red/yellow/green warning'],
     goNoGoRule: 'Đi tiếp nếu có quy tắc chặn ứng mới, cảnh báo vượt ngân sách và checklist hoàn ứng.'

@@ -1,4 +1,4 @@
-import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore";
+import { readSoftwareFactoryStore, writeSoftwareFactoryStore } from "./softwareFactoryStore.ts";
 
 export type SoftwareFactoryReleaseChannel = "landing_page" | "short_video" | "store_listing" | "creative_pack" | "email_draft" | "social_draft";
 export type SoftwareFactoryReleaseStatus = "draft" | "ready" | "review" | "scheduled" | "complete";

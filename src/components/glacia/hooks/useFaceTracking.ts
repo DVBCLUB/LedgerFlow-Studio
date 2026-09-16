@@ -15,8 +15,8 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { faceTrackingService, FaceTrackingService, FaceDetection } from '../services/faceTrackingService';
-import { avatarManager } from '../services/avatarService';
-import { AvatarEmotion, AvatarState } from '../services/avatarService';
+import { avatarManager, AvatarState } from '../services/avatarService';
+import { AvatarEmotion } from '../../../../core/types/glaciaAvatar';
 import { HeadPose, FacialExpression, EyeTracking, MouthTracking, FaceTrackingState, FaceTrackingOptions } from '../services/faceTrackingService';
 
 // ============================================================================
@@ -455,5 +455,3 @@ export function useFaceTracking(options: UseFaceTrackingOptions = {}): UseFaceTr
 // ============================================================================
 
 export default useFaceTracking;
-
-export type { UseFaceTrackingReturn, UseFaceTrackingOptions };

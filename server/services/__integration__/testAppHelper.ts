@@ -15,6 +15,7 @@ import { registerConnectorIntegrationRoutes } from '../connectorIntegrationRoute
 import { registerMediaContentRoutes } from '../mediaContentRoutes.ts';
 import { registerRevenueCommerceRoutes } from '../revenueCommerceRoutes.ts';
 import { registerPrivacyComplianceRoutes } from '../privacyComplianceRoutes.ts';
+import { registerCostDashboardRoutes } from '../costDashboardRoutes.ts';
 
 export function createTestApp() {
   const app = express();
@@ -28,6 +29,7 @@ export function createTestApp() {
   registerMediaContentRoutes(app);
   registerRevenueCommerceRoutes(app);
   registerPrivacyComplianceRoutes(app);
+  registerCostDashboardRoutes(app);
 
   return app;
 }

@@ -1,4 +1,5 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Cloud, Server, Terminal, CheckCircle2, DollarSign, Sparkles } from 'lucide-react';
 import { getIaCTemplates, generateIaC } from '../../utils/devopsApi';
 
 interface Template {
@@ -62,47 +63,115 @@ export default function IaCCloudArchitectPanel() {
   };
 
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#0284c722,#0369a122)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #0284c744' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🏗️ Infrastructure-as-Code (IaC) & Cloud Architecture Generator</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Terraform · Docker Compose · Kubernetes Helm · Cloudflare Workers · Prompt-to-Deploy</p>
-      </div>
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-sky-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-sky-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
+              <Cloud className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Kiến Trúc Đám Mây &amp; Hạ Tầng Dưới Dạng Mã Nguồn (IaC Engine)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                  Cloud Architect AI
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Terraform · Docker Compose · Kubernetes Helm · Cloudflare Workers · Prompt-to-Deploy.
+              </p>
+            </div>
+          </div>
 
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', padding: '1.25rem', border: '1px solid #334155' }}>
-        <h3 style={{ margin: '0 0 0.75rem', color: '#e2e8f0', fontSize: '1rem' }}>💬 Sinh hạ tầng từ mô tả tiếng Việt</h3>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              Tối Ưu Chi Phí Đám Mây $12/tháng
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Prompt Generator Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 p-5 backdrop-blur-xl shadow-xl flex flex-col gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-sky-400" />
+            <h2 className="text-sm font-black text-white">Sinh Hạ Tầng Tự Động Từ Mô Tả Tiếng Việt</h2>
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Mô tả yêu cầu hệ thống, AI sẽ tự động sinh file Terraform / Docker Compose chuẩn bảo mật.
+          </p>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <input
+            type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="VD: Triển khai cụm VPS 2 node có LiteLLM load balancer và backup S3 hàng ngày..."
-            style={{ flex: 1, background: '#0f172a', color: '#e2e8f0', border: '1px solid #475569', borderRadius: '0.5rem', padding: '0.625rem 1rem', fontSize: '0.875rem' }}
+            className="flex-1 px-4 py-2.5 bg-slate-950/80 border border-slate-700/80 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 transition-colors"
           />
-          <button onClick={handleGenerate} style={{ background: '#0284c7', color: '#fff', border: 'none', borderRadius: '0.5rem', padding: '0.625rem 1.25rem', cursor: 'pointer', fontWeight: 600 }}>
-            🚀 Generate IaC
+          <button
+            type="button"
+            onClick={handleGenerate}
+            className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-2xl font-black text-xs bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white shadow-lg shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap"
+          >
+            <Terminal className="w-3.5 h-3.5" />
+            <span>🚀 Sinh Bản Vẽ IaC</span>
           </button>
         </div>
+
         {generatedOutput && (
-          <div style={{ marginTop: '1rem', background: '#0f172a', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #0284c744' }}>
-            <pre style={{ margin: 0, color: '#38bdf8', fontSize: '0.8rem', fontFamily: 'monospace' }}>{generatedOutput}</pre>
+          <div className="rounded-2xl border border-sky-500/30 bg-slate-950/90 p-4 overflow-hidden">
+            <div className="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2 text-sky-400 text-xs font-mono font-bold">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>Mã Nguồn Hạ Tầng Đã Khởi Tạo Thành Công</span>
+              </div>
+              <span className="text-[10px] font-mono text-slate-500">Ready to apply</span>
+            </div>
+            <pre className="font-mono text-xs text-sky-300 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+              {generatedOutput}
+            </pre>
           </div>
         )}
       </div>
 
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>📦 Best-Practice Blueprint Templates</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1rem', padding: '1.25rem' }}>
+      {/* Blueprint Templates Grid */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="p-4 sm:p-5 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Server className="w-4 h-4 text-sky-400" />
+            <h2 className="text-sm font-black text-white">Mẫu Kiến Trúc Hạ Tầng Chuẩn Hóa (Best-Practice Blueprints)</h2>
+          </div>
+          <span className="text-xs text-slate-500 font-mono">Cost-Optimized</span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 sm:p-5">
           {templates.map((tpl) => (
-            <div key={tpl.id} style={{ background: '#0f172a', borderRadius: '0.5rem', padding: '1rem', border: '1px solid #334155', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                  <span style={{ fontSize: '0.75rem', background: '#0284c722', color: '#38bdf8', padding: '0.2rem 0.5rem', borderRadius: '0.25rem', fontWeight: 600 }}>{tpl.category}</span>
-                  <span style={{ fontSize: '0.85rem', color: '#34d399', fontWeight: 700 }}>~${tpl.estimatedMonthlyCostUsd}/tháng</span>
+            <div
+              key={tpl.id}
+              className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4.5 flex flex-col justify-between gap-4 hover:border-sky-500/30 transition-colors"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-300 border border-sky-500/20">
+                    {tpl.category}
+                  </span>
+                  <span className="flex items-center gap-1 text-xs font-mono font-bold text-emerald-400">
+                    <DollarSign className="w-3.5 h-3.5" />
+                    ~${tpl.estimatedMonthlyCostUsd}/tháng
+                  </span>
                 </div>
-                <h4 style={{ margin: '0 0 0.5rem', color: '#e2e8f0', fontSize: '0.9rem' }}>{tpl.name}</h4>
-                <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.8rem' }}>{tpl.description}</p>
+                <h3 className="text-sm font-bold text-white leading-snug">{tpl.name}</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">{tpl.description}</p>
               </div>
-              <div style={{ marginTop: '1rem' }}>
-                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Provider: {tpl.cloudProvider}</span>
+
+              <div className="pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-500">
+                <span>Nền tảng: <strong className="text-slate-400">{tpl.cloudProvider}</strong></span>
+                <span className="text-sky-400 font-mono">100% IAC</span>
               </div>
             </div>
           ))}

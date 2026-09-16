@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Bot, Shield, ShieldCheck, ShieldAlert, Globe, Clock, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { getRobotSessions, WebRobotSession } from '../../utils/enterpriseApi';
 
 const MOCK: WebRobotSession[] = [
@@ -15,40 +16,96 @@ export default function WebRobotSessionGuardPanel() {
     }).catch(() => {});
   }, []);
 
-  const statusColor = (s: string) => (s === 'HEALTHY' ? '#34d399' : s === 'NEEDS_REFRESH' ? '#fbbf24' : '#f87171');
-
   return (
-    <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-      <div style={{ background: 'linear-gradient(135deg,#064e3b22,#05966922)', borderRadius: '1rem', padding: '1.5rem', border: '1px solid #05966944' }}>
-        <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700, color: '#e2e8f0' }}>🤖 Web Robot Session Guard</h2>
-        <p style={{ margin: '0.25rem 0 0', color: '#94a3b8', fontSize: '0.875rem' }}>Giám sát phiên đăng nhập web automation · Tự động phát hiện cookie hết hạn · Keep-alive định kỳ</p>
-      </div>
-      <div style={{ background: '#1e293b', borderRadius: '0.75rem', border: '1px solid #334155', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #334155', fontWeight: 600, color: '#e2e8f0' }}>🛡️ Robot Sessions ({sessions.length})</div>
-        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-          <thead>
-            <tr style={{ color: '#64748b', textAlign: 'left' }}>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Robot</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Target URL</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Status</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Cookie Expiry</th>
-              <th style={{ padding: '0.75rem 1rem', borderBottom: '1px solid #334155' }}>Last Keep-Alive</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.map((s) => (
-              <tr key={s.id} style={{ borderBottom: '1px solid #1e293b' }}>
-                <td style={{ padding: '0.75rem 1rem', color: '#e2e8f0', fontWeight: 600 }}>{s.robotName}</td>
-                <td style={{ padding: '0.75rem 1rem', color: '#60a5fa' }}><code>{s.targetWebUrl}</code></td>
-                <td style={{ padding: '0.75rem 1rem' }}>
-                  <span style={{ color: statusColor(s.sessionStatus), fontWeight: 600, fontSize: '0.8rem' }}>{s.sessionStatus}</span>
-                </td>
-                <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>{s.cookieExpiryDays} ngày</td>
-                <td style={{ padding: '0.75rem 1rem', color: '#94a3b8' }}>{new Date(s.lastKeepAliveAt).toLocaleString()}</td>
+    <div className="space-y-6 text-left animate-fade-in select-none">
+      {/* Header Banner */}
+      <section className="relative overflow-hidden rounded-3xl border border-emerald-500/20 bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950/40 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between relative z-10">
+          <div className="flex items-center gap-3.5">
+            <div className="h-11 w-11 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0">
+              <Bot className="h-6 w-6 animate-pulse" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-black tracking-tight text-white">Giám Sát Phiên Web Automation Robot (Session Guard)</h1>
+                <span className="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Keep-Alive Engine
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                Giám sát phiên đăng nhập web automation — Tự động phát hiện cookie sắp hết hạn và duy trì keep-alive định kỳ.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-300 border border-emerald-500/20">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              {sessions.length} Robot Đang Giám Sát
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Sessions Table Card */}
+      <div className="rounded-3xl border border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-xl overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-800/80 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-emerald-400" />
+            <h2 className="text-xs font-black uppercase tracking-wider text-slate-200">
+              Danh Sách Phiên Đăng Nhập Tự Động ({sessions.length})
+            </h2>
+          </div>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs">
+            <thead>
+              <tr className="border-b border-slate-800 bg-slate-950/40 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <th className="px-5 py-3.5">Tên Robot</th>
+                <th className="px-5 py-3.5">Trang Đích (Target URL)</th>
+                <th className="px-5 py-3.5">Trạng Thái Phiên</th>
+                <th className="px-5 py-3.5">Hạn Cookie</th>
+                <th className="px-5 py-3.5 text-right">Keep-Alive Gần Nhất</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60">
+              {sessions.map((s) => {
+                const isHealthy = s.sessionStatus === 'HEALTHY';
+                const isWarning = s.sessionStatus === 'NEEDS_REFRESH';
+                return (
+                  <tr key={s.id} className="hover:bg-slate-800/30 transition-colors">
+                    <td className="px-5 py-3.5 font-bold text-white flex items-center gap-2">
+                      <Bot className="w-4 h-4 text-slate-400" />
+                      {s.robotName}
+                    </td>
+                    <td className="px-5 py-3.5 text-cyan-400 font-mono text-[11px]">
+                      {s.targetWebUrl}
+                    </td>
+                    <td className="px-5 py-3.5">
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                        isHealthy
+                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                          : isWarning
+                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/20'
+                          : 'bg-rose-500/10 text-rose-300 border-rose-500/20'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${isHealthy ? 'bg-emerald-400' : isWarning ? 'bg-amber-400' : 'bg-rose-400'}`} />
+                        {s.sessionStatus}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 text-slate-300 font-medium font-mono">
+                      {s.cookieExpiryDays} ngày
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-slate-400 font-mono text-[11px]">
+                      {new Date(s.lastKeepAliveAt).toLocaleString('vi-VN')}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

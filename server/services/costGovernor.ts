@@ -9,7 +9,7 @@
  * và cho phép xem trạng thái chi tiêu hiện tại.
  */
 
-import { getSnapshot, getAgentBudget, type AgentBudget } from './costObservability.ts';
+import { getSnapshot, getAgentBudget, getDailyCosts, type AgentBudget } from './costObservability.ts';
 import fs from 'node:fs';
 import { ensureRuntimeRootSync, resolveRuntimePathFromEnv, resolveRuntimeReadPathFromEnv } from './runtimePaths.ts';
 
@@ -145,3 +145,124 @@ export function getGovernanceStatus(): GovernanceStatus {
     budgets: snapshot.budgets,
   };
 }
+
+export type RoutingTier = 'tier_free_local' | 'tier_cheap' | 'tier_balanced' | 'tier_flagship';
+
+export interface TierDowngradeResult {
+  tier: RoutingTier;
+  downgraded: boolean;
+  reason?: string;
+  spentUsd: number;
+  capUsd: number;
+  usagePct: number;
+  /** Số ngày còn lại trong chu kỳ ngân sách */
+  daysRemaining?: number;
+  /** Tốc độ tiêu thụ trung bình mỗi ngày (USD) */
+  dailyBurnRate?: number;
+  /** Số ngày ước tính còn lại trước khi hết ngân sách */
+  estimatedDaysToExhaustion?: number;
+}
+
+/**
+ * Tự động hạ bậc model khi ngân sách tiệm cận hạn mức (Graceful degradation)
+ * Thay vì ngắt cứng, hệ thống tự hạ từ flagship -> balanced -> cheap -> free local.
+ * Phiên bản nâng cấp: tính toán daily burn rate và dự báo exhaustion.
+ */
+export function evaluateBudgetTierDowngrade(requestedTier: RoutingTier): TierDowngradeResult {
+  const cfg = loadConfig();
+  const snapshot = getSnapshot(30);
+  const spent = snapshot.totalCostUsd;
+  const cap = cfg.monthlyCapUsd;
+
+  // Tính daily burn rate từ 7 ngày gần nhất
+  const dailyCosts = getDailyCosts(7);
+  const dailyBurnRate = dailyCosts.length > 0
+    ? dailyCosts.reduce((sum, d) => sum + d.cost, 0) / dailyCosts.length
+    : 0;
+
+  const daysInCycle = 30;
+  const daysElapsed = dailyCosts.length; // approximate
+  const daysRemaining = Math.max(0, daysInCycle - daysElapsed);
+  const remainingBudget = cap - spent;
+  const estimatedDaysToExhaustion = dailyBurnRate > 0
+    ? Math.round(remainingBudget / dailyBurnRate)
+    : 999;
+
+  if (!cfg.enabled || cap <= 0) {
+    return {
+      tier: requestedTier, downgraded: false, spentUsd: spent, capUsd: cap, usagePct: 0,
+      daysRemaining, dailyBurnRate, estimatedDaysToExhaustion,
+    };
+  }
+
+  const usagePct = (spent / cap) * 100;
+
+  // >= 95% cap: Hạ xuống Tier Rẻ / Free Local
+  if (usagePct >= 95) {
+    if (requestedTier === 'tier_flagship' || requestedTier === 'tier_balanced') {
+      return {
+        tier: 'tier_cheap',
+        downgraded: true,
+        reason: `Budget alert: Đã chạm ${usagePct.toFixed(1)}% ngân sách ($${spent.toFixed(2)}/$${cap}). Tự động hạ cấp sang tier_cheap. Burn rate: $${dailyBurnRate.toFixed(2)}/ngày.`,
+        spentUsd: spent,
+        capUsd: cap,
+        usagePct,
+        daysRemaining,
+        dailyBurnRate,
+        estimatedDaysToExhaustion,
+      };
+    }
+  }
+
+  // >= 80% cap: Hạ 1 bậc từ flagship -> balanced
+  if (usagePct >= cfg.alertThresholdPct) {
+    if (requestedTier === 'tier_flagship') {
+      return {
+        tier: 'tier_balanced',
+        downgraded: true,
+        reason: `Budget alert: Đạt ${usagePct.toFixed(1)}% ngưỡng cảnh báo ($${spent.toFixed(2)}/$${cap}). Hạ cấp từ flagship sang balanced.`,
+        spentUsd: spent,
+        capUsd: cap,
+        usagePct,
+        daysRemaining,
+        dailyBurnRate,
+        estimatedDaysToExhaustion,
+      };
+    }
+    // Hạ balanced -> cheap khi gần exhaustion
+    if (requestedTier === 'tier_balanced' && estimatedDaysToExhaustion < 3) {
+      return {
+        tier: 'tier_cheap',
+        downgraded: true,
+        reason: `Budget alert: Chỉ còn ~${estimatedDaysToExhaustion} ngày trước khi hết ngân sách ($${spent.toFixed(2)}/$${cap}). Hạ từ balanced xuống cheap để kéo dài.`,
+        spentUsd: spent,
+        capUsd: cap,
+        usagePct,
+        daysRemaining,
+        dailyBurnRate,
+        estimatedDaysToExhaustion,
+      };
+    }
+  }
+
+  // >= 60%: Hạ cheap -> free_local khi burn rate cao
+  if (usagePct >= 60 && estimatedDaysToExhaustion < 5 && requestedTier === 'tier_cheap') {
+    return {
+      tier: 'tier_free_local',
+      downgraded: true,
+      reason: `Budget alert: Burn rate $${dailyBurnRate.toFixed(2)}/ngày sẽ cạn kiệt trong ${estimatedDaysToExhaustion} ngày. Hạ từ cheap xuống free_local.`,
+      spentUsd: spent,
+      capUsd: cap,
+      usagePct,
+      daysRemaining,
+      dailyBurnRate,
+      estimatedDaysToExhaustion,
+    };
+  }
+
+  return {
+    tier: requestedTier, downgraded: false, spentUsd: spent, capUsd: cap, usagePct,
+    daysRemaining, dailyBurnRate, estimatedDaysToExhaustion,
+  };
+}
+

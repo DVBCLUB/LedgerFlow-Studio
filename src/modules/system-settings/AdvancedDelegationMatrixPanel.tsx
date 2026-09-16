@@ -60,11 +60,11 @@ export default function AdvancedDelegationMatrixPanel() {
         fetch('/api/delegation/constitutional/invariants').then((r) => r.json()),
       ]);
 
-      if (rolesRes.success) setRoles(rolesRes.roles);
-      if (healthRes.success) setHealthScores(healthRes.scores);
+      if (rolesRes.success) setRoles(rolesRes.permissions || []);
+      if (healthRes.success) setHealthScores(healthRes.healthScores || []);
       if (ledgerRes.success) {
-        setLedgerEntries(ledgerRes.entries || []);
-        setIsChainValid(ledgerRes.isChainValid !== false);
+        setLedgerEntries(ledgerRes.ledger?.entries || []);
+        setIsChainValid(ledgerRes.ledger?.isChainValid !== false);
       }
       if (approvalsRes.success) setApprovals(approvalsRes.requests || []);
       if (raciRes.success) setRaciMatrix(raciRes.raci || []);

@@ -4,9 +4,24 @@ This repository is being evolved into a lightweight **software company operating
 
 Use this file as the first stop for ChatGPT, Claude, Gemini, Copilot, Cursor, or any future AI coding agent.
 
+> ⚠️ **BẮT BUỘC đọc trước khi code:**
+> 1. `docs/GLACIA_ULTIMATE_EVOLUTION_MASTER_PLAN.md` — Kế hoạch tối thượng tiến hóa Glacia thành Robot Phần mềm Tự trị đỉnh cao
+> 2. `docs/AI_CONSISTENCY_PROTOCOL.md` — Giao thức nhất quán giữa các AI (cấm xóa code AI khác, quy trình chuẩn, handoff)
+> 3. `docs/GLACIA_STANDARDS.md` — Định nghĩa Glacia, danh sách component cấm xóa/đổi tên
+> 4. `docs/AI_AGENT_PLAYBOOK.md` — Hướng dẫn chi tiết theo từng tác vụ
+
 ## Core rule
 
 Do not rebuild the project from scratch. Make small, reviewable changes on top of the current codebase.
+
+### Golden Rule (Quy tắc Vàng):
+- **ƯU TIÊN BẢN WINDOWS & LUÔN ĐÓNG GÓI DESKTOP**: Mọi lần code, cải tiến, sửa chữa PHẢI ưu tiên chạy trên Windows Desktop và **BẮT BUỘC chạy đóng gói `npm run desktop:pack`** để cập nhật file chạy `release\win-unpacked\LedgerFlow Hub.exe`.
+- **TÀI KHOẢN OWNER DUY NHẤT**: Luôn ghi nhớ và chỉ sử dụng email **`davidbao1704@gmail.com`** (mật khẩu: `admin123`). Tuyệt đối KHÔNG đăng nhập bằng các email demo cũ.
+- **KHÔNG xóa code của AI khác** — Code có thể do AI khác tạo ra với mục đích cụ thể
+- **KHÔNG đổi tên file/component/biến** — Trừ khi người dùng yêu cầu
+- **Thay đổi NHỎ** — Tối đa 3-5 file mỗi lần
+- **LUÔN chạy build** — `npm run build` và `npm run desktop:pack` trước và sau khi thay đổi
+- **GHI handoff note** — Cho AI tiếp theo biết đã làm gì
 
 ### Mandatory Wiring Rule (Bắt buộc Đấu nối Mã nguồn):
 Mọi thay đổi frontend hoặc nâng cấp module **PHẢI được nối trực tiếp vào giao diện hiển thị** (Vấn đề routing, WorkspaceRenderer, App UI) và **nối vào backend service/API tương ứng**. Tuyệt đối KHÔNG để mã nguồn bị "ngủ quên", tạo ra mà không được import, không có nút gọi trên UI hoặc bị bỏ quên trong dự án.

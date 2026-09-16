@@ -15,6 +15,9 @@ interface WorkspaceSubNavigationProps<T extends string = string> {
   onChange: (id: T) => void;
   title?: string;
   eyebrow?: string;
+  onToggleAdvanced?: () => void;
+  showAdvanced?: boolean;
+  advancedCount?: number;
 }
 
 // INTEGRATED_HUB_LABELS — maps route ids to user-facing hub labels.
@@ -35,36 +38,39 @@ const WorkspaceSubNavigation = React.memo(function WorkspaceSubNavigation<T exte
   onChange,
   title,
   eyebrow,
+  onToggleAdvanced,
+  showAdvanced,
+  advancedCount,
 }: WorkspaceSubNavigationProps<T>) {
   return (
     <header
-      className="rounded-2xl relative overflow-hidden"
+      className="rounded-2xl relative overflow-hidden backdrop-blur-xl transition-all duration-300"
       style={{
-        background: 'rgba(255,255,255,0.02)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
+        background: 'linear-gradient(180deg, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.65) 100%)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.45)',
       }}
     >
-      {/* Ambient glow */}
-      <div className="absolute right-0 top-0 -mt-10 -mr-10 w-40 h-40 rounded-full pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)' }} />
+      {/* Ambient top glow */}
+      <div
+        className="absolute -top-12 left-1/4 w-96 h-24 rounded-full pointer-events-none opacity-40 blur-2xl"
+        style={{ background: 'radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%)' }}
+      />
 
       {/* Title row */}
       {title && (
-        <div className="px-5 pt-4 pb-3">
-          {eyebrow && (
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-400 mb-1">{eyebrow}</p>
-          )}
-          <h2 className="text-lg font-black text-white">{title}</h2>
+        <div className="px-5 pt-4 pb-2.5 flex items-center justify-between border-b border-white/[0.06]">
+          <div>
+            {eyebrow && (
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-indigo-400 mb-0.5">{eyebrow}</p>
+            )}
+            <h2 className="text-base font-bold text-white tracking-tight">{title}</h2>
+          </div>
         </div>
       )}
 
       {/* Tab bar — responsive flex wrap with horizontal overflow safety */}
-      <div
-        className="flex flex-wrap items-center gap-1 p-1.5 max-w-full overflow-x-auto"
-        style={{
-          borderTop: title ? '1px solid rgba(255,255,255,0.05)' : 'none',
-        }}
-      >
+      <div className="flex flex-wrap items-center gap-1.5 p-2 max-w-full overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -79,32 +85,43 @@ const WorkspaceSubNavigation = React.memo(function WorkspaceSubNavigation<T exte
               type="button"
               onClick={() => onChange(tab.id)}
               title={hub ? `${displayLabel} — ${tab.label}` : tab.label}
-              className={`relative flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-xs font-bold whitespace-nowrap cursor-pointer transition-all rounded-xl select-none group ${
+              className={`relative flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2 text-[11px] sm:text-xs font-semibold whitespace-nowrap cursor-pointer transition-all duration-200 rounded-xl select-none group ${
                 isActive
-                  ? 'bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 shadow-sm shadow-indigo-500/10'
-                  : 'text-text-secondary hover:text-text-primary hover:bg-white/5 border border-transparent'
+                  ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white border border-indigo-500/40 shadow-sm shadow-indigo-500/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-white/[0.04] border border-transparent'
               }`}
             >
               {Icon && (
                 <Icon
-                  className="w-3.5 h-3.5 shrink-0"
-                  style={{ color: isActive ? '#818cf8' : 'inherit' }}
+                  className={`w-3.5 h-3.5 shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+                    isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-300'
+                  }`}
                 />
               )}
               <span>{displayLabel}</span>
               {displayBadge && (
-                <span className={`px-1.5 py-0.5 rounded text-[8px] font-black ${displayBadgeColor || 'bg-indigo-500/10 text-indigo-400'}`}>
+                <span className={`px-1.5 py-0.5 rounded-md text-[9px] font-bold ${displayBadgeColor || 'bg-indigo-500/15 text-indigo-300'}`}>
                   {displayBadge}
                 </span>
               )}
 
               {/* Active indicator dot */}
               {isActive && (
-                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse ml-0.5" />
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 shadow-[0_0_8px_rgba(129,140,248,0.8)] ml-0.5 animate-pulse" />
               )}
             </button>
           );
         })}
+
+        {Boolean(advancedCount && advancedCount > 0 && onToggleAdvanced) && (
+          <button
+            type="button"
+            onClick={onToggleAdvanced}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold rounded-xl text-slate-400 hover:text-indigo-300 hover:bg-indigo-500/10 border border-slate-700/60 hover:border-indigo-500/30 transition-all duration-200 ml-auto cursor-pointer select-none"
+          >
+            <span>{showAdvanced ? '▴ Thu gọn' : `▾ +${advancedCount} Nâng cao`}</span>
+          </button>
+        )}
       </div>
     </header>
   );

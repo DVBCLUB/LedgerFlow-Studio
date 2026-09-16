@@ -17,22 +17,27 @@
 import type { Express } from 'express';
 import { registerAgentLoopRoutes } from './agentLoopRoutes.ts';
 import { registerGovernanceSecurityRoutes } from './governanceSecurityRoutes.ts';
-import { registerRobotAutomationRoutes } from './robotAutomationRoutes.ts';
+import { registerAutonomousRuntimeRoutes } from './autonomousRuntimeRoutes.ts';
+import { registerRobotAutomationRoutes, registerStealthIntelligenceRoutes } from './robotAutomationRoutes.ts';
 import { registerAiWorkforceRoutes } from './aiWorkforceRoutes.ts';
 import { registerConnectorIntegrationRoutes } from './connectorIntegrationRoutes.ts';
 import { registerMediaContentRoutes } from './mediaContentRoutes.ts';
 import { registerRevenueCommerceRoutes } from './revenueCommerceRoutes.ts';
 import { registerPrivacyComplianceRoutes } from './privacyComplianceRoutes.ts';
+import { registerCostDashboardRoutes } from './costDashboardRoutes.ts';
 
 export function registerAgentSystemRoutes(app: Express): void {
   registerAgentLoopRoutes(app);
   registerGovernanceSecurityRoutes(app);
+  registerAutonomousRuntimeRoutes(app);
   registerRobotAutomationRoutes(app);
+  registerStealthIntelligenceRoutes(app);
   registerAiWorkforceRoutes(app);
   registerConnectorIntegrationRoutes(app);
   registerMediaContentRoutes(app);
   registerRevenueCommerceRoutes(app);
   registerPrivacyComplianceRoutes(app);
+  registerCostDashboardRoutes(app);
 
-  console.log('✅ Agent system routes registered (8 decoupled domain sub-routers active)');
+  console.log('✅ Agent system routes registered (11 decoupled domain sub-routers active)');
 }
